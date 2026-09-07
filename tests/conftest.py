@@ -20,6 +20,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SUBJECTS = REPO_ROOT / "subjects"
 CREDIT_DEFAULT = SUBJECTS / "credit_default"
+MSR_PREPAYMENT = SUBJECTS / "msr_prepayment"
 
 
 def load_module(alias: str, path: Path) -> ModuleType:
@@ -52,3 +53,48 @@ def credit_features(credit_synthetic: ModuleType) -> ModuleType:
 def credit_sample() -> ModuleType:
     """`subjects/credit_default/sample.py`, covered for argument handling only."""
     return load_module("credit_default_subject_sample", CREDIT_DEFAULT / "sample.py")
+
+
+@pytest.fixture(scope="session")
+def msr_synthetic() -> ModuleType:
+    """`subjects/msr_prepayment/synthetic.py`, which re-exports the generating process."""
+    return load_module("msr_prepayment_subject_synthetic", MSR_PREPAYMENT / "synthetic.py")
+
+
+@pytest.fixture(scope="session")
+def msr_features(msr_synthetic: ModuleType) -> ModuleType:
+    """`subjects/msr_prepayment/code/features.py`: the panel, the splits, the spline, the screen."""
+    module = msr_synthetic.load_code_module("features")
+    assert isinstance(module, ModuleType)
+    return module
+
+
+@pytest.fixture(scope="session")
+def msr_process(msr_synthetic: ModuleType) -> ModuleType:
+    """`subjects/msr_prepayment/code/synthetic.py`: the generating process, in full."""
+    module = msr_synthetic.load_code_module("synthetic")
+    assert isinstance(module, ModuleType)
+    return module
+
+
+@pytest.fixture(scope="session")
+def msr_projection(msr_synthetic: ModuleType) -> ModuleType:
+    """`subjects/msr_prepayment/code/projection.py`: the rate-shock roll-forward."""
+    module = msr_synthetic.load_code_module("projection")
+    assert isinstance(module, ModuleType)
+    return module
+
+
+@pytest.fixture(scope="session")
+def msr_run() -> ModuleType:
+    """`subjects/msr_prepayment/code/run.py`: the entrypoint, for its declarations and helpers."""
+    synthetic = load_module("msr_prepayment_subject_synthetic", MSR_PREPAYMENT / "synthetic.py")
+    module = synthetic.load_code_module("run")
+    assert isinstance(module, ModuleType)
+    return module
+
+
+@pytest.fixture(scope="session")
+def msr_sample() -> ModuleType:
+    """`subjects/msr_prepayment/sample_freddie.py`, covered for arguments and the column map."""
+    return load_module("msr_prepayment_subject_sample", MSR_PREPAYMENT / "sample_freddie.py")

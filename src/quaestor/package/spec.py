@@ -20,6 +20,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 __all__ = [
+    "ConvexityExpectation",
     "DataSpec",
     "DeveloperClaim",
     "Feature",
@@ -220,18 +221,58 @@ class DeveloperClaim(BaseModel):
     value: float
 
 
+class ConvexityExpectation(StrEnum):
+    """Which way the developer says the projected value curve bends. Hazard packages only.
+
+    Spec section 3.7's ``X1`` rule fires when the projection's sign pattern is "inconsistent with
+    declared convexity expectation", which presupposes a declaration; this is it.
+
+    Attributes:
+        negative: Value falls further under the down shock than it rises under the up shock, which
+            is what a mortgage-servicing right does: the borrower's prepayment option is worth
+            more as rates fall.
+        positive: Value rises further under the up shock than it falls under the down shock.
+    """
+
+    negative = "negative"
+    positive = "positive"
+
+
 class ScenariosSpec(BaseModel):
-    """The rate shocks a hazard subject projects under. Hazard packages only.
+    """The rate shocks a hazard subject projects under, and how it values them. Hazard only.
+
+    The last three fields are additions to spec section 3.2's block, decided in Cowork before
+    Phase 4 (DECISIONS D-037): spec section 4.2 requires the projection to report "the servicing
+    value change per shock from a declared servicing fee", which needs a fee and a discount rate,
+    and ``X1`` needs the expectation it compares the realised sign pattern with. All three are
+    required rather than defaulted, because a threshold rule that silently supplies its own
+    declaration is not a developer declaration.
 
     Attributes:
         rate_shocks_bp: Parallel shocks in basis points, including ``0`` for the base case.
         horizon_months: How far the projection runs.
+        servicing_fee_bp: The annual servicing fee, in basis points on the surviving balance.
+        discount_rate_annual: The annual rate the servicing cash flows are discounted at.
+        convexity_expectation: Which way the value curve is expected to bend.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     rate_shocks_bp: list[int] = Field(min_length=1)
     horizon_months: int = Field(gt=0)
+    servicing_fee_bp: float = Field(gt=0.0)
+    discount_rate_annual: float = Field(gt=0.0)
+    convexity_expectation: ConvexityExpectation
+
+    @model_validator(mode="after")
+    def _has_a_base_case(self) -> ScenariosSpec:
+        """Insist on the unshocked case, which every value change is measured against."""
+        if 0 not in self.rate_shocks_bp:
+            raise ValueError(
+                f"scenarios.rate_shocks_bp is {self.rate_shocks_bp} and does not include 0; the "
+                "base case is what every value change is stated relative to"
+            )
+        return self
 
 
 class RuntimeSpec(BaseModel):

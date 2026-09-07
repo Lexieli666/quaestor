@@ -2,10 +2,10 @@
 
 Spec section 3.2's acceptance list is the spine of this module: malformed YAML names the field, a
 manifest hash mismatch raises `PackageError` naming the file, both shipped packages load, and a
-package with an `after_outcome` feature yields a pre-run finding candidate. The hazard subject
-`subjects/msr_prepayment` arrives in Phase 4, so "both shipped subjects" is `credit_default` plus
-the hazard fixture, which is what exercises `regime`, `scenarios`, `out_of_time` and
-`vintage_holdout`.
+package with an `after_outcome` feature yields a pre-run finding candidate. Both shipped
+subjects load here -- `credit_default` and, from Phase 4, `msr_prepayment` -- along with the
+hazard fixture, which is the package that still exercises the loader when a subject's own
+`package.yaml` changes.
 
 The `SEED.yaml` test is the one that protects the study: a variant package carries the answer key
 beside `package.yaml`, and a pipeline that could read it would be measuring nothing.
@@ -22,10 +22,11 @@ import yaml
 from pydantic import ValidationError
 
 from quaestor import DefectClass, PackageError, load_package
-from quaestor.package import FeatureTiming, ModelType, PackageSpec
+from quaestor.package import ConvexityExpectation, FeatureTiming, ModelType, PackageSpec
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CREDIT = REPO_ROOT / "subjects" / "credit_default"
+MSR = REPO_ROOT / "subjects" / "msr_prepayment"
 HAZARD = REPO_ROOT / "tests" / "fixtures" / "hazard_package"
 
 
@@ -79,8 +80,66 @@ def test_the_hazard_fixture_loads_with_every_hazard_field() -> None:
     assert spec.scenarios is not None
     assert spec.scenarios.rate_shocks_bp == [-300, -200, -100, 0, 100, 200, 300]
     assert spec.scenarios.horizon_months == 180
+    assert spec.scenarios.servicing_fee_bp == pytest.approx(25.0)
+    assert spec.scenarios.discount_rate_annual == pytest.approx(0.08)
+    assert spec.scenarios.convexity_expectation is ConvexityExpectation.negative
     assert spec.splits.names() == ["train", "test", "out_of_time", "vintage_holdout"]
     assert spec.claims[0].value == pytest.approx(0.68)
+
+
+def test_the_msr_prepayment_package_loads_with_the_scenarios_of_d037() -> None:
+    spec = load_package(MSR).spec
+    assert spec.name == "msr_prepayment"
+    assert spec.model_type is ModelType.discrete_time_hazard
+    assert spec.data.time_column == "period"
+    assert spec.data.id_column == "loan_id"
+    assert spec.regime.column == "rate_regime"
+    assert spec.splits.names() == ["train", "test", "out_of_time", "vintage_holdout"]
+    assert len(spec.features) == 12
+    assert spec.scenarios is not None
+    assert spec.scenarios.rate_shocks_bp == [-300, -200, -100, 0, 100, 200, 300]
+    assert spec.scenarios.horizon_months == 180
+    assert spec.scenarios.servicing_fee_bp == pytest.approx(25.0)
+    assert spec.scenarios.discount_rate_annual == pytest.approx(0.08)
+    assert spec.scenarios.convexity_expectation is ConvexityExpectation.negative
+    assert spec.claims == []
+
+
+def test_the_three_scenario_additions_are_required_not_defaulted(tmp_path: Path) -> None:
+    # D-037: a threshold rule that supplies its own declaration is not a developer declaration,
+    # so `X1` and the servicing valuation both fail loudly rather than inventing a number.
+    for field in ("servicing_fee_bp", "discount_rate_annual", "convexity_expectation"):
+
+        def mutate(raw: dict[str, object], field: str = field) -> None:
+            scenarios = raw["scenarios"]
+            assert isinstance(scenarios, dict)
+            del scenarios[field]
+
+        package_dir = edit(copy_package(MSR, tmp_path / field), mutate)
+        with pytest.raises(PackageError, match=f"scenarios.{field}"):
+            load_package(package_dir)
+
+
+def test_a_scenario_block_without_the_base_case_is_rejected(tmp_path: Path) -> None:
+    def mutate(raw: dict[str, object]) -> None:
+        scenarios = raw["scenarios"]
+        assert isinstance(scenarios, dict)
+        scenarios["rate_shocks_bp"] = [-100, 100]
+
+    package_dir = edit(copy_package(MSR, tmp_path), mutate)
+    with pytest.raises(PackageError, match="does not include 0"):
+        load_package(package_dir)
+
+
+def test_an_unknown_convexity_expectation_is_rejected(tmp_path: Path) -> None:
+    def mutate(raw: dict[str, object]) -> None:
+        scenarios = raw["scenarios"]
+        assert isinstance(scenarios, dict)
+        scenarios["convexity_expectation"] = "sideways"
+
+    package_dir = edit(copy_package(MSR, tmp_path), mutate)
+    with pytest.raises(PackageError, match="convexity_expectation"):
+        load_package(package_dir)
 
 
 def test_a_package_can_be_addressed_by_its_yaml_file() -> None:
@@ -162,7 +221,15 @@ def test_a_hazard_package_without_a_time_column_is_rejected(tmp_path: Path) -> N
 def test_scenarios_on_a_classifier_are_rejected(tmp_path: Path) -> None:
     package_dir = edit(
         copy_package(CREDIT, tmp_path),
-        lambda raw: raw.update(scenarios={"rate_shocks_bp": [0], "horizon_months": 12}),
+        lambda raw: raw.update(
+            scenarios={
+                "rate_shocks_bp": [0],
+                "horizon_months": 12,
+                "servicing_fee_bp": 25,
+                "discount_rate_annual": 0.08,
+                "convexity_expectation": "negative",
+            }
+        ),
     )
     with pytest.raises(PackageError, match="discrete_time_hazard package only"):
         load_package(package_dir)
@@ -314,9 +381,12 @@ def test_a_data_dir_that_is_not_a_directory_is_rejected(tmp_path: Path) -> None:
 
 
 def test_a_data_dir_without_a_manifest_verifies_nothing(tmp_path: Path) -> None:
+    # The hazard fixture declares `manifest: null`, so there is nothing to verify and `data_dir`
+    # stays unset. `credit_default` used to serve here and cannot any more: it declares the two
+    # digests of its committed real sample.
     data_dir = tmp_path / "data"
     data_dir.mkdir()
-    assert load_package(CREDIT, data_dir=data_dir).data_dir is None
+    assert load_package(HAZARD, data_dir=data_dir).data_dir is None
 
 
 # --- the pre-run L1 candidate ---------------------------------------------------------------------

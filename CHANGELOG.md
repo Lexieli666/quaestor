@@ -50,3 +50,33 @@ run that was not committed.
   event rate of 0.2246, a champion test AUC of 0.7480 and a challenger-minus-champion AUC gap of
   +0.0760 against the 0.03 effective-challenge threshold. `sample.py` needs no `xlrd` (D-027) and
   is never run by a test.
+- Phase 4 hazard subject: `subjects/msr_prepayment/` (`package.yaml` copied byte-for-byte from
+  the Cowork draft of 2026-09-07, `code/features.py`, `code/synthetic.py`, `code/projection.py`,
+  `code/run.py`, `synthetic.py`, `sample_freddie.py`, `README.md`) and its tests
+  (`tests/test_subject_msr_prepayment.py`, `tests/test_msr_sample_freddie.py`). The subject builds
+  a loan-month panel under one lagging rule with no exceptions — every raw value is a closing
+  value of the month it is labelled with, so every feature at month *t* is a function of month
+  *t − 1*'s closes and of *t*'s calendar position (D-038) — screens the twelve declared features
+  for multicollinearity (D-045), fits a logistic hazard with a hand-written natural cubic spline
+  basis on loan age (D-039), and writes `projection.json`: the surviving balance by month and the
+  present value of a declared servicing fee under each declared parallel rate shock (D-042). The
+  clean synthetic panel is the second control of the study and is expected to yield **no finding
+  at all**, the counterpart of D-017: 95,829 loan-months over 2,000 loans, champion test AUC
+  0.7753, challenger-minus-champion AUC gap −0.0415, and a value change of −1,297,986 at −300bp
+  against +168,055 at +300bp — the negative-convexity sign pattern, which is a property of the
+  process rather than a tuned number (D-040, D-047).
+
+### Changed
+
+- `ScenariosSpec` gains `servicing_fee_bp`, `discount_rate_annual` and `convexity_expectation`
+  (a new `ConvexityExpectation`), all required, and insists that `rate_shocks_bp` include the base
+  case. Spec §4.2 requires a declared servicing fee and §3.7's `X1` requires a declared convexity
+  expectation; the addition was decided in Cowork on 2026-09-07 before Phase 4 (D-037).
+  `tests/fixtures/hazard_package/package.yaml` declares the three new fields.
+
+### Fixed
+
+- `tests/test_package.py::test_a_data_dir_without_a_manifest_verifies_nothing` asserted on
+  `credit_default`, which gained a `data.manifest` when its real sample was committed, so the test
+  had been failing on `main`; it now uses the hazard fixture, which is the package that declares
+  no manifest.

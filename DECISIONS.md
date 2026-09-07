@@ -741,3 +741,304 @@ here and recorded.
   two regularised ones), which is what a control has to do. The margin is generous rather than
   tight for the same reason. Rejected alternative: tuning for a gap near the golden's illustrative
   0.0323, which optimises a number that was never a measurement.
+
+## D-037. `ScenariosSpec` gains a servicing fee, a discount rate and a convexity expectation
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** Spec §3.2's `scenarios` block carries only `rate_shocks_bp` and `horizon_months`, but
+  spec §4.2 requires the projection to report "the servicing value change per shock from a
+  declared servicing fee" and §3.7's `X1` fires when the realised sign pattern is "inconsistent
+  with declared convexity expectation". Neither declaration exists. May the block be extended
+  after Phase 1?
+- **A:** Yes, and it was decided in Cowork on 2026-09-07 before this phase began rather than
+  taken here: `ScenariosSpec` gains `servicing_fee_bp`, `discount_rate_annual` and
+  `convexity_expectation` (a `ConvexityExpectation` of `negative` or `positive`). All three are
+  **required**, not defaulted, and the block must include the `0` shock. The hazard fixture
+  `tests/fixtures/hazard_package/package.yaml` gains the same three lines.
+- **Why:** Spec §4.2 requires a declared servicing fee and `X1` requires a declared convexity
+  expectation, so both have to be somewhere a package can say them; `package.yaml` is where a
+  developer's declarations live and the alternative -- a threshold in `configs.py` -- would make
+  Quaestor's own default the thing the report verified against. Required rather than defaulted for
+  the same reason: a rule that silently supplies its own declaration is not checking a
+  declaration. The base-case check is there because every `value_change` is stated relative to
+  the `0` shock, and a `scenarios` block without it would divide by nothing. Rejected
+  alternative: putting the fee and the discount rate in the subject's `code/` alone, which is
+  where they in fact also live (D-043) but which no validator may read, so the report would be
+  quoting a number no declaration backs. `CLAUDE.md` makes a change to `package.yaml` after Phase
+  1 a stop-and-ask; the user's own Phase 4 prompt supplies the answer, and this entry records it.
+
+## D-038. Every raw value the hazard subject reads is a closing value of the month it is labelled with
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** Beginning-of-month lagging says a feature at month `t` uses the balance, age and burnout
+  at the close of month `t - 1` and "the rate at the start of month `t`". A month-start rate is
+  naturally labelled by the month whose start it is -- and then perturbing the raw rate of month
+  `t` changes month `t`'s own `incentive`, so the lagging rule has an exception and the leakage
+  screen cannot check it. Which labelling wins?
+- **A:** The closing one. The market-rate calendar column is `market_rate_close`, and
+  `market_rate_close[m]` is the rate at the **close** of month `m`, which is the rate a borrower
+  faces at the start of month `m + 1`: no time passes between them. From FRED's weekly
+  `MORTGAGE30US` the month-start rate of month `m` is the first observation of month `m` (which
+  is the convention spec §4.2 and the Phase 4 prompt fix), and it is stored under month `m - 1`.
+  So `incentive` at month `t` reads `market_rate_close[t - 1]` and `rate_change_12m` reads
+  `market_rate_close[t - 1] - market_rate_close[t - 13]`, exactly as the balance, the age and the
+  burnout read month `t - 1`. One rule, no exceptions.
+- **Why:** The rule is what the leakage screen tests, and a rule with an exception is a rule
+  nobody can test. A Freddie Mac performance row *is* the closing record of its month -- the
+  current actual UPB is a month-end balance, the zero-balance code is what happened during the
+  month -- so a market rate carried as a closing value is the only column in the schema that
+  agrees with the rest of it. The cost is one line of documentation wherever the calendar is
+  built, because a reader who looks up `2020-01` in `rates.csv` sees the print published in the
+  first week of `2020-02`. Rejected alternative: labelling the calendar by the month whose start
+  the rate stands at, which reads more naturally in isolation and makes `incentive` the one
+  feature at month `t` that is a function of a month-`t` raw value -- so the Phase 4 leakage test
+  could perturb the balance and the payoff and would have to leave the rate alone, which is the
+  one of the three most likely to be lagged wrongly in a real prepayment model.
+
+## D-039. The natural cubic spline basis is written out, not taken from `SplineTransformer`
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** Spec §4.2's champion is a "logistic hazard with age splines". scikit-learn ships
+  `SplineTransformer`. Why write a basis by hand?
+- **A:** `code/features.py` implements the natural cubic spline basis of Hastie, Tibshirani and
+  Friedman §5.2.1 in numpy: `N_1 = x` and `N_{k+1} = d_k - d_{K-1}` with
+  `d_k(x) = ((x - xi_k)_+^3 - (x - xi_K)_+^3) / (xi_K - xi_k)`, five knots at the 5th, 27.5th,
+  50th, 72.5th and 95th percentiles of the fitting split's `loan_age`, rounded to whole months.
+  On the clean synthetic panel that is knots at 1, 10, 19, 31 and 53 months and four basis
+  columns.
+- **Why:** `SplineTransformer` gives a B-spline basis with no natural boundary constraint, so the
+  fitted seasoning curve is a free cubic beyond the oldest loan age in the sample. The projection
+  runs 180 months forward from a book whose oldest loan is 60 months old, so it evaluates the
+  basis far outside the fitting range on every run; an unconstrained cubic there invents a
+  prepayment ramp, and the `X1` sign pattern would be reporting an extrapolation artefact. A
+  natural spline is linear outside its boundary knots, which is the assumption an MSR projection
+  should be making and can be tested (the second difference beyond the boundary is zero).
+  `CLAUDE.md`'s "statistics by hand where small" points the same way. Rejected alternative:
+  `SplineTransformer` with `extrapolation="linear"`, which is linear in the *transformed* columns
+  and not in the fitted function, and still leaves the basis's own boundary behaviour to a keyword
+  a reader of the report cannot see.
+
+## D-040. The projection's negative convexity is a property of the process, not a tuned number
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** The Phase 4 prompt asks that the base case sit where the incentive response is convex, so
+  that the projection's sign pattern is structural. Three things had to be arranged for that, and
+  the first attempt got the sign *backwards*. What are they?
+- **A:** (1) **The logistic is convex below zero.** The base-case monthly payoff rate is around
+  one per cent, a logit near -4.6, and the whole operating range of the hazard is below zero, so
+  a parallel fall in rates raises the hazard by more than the same parallel rise lowers it. This
+  needs no tuning: it is true of any small logistic hazard. (2) **A turnover floor.**
+  `turnover_floor` (0.0008 a month) is the share of borrowers who move whatever rates do, so the
+  hazard cannot fall below it and the up-shock's upside is bounded while the down-shock's downside
+  is not. (3) **The book must be out of the money at the valuation month.** A late level rise in
+  the rate path -- `rate_ramp_pp_per_year` 1.05 for two years from 2022-01, the real 2022-23 move
+  -- puts the surviving book 2 points out of the money in 2024-01.
+- **Why:** (3) was not foreseen and was found by measuring. Without the ramp every loan still
+  alive at the end of the panel carried a large *positive* incentive, the base-case CPR was 24.9%,
+  and the down shock could only take a value that was already running off fast to zero while the
+  up shock could take it all the way to a fully amortising annuity: value change **+871,718** at
+  +300bp against **-488,601** at -300bp, which is positive convexity and the wrong answer for a
+  servicing right. The arithmetic behind it: with `V ~ 1 / (delta + h)` for a monthly discount
+  `delta` and a monthly hazard `h`, the most the down shock can take is `V(0)` and the most the up
+  shock can add is `h_0 / (delta (delta + h_0))`, so `|down| > |up|` needs `h_0 < delta` -- the
+  base hazard below the monthly discount rate. A book at or out of the money satisfies it; a book
+  deep in the money does not. That is also the textbook statement of when a servicing right is
+  negatively convex, so the fix is the economics rather than a fudge. Rejected alternative:
+  raising `discount_rate_annual` until the inequality held, which would have made the declared
+  discount rate a knob for getting the sign right.
+
+## D-041. Originations are spread across each cohort year, not concentrated in one month
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** Three origination cohorts is what spec §4.2 and the Phase 4 prompt ask for. With all of
+  a cohort originating in one month, `loan_age` had a VIF of 242 on the training panel even after
+  the collinear balance pair was accounted for. Why?
+- **A:** Because calendar time is origination month plus loan age, and with three origination
+  months the rate features -- which are deterministic functions of the calendar -- nearly
+  determine the pair. Originations are therefore drawn uniformly over the twelve months of each
+  cohort year (`origination_months`), as the real Freddie Mac sample files are.
+- **Why:** That collinearity is a property of the *sampling design*, not of the model, and a
+  clean control that carries an `M1` because its three cohorts share a birthday is measuring the
+  generator. Spreading them is also what the real data does, so the synthetic panel and the real
+  panel have the same structure. Rejected alternative: raising `rate_noise_sd` to decorrelate the
+  calendar, which barely moved the VIFs (12.75 to 11.27 on `note_rate` as the noise tripled) and
+  buys the decorrelation with an implausibly jumpy mortgage-rate series.
+
+## D-042. The rate shock is parallel over the whole path, history included
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** A shock of -300bp shifts the rate path the projection uses. Does it shift only the months
+  after the valuation date, or the twelve months of history `rate_change_12m` also needs?
+- **A:** The whole path. `rate_change_12m` is therefore unaffected by the shock, and the shock
+  acts entirely through `incentive`.
+- **Why:** A rate shock on a servicing right acts through the refinance incentive; that is what
+  the shock is for. Shifting only the forward months turns a level shock into a level shock plus a
+  one-off twelve-month slope shock that decays over the first year, so the reported convexity
+  table would be describing two shocks at once and `X1` would be comparing a compound experiment
+  with a declaration about a parallel one. Recorded on the file itself as
+  `rate_path_assumption`, so a reader of `projection.json` does not have to infer it. Rejected
+  alternative: shocking forward months only, which is arguably the more realistic scenario but is
+  not the one `package.yaml` declares (`rate_shocks_bp`, "parallel shocks in basis points").
+
+## D-043. The `scenarios` block is restated in `code/run.py` and reconciled by a test
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** `projection.json` needs the shocks, the horizon, the servicing fee, the discount rate and
+  the convexity expectation. Those are declarations in `package.yaml`, and spec §3.2 hands the
+  subject a data directory and an output directory and no path to the package. Where do they live?
+- **A:** In both places. `code/run.py` carries `RATE_SHOCKS_BP`, `HORIZON_MONTHS`,
+  `SERVICING_FEE_BP`, `DISCOUNT_RATE_ANNUAL` and `CONVEXITY_EXPECTATION` as module constants, and
+  `tests/test_subject_msr_prepayment.py::test_the_subjects_scenario_declarations_match_package_yaml`
+  asserts that the five agree with the loaded `package.yaml`. That test is the only place the
+  duplication is allowed to be resolved.
+- **Why:** A subject is somebody else's code and must not need to know it is being validated;
+  giving it a `--package` argument would let a seeded variant's subject read the declaration it is
+  supposed to be measured against. Duplicating five numbers and pinning them with a test is the
+  cheaper failure mode: the test breaks the moment the two drift. The same argument applies to the
+  split rules, which `code/features.py` restates and a second test reconciles. Rejected
+  alternative: having `run_model` pass the `scenarios` block through on the command line, which
+  makes the sandbox's argument vector depend on the model type and puts a declaration Quaestor is
+  verifying inside the process that produces the thing being verified.
+
+## D-044. The synthetic panel has one common observation cut-off, not 60 months per loan
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** Spec §4.2 says "2,000 loans x 60 months". Taken literally -- 60 months from each loan's
+  own origination -- and with originations spread over each cohort year (D-041), the panel's last
+  month is reached only by the loans originated in the youngest cohort's twelfth month, and the
+  projection had a servicing book of **26** loans to value.
+- **A:** The observation window ends on one calendar month for every loan:
+  `observation_end_month` is the month the youngest cohort's *first* loan completes its
+  `months_observed`, which is 2024-01 at the declared cohorts, and a loan is observed to the
+  earlier of its 60th month and that month. Only the youngest cohort's later originations are
+  truncated, by at most eleven months; the projection's book is then the whole surviving 2019
+  vintage, **511** loans and about 96.6 million of balance.
+- **Why:** A real performance file ends on one reporting month for every loan, so this is the
+  shape the real panel has and the synthetic one should have too. And a projection valuing 26
+  loans is a projection whose sign pattern is a small-sample statement. Rejected alternative:
+  valuing each loan from its own last observed month, which makes "surviving balance by month"
+  a sum over loans at different calendar dates under a rate path shocked from different
+  starting points -- a table nobody could interpret and `run_scenarios` could not reproduce.
+
+## D-045. The hazard champion runs the same VIF screen as the classification champion
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** The Phase 4 prompt's champion is "a logistic hazard with a natural cubic spline basis on
+  loan_age plus the other features" and says nothing about a screen. But `bom_balance_log` is
+  `orig_upb_log` plus `log(scheduled amortisation factor)`, whose standard deviation over 60
+  months of a 360-month loan is about 0.03 against 0.44 for the loan size, so its VIF on the
+  training panel is **40,090**. Fitting on both is fitting on a difference of two columns that
+  agree to three decimal places.
+- **A:** The subject screens the twelve declared features at a VIF of 10 before the spline basis
+  is built, removing the last-declared offender per round exactly as the credit subject does
+  (D-031), and lists what left in `model_summary.json`'s `removed`. On the clean synthetic panel
+  it removes `rate_change_12m` (VIF 12.4) and then `bom_balance_log` (40,090), leaving ten
+  features whose worst VIF is **4.98** and whose Belsley condition number is **4.94**.
+  `data_<split>.csv` holds the post-screen matrix, as spec §3.3's "the feature matrix actually
+  used" requires and as the sibling subject already does.
+- **Why:** Without the screen the clean control carries an `M1` on its first run, and the finding
+  would be true: the model really is collinear. The collinearity is not a defect the study should
+  be scoring, though -- it is the ordinary consequence of a package declaring both the original
+  and the current balance, which real prepayment packages do -- and the sibling subject already
+  establishes the screen as this project's answer to it. `rate_change_12m` leaving is a cost worth
+  naming: it is the column the regime is *defined* from, and the last-declared rule takes it
+  because it happens to be declared tenth. The regime itself is unaffected, because
+  `regime.column` is `rate_regime`, which `code/features.py` writes into `data_<split>.csv` and
+  which was never a model feature. Rejected alternative: removing the worst offender instead of
+  the last declared, which would take `bom_balance_log` first and keep `rate_change_12m` -- and
+  would put two different removal rules in two subjects of one repository, so a study result
+  would depend on which subject a variant came from.
+
+## D-046. The `psi` threshold and `S1` mean train against test; the period splits are reported
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** `package.yaml` declares `{metric: psi, features: all, max: 0.25}` without naming a
+  comparison, and spec §3.7 has `profile_data` compute PSI "train vs each other split". Measured
+  on the clean synthetic panel: train against **test**, the worst feature is `credit_score` at
+  **0.065**; train against **out_of_time**, `burnout` is at **3.09** and `loan_age` at 2.41; train
+  against **vintage_holdout**, `note_rate` is at **0.62**. Which comparison does the threshold
+  govern?
+- **A:** Train against test. `profile_data` still computes and stores the other comparisons --
+  they are exactly what a reader wants to see about an out-of-time split -- but the `S1` candidate
+  and the `T1` breach of a `psi` threshold are raised on the train-to-test comparison only, and
+  the report's Appendix D says that the period-based and vintage-based comparisons were reported
+  and not tested. This binds Phase 5.
+- **Why:** PSI asks whether an expected distribution and an actual one are the same population
+  sampled twice. Train and test are; that is what a random 70/30 over loans means. `out_of_time`
+  is *defined* as a later period -- `package.yaml`'s own rule calls it "the refinancing wave the
+  training window never sees" -- so its loans are older and its rate environment is different by
+  construction, and a quantile-binned PSI on `loan_age` between a window of ages 0-59 and a window
+  of ages 24-59 puts several bins on the 0.5% floor, each contributing about 0.29 on its own.
+  `vintage_holdout` is *defined* as a different origination cohort, so its note rates differ. A
+  rule that fires on those is measuring the split design, and it would fire on every hazard
+  package anyone ever writes. Deciding it here rather than in Phase 5 is deliberate, for the
+  reason D-035 gives: the alternative is discovering in Phase 8 that the clean control yields two
+  findings and then choosing the scoping that makes the test pass, which is the same decision
+  arrived at in the order that cannot be trusted. Rejected alternative: raising the package's
+  threshold to 3.5, which would hide a real drift finding on the one comparison where PSI means
+  what it says.
+
+## D-047. What the clean synthetic hazard panel actually contains, measured
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** D-017 fixes the classification subject's clean control at exactly one finding, `E1` at
+  severity low. What does the hazard subject's clean control come out as?
+- **A:** At the declared seed 20260901 and `--synthetic 2000`, through `run_model`: 95,829
+  loan-months over 2,000 loans in three cohorts; monthly payoff rate 0.0084 observed against the
+  0.0105 the intercept is solved for on the uncensored schedule (censoring removes the fast
+  payers' later months); 40.3% of loans pay off inside the window. The screen removes two of
+  twelve features (D-045); champion test AUC **0.7753**, Brier 0.0079, calibration slope 0.959;
+  train 0.7883, out-of-time 0.7846, vintage holdout 0.7718; largest single-feature AUC 0.724;
+  worst retained VIF 4.98 and Belsley kappa 4.94; PSI train-to-test 0.065 (D-046); regime AUCs
+  0.7227 falling and 0.7238 rising and no coefficient sign flip; a default
+  `HistGradientBoostingClassifier` on the retained features as `data_train.csv` and
+  `data_test.csv` carry them scores **0.7337**, a challenger-minus-champion gap of **-0.0415**
+  against the `E1` threshold of +0.03 (fitted on the same columns in memory, before the CSVs'
+  ten-significant-digit round trip moves the boosted model's bin edges, it scores 0.7269 for a
+  gap of -0.0484; the test uses the files, because the tools do). The
+  projection values 511 loans and 96.6 million as of 2024-01: value change **-1,297,986** at
+  -300bp and **+168,055** at +300bp, monotone across all seven shocks, convexity -1,129,932.
+  **So the expectation for Phase 8 is that the clean synthetic `msr_prepayment` yields exactly
+  `{}` -- no finding at all -- which is the counterpart of D-017 and is asserted at data level
+  here and at pipeline level in Phase 8.**
+- **Why:** Two clean controls that behave differently are worth more than two that behave the
+  same: the classification subject's champion is misspecified on purpose and must yield `E1`,
+  while the hazard subject's champion is the correct functional form for its process and must
+  yield nothing, so the study can tell a detector that finds real defects from one that finds
+  findings. Three caveats are recorded rather than smoothed over. **The `{}` expectation depends
+  on D-046's PSI scoping**; without it the control carries `S1` and `T1` on the out-of-time and
+  vintage comparisons. **`R1`'s sign-flip rule is close to the noise** on this subject: at the
+  declared seed no retained coefficient flips across regimes, but at four other seeds tried
+  (11, 202, 3003, 777) one weak coefficient -- `season_cos`, `season_sin` or `burnout`, all with
+  |coef| just above the 0.05 gate -- flips at one seed each, so Phase 8's assertion is a statement
+  about seed 20260901 and not about the process. **The fitted `burnout` coefficient is +0.079
+  where the process's is -0.18**: burnout is a near-monotone function of loan age, whose effect the
+  spline absorbs, so its own coefficient is weakly identified. That is a fact about the fit worth a
+  sentence in the report rather than a defect, and it is in the subject's `README.md`. Rejected
+  alternative: strengthening `beta_burnout` until the fitted sign matched, which would optimise a
+  coefficient nothing depends on and move the base rate the intercept solve is there to hold.
+
+## D-048. The Freddie Mac layouts are positional, written out, and checked by field count
+
+- **Date:** 2026-09-07 (Phase 4)
+- **Q:** `sample_orig_YYYY.txt` and `sample_svcg_YYYY.txt` are pipe-delimited with no header row,
+  and Freddie Mac revises the field list between publications. How does `sample_freddie.py` avoid
+  silently mapping the wrong column when the layout moves?
+- **A:** Both layouts are written out as tuples (`ORIGINATION_LAYOUT`, `PERFORMANCE_LAYOUT`, 32
+  fields each, the order the 2024 user guide documents) and the reader compares the file's field
+  count with the layout's length, raising a `SystemExit` that names the constant and tells the
+  operator to check the current user guide. The origination *month* is not taken from the
+  origination file at all -- there is no such field -- but from the performance file as
+  `monthly_reporting_period - loan_age`, which is Freddie Mac's own definition of loan age and is
+  exact; `first_payment_date` is used only to look SATO's market rate up, two months earlier by
+  the usual convention.
+- **Why:** A positional map that is wrong is worse than one that fails: `oltv` and `ocltv` are
+  adjacent, both are plausible loan-to-value numbers, and a report fitted on the wrong one is
+  indistinguishable from a report fitted on the right one. A field count is a weak check and it
+  is the only one available without a header, so it is paired with a message that names what to
+  read. The test suite covers the map on a three-loan frame it writes itself -- one voluntary
+  payoff, one repurchase, one loan six months past due -- because the zero-balance code is the
+  only place this project interprets a Freddie Mac code, and a subject that counted a repurchase
+  as a prepayment would fit beautifully for a reason no reader could see. Rejected alternative:
+  reading the layout from the published Excel file dictionary at run time, which is a download
+  inside a data-building step and a second file to keep.

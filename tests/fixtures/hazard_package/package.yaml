@@ -44,6 +44,9 @@ claims:
 scenarios:
   rate_shocks_bp: [-300, -200, -100, 0, 100, 200, 300]
   horizon_months: 180
+  servicing_fee_bp: 25                # annual, on surviving balance (D-037)
+  discount_rate_annual: 0.08
+  convexity_expectation: negative
 
 runtime:
   max_seconds: 300

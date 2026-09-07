@@ -1,0 +1,69 @@
+# subjects/msr_prepayment/package.yaml — the MSR prepayment hazard subject (02-SPEC.md §3.2, §4.2).
+#
+# One file serves both data modes. `python -m code.run --data DIR --out DIR` fits on the loan-month
+# panel that sample_freddie.py built from the Freddie Mac Single-Family Loan-Level Dataset files the
+# human downloaded (never redistributed; only coefficients and aggregates are committed) and the FRED
+# MORTGAGE30US series; `--synthetic N` draws N loans x 60 months from synthetic.py's known hazard with
+# an incentive effect and a synthetic rate path. Every feature at month t is computed from information
+# available at the start of month t (beginning-of-month lagging): balance, age, incentive and burnout
+# use the prior month's closing values, and the outcome is the payoff observed during month t.
+# Origination years, cut dates and the servicing assumptions below are declarations, decided in
+# Cowork before Phase 4; the developer `claims` are filled from the first committed real run.
+name: msr_prepayment
+version: "1.0"
+model_type: discrete_time_hazard
+entrypoint: "python -m code.run"
+
+data:
+  source: >-
+    Freddie Mac Single-Family Loan-Level Dataset, sample files for origination years 2014, 2017 and
+    2019 (20,000 loans, seed 20260901, built by sample_freddie.py); FRED MORTGAGE30US (Freddie Mac
+    PMMS, weekly, month-start value). Synthetic mode: synthetic.py. No loan-level rows are
+    redistributed.
+  manifest: null                      # set after the real panel is built (Phase 4)
+  target: prepaid
+  event_definition: "1 if the loan paid off voluntarily (zero balance code 01) during month t; loan-months after default, repurchase or maturity are censored"
+  time_column: period                 # loan-month index, YYYYMM
+  id_column: loan_id
+
+splits:
+  train:           {rule: "origination years 2014 and 2017, random 70% of loans stratified on origination year, seed 20260901, periods through 2019-12"}
+  test:            {rule: "the remaining 30% of loans from the 2014 and 2017 vintages, periods through 2019-12"}
+  out_of_time:     {rule: "all 2014 and 2017 loans, periods 2020-01 onward (the refinancing wave the training window never sees)"}
+  vintage_holdout: {rule: "every loan originated in 2019, all periods"}
+
+# timing ∈ {at_origination, before_period_start, during_period, after_outcome}.
+features:
+  - {name: note_rate,          timing: at_origination,      note: "original note rate, percent"}
+  - {name: orig_ltv,           timing: at_origination}
+  - {name: credit_score,       timing: at_origination}
+  - {name: orig_upb_log,       timing: at_origination,      note: "log of original unpaid balance"}
+  - {name: sato,               timing: at_origination,      note: "note rate minus MORTGAGE30US in the origination month (spread at origination)"}
+  - {name: loan_age,           timing: before_period_start, note: "months since origination at the start of month t"}
+  - {name: incentive,          timing: before_period_start, note: "note rate minus MORTGAGE30US at the start of month t, percentage points"}
+  - {name: burnout,            timing: before_period_start, note: "cumulative positive incentive over prior months"}
+  - {name: bom_balance_log,    timing: before_period_start, note: "log of unpaid balance at the beginning of month t (prior month close); the end-of-month balance is the leak the L1 recipe re-introduces"}
+  - {name: rate_change_12m,    timing: before_period_start, note: "MORTGAGE30US at start of month t minus twelve months earlier"}
+  - {name: season_sin,         timing: before_period_start, note: "sin(2*pi*month/12)"}
+  - {name: season_cos,         timing: before_period_start}
+
+regime:
+  column: rate_regime                 # "falling" if rate_change_12m < 0 else "rising"; written into data_<split>.csv by the subject
+
+thresholds:
+  - {metric: auc,               split: test, min: 0.65}
+  - {metric: calibration_slope, split: test, min: 0.80, max: 1.20}
+  - {metric: psi,               features: all, max: 0.25}
+
+claims: []                            # filled from the first committed real run (Phase 4, by hand)
+
+scenarios:
+  rate_shocks_bp: [-300, -200, -100, 0, 100, 200, 300]
+  horizon_months: 180
+  servicing_fee_bp: 25                # annual, on surviving balance
+  discount_rate_annual: 0.08          # for the present value of servicing cash flows
+  convexity_expectation: negative     # value falls more at -300 than it rises at +300; X1 checks the sign pattern
+
+runtime:
+  max_seconds: 300
+  max_memory_mb: 4096

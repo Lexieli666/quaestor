@@ -281,3 +281,125 @@ intercept is deliberately not one of them: it is bisected for each parameter set
 default probability is `target_event_rate`. A recipe that changes a coefficient therefore changes
 the coefficient, and not also the base rate — which the study's `T1` and `C1` scoring would
 otherwise confound with the seeded defect.
+
+## Phase 4 — The `msr_prepayment` subject and its projection
+
+**One lagging rule, with no exceptions, because a rule with an exception cannot be tested
+(D-038).** Every raw value the hazard subject reads is a *closing* value of the month it is
+labelled with: the balance and age at the close of month *t*, whether the loan paid off during
+month *t*, and the market rate at the close of month *t*. Every feature at month *t* is then a
+function of month *t − 1*'s closes and of month *t*'s calendar position. The awkward consequence
+is that the rate calendar is indexed by the month whose *close* each rate stands at, so the FRED
+print published in the first week of February 2020 is stored under `2020-01` — and that is
+exactly the month-start rate of February, since no time passes between a month's close and the
+next month's start. The rejected alternative labels the calendar by the month whose start the
+rate stands at, which reads better in isolation and makes `incentive` the one feature at month
+*t* built from a month-*t* raw value; the Phase 4 leakage test could then perturb the balance and
+the payoff and would have to leave the rate alone, which is the one of the three most likely to
+be lagged wrongly in a real prepayment model.
+
+**The generating process reads its own features through `build_panel`.** `code/synthetic.py`
+draws the loans, renders the raw schema they would produce if none of them ever paid off, passes
+that schedule panel through the same `build_panel` the champion is fitted on, and evaluates the
+hazard on the resulting feature columns. Only then are the uniforms drawn and the loans censored.
+So the process and the model cannot disagree about what `incentive`, `burnout` or `loan_age`
+means, and a lagging bug has nowhere to hide: it would move both. The arrangement is also what
+makes the draw cheap — the whole hazard path of a loan is determined before a single payoff is
+drawn, because the scheduled balance is deterministic and every other input is a market or
+origination quantity.
+
+**Negative convexity had to be arranged, and the first arrangement had the sign backwards
+(D-040).** The Phase 4 prompt asks that the base case sit where the incentive response is convex,
+so that the projection's sign pattern is a property of the process. Two of the three ingredients
+were obvious: a small logistic hazard is convex (the whole operating range is below a logit of
+zero), and a turnover floor bounds the up shock's upside while nothing bounds the down shock's
+downside. The third was not. With a mildly falling rate path, every loan still alive at the end
+of the panel carried a large positive incentive, the base-case CPR was 24.9%, and the projection
+reported **+871,718** at +300bp against **−488,601** at −300bp: positive convexity, and the wrong
+answer for a servicing right. Writing the valuation as `V ≈ 1 / (δ + h)` for a monthly discount δ
+and a monthly hazard `h`, the most the down shock can take away is `V(0)` while the most the up
+shock can add is `h₀ / (δ (δ + h₀))`, so `|down| > |up|` requires `h₀ < δ` — the base hazard below
+the monthly discount rate, which is to say a book at or out of the money. That is also the
+textbook statement of when a servicing right is negatively convex, so the fix was the economics:
+a late level rise in the rate path, the real 2022–23 move, which leaves the surviving book about
+two points out of the money at the valuation month. The rejected alternative was raising
+`discount_rate_annual` until the inequality held, which would have made a declared valuation
+assumption a knob for getting the sign right.
+
+**A natural spline, written out, because the projection extrapolates on every run (D-039).** The
+champion's `loan_age` term is the natural cubic spline basis of Hastie, Tibshirani and Friedman
+§5.2.1, in numpy. scikit-learn's `SplineTransformer` gives a B-spline basis with no natural
+boundary constraint, so the fitted seasoning curve is a free cubic beyond the oldest loan age in
+the sample — and the projection runs 180 months forward from a book whose oldest loan is 60 months
+old, so it leaves the fitting range immediately. An unconstrained cubic there invents a prepayment
+ramp and the `X1` sign pattern would be reporting an extrapolation artefact. A natural spline is
+linear outside its boundary knots, which is the assumption an MSR projection ought to be making
+and which a test can check by taking a second difference.
+
+**The screen is not in the prompt, and the subject needs it anyway (D-045).** `bom_balance_log` is
+`orig_upb_log` plus the log of a scheduled amortisation factor whose spread over five years of a
+thirty-year loan is about 0.03 against 0.44 for the loan size, so its VIF on the training panel is
+about 40,000. Fitting the champion on both is fitting on a difference of two columns that agree to
+three decimal places, and the clean control would carry an `M1` on its first run — a finding that
+would be *true*, about a package that declares both the original and the current balance, which is
+what real prepayment packages do. So the hazard champion screens at a VIF of 10 exactly as the
+classification champion does, by the same last-declared rule (D-031), and `model_summary.json`
+lists what left. The cost is named rather than hidden: the rule takes `rate_change_12m` first,
+because it happens to be declared tenth, and that is the column the regime is defined from. The
+regime survives, because `regime.column` is `rate_regime`, which the subject writes into
+`data_<split>.csv` and which was never a model feature.
+
+**A split rule can be a drift finding, and here it would be one on every hazard package (D-046).**
+Measured on the clean panel, PSI train-against-test is 0.065 at worst; train-against-out-of-time
+is 3.09 on `burnout` and 2.41 on `loan_age`, and train-against-vintage-holdout is 0.62 on
+`note_rate`. Those are not drift. An out-of-time split is *defined* as older loans in a later rate
+environment — `package.yaml`'s own rule calls it "the refinancing wave the training window never
+sees" — and a quantile-binned PSI between a window of ages 0–59 and a window of ages 24–59 puts
+several bins on the 0.5% floor, each worth about 0.29 by itself. So the `psi` threshold and `S1`
+are read as the train-to-test comparison, and the others are computed, stored and reported without
+raising a candidate; Appendix D says so. Deciding it in Phase 4 rather than in Phase 5 is
+deliberate, for the reason D-035 gives: the alternative is discovering in Phase 8 that the clean
+control yields two findings and then picking the scoping that makes the test pass, which is the
+same decision arrived at in the order that cannot be trusted. The rejected alternative — raising
+the package's own threshold to 3.5 — would hide a real finding on the one comparison where PSI
+means what it says.
+
+**Two clean controls that behave differently (D-047).** The classification subject must yield
+exactly `{E1 low}`: its champion cannot represent the interaction in its process, so a boosted
+challenger legitimately beats it. The hazard subject must yield exactly `{}`: its champion is the
+correct functional form for its process, and the measured challenger gap is **−0.0415**. A study
+whose only control is one that always produces a finding cannot tell a detector that finds real
+defects from one that finds findings; a study whose only control is silent cannot tell a detector
+that works from one that says nothing. Three caveats are recorded with the expectation rather
+than smoothed away: the `{}` depends on D-046's PSI scoping; `R1`'s sign-flip rule sits close to
+the noise on this subject, since at four other seeds tried one weak seasonality or burnout
+coefficient flips; and the fitted `burnout` coefficient is +0.079 where the process's is −0.18,
+because burnout is a near-monotone function of loan age whose effect the spline absorbs. The last
+of those is a fact about the fit that belongs in a validation report, not a defect.
+
+**A common observation cut-off, so the projection has a book to value (D-044).** Spec §4.2's
+"2,000 loans × 60 months", read as 60 months from each loan's own origination and combined with
+originations spread over each cohort year (D-041), leaves the panel's last month reached only by
+the loans originated in the youngest cohort's twelfth month — a servicing book of 26 loans. The
+window therefore ends on one calendar month for every loan, as a real performance file does, and
+the book is the whole surviving 2019 vintage: 511 loans and 96.6 million of balance. The rejected
+alternative, valuing each loan from its own last observed month, makes "surviving balance by
+month" a sum over loans at different calendar dates under paths shocked from different starting
+points — a table nobody could interpret and `run_scenarios` could not reproduce.
+
+**The subject restates its own declarations, and a test reconciles them (D-043).** Spec §3.2 hands
+a subject a data directory and an output directory and no path to the package it is being
+validated against, which is deliberate: a seeded variant's subject must not be able to read the
+declaration it is being measured against. So `code/run.py` carries the five `scenarios` numbers
+and `code/features.py` carries the split rules, and two tests assert that each agrees with the
+loaded `package.yaml`. Duplication pinned by a test is the cheaper failure mode: it breaks the
+moment the two drift. The rejected alternative — having `run_model` pass the block through on the
+command line — makes the sandbox's argument vector depend on the model type and puts a declaration
+Quaestor is verifying inside the process that produces the thing being verified.
+
+**Two subjects, two copies of the VIF screen.** `variance_inflation_factors` and `vif_screen` are
+about forty lines and now exist in both subjects' `code/features.py`. That is on purpose: a
+subject is somebody else's code, the sandbox copies only its own `code/`, and a shared helper
+module would either have to be copied in anyway or make one subject's fit depend on a file the
+other subject owns. The two copies are identical and the two subjects' tests both check the
+last-declared rule, so a divergence would be visible.

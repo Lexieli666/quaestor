@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from .loader import MANIFEST_FIX, PACKAGE_FILE, ModelPackage, load_package
 from .spec import (
+    ConvexityExpectation,
     DataSpec,
     DeveloperClaim,
     Feature,
@@ -27,6 +28,7 @@ from .spec import (
 __all__ = [
     "MANIFEST_FIX",
     "PACKAGE_FILE",
+    "ConvexityExpectation",
     "DataSpec",
     "DeveloperClaim",
     "Feature",

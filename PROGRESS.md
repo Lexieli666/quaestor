@@ -19,13 +19,21 @@ are named in brackets.
     level in Phase 3 (challenger − champion AUC +0.0760 > 0.03; every `package.yaml` threshold
     passed; the screen resolves both collinear pairs); the pipeline-level assertion of exactly
     {E1 low} needs the tools, the findings and the report, so it stays with Phase 8
-- [ ] **Phase 4** — `msr_prepayment` subject incl. projection (spec §4.2)
+- [x] **Phase 4** — `msr_prepayment` subject incl. projection (spec §4.2)
+  - clean synthetic `msr_prepayment` must yield exactly {} — no finding at all, the counterpart of
+    D-017 (D-047) — asserted at **data** level in Phase 4 (challenger − champion AUC −0.0415;
+    every `package.yaml` threshold passed; the projection's negative-convexity sign pattern
+    holds); the pipeline-level assertion of exactly {} needs the tools, the findings and the
+    report, so it stays with Phase 8, and it depends on D-046's reading of the `psi` threshold
 - [ ] **Phase 5** — Tools, registry, statistics by hand (spec §3.7)
 - [ ] **Phase 6** — Corpus ingest + BM25 + guidance citations (spec §3.8)
 - [ ] **Phase 7** — Findings + claim verifier (spec §3.9–3.10)
 - [ ] **Phase 8** — Drafter, repair, renderer, planner, configs; end-to-end on synthetic with
   `FakeLLM` (spec §3.11–3.13)
   - clean synthetic `credit_default` must yield exactly {E1 low} (D-017)
+  - clean synthetic `msr_prepayment` must yield exactly {} at pipeline level (D-047), which
+    depends on D-046 (the `psi` threshold and `S1` are read train-against-test; the out-of-time
+    and vintage comparisons are reported, not tested) and, for `R1`, on seed 20260901
 - [ ] **Phase 9** — CLI; first live validations of both real subjects (Claude CLI); reports
   committed (spec §3.14)
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
@@ -143,3 +151,42 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   the one code path of this phase no local run covers. No test calls a live model, downloads data,
   trains on real data or reads an API key; `sample.py` is covered for argument handling and the UCI
   column map only, on a three-row frame the test writes itself. No push.
+- 2026-09-07 — **Phase 4** — gate green on the four conditions that apply plus 5a: `pytest -q` 534
+  passed, 0 failed, 0 skipped, 0 xfailed (93 new); coverage of `src/quaestor` **100%**
+  (`coverage run -m pytest`, 1453 statements) against the 85% floor; `ruff check` and `ruff format
+  --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean (26 source
+  files). Gate condition **5a applies and passes** — `tests/test_golden_spec.py` (13 checks) still
+  pins `examples/golden_report/`, which this phase did not touch; **5b is still not applicable**,
+  since `quaestor validate` arrives in Phase 9 and the CLI is still the Phase 0 version stub — the
+  `quaestor validate --synthetic --llm fake` line of `CLAUDE.md`'s command list was therefore not
+  run, and `run_model` was exercised directly on both subjects instead. Gate condition 6 is **not
+  applicable**: `tests/probatio/` arrives in Phase 11 (D-007). Shipped
+  `subjects/msr_prepayment/{package.yaml,README.md,synthetic.py,sample_freddie.py,
+  code/features.py,code/synthetic.py,code/projection.py,code/run.py}`,
+  `tests/{test_subject_msr_prepayment,test_msr_sample_freddie}.py`, the four new `msr_*` fixtures
+  in `tests/conftest.py`, the `ScenariosSpec` addition of D-037 in `src/quaestor/package/spec.py`
+  with `ConvexityExpectation` exported, the three new lines in
+  `tests/fixtures/hazard_package/package.yaml`, DECISIONS D-037 to D-048 and the Phase 4 section
+  of `docs/DESIGN.md`. `package.yaml` is byte-identical to `quaestor-package/phase4-draft/
+  package.yaml`; both `.gitkeep` placeholders of `subjects/msr_prepayment/` are deleted.
+  **Measured on the synthetic subject, seed 20260901, `--synthetic 2000`, through `run_model` on
+  this machine (Python 3.12.14, scikit-learn 1.9.0): wall-clock 3.13 s, 3.09 s and 3.16 s over
+  three runs, of which the subprocess itself was 2.37 s, 2.36 s and 2.40 s — against the 60 s
+  budget; 95,829 loan-months over 2,000 loans in three cohorts; observed monthly payoff rate
+  0.0084 against the 0.0105 the intercept is solved for on the uncensored schedule; splits 36,013
+  / 15,382 / 12,257 / 32,177 loan-months; ten of twelve features retained (`rate_change_12m` at
+  VIF 12.4 and then `bom_balance_log` at 40,090 removed, worst retained VIF 4.98, Belsley kappa
+  4.94); champion test AUC 0.7753, Brier 0.007894, calibration slope 0.959, train 0.7883,
+  out-of-time 0.7846, vintage holdout 0.7718; challenger (`HistGradientBoostingClassifier`,
+  defaults, seed 20260901) test AUC 0.7337, so the challenger-minus-champion gap is **−0.0415**
+  against the `E1` threshold of +0.03 — the opposite sign to the credit subject, by design;
+  projection over 511 loans and 96.6 million of balance as of 2024-01, value change **−1,297,986**
+  at −300bp and **+168,055** at +300bp, monotone across all seven shocks, convexity −1,129,932
+  (D-047).** Two runs of one seed are byte-identical. `memory_cap` is `unenforced` on this machine
+  (D-028). One pre-existing failure on `main` was repaired:
+  `test_a_data_dir_without_a_manifest_verifies_nothing` asserted on `credit_default`, which gained
+  a `data.manifest` in the Phase 3 real-sample commit, so it now uses the hazard fixture. No test
+  calls a live model, downloads data, trains on real data or reads an API key; `sample_freddie.py`
+  is covered for argument handling, the FRED month-close convention, the stratified draw and the
+  Freddie Mac column map only, on three-loan pipe-delimited frames the tests write themselves. No
+  push.
