@@ -115,3 +115,100 @@ changed manifest breaks the pin, and the only way through is a decision entry �
 bytes change, which is what makes the record a decision rather than a description. The rejected
 alternative, a CI step diffing against a recorded SHA, needs unshallow history, cannot express
 "sanctioned", and is invisible on a laptop.
+
+## Phase 2 — Foundations, the package loader, the artifact store, the LLM layer
+
+**`structured()` validates in Quaestor, not in the provider (D-025).** The Claude Code CLI has a
+`--json-schema` flag that would enforce a section's shape server-side, and using it would remove a
+class of failure from the drafter entirely. It is not used. `AnthropicLLM` cannot offer the same
+guarantee through the Messages API without tool-use scaffolding, so a pipeline that leaned on the
+flag would have two providers with two different failure modes: under `claude-cli` a malformed
+answer would never reach `structured()`, and under `anthropic` it would, and the re-ask count —
+which the study publishes as a quality signal per configuration — would mean different things in
+the two halves of the same table. Validation therefore lives in provider-agnostic code, every
+provider fails identically, and the re-ask is comparable. The cost is one extra round trip on the
+answers the flag would have caught; the benefit is that the number the study reports is a property
+of the prompt rather than of the transport.
+
+**One re-ask, and the second failure is fatal.** `structured()` asks once, quotes the validation
+error back and asks once more, then raises `LLMOutputError` carrying the raw text. The rejected
+alternative is the usual retry loop with a backoff and a cap of three or five. A loop hides a prompt
+that does not work: the cost line grows, the report still renders, and nobody looks. With exactly
+one retry, a section that needs a re-ask is rare enough that `eval/score.py` counting them per
+configuration is a measurement rather than a rounding error, and a prompt that fails twice is a
+prompt to fix rather than to pay for.
+
+**The artifact address includes the logical name (D-023).** "Content-addressed" would ordinarily
+mean the hash is a function of the payload alone. Here it is a function of `(kind, name, payload)`,
+because on a stratified split the train and test event rates are *the same number*, and pure value
+addressing would make `metrics.train.event_rate` and `metrics.test.event_rate` one artifact with one
+hash. A finding whose evidence is that hash could no longer say which split it rested on; Appendix B
+would print one row under two names; and the citation rule "`hash8` prefixes a stored artifact and
+`logical_name` is in its index entry" would have to admit a set of names rather than one. The
+rejected alternative saves a few kilobytes of duplicated scalar files and costs the evidence rule
+its precision, which is the one thing this project is for.
+
+**A logical name cannot be re-pointed.** Storing a different payload under a name the store already
+holds raises rather than replacing. The rejected alternative — last write wins, which is what a
+cache does — breaks the only invariant citations have: prose already drafted against the old hash
+would silently become dangling, and a dangling citation that *used to* resolve is indistinguishable,
+to the verifier and to a reader, from a drafter that invented a hash. A tool that legitimately
+recomputes something under new conditions gives it a new name (`metrics.test.sub.limit_bal_low.auc`,
+not a second `metrics.test.auc`), which is also what makes Appendix B readable.
+
+**Citation paths walk, they never compute.** `#coefficients.utilisation.value` addresses a key, then
+a list element by its `feature` field, then a key. There is no aggregate, no index arithmetic and no
+count. The consequence is visible in the golden report: `run.features#n` resolves only because
+`run.features` is stored as an object carrying its own counts, not as the bare list spec §3.3
+describes on disk. That is deliberate. The rejected alternative — letting a citation say "the length
+of this list" — would make the number in the prose the output of a small expression language that
+lives nowhere except inside a citation string, and every such expression is a place where a report's
+number stops being a stored artifact that somebody can recompute. The project's rule is that a
+number in a report is a number in the store; a count the report wants to state is a count some tool
+decided to store.
+
+**The trace is typed as an envelope plus a payload (D-020).** On disk a trace line is flat, exactly
+as spec §3.1 writes it. In memory the type-specific fields sit in `TraceEvent.payload`, because the
+alternative, pydantic's `extra="allow"`, puts them where `mypy --strict` cannot see them and makes
+every read in `eval/score.py` either an error or an untyped `getattr`. Six models, one per event
+type, was the other alternative and is where a trace format grows two spellings of `duration`; the
+field names the study actually counts are pinned instead by one typed method, `TraceWriter.llm_call`.
+
+**The CLI adapter runs on the login the project actually has, and names what that costs (D-025).**
+The default argument vector does not pass `--bare`. It would have been the tidier choice — `--bare`
+suppresses hooks, plugins, auto-memory, keychain reads and `CLAUDE.md` discovery in one flag — and
+it was the first draft's default, but `claude --help` is explicit that under `--bare` authentication
+is "strictly `ANTHROPIC_API_KEY` or `apiKeyHelper`" and OAuth and the keychain are never read.
+`CLAUDE.md` forbids an API key anywhere in this project, and every live run the runbook describes is
+made on a subscription login, so `--bare` by default is a default that cannot run. Context is
+excluded by the two mechanisms that do not touch authentication instead: each call runs in a fresh
+empty temporary working directory, which removes project context and project `CLAUDE.md`
+auto-discovery, and `--strict-mcp-config` is passed with no `--mcp-config`, which removes every MCP
+server the operator has configured. `--bare` remains available as `bare_flag="--bare"` for an
+operator who does have a key.
+
+*The limitation this leaves, stated plainly:* without `--bare`, a live run still sees the operator's
+user-level configuration — hooks, plugins, `~/.claude/CLAUDE.md`, output styles. None of it is
+visible in the payload the adapter parses, so two operators can in principle get different answers
+to the same prompt from the same commit. Three things bound the damage: the study's comparisons are
+between configurations within one operator's run, not across machines; the answer, its tokens and
+its notional cost are all recorded in the trace, so a surprising result is inspectable; and whether
+`--bare` was passed is itself recorded on every `llm_call` event as `quaestor_bare`, so a run under
+one regime is never silently compared with a run under the other. The rejected alternative was to
+keep `--bare` and instruct operators to export an API key, which contradicts `CLAUDE.md` and would
+make the published study unreproducible by anyone who obeys it.
+
+**Two error classes for the LLM layer, not one (D-024).** `LLMOutputError` means the model answered
+and the answer is unusable; `LLMProviderError` means there was no answer. The study retries the
+second and records the first, and `eval/run_study.py` is resumable, so collapsing them would mean
+either re-asking a prompt the model reliably fails at — inflating the very re-ask count the study
+publishes — or abandoning a variant because a laptop's network blinked. Rejected alternative: one
+class with a flag, which is a type distinction written as data and branched on in three places.
+
+**The loader takes the data directory as an argument (D-022).** `data.manifest` is a statement about
+specific files, and under `--synthetic` those files are not read at all. Verifying them against the
+package directory — the only path `load_package(path)` would otherwise know — would pass vacuously
+on every real package, since nobody keeps their data inside the package. Passing the directory
+explicitly means the check is honest in both modes, `--synthetic` needs no special case, and
+Appendix D's "data manifest: not checked in synthetic mode" line is a fact about the code rather
+than a caveat about it.

@@ -97,6 +97,13 @@ python_version = "3.11"
 strict = true
 files = ["src/quaestor"]
 
+# `anthropic` is an optional extra (spec section 2) and is deliberately absent from the dev
+# environment, so that no test can reach the SDK by accident. `AnthropicLLM` imports it lazily,
+# inside the one code path that builds a client.
+[[tool.mypy.overrides]]
+module = ["anthropic.*"]
+ignore_missing_imports = true
+
 [tool.coverage.run]
 source = ["src/quaestor"]
 

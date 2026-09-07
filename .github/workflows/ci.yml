@@ -72,7 +72,7 @@ jobs:
             echo "Gate condition 5 would pass vacuously. See CLAUDE.md and spec section 7." >&2
             exit 1
           fi
-          echo "gate 5: nothing to check at this commit"
+          echo "gate 5a runs inside gate 1 as tests/test_golden_spec.py; 5b applies from Phase 3"
 
       # Gate 6 arrives with the Probatio test layer in Phase 11. Until `tests/probatio/` exists,
       # `pytest` on a missing path is an error and an empty path collects nothing, so the step is

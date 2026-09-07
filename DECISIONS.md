@@ -337,3 +337,169 @@ here and recorded.
   prevent; `unevaluatedProperties: false` is the 2020-12 keyword for the same closure and is
   enforced by `jsonschema>=4`. Rejected alternative for (c): three fully written-out object schemas,
   which is what the phrase says and what a later reader would have to keep in sync by hand.
+
+## D-019. Floats are hashed by `repr` and stored by `%.10g`
+
+- **Date:** 2026-09-07 (Phase 2)
+- **Q:** Spec §0 says every persisted identity is a `stable_hash` of canonical JSON; spec §3.4 says
+  artifact payload bytes use "fixed float formatting `%.10g`". Does `stable_hash` also round to ten
+  significant digits?
+- **A:** No. `canonical_json` serialises a float with Python's `repr`, which since 3.1 is the
+  shortest string that round-trips to the same double and is therefore both fixed and lossless.
+  `%.10g` is applied by `quaestor.artifacts` on the way *into* the store, before the bytes are
+  hashed, so an artifact's hash is the hash of its rounded payload and two runs that agree to ten
+  significant digits are one artifact.
+- **Why:** The two formats answer different questions. An artifact is rounded once so that
+  `0.3333333333333333` computed on one machine and `0.3333333333` read back from a CSV on another
+  are the same evidence; a hash must never conflate two values that differ, because it is also the
+  identity of a claim, a cassette key and a tool's argument set. Rounding inside `stable_hash` would
+  make `stable_hash({"tol": 1e-12})` equal `stable_hash({"tol": 0})`. Rejected alternative: `%.10g`
+  everywhere, which buys nothing — the rounding that matters already happened at `put` — and makes
+  the hash lossy for every non-artifact use.
+
+## D-020. Trace events carry their type-specific fields in a `payload` dict, flattened on disk
+
+- **Date:** 2026-09-07 (Phase 2)
+- **Q:** Spec §3.1 writes a trace line as `ts, run_id, type, ...`, so the type-specific fields are
+  top level in the JSON. How are they typed in memory under `mypy --strict`?
+- **A:** `TraceEvent` has the four envelope fields plus `payload: dict[str, Any]`. `to_line()`
+  writes the payload's keys at the top level, and `from_record()` folds every non-envelope key back
+  into it. A payload key that collides with an envelope key is a `QuaestorError` at emit time.
+- **Why:** The alternative, `model_config = ConfigDict(extra="allow")`, puts the fields on the model
+  where they belong conceptually and where the type checker has never heard of them: every
+  `event.tokens_in` in `eval/score.py` is then an `attr-defined` error or an untyped `getattr`. A
+  model per event type was the other option and was rejected because six models with one shared
+  envelope is where a trace format acquires two spellings of `duration`; the field names that the
+  study actually counts are pinned instead by `TraceWriter.llm_call`, which is a typed method.
+  Nothing about the file on disk changes either way, which is the part the spec fixes.
+
+## D-021. A candidate may have no evidence only when its `tool` is `load_package`
+
+- **Date:** 2026-09-07 (Phase 2)
+- **Q:** `CLAUDE.md` says a finding requires evidence and spec §3.9 types `FindingCandidate.evidence`
+  as non-empty, but spec §3.2 requires a `timing: after_outcome` feature to yield an `L1` candidate
+  *before anything runs*, when no artifact exists. How is the exemption expressed?
+- **A:** `findings.PRE_RUN_TOOL = "load_package"`. A `FindingCandidate` validator rejects empty
+  evidence unless `tool == PRE_RUN_TOOL`. `check_leakage` attaches the `leakage.timing` artifact when
+  it promotes the candidate in Phase 7, so no *finding* ever lacks evidence.
+- **Why:** The exemption has to exist, so the only question is whether it is checkable. A boolean
+  `pre_run` flag would be settable by any caller and would drift into meaning "evidence optional".
+  Keying it to a `tool` value that no tool has means the exemption is visible in `findings.json`, is
+  scoped to one producer, and fails loudly the day a real tool tries to use it. Rejected
+  alternative: dropping the non-empty rule and checking evidence only at `Finding` construction,
+  which would let a tool emit evidence-free candidates all through Phase 5 with nothing to catch it
+  until Phase 7.
+
+## D-022. The data manifest is verified only when a data directory is given; `code/` is required
+
+- **Date:** 2026-09-07 (Phase 2)
+- **Q:** Spec §3.2 says `data.manifest` is "optional; verified if present", but `load_package(path)`
+  is given a package directory and the data lives wherever `--data DIR` points. Verified against
+  what, under `--synthetic`?
+- **A:** `load_package(path, *, data_dir=None)`. With a `data_dir`, every digest in the manifest is
+  verified and a mismatch is a `PackageError` naming the file, both digests and `shasum -a 256`.
+  With none — which is what `--synthetic` passes — the manifest is not verified, and the report
+  says so in Appendix D, as the golden report already does. Also decided here: a package directory
+  without `code/` is a `PackageError`, because `entrypoint` would have nothing to import.
+- **Why:** A manifest is a statement about specific files, and in synthetic mode those files are not
+  read at all: verifying them would either fail on a machine that never downloaded the data or, if
+  the loader went looking inside the package directory, would silently verify nothing. Making the
+  data directory an explicit argument keeps the check honest in both modes and keeps `--synthetic`
+  from needing a special case. Rejected alternative: resolving manifest paths relative to the
+  package directory, which is where nobody's data lives and which would make the check pass
+  vacuously on every real package.
+
+## D-023. The artifact address covers the logical name, and a name cannot be re-pointed
+
+- **Date:** 2026-09-07 (Phase 2)
+- **Q:** Spec §3.4 calls the store content-addressed. Is the address a function of the payload
+  alone?
+- **A:** No: the hash is `stable_hash({"kind", "name", "payload_sha256"})`, so the logical name is
+  part of the identity. Storing the same payload under the same name twice is idempotent; storing a
+  *different* payload under a name that is already taken is an `ArtifactError`.
+- **Why:** Under pure value addressing, `metrics.train.event_rate` and `metrics.test.event_rate`
+  collapse into one artifact whenever the two splits happen to have the same event rate — which for
+  a stratified split is the normal case, and is exactly what the golden report shows (0.22 on both).
+  A finding's evidence list could then no longer say which split it rested on, Appendix B would list
+  one hash under two names, and the citation rule "`logical_name` is in its index entry" would have
+  to admit a set. Refusing to re-point a name follows from the same idea: prose already written
+  against the old hash would silently stop resolving, and a dangling citation that used to resolve
+  is the one failure the verifier cannot distinguish from a drafting error. Rejected alternative:
+  pure value addressing with a name-to-hash index allowing many-to-one, which saves a few kilobytes
+  of duplicated scalars and costs the evidence rule its precision.
+
+## D-024. `LLMProviderError`, additive to the spec §3.1 hierarchy
+
+- **Date:** 2026-09-07 (Phase 2)
+- **Q:** Spec §3.1 lists `LLMOutputError` for the LLM layer. A provider that cannot be reached — no
+  executable, a timeout, a non-zero exit, an error payload — has not produced a bad answer; it has
+  produced no answer. Which error is that?
+- **A:** A new `LLMProviderError(QuaestorError)`, kept strictly separate from `LLMOutputError`, which
+  means "the model answered and the answer is unusable" and which carries the raw text.
+- **Why:** The study retries transport failures and records bad answers, and `eval/run_study.py` is
+  resumable: one exception type for both would mean either retrying a prompt the model reliably
+  fails at, inflating the re-ask count, or abandoning a variant because the laptop's network
+  blinked. The rest of the hierarchy stays closed. Rejected alternative: reusing `LLMOutputError`
+  with a flag, which is a type distinction written as data and would have to be branched on in
+  three places.
+
+## D-025. The exact flag list `ClaudeCLILLM` passes, and why each one is there
+
+- **Date:** 2026-09-07 (Phase 2; the `--bare` default corrected the same day after Cowork review)
+- **Q:** Spec §3.5 requires the CLI adapter's flags to be read from `claude --help` and recorded
+  here. Which flags, in which order, which were deliberately not used, and does the default vector
+  run on the login this project actually has?
+- **A:** Six flags by default, all present in `notes/claude-help.txt`, emitted in this order (the
+  vector is asserted verbatim in `tests/test_llm.py`):
+
+  ```
+  claude -p <prompt> --output-format json --no-session-persistence --strict-mcp-config \
+         [--model <m>] [--system-prompt <s>] --tools ""
+  ```
+
+  | flag | why |
+  |---|---|
+  | `-p <prompt>` | Non-interactive print mode; the prompt is the positional argument. Without it the CLI opens a session. |
+  | `--output-format json` | The parser needs `result`, `usage`, `total_cost_usd` and `duration_api_ms`; `text` gives none of them, so a trace could not record tokens or cost. |
+  | `--no-session-persistence` | A validation run is not a conversation; nothing should be resumable, and nothing should accumulate in the session store across a 200-variant study. |
+  | `--strict-mcp-config` | Restricts MCP servers to those named by `--mcp-config`, of which this adapter passes none — so no MCP server configured on the operator's machine is loaded, and a validation call cannot reach out through one. |
+  | `--model <m>` | Passed only when a model is configured, so that the study can name the model it is measuring. |
+  | `--system-prompt <s>` | Passed only when the caller has one. Replaces the default system prompt rather than appending to it, which is what a section-drafting instruction wants. |
+  | `--tools ""` | Disables every built-in tool. Placed **last**, because the flag is variadic and anything after it would be parsed as another tool name. With no tools the CLI cannot take a second turn, which is how "one turn" is obtained on a version that has no `--max-turns`. |
+
+  **`--bare` is not in the default vector.** `claude --help` states that under `--bare` "Anthropic
+  auth is strictly `ANTHROPIC_API_KEY` or `apiKeyHelper` via `--settings` (OAuth and keychain are
+  never read)". `CLAUDE.md` forbids an API key anywhere in this project and the runbook's live
+  runs are made on a subscription login, so a default that passes `--bare` is a default that
+  cannot run at all. It is an opt-in for an operator who does have a key:
+  `ClaudeCLILLM(bare_flag="--bare")`. Every call, with or without it, still runs in a **fresh empty
+  temporary working directory**, which is what excludes project context and project `CLAUDE.md`
+  discovery.
+
+  Whether `--bare` was passed is recorded on `Completion.raw` as `quaestor_bare` and copied onto
+  every `llm_call` trace event by `structured()`, so a published run states which of the two
+  configurations produced it rather than leaving a reader to assume.
+
+  Deliberately **not** used: `--json-schema` (see `docs/DESIGN.md`, Phase 2 — validation stays
+  provider-agnostic in `structured()`, so the re-ask count means the same thing under both
+  adapters); `--dangerously-skip-permissions` and `--allow-dangerously-skip-permissions` (nothing
+  needs permission once tools are off); `--add-dir`, `--mcp-config`, `--agents`, `--settings`,
+  `--plugin-dir` (every one of them adds context the prompt did not ask for); `--max-budget-usd`
+  (the study enforces its own ceiling from the trace, across providers); `--continue`, `--resume`,
+  `--fork-session` (no session exists); `--effort`, `--fallback-model`, `--permission-mode` (each
+  would make two runs differ in a way the trace does not record).
+
+  Every flag is a constructor argument, so a user whose CLI version has renamed one overrides that
+  argument rather than waiting for a release.
+- **Why:** The first draft of this entry had `--bare` on by default, on the reasoning that the most
+  hermetic context is the most reproducible one. That was wrong in the way that matters: the
+  adapter exists precisely so that a developer *without* an API key can run Quaestor live, and
+  `--bare` turns off the authentication path such a developer has. A default that fails on the only
+  supported login is not a strict default, it is a broken one. What `--bare` would additionally
+  have suppressed — hooks, plugins, auto-memory, user-level `CLAUDE.md` — is real residual context
+  and is named as a limitation in `docs/DESIGN.md`, Phase 2, rather than pretended away; the empty
+  working directory removes the project-scoped part of it, `--strict-mcp-config` removes the MCP
+  part, and the trace field says which regime the run used so that two runs are never silently
+  compared across it. Rejected alternative: keeping `--bare` on and telling operators to export an
+  API key, which contradicts `CLAUDE.md`'s "No API keys anywhere" and would make the published
+  study unreproducible by anyone who follows that rule.

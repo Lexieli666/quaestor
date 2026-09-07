@@ -1,0 +1,50 @@
+# tests/fixtures/hazard_package/package.yaml — a discrete-time hazard package, for the loader only.
+#
+# `subjects/msr_prepayment/` arrives in Phase 4, so until then this fixture is the only package that
+# exercises the four fields a classifier leaves null: `regime.column`, `scenarios`,
+# `splits.out_of_time` and `splits.vintage_holdout`, plus `data.time_column`, which a hazard package
+# must declare. Nothing here is ever run: `code/run.py` exists because the loader insists a package
+# has a subject to run, and it raises if anyone tries.
+name: fixture_hazard
+version: "0.3"
+model_type: discrete_time_hazard
+entrypoint: "python -m code.run"
+
+data:
+  source: "fixture only; no data, real or synthetic, is read by any test that loads this package"
+  manifest: null
+  target: prepaid
+  event_definition: "1 in the month the loan prepays in full, 0 in every earlier surviving month"
+  time_column: as_of_month
+  id_column: loan_id
+
+splits:
+  train: {rule: "origination years 2010-2011"}
+  test: {rule: "a random 30% of loans from the training vintages, held out whole"}
+  out_of_time: {rule: "observation months from 2013-01 onward"}
+  vintage_holdout: {rule: "origination year 2012"}
+
+features:
+  - {name: loan_age, timing: before_period_start, note: "months since origination at month start"}
+  - {name: incentive, timing: before_period_start, note: "note rate minus the market rate at month start"}
+  - {name: sato, timing: at_origination}
+  - {name: burnout, timing: before_period_start}
+  - {name: original_ltv, timing: at_origination}
+
+regime:
+  column: rate_regime
+
+thresholds:
+  - {metric: auc, split: out_of_time, min: 0.65}
+  - {metric: psi, features: all, max: 0.25}
+
+claims:
+  - {text: "Out-of-time AUC is 0.68", metric: auc, split: out_of_time, value: 0.68}
+
+scenarios:
+  rate_shocks_bp: [-300, -200, -100, 0, 100, 200, 300]
+  horizon_months: 180
+
+runtime:
+  max_seconds: 300
+  max_memory_mb: 4096

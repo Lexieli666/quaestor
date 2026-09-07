@@ -1,9 +1,13 @@
-"""Phase 0's only tests: the package imports, the version is what pyproject reads, the CLI runs.
+"""Wiring, not behaviour: the package imports, the version is what pyproject reads, the CLI runs.
 
-These are deliberately about wiring, not behaviour. There is no behaviour yet. What they protect is
-the three things a broken scaffold breaks silently: an import name that does not match the
-distribution name, a version that drifts between `__init__.py` and the built metadata, and a
-console-script entry point that points at a function that does not exist.
+What these protect is the handful of things a scaffold breaks silently: an import name that does
+not match the distribution name, a version that drifts between `__init__.py` and the built
+metadata, and a console-script entry point that points at a function that does not exist.
+
+Two lists here are pinned rather than derived, and each is updated by the phase that changes it, in
+that phase's own commit: every module under `src/quaestor/`, so that a module landing without its
+tests is a failure rather than a discovery; and `quaestor.__all__`, which spec section 9 fixes and
+which grows one phase at a time.
 """
 
 from __future__ import annotations
@@ -107,9 +111,10 @@ def test_module_invocation_exits_zero() -> None:
     assert completed.stdout.strip() == f"quaestor {EXPECTED_VERSION}"
 
 
-def test_no_implementation_code_beyond_the_phase_0_stubs() -> None:
-    # Phase 0 is scaffolding. If a later phase's module lands here without its tests, this fails
-    # and the run log's claim that Phase 0 shipped no implementation stops being true.
+def test_the_module_list_is_the_one_the_run_log_claims() -> None:
+    # Pinned so that a module landing without its tests, or a module quietly disappearing, is a
+    # failure rather than a discovery. Updated by the phase that adds a module, in that phase's
+    # own commit: Phase 2 added errors, hashing, trace, findings, package/, artifacts/ and llm/.
     modules = sorted(
         p.relative_to(REPO_ROOT / "src" / "quaestor").as_posix()
         for p in (REPO_ROOT / "src" / "quaestor").rglob("*.py")
@@ -118,12 +123,73 @@ def test_no_implementation_code_beyond_the_phase_0_stubs() -> None:
         "__init__.py",
         "agent/__init__.py",
         "artifacts/__init__.py",
+        "artifacts/citations.py",
+        "artifacts/store.py",
         "cli.py",
         "corpus/__init__.py",
+        "errors.py",
+        "findings.py",
+        "hashing.py",
         "llm/__init__.py",
+        "llm/anthropic.py",
+        "llm/base.py",
+        "llm/claude_cli.py",
+        "llm/fake.py",
+        "llm/structured.py",
         "package/__init__.py",
+        "package/loader.py",
+        "package/spec.py",
         "report/__init__.py",
         "sandbox/__init__.py",
         "tools/__init__.py",
+        "trace.py",
         "verifier/__init__.py",
     ]
+
+
+# The public surface of spec section 9, as far as Phase 2 implements it. `Finding` arrives in
+# Phase 7 and `validate` in Phase 8; both are asserted absent so that a half-built one cannot be
+# mistaken for the real thing.
+PUBLIC_API = [
+    "LLM",
+    "Artifact",
+    "ArtifactError",
+    "ArtifactStore",
+    "Completion",
+    "DefectClass",
+    "EventType",
+    "FakeLLM",
+    "FindingCandidate",
+    "LLMOutputError",
+    "LLMProviderError",
+    "ModelPackage",
+    "PackageError",
+    "QuaestorError",
+    "ReportSchemaError",
+    "SandboxError",
+    "Severity",
+    "ToolError",
+    "TraceEvent",
+    "TraceReader",
+    "TraceWriter",
+    "VerificationError",
+    "__version__",
+    "load_package",
+    "stable_hash",
+]
+
+
+def test_the_public_api_is_exactly_what_phase_2_ships() -> None:
+    assert quaestor.__all__ == PUBLIC_API
+
+
+@pytest.mark.parametrize("symbol", PUBLIC_API)
+def test_every_public_symbol_is_importable_and_documented(symbol: str) -> None:
+    value = getattr(quaestor, symbol)
+    if symbol != "__version__":
+        assert value.__doc__, f"quaestor.{symbol} has no docstring"
+
+
+@pytest.mark.parametrize("symbol", ["Finding", "validate"])
+def test_the_symbols_of_a_later_phase_are_not_exported_yet(symbol: str) -> None:
+    assert not hasattr(quaestor, symbol)

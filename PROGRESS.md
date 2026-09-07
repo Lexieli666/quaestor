@@ -12,7 +12,7 @@ are named in brackets.
 - [x] **Phase 0** — Scaffolding, CI, name check, dev deps incl. `probatio-llm` (spec §2)
 - [x] **Phase 1** — Golden report, claim grammar, report schema, synthetic `package.yaml`
   (spec §7, §3.2, §3.10–3.11)
-- [ ] **Phase 2** — Foundations, package loader, artifact store, LLM layer, trace (spec §3.1–3.5)
+- [x] **Phase 2** — Foundations, package loader, artifact store, LLM layer, trace (spec §3.1–3.5)
 - [ ] **Phase 3** — Sandbox `run_model` + `credit_default` subject (synthetic first, then
   `sample.py`) (spec §3.6, §4.1)
   - clean synthetic `credit_default` must yield exactly {E1 low} (D-017)
@@ -82,3 +82,31 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   `subjects/credit_default/code/.gitkeep` stays for Phase 3. Every number in the golden report is
   illustrative (`illustrative: true`) and every artifact hash in it is `sha256(logical_name)[:8]`,
   which resolves to nothing: the directory fixes shape and is never quoted as a result. No push.
+- 2026-09-07 — **Phase 2** — gate green on the four conditions that apply plus 5a: `pytest -q` 311
+  passed, 0 failed, 0 skipped, 0 xfailed; coverage of `src/quaestor` **100%** (`coverage run -m
+  pytest`, 1061 statements) against the 85% floor; `ruff check` and `ruff format --check` clean on
+  `src tests eval subjects`; `mypy --strict src/quaestor` clean (24 source files). Gate condition
+  **5a applies and passes** — `tests/test_golden_spec.py` (13 checks) still pins
+  `examples/golden_report/`, which this phase did not touch; **5b is still not applicable**, since
+  the first runnable subject arrives in Phase 3 and the `quaestor validate --synthetic --llm fake`
+  line of `CLAUDE.md`'s command list was therefore not run (the CLI is still the Phase 0 version
+  stub). Gate condition 6 is **not applicable**: `tests/probatio/` arrives in Phase 11 (D-007).
+  Shipped `src/quaestor/errors.py` (the spec §3.1 hierarchy plus `LLMProviderError`, D-024),
+  `hashing.py` (`stable_hash`, `canonical_json`, `sha256_file`; cross-process stability proved by a
+  `python -c` subprocess), `trace.py` (`TraceWriter`, `TraceReader`, the six event types, envelope
+  plus flattened payload, D-020), `findings.py` (`DefectClass`, `Severity`, `FindingCandidate` with
+  the `load_package` evidence exemption, D-021), `package/{spec,loader}.py` (`PackageSpec` and its
+  sub-models with `extra="forbid"`, `Feature.note` per D-017, `load_package`, manifest verification
+  under `--data` only per D-022, the pre-run `L1` candidate), `artifacts/{store,citations}.py`
+  (content-addressed store whose address includes the logical name per D-023, canonical `%.10g`
+  payload bytes, `index.json`, and the five citation forms of `docs/REPORT_SCHEMA.md` §5 including
+  table cells, JSON paths, list elements by `feature`, adjacent delta pairs, deferred `[[reg:...]]`
+  and `[[table:...]]`), `llm/{base,fake,anthropic,claude_cli,structured}.py`, the public API of spec
+  §9 as far as it exists, eight test modules (293 new tests), `tests/fixtures/hazard_package/`
+  and `tests/fixtures/claude_cli_payload.json`. **`ClaudeCLILLM` does not pass `--bare`**: it would
+  restrict authentication to an API key, which `CLAUDE.md` forbids and the operator does not have,
+  so context is excluded by an empty temporary working directory and `--strict-mcp-config` instead,
+  and `quaestor_bare` on every `llm_call` event records which regime a run used (D-025, corrected
+  after Cowork review). No test calls a live model, downloads data, trains on real data or reads an
+  API key; `anthropic` is deliberately absent from the dev environment and its lazy import is
+  covered with a stub module. No push.

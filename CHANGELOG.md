@@ -21,3 +21,17 @@ run that was not committed.
   Every number in the golden report is illustrative and no citation in it resolves; the directory
   fixes the report's shape, the claim grammar and the citation syntax, and is pinned by
   `MANIFEST.json` and by DECISIONS D-011.
+- Phase 2 foundations: `quaestor.errors` (the spec section 3.1 hierarchy plus `LLMProviderError`,
+  D-024), `quaestor.hashing` (`stable_hash`, `canonical_json`, `sha256_file`), `quaestor.trace`
+  (`TraceWriter`, `TraceReader`, the six event types), `quaestor.findings` (`DefectClass`,
+  `Severity`, `FindingCandidate`), `quaestor.package` (`PackageSpec` and its sub-models,
+  `load_package`, the pre-run `L1` candidate), `quaestor.artifacts` (`ArtifactStore`, `Artifact`,
+  the canonical payload bytes, `index.json`, and the citation parser and resolver of
+  `docs/REPORT_SCHEMA.md` section 5) and `quaestor.llm` (`Completion`, the `LLM` protocol,
+  `FakeLLM`, `ScriptedLLM`, `AnthropicLLM`, `ClaudeCLILLM`, `structured`). `ClaudeCLILLM`
+  runs on the operator's ordinary Claude login: it does not pass `--bare`, which would restrict
+  authentication to an API key, and excludes context with an empty working directory and
+  `--strict-mcp-config` instead (D-025). The public API of spec
+  section 9 is exported as far as Phase 2 implements it; `Finding` arrives in Phase 7 and
+  `validate` in Phase 8. No test in the suite calls a live model, downloads data or reads an API
+  key.
