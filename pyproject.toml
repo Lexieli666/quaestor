@@ -1,0 +1,104 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quaestor-mrm"
+dynamic = ["version"]
+description = "An agentic model-validation copilot: SR 11-7-shaped reports whose every number carries a machine-checked citation."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Yichen Li", email = "lexieli@seas.upenn.edu" }]
+keywords = ["model-risk", "model-validation", "sr11-7", "llm", "agent", "grounding"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Typing :: Typed",
+]
+dependencies = [
+  "pydantic>=2",
+  "PyYAML>=6",
+  "numpy",
+  "pandas",
+  "scikit-learn>=1.4",
+  "jsonschema>=4",
+]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+mcp = ["mcp>=1.0"]
+xgboost = ["xgboost"]
+dev = [
+  "pytest",
+  "probatio-llm>=0.1.0",
+  "ruff",
+  "mypy",
+  "coverage",
+  "types-PyYAML",
+  "pandas-stubs",
+  "build",
+  "twine",
+  "pypdf",
+]
+
+[project.urls]
+Homepage = "https://github.com/Lexieli666/quaestor"
+Repository = "https://github.com/Lexieli666/quaestor"
+Changelog = "https://github.com/Lexieli666/quaestor/blob/main/CHANGELOG.md"
+
+[project.scripts]
+quaestor = "quaestor.cli:main"
+
+[tool.hatch.version]
+path = "src/quaestor/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/quaestor"]
+
+[tool.hatch.build.targets.sdist]
+# The package, its licence and the documents a reader wants before installing. Neither `tests/`,
+# `eval/` nor `subjects/` ships: the suite is inseparable from this repository's git history and
+# from the subject packages it runs, so a tree extracted from an sdist does not collect
+# (DECISIONS D-005). The auditable source is the tagged repository.
+include = ["src/quaestor", "README.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
+exclude = ["tests", "eval", "subjects", "examples"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.per-file-ignores]
+# `D` is the public-API docstring rule: it applies to the shipped package only (DECISIONS D-004).
+"tests/**" = ["D"]
+"eval/**" = ["D"]
+"subjects/**" = ["D"]
+"examples/**" = ["D"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src/quaestor"]
+
+[tool.coverage.run]
+source = ["src/quaestor"]
+
+[tool.coverage.report]
+show_missing = true

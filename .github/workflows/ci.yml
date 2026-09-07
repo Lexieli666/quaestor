@@ -1,0 +1,86 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: quality gate (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    env:
+      # No provider credentials exist in CI and none may be added. Every test runs offline
+      # against FakeLLM, committed cassettes and synthetic subjects; a live call or a download
+      # from a test is a defect, not a flake.
+      QUAESTOR_CI: "1"
+      QUAESTOR_NO_NETWORK: "1"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Gate condition 5 diffs `examples/golden_report/` against the commit that introduced
+          # it; a shallow clone has no such commit and the check would pass vacuously.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Gate 1 — pytest
+        run: pytest -q
+
+      - name: Gate 2 — coverage of src/quaestor at least 85%
+        run: |
+          coverage run -m pytest -q
+          coverage report --fail-under=85
+
+      - name: Gate 3 — ruff
+        run: |
+          ruff check src tests eval subjects
+          ruff format --check src tests eval subjects
+
+      - name: Gate 4 — mypy --strict
+        run: mypy --strict src/quaestor
+
+      # Gate 5 is the golden report: `examples/golden_report/` byte-identical to its introducing
+      # commit, and `quaestor validate --synthetic --llm fake` on both subjects producing a report
+      # that validates against docs/REPORT_SCHEMA.md. It is owned by
+      # `tests/test_golden_spec.py` (Phase 1) and by the CLI (Phase 8), so from Phase 1 it runs
+      # inside Gate 1 and needs no step of its own. This step exists to fail loudly if the golden
+      # directory ever appears without the test that pins it (DECISIONS D-006).
+      - name: Gate 5 — golden report is pinned by a test
+        run: |
+          if [ -f examples/golden_report/report.md ] && [ ! -f tests/test_golden_spec.py ]; then
+            echo "examples/golden_report/ exists but tests/test_golden_spec.py does not." >&2
+            echo "Gate condition 5 would pass vacuously. See CLAUDE.md and spec section 7." >&2
+            exit 1
+          fi
+          echo "gate 5: nothing to check at this commit"
+
+      # Gate 6 arrives with the Probatio test layer in Phase 11. Until `tests/probatio/` exists,
+      # `pytest` on a missing path is an error and an empty path collects nothing, so the step is
+      # guarded on the directory rather than allowed to fail (DECISIONS D-007).
+      - name: Gate 6 — Probatio suite in replay, zero provider calls
+        run: |
+          if [ -d tests/probatio ]; then
+            pytest tests/probatio --cassette=replay
+          else
+            echo "gate 6: tests/probatio does not exist yet (Phase 11)"
+          fi

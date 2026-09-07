@@ -1,0 +1,47 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build artefacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+
+# Scratch output. The demo and the gate write reports under /tmp; nothing there is ever tracked.
+/tmp/
+tmp/
+*.tmp
+
+# Real data must never enter the repository. `data-raw/` lives at ~/code/data-raw, outside this
+# tree, but it is ignored here as a guard against a mistaken `cp -r` or a wrong `cd`. Downloaded
+# datasets, the Freddie Mac files, the regulatory PDFs and the FinQA / TAT-QA dev sets all live
+# there. See CLAUDE.md, hard constraints.
+data-raw/
+
+# NOTE: `eval/results/`, `eval/results/published/` and (from Phase 11) `tests/probatio/cassettes/`
+# are deliberately NOT ignored. They hold committed study results and recorded tapes, which CI and
+# every provenance claim in the documentation must be able to read.
