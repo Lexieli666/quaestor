@@ -128,6 +128,12 @@ here and recorded.
   free coverage of the top of the supported range. A Python-floor change would be a stop-and-ask,
   and none is proposed. Rejected alternative: rebuilding the virtualenv on 3.11 to match CI
   exactly, which hides forward-compatibility breaks until a user reports one.
+- **Amended 2026-09-07 (before the first push):** the answer above is withdrawn. The virtualenv
+  was rebuilt on Python 3.12.14, inside the CI matrix. Reason: every live run this project
+  publishes (Phase 9 validations, the Phase 12 study, the recorded cassettes) executes in this
+  local virtualenv, and the published numbers must come from an interpreter CI exercises.
+  Forward-compatibility with 3.13 is not a goal of v0.1. Adding 3.13 to the CI matrix was
+  rejected because it changes spec §2 for a version nothing in the project has verified.
 
 ## D-010. `py.typed` is shipped
 

@@ -54,3 +54,7 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   unrelated project (0.6.3, 2025-08-07, per the Phase 0 prompt), so the distribution is
   `quaestor-mrm` (DECISIONS D-002). Local interpreter is Python 3.13.5; CI covers 3.11 and 3.12
   (DECISIONS D-009). No push; CI has not run yet.
+- 2026-09-07 — **Phase 0 follow-up** — virtualenv rebuilt on Python 3.12.14 (D-009 amended);
+  `pytest -q` 18 passed, `ruff` and `mypy --strict` clean on 3.12 locally; `pip index versions
+  quaestor` confirmed `quaestor` taken (0.6.3) and `quaestor-mrm` free (no distribution); first
+  push to `Lexieli666/quaestor`; CI run 34085866073 green on 3.11 and 3.12.
