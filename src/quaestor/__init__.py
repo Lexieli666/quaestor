@@ -10,7 +10,8 @@ compliance or certification.
 What this module exports grows with the phases that implement it. Spec section 9 fixes the
 eventual public surface; Phase 2 ships everything on that list that now exists -- the package
 loader, the artifact store, the LLM layer, the defect vocabulary, the errors and
-:func:`~quaestor.hashing.stable_hash`. ``Finding`` arrives in Phase 7 and ``validate`` in Phase 8.
+:func:`~quaestor.hashing.stable_hash`; Phase 3 adds :func:`~quaestor.sandbox.run_model`.
+``Finding`` arrives in Phase 7 and ``validate`` in Phase 8.
 
 ``__version__`` is the single source of truth for the distribution version, which
 ``pyproject.toml`` reads through hatchling. The distribution is named ``quaestor-mrm`` because the
@@ -36,6 +37,7 @@ from .findings import DefectClass, FindingCandidate, Severity
 from .hashing import stable_hash
 from .llm import LLM, Completion, FakeLLM
 from .package import ModelPackage, load_package
+from .sandbox import MemoryCap, RunResult, run_model
 from .trace import EventType, TraceEvent, TraceReader, TraceWriter
 
 __version__ = "0.1.0.dev0"
@@ -52,10 +54,12 @@ __all__ = [
     "FindingCandidate",
     "LLMOutputError",
     "LLMProviderError",
+    "MemoryCap",
     "ModelPackage",
     "PackageError",
     "QuaestorError",
     "ReportSchemaError",
+    "RunResult",
     "SandboxError",
     "Severity",
     "ToolError",
@@ -65,5 +69,6 @@ __all__ = [
     "VerificationError",
     "__version__",
     "load_package",
+    "run_model",
     "stable_hash",
 ]

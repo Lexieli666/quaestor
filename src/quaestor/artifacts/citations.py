@@ -6,7 +6,8 @@ existed, which is the point of a golden report. Five forms:
 * ``[[art:<hash8>:<logical_name>]]`` -- a scalar artifact.
 * ``[[art:<hash8>:<logical_name>#<path>]]`` -- one cell of a table, addressed by the value in its
   first column and then the column name, or one path into a JSON artifact, dotted, with list
-  elements addressed by their ``feature`` value.
+  elements addressed by their ``feature`` value, or by their ``name`` when they carry no
+  ``feature`` (DECISIONS D-026).
 * two adjacent ``[[art:...]]`` tokens -- the two operands of a ``delta`` or ``ratio`` claim, in
   order.
 * ``[[reg:<doc>:<section_id>]]`` -- a span of the regulatory corpus. Parsed here; resolved against
@@ -20,7 +21,8 @@ repair loop hands that message straight back to the drafter.
 
 Path resolution is structural only: a path walks keys and list elements and never computes. A
 report that wants to cite "the number of features" cites an artifact that holds that count, which
-is why ``run.features`` is stored as an object with its counts rather than as a bare list.
+is why ``run.features`` is stored as an object with its counts rather than as a bare list
+(DECISIONS D-026).
 """
 
 from __future__ import annotations
@@ -50,8 +52,16 @@ CITATION_RE: Final = re.compile(
 )
 """Every ``[[scheme:body]]`` token. A malformed body is reported, not skipped silently."""
 
-_LIST_KEY: Final = "feature"
-"""The field a list element is addressed by inside a JSON path (REPORT_SCHEMA section 5)."""
+_LIST_KEYS: Final = ("feature", "name")
+"""The fields a list element is addressed by inside a JSON path, tried in this order.
+
+``docs/REPORT_SCHEMA.md`` section 5 names ``feature``, which is what spec 3.3 calls the label in
+``model_summary.json``'s ``coefficients`` and ``removed`` lists. The same section's other list is
+``features.json``, whose elements label themselves ``name``, so a citation into
+``run.features#items.<feature>.timing`` would have nothing to walk by. Accepting the second
+spelling costs one fallback and is what lets both of the contract's own lists be cited
+(DECISIONS D-026).
+"""
 
 
 class CitationKind(StrEnum):
@@ -380,16 +390,20 @@ def _json_path(payload: Any, path: str) -> Any:
 
 
 def _list_element(items: list[Any], segment: str, here: str) -> Any:
-    """Return the element of a list whose ``feature`` value is ``segment``."""
-    labels = []
-    for item in items:
-        if isinstance(item, dict) and _LIST_KEY in item:
-            if str(item[_LIST_KEY]) == segment:
-                return item
-            labels.append(str(item[_LIST_KEY]))
+    """Return the element of a list labelled ``segment``, by its ``feature`` or by its ``name``."""
+    labels: list[str] = []
+    for key in _LIST_KEYS:
+        for item in items:
+            if isinstance(item, dict) and key in item:
+                if str(item[key]) == segment:
+                    return item
+                labels.append(str(item[key]))
+        if labels:
+            break
+    keys = " or ".join(_LIST_KEYS)
     raise ArtifactError(
-        f"no element at #{here} has {_LIST_KEY} == {segment!r}"
-        + (f"; the list holds {labels}" if labels else f"; its elements have no {_LIST_KEY} field")
+        f"no element at #{here} has {keys} == {segment!r}"
+        + (f"; the list holds {labels}" if labels else f"; its elements have no {keys} field")
     )
 
 

@@ -212,3 +212,72 @@ on every real package, since nobody keeps their data inside the package. Passing
 explicitly means the check is honest in both modes, `--synthetic` needs no special case, and
 Appendix D's "data manifest: not checked in synthetic mode" line is a fact about the code rather
 than a caveat about it.
+
+## Phase 3 — The sandbox and the `credit_default` subject
+
+**The subject is a subprocess, and the working tree is a copy of `code/` and nothing else
+(D-029).** `run_model` copies the package's `code/` into a fresh temporary directory, runs the
+declared entrypoint with the working directory one level above the copy, and deletes the tree
+afterwards. The rejected alternative is copying the whole package directory, which is simpler and
+gives the subject its own `package.yaml`, its `docs/` and any committed artifacts. That is exactly
+what should not be available: the drafter quotes `docs/` with a file citation and the validator
+reads `package.yaml`, so a subject that could read either could be written to agree with them. The
+other rejected alternative — leaving the subject where it is and setting `PYTHONPATH` — makes the
+subject's imports depend on a variable the environment scrub is meant to be able to drop.
+
+**A cap that is not enforced is recorded rather than pretended (D-028).** On Linux the address
+space is capped with `RLIMIT_AS` in a `preexec_fn`; on macOS the same call is not reliably
+honoured, so it is not made and the run records `memory_cap: unenforced` on its result, its
+`run.status` artifact, its trace event and the report's Appendix C. The rejected alternative is to
+set the limit everywhere and let a kill become an `R0` finding: numpy's BLAS reserves far more
+address space than it commits, so on a host that did enforce the limit a healthy 5,000-row fit
+would be killed, and the study would score a platform difference as a defect. `sandbox/Dockerfile`
+documents the path where all four limits are real — `--memory` is a kernel limit, `--network none`
+is what `QUAESTOR_NO_NETWORK` can only ask for — and no test builds it.
+
+**A failed run raises, but stores its evidence first (D-033).** `run_model` puts `run.stdout`,
+`run.stderr`, `run.duration_s` and `run.status` in the store before it raises `SandboxError`, so
+the Phase 5 tool can promote an `R0` candidate that satisfies `CLAUDE.md`'s evidence rule for the
+one defect class that describes a run which produced nothing. The rejected alternative is
+returning a `RunResult` with an `ok` flag, which every caller has to remember to check and the one
+that forgets goes on to read contract files that were never written.
+
+**The contract check is shallow on purpose.** `read_contract` asks whether each spec §3.3 file is
+present, parses, and carries the keys and columns the contract fixes; it never asks whether a
+number in it is right. The developer's `metrics.json` is never trusted — Phase 5 recomputes every
+metric from `predictions_<split>.csv` — so a validator here would be checking the wrong claim in
+the wrong place, and would have to be relaxed the first time a seeded variant reported a metric
+Quaestor disagreed with, which is the case the study exists to measure.
+
+**One definition of the twelve features, over a canonical raw schema.** `code/features.py` owns
+`engineer`, the stratified split and the VIF screen; `code/synthetic.py` renders the raw statement
+schema from the generating process and `sample.py` renames the UCI columns into the same schema.
+The rejected alternative is engineering the features twice, once per data source, which is the
+arrangement in which a real fit and a synthetic fit come to mean subtly different things by
+`pay_ratio_last` and no test can see it. The cost is that `sample.py` imports out of `code/` by
+path, under an alias, because the package is literally named `code` and importing it as such would
+shadow the standard library module for the whole process.
+
+**The screen removes the last-declared collinear feature, not the worst (D-031).** On the clean
+panel `utilisation` has a VIF of 49.2 and `utilisation_mean_6m` 50.1 — a distinction on the second
+decimal deciding which feature the champion is fitted on. Declaration order is the developer's own
+and is stable across seeds and across the study's variants, so the report always discusses the
+feature the package lists first. The textbook rule, removing the maximum, is reproducible for one
+dataset and not across two hundred.
+
+**The interaction is a reversal, and it was chosen by measurement (D-036).** D-017 requires the
+clean synthetic subject to yield exactly one finding, `E1`, which means the challenger has to beat
+the champion by more than 0.03 for a reason that is true rather than tuned. A saturating
+interaction of the same magnitude left the gap at 0.016 — inside the range a challenger's
+`max_leaf_nodes` moves it — so the process instead reverses the sign of the utilisation effect
+once a client is past due, with the credit story written down in `code/synthetic.py` and the
+subject's `README.md`. The measured gap is +0.076 and holds under every challenger configuration
+tried. The rejected alternative was tuning towards the golden report's illustrative 0.0323, which
+would optimise a number that was never a measurement.
+
+**The process's intercept is solved, not declared (D-036).** `SyntheticProcess` carries every
+parameter of the generating process so that a Phase 10 recipe can perturb one field, and the
+intercept is deliberately not one of them: it is bisected for each parameter set so that the mean
+default probability is `target_event_rate`. A recipe that changes a coefficient therefore changes
+the coefficient, and not also the base rate — which the study's `T1` and `C1` scoring would
+otherwise confound with the seeded defect.

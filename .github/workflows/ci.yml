@@ -62,7 +62,7 @@ jobs:
       # Gate 5 is the golden report: `examples/golden_report/` byte-identical to its introducing
       # commit, and `quaestor validate --synthetic --llm fake` on both subjects producing a report
       # that validates against docs/REPORT_SCHEMA.md. It is owned by
-      # `tests/test_golden_spec.py` (Phase 1) and by the CLI (Phase 8), so from Phase 1 it runs
+      # `tests/test_golden_spec.py` (Phase 1) and by the CLI (Phase 9), so from Phase 1 it runs
       # inside Gate 1 and needs no step of its own. This step exists to fail loudly if the golden
       # directory ever appears without the test that pins it (DECISIONS D-006).
       - name: Gate 5 — golden report is pinned by a test
@@ -72,7 +72,7 @@ jobs:
             echo "Gate condition 5 would pass vacuously. See CLAUDE.md and spec section 7." >&2
             exit 1
           fi
-          echo "gate 5a runs inside gate 1 as tests/test_golden_spec.py; 5b applies from Phase 3"
+          echo "gate 5a runs inside gate 1 as tests/test_golden_spec.py; 5b applies from Phase 9"
 
       # Gate 6 arrives with the Probatio test layer in Phase 11. Until `tests/probatio/` exists,
       # `pytest` on a missing path is an error and an empty path collects nothing, so the step is

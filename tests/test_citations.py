@@ -249,11 +249,41 @@ def test_a_missing_list_element_dangles_and_lists_the_features(store: ArtifactSt
     assert "delinq_last" in message
 
 
-def test_a_list_without_feature_fields_says_so(store: ArtifactStore) -> None:
+def test_a_list_without_a_label_field_says_so(store: ArtifactStore) -> None:
     store.put("run.plain_list", {"items": [1, 2, 3]}, "json")
     artifact = store.artifact("run.plain_list")
     message = dangling_message(artifact.citation("items.first"), store)
-    assert "no feature field" in message
+    assert "no feature or name field" in message
+
+
+# --- the second list key, DECISIONS D-026 --------------------------------------------------------
+
+
+def test_a_list_element_is_addressed_by_its_name_when_it_has_no_feature(
+    store: ArtifactStore,
+) -> None:
+    store.put(
+        "vif.by_feature",
+        {"items": [{"name": "utilisation", "vif": 4.31}, {"name": "limit_bal", "vif": 2.02}]},
+        "json",
+        "variance inflation by feature",
+    )
+    artifact = store.artifact("vif.by_feature")
+    assert resolve(one(artifact.citation("items.utilisation.vif")), store).value == pytest.approx(
+        4.31
+    )
+
+
+def test_feature_is_tried_before_name(store: ArtifactStore) -> None:
+    store.put(
+        "run.both_labels",
+        {"items": [{"feature": "a", "name": "b", "value": 1.0}]},
+        "json",
+    )
+    artifact = store.artifact("run.both_labels")
+    assert resolve(one(artifact.citation("items.a.value")), store).value == pytest.approx(1.0)
+    message = dangling_message(artifact.citation("items.b.value"), store)
+    assert "feature or name == 'b'" in message
 
 
 def test_a_path_walking_into_a_scalar_dangles(store: ArtifactStore) -> None:

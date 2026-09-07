@@ -503,3 +503,241 @@ here and recorded.
   compared across it. Rejected alternative: keeping `--bare` on and telling operators to export an
   API key, which contradicts `CLAUDE.md`'s "No API keys anywhere" and would make the published
   study unreproducible by anyone who follows that rule.
+
+## D-026. The list-element key accepts `feature` then `name`, and `run.features` is an object
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** The golden report writes `[[art:8b373477:run.features#n]]`, but `features.json` is a list
+  in spec §3.3 and a list has no `n`. And `docs/REPORT_SCHEMA.md` §5 addresses a list element by its
+  `feature` value, which is the label in `model_summary.json`; the elements of `features.json`
+  label themselves `name`. What resolves what?
+- **A:** Two changes, both narrow. (a) The artifact the sandbox stores under `run.features` is
+  `{"n": <count>, <timing>: <count> for each of the four timings, "items": [<the list as written>]}`.
+  The file on disk stays exactly the list spec §3.3 fixes; the transformation happens in
+  `quaestor.sandbox.contract.features_artifact` on the way into the store. (b) `citations.py`
+  addresses a list element by its `feature` value and, failing that, by its `name`; the error
+  message names both keys. The parenthetical in `docs/REPORT_SCHEMA.md` §5 is amended to say so,
+  which is a documentation correction and not a schema change: no field, enum or pattern moves, and
+  every citation in `examples/golden_report/` resolves before and after.
+- **Why:** The golden report is the executable specification, so a citation it writes has to be
+  resolvable by construction — `run.features#n` failing would mean either the golden was wrong from
+  the start or the store's shape was. Storing counts rather than computing them at citation time is
+  what keeps path resolution structural: a resolver that could count list elements would be a
+  resolver that computes, and the next request would be a sum. All four timings are stored, zeros
+  included, because "no feature is declared `after_outcome`" is a sentence a report should be able
+  to cite rather than assert. Rejected alternative: making `features.json` an object on disk, which
+  would put the store's convenience into the contract that two subjects and every seeded variant
+  have to write, and would contradict spec §3.3 as written.
+
+## D-027. `xlrd` is not a dependency, so `sample.py` accepts two input forms
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** The UCI *Default of Credit Card Clients* distribution is a legacy `.xls`, which pandas can
+  only read through `xlrd`. `CLAUDE.md` fixes the runtime dependencies and a new one is a
+  stop-and-ask. Add `xlrd`, or not?
+- **A:** Not. `subjects/credit_default/sample.py` reads either
+  `default of credit card clients.xls` — only when `xlrd` happens to be importable in the
+  operator's environment — or `default_of_credit_card_clients.csv`, which is what the operator
+  exports once from a spreadsheet. With neither present the message names both file names and the
+  dataset id; with only the `.xls` and no `xlrd`, the message is the one-off export instruction.
+  `xlrd_available()` is a function so a test can pin both branches without installing anything.
+- **Why:** `xlrd` would be a dependency of one script that runs once per machine, is never executed
+  by a test, and is not needed at all by anyone who exports a CSV — and a runtime dependency added
+  for that is a dependency every user of the library installs. A dev-only dependency was the other
+  option and is worse than useless: the script is not run in CI, so the dev environment is exactly
+  where it would never be used. Rejected alternative: `openpyxl`, which does not read the legacy
+  `.xls` format at all and would have produced a confusing failure instead of an instruction.
+
+## D-028. The memory cap is unenforced off Linux, recorded, and never fails a run
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** Spec §3.6 caps the subject's memory with `resource.setrlimit(RLIMIT_AS)` in a
+  `preexec_fn`, "on platforms without it, record `memory_cap: unenforced`". macOS *has*
+  `RLIMIT_AS` and does not reliably enforce it. Set it anyway?
+- **A:** No. `quaestor.sandbox.memory_cap_policy(platform)` returns `enforced` only on Linux, and
+  `unenforced` everywhere else including macOS; the limit is set only in the first case. Either way
+  the answer is recorded on `RunResult.memory_cap`, on the `run.status` artifact, on the run's
+  `tool_call` trace event and in the report's Appendix C, and a run is never failed because a cap
+  could not be applied — the `setrlimit` call inside the child swallows its own failure.
+  `subjects/../code/` is capped in practice by the container path of `sandbox/Dockerfile`, whose
+  `--memory` is a kernel limit and holds on every host.
+- **Why:** The macOS kernel does not fail an `mmap` of address space a process never touches, and
+  numpy's BLAS reserves far more address space than it commits, so the limit as actually
+  implemented stops nothing — while a limit that *were* honoured at 4,096 MB would kill a healthy
+  5,000-row fit. A cap whose effect depends on which machine ran the validation is worse than no
+  cap, because Appendix C would print "enforced (RLIMIT_AS 4096 MB)" and a reader would believe it.
+  Recording `unenforced` is the honest version of the same line. Rejected alternatives: setting the
+  limit everywhere and treating a kill as an `R0` finding, which manufactures a defect out of a
+  platform difference; and `RLIMIT_DATA`, which on macOS bounds only the legacy heap and on Linux
+  no longer bounds `mmap` at all, so it means two different things.
+
+## D-029. What the sandbox copies, and where the subject's own modules live
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** Spec §3.6 says the subprocess's `cwd` is "a temp copy of `code/`" and spec §3.2 fixes the
+  entrypoint as `python -m code.run`. Those two cannot both be literally true: if the working
+  directory *is* the copy of `code/`, there is no package named `code` on `sys.path` and
+  `python -m code.run` does not import. And spec §4 lists `synthetic.py` beside `code/`, where the
+  sandbox would not copy it, so a subject could not draw its own synthetic panel.
+- **A:** The working tree is a fresh temporary directory holding a copy of `code/` at `<work>/code`,
+  with `cwd = <work>` and `HOME = <work>/home`; the copy is removed when the run ends. The
+  generating process lives at `subjects/credit_default/code/synthetic.py`, so it travels with the
+  copy, and `subjects/credit_default/synthetic.py` is the file spec §4 and `CLAUDE.md` name: a
+  human-facing CLI that re-exports `SyntheticProcess`, `generate` and `engineer` and carries the
+  loader that imports out of `code/` under an alias. `sample.py` does not use that loader; it loads
+  `code/features.py` from its path directly, so that the second subject's `synthetic.py` (Phase 4)
+  cannot collide with the first's.
+- **Why:** The entrypoint is the part of the spec a user writes in their own `package.yaml`, so it
+  is the part that must work as written; "a temp copy of `code/`" is satisfied by a tree whose only
+  content is that copy. The subject is then genuinely self-contained: nothing outside `code/` is
+  visible to it, which is what makes "the subject cannot read its own `package.yaml`, its `docs/`,
+  or the validator" a property of the sandbox rather than a convention. Rejected alternatives:
+  copying the whole package directory, which hands the subject the developer documentation the
+  drafter is supposed to quote and any committed artifacts, and would make an "unexpected output"
+  check ambiguous about which directory it is about; and putting `code/` on `PYTHONPATH` with
+  `cwd` inside it, which leaves the subject's imports depending on an environment variable the
+  spec's own scrub list does not promise.
+
+## D-030. Under `--data` the split is read, not re-drawn
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** `code/run.py` draws a stratified 70/30 split by client identifier at the declared seed.
+  `sample.py` writes `train.csv` and `test.csv`, whose digests `package.yaml`'s `data.manifest`
+  pins. Does the `--data` path re-draw the split from the concatenated sample?
+- **A:** No. `sample.py` draws the split once, with the same `stratified_split` at the same declared
+  seed, and the two files *are* the split; `run.py --data DIR` reads them as the train and test
+  splits and refuses a sample whose two identifier sets overlap. `--synthetic N` draws the split
+  itself, from the same function.
+- **Why:** The manifest is the reproducibility mechanism for the real fit, and it can only pin
+  bytes — so whatever the two files contain has to be what the model was fitted on. Re-drawing the
+  split inside `run.py` would give a run whose splits depended on the seed *and* on the row order
+  of a concatenation, and a manifest that verified files whose contents no longer determined the
+  fit. Reading the split also keeps `sample.py` honest about being the documented sample rule
+  rather than half of it. Rejected alternative: one `sample.csv` plus a split drawn at run time,
+  which would have needed `package.yaml`'s `data.manifest` to change after Phase 1 — a
+  stop-and-ask — and would have made the real fit unverifiable from digests alone.
+
+## D-031. The VIF screen removes the last-declared offender, not the worst
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** The screen must leave every retained feature at or below a VIF of 10. Which feature leaves
+  each round?
+- **A:** The **last declared** of the features whose VIF exceeds the threshold, one per round, until
+  none does. `package.yaml`'s feature order is the developer's own order.
+- **Why:** Near-duplicate features come in pairs whose two VIFs are equal up to the noise in their
+  construction: on the clean synthetic panel `utilisation` is 49.2 and `utilisation_mean_6m` is
+  50.1. A rule that removes the larger therefore decides which of the two survives on a fourth
+  decimal, so a different seed — or a Phase 10 recipe that perturbs an unrelated parameter — would
+  silently swap which feature the champion is fitted on and which coefficient the report discusses.
+  Declaration order is stable across every seed and is visible in the package a reader is holding.
+  Rejected alternative: removing the maximum-VIF feature, which is the textbook rule and is
+  reproducible only for a fixed dataset, not across the study's variants.
+
+## D-032. A contract CSV may name its identifier `id` or the column `package.yaml` declares
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** Spec §3.3 writes the first column of `predictions_<split>.csv` as `id`. Both shipped
+  subjects declare `data.id_column` (`client_id`, `loan_id`) and write that instead, which is what
+  makes the file joinable to `data_<split>.csv`. Reject it?
+- **A:** No: `read_contract` accepts either spelling, and the error message names both when neither
+  is present.
+- **Why:** A subject that writes the identifier its own package declares is saying the same thing
+  more usefully, and the alternative is a contract that forces every subject to rename its key
+  column on the way out and every tool to rename it back. Accepting exactly two spellings — the
+  spec's and the declared one — is bounded, and neither is a guess. Rejected alternative: insisting
+  on `id`, which would make the leakage screen's overlap check join two files on a column whose
+  name no longer says what it holds.
+
+## D-033. A failed run raises, after storing the evidence an `R0` finding will need
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** Spec §3.6 says a subject that outruns its cap is "killed and reported", and that a missing
+  or malformed contract file is a `SandboxError`. Spec §3.7 says the `run_model` tool raises an
+  `R0` candidate when the run fails — and a candidate needs evidence hashes that exist in the
+  store. Does `run_model` return a failed `RunResult` or raise?
+- **A:** It raises `SandboxError`, and before raising it stores `run.stdout`, `run.stderr`,
+  `run.duration_s` and `run.status` (`returncode`, `timed_out`, `memory_cap`, both caps, the data
+  mode and the seed) and emits the run's `tool_call` trace event with `ok: false`. The Phase 5 tool
+  therefore catches one exception type and builds an evidenced `R0` from artifacts it can look up
+  by name. Two related choices: each captured stream is truncated at 64 KiB with a marker naming
+  what was dropped; and an unexpected file is described by a `run.unexpected.<path>` JSON artifact
+  carrying its relative path, its byte count, its SHA-256 and its text when it decodes, rather than
+  having its bytes copied into the store.
+- **Why:** A `RunResult` with an `ok` flag is a result every caller has to remember to check, and
+  the one that forgets proceeds to read contract files that are not there; an exception cannot be
+  forgotten. Storing the evidence first is what keeps `CLAUDE.md`'s evidence rule intact for the one
+  finding class that describes a run that produced nothing. The stream cap exists because a subject
+  that prints a megabyte per row would otherwise put its log in the report's artifact index, and the
+  marker exists because a silently truncated log reads as a complete one. An unexpected file is
+  described rather than copied because the store's four kinds are a scalar, a table, a JSON object
+  and a figure, and arbitrary bytes are none of them — while the file itself is still where the
+  subject wrote it. Rejected alternative: a `figure`-kind artifact holding whatever the subject
+  wrote, which would make the kind a lie the moment the file was not a PNG.
+
+## D-034. The champion is fitted on standardised features and reports standardised coefficients
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** `model_summary.json` carries `coefficients: [{feature, value}]`, and the golden report
+  calls them "standardised coefficients" and compares their magnitudes. The twelve features range
+  from a utilisation ratio near 1 to a credit limit near 10^5. On which scale?
+- **A:** The champion is a `Pipeline` of `StandardScaler` and `LogisticRegression`
+  (`class_weight=None`, `lbfgs`, `max_iter=1000`), and `model_summary.json` reports the
+  coefficients on the standardised scale, with `"standardised": true` beside them.
+  `data_<split>.csv` is written in the original units, because a drift or collinearity screen has
+  to report a PSI or a VIF a reader can compare against the developer's own monitoring.
+- **Why:** A sentence like "the three largest coefficients are on `delinq_last`, `utilisation` and
+  `delinq_count_6m`" is meaningless on raw coefficients, where the ranking is a statement about
+  units; it is exactly what a validator wants to read on standardised ones. Standardising also
+  gives `lbfgs` a conditioned problem, so the fit is reproducible rather than
+  convergence-tolerance-dependent. Rejected alternative: raw coefficients plus a note about units,
+  which pushes the comparison onto the reader and makes the report's own ranking unciteable.
+
+## D-035. `condition_number` means Belsley's kappa, which the clean synthetic panel passes
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** Spec §3.7 stores `condition_number` and raises `M1` above 30, without defining it. On the
+  clean synthetic panel's ten retained features the ratio of the correlation matrix's extreme
+  eigenvalues is 30.8 and the ratio of the design matrix's extreme singular values is 5.55. The
+  first would raise `M1` on the clean control and break D-017; the second would not.
+- **A:** `condition_number` is Belsley's condition number: the ratio of the largest to the smallest
+  **singular value** of the column-standardised design matrix, equivalently the square root of the
+  eigenvalue ratio of the correlation matrix. On the clean synthetic panel it is **5.55**. This
+  binds Phase 5: `check_collinearity` implements that definition, and the threshold of 30 is
+  Belsley's own rule of thumb, which is stated for that quantity.
+- **Why:** The number and the threshold have to come from the same source, and 30 is the textbook
+  cut-off for the singular-value ratio; pairing it with the eigenvalue ratio compares a quantity
+  with the square of the threshold it was meant for, which is how a clean model acquires a
+  collinearity finding. Deciding it here rather than in Phase 5 is deliberate: the alternative is
+  discovering in Phase 8 that the clean control yields two findings instead of the one D-017
+  fixes, and then choosing the definition that makes the test pass — which is the same arithmetic
+  arrived at in the order that cannot be trusted. Rejected alternative: raising the threshold to
+  100 for the eigenvalue ratio, which is the same rule wearing a number no source states.
+
+## D-036. What the clean synthetic panel actually contains, measured
+
+- **Date:** 2026-09-07 (Phase 3)
+- **Q:** D-017 fixes the two deliberate structures of the synthetic `credit_default` panel. What do
+  they come out as, and does anything in the realisation contradict the golden report?
+- **A:** At the declared seed 20260901 and `--synthetic 5000`: event rate 0.2246; the screen removes
+  **two** features, `bill_last` (VIF 160.9) and then `utilisation_mean_6m` (VIF 36.4), leaving ten
+  whose worst VIF is 7.30; champion test AUC 0.7480, Brier 0.1489, calibration slope 0.997,
+  train-minus-test AUC gap 0.0104; the largest single-feature AUC is 0.693; the worst train-to-test
+  PSI is 0.0102; a default `HistGradientBoostingClassifier` on the retained features scores 0.8240,
+  a challenger-minus-champion gap of **+0.0760** against the `E1` threshold of 0.03. The
+  interaction is a **reversal**, not a mere curvature: `beta_utilisation = 4.6` and
+  `beta_interaction = -5.4`, so a high balance predicts default for a client who is current and
+  predicts it less for one already past due — the past-due client with almost no balance is the one
+  who has stopped using the card. Two consequences for the golden report, which is **not** edited:
+  its "the screen removed one feature, the eleven retained" and its `challenger.delta_auc` of
+  0.0323 are illustrative, as its front matter says, and nothing compares them to a run.
+- **Why:** The two near-collinear pairs are unavoidable rather than chosen: `utilisation` is
+  `bill_last / limit_bal` and `utilisation_mean_6m` is `bill_mean_6m / limit_bal`, so making the
+  statement path persistent enough for the second pair to be collinear makes the first pair
+  collinear too. `package.yaml`'s own note says the screen "is expected to remove one of the pair",
+  which it does, once per pair. The reversal was chosen after measuring: a saturating interaction of
+  the same size left the challenger 0.016 ahead, inside the noise of a hyperparameter choice, and a
+  clean control whose only finding depends on the challenger's `max_leaf_nodes` is a control that
+  will flake. At +0.076 the `E1` holds under every challenger configuration tried (defaults, and
+  two regularised ones), which is what a control has to do. The margin is generous rather than
+  tight for the same reason. Rejected alternative: tuning for a gap near the golden's illustrative
+  0.0323, which optimises a number that was never a measurement.

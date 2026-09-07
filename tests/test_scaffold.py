@@ -114,7 +114,8 @@ def test_module_invocation_exits_zero() -> None:
 def test_the_module_list_is_the_one_the_run_log_claims() -> None:
     # Pinned so that a module landing without its tests, or a module quietly disappearing, is a
     # failure rather than a discovery. Updated by the phase that adds a module, in that phase's
-    # own commit: Phase 2 added errors, hashing, trace, findings, package/, artifacts/ and llm/.
+    # own commit: Phase 2 added errors, hashing, trace, findings, package/, artifacts/ and llm/;
+    # Phase 3 added sandbox/contract.py and sandbox/runner.py.
     modules = sorted(
         p.relative_to(REPO_ROOT / "src" / "quaestor").as_posix()
         for p in (REPO_ROOT / "src" / "quaestor").rglob("*.py")
@@ -141,15 +142,19 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "package/spec.py",
         "report/__init__.py",
         "sandbox/__init__.py",
+        "sandbox/contract.py",
+        "sandbox/runner.py",
         "tools/__init__.py",
         "trace.py",
         "verifier/__init__.py",
     ]
 
 
-# The public surface of spec section 9, as far as Phase 2 implements it. `Finding` arrives in
+# The public surface of spec section 9, as far as Phase 3 implements it. `Finding` arrives in
 # Phase 7 and `validate` in Phase 8; both are asserted absent so that a half-built one cannot be
-# mistaken for the real thing.
+# mistaken for the real thing. `run_model` is on the list from Phase 3 because `CLAUDE.md` makes
+# subprocess execution of a subject a hard constraint, so it is part of the surface a reader of
+# the package has to be able to find.
 PUBLIC_API = [
     "LLM",
     "Artifact",
@@ -162,10 +167,12 @@ PUBLIC_API = [
     "FindingCandidate",
     "LLMOutputError",
     "LLMProviderError",
+    "MemoryCap",
     "ModelPackage",
     "PackageError",
     "QuaestorError",
     "ReportSchemaError",
+    "RunResult",
     "SandboxError",
     "Severity",
     "ToolError",
@@ -175,11 +182,12 @@ PUBLIC_API = [
     "VerificationError",
     "__version__",
     "load_package",
+    "run_model",
     "stable_hash",
 ]
 
 
-def test_the_public_api_is_exactly_what_phase_2_ships() -> None:
+def test_the_public_api_is_exactly_what_phase_3_ships() -> None:
     assert quaestor.__all__ == PUBLIC_API
 
 

@@ -35,3 +35,18 @@ run that was not committed.
   section 9 is exported as far as Phase 2 implements it; `Finding` arrives in Phase 7 and
   `validate` in Phase 8. No test in the suite calls a live model, downloads data or reads an API
   key.
+- Phase 3 sandbox and first subject: `quaestor.sandbox` (`run_model`, `RunResult`, `MemoryCap`,
+  `build_argv`, `memory_cap_policy`, and `read_contract`/`required_files`/`features_artifact` for
+  the standard artifact contract of spec section 3.3) plus `src/quaestor/sandbox/Dockerfile`, which
+  documents the containerised path and is not used by any test; and
+  `subjects/credit_default/` (`code/run.py`, `code/features.py`, `code/synthetic.py`,
+  `synthetic.py`, `sample.py`, `README.md`). A subject runs in a subprocess whose working tree is a
+  copy of the package's `code/`, whose environment is scrubbed to `PATH`, `PYTHONPATH`, `HOME` and
+  `QUAESTOR_NO_NETWORK`, whose wall clock is capped from `runtime.max_seconds` and whose address
+  space is capped from `runtime.max_memory_mb` on Linux only, with `memory_cap: unenforced`
+  recorded everywhere else (D-028). `run.features` is stored as an object carrying its counts, and
+  a list element in a citation path may be addressed by its `name` as well as by its `feature`
+  (D-026). The synthetic `credit_default` panel is the clean control of D-017: 5,000 clients, an
+  event rate of 0.2246, a champion test AUC of 0.7480 and a challenger-minus-champion AUC gap of
+  +0.0760 against the 0.03 effective-challenge threshold. `sample.py` needs no `xlrd` (D-027) and
+  is never run by a test.
