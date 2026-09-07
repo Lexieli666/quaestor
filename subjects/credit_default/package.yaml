@@ -17,7 +17,10 @@ data:
   source: >-
     UCI Default of Credit Card Clients (dataset id 350; CC BY 4.0; Yeh, I. (2009),
     doi 10.24432/C55S3H), 30,000 clients, sampled by sample.py. Synthetic mode: synthetic.py.
-  manifest: null                      # set after the real sample is built (Phase 3): {train.csv: sha256, test.csv: sha256}
+  manifest:                           # SHA-256 of the two CSVs sample.py wrote on 2026-09-07 (UCI 350, all 30,000 clients);
+                                      # verified only under --data (D-022); aggregates of that run are in artifacts/real/
+    train.csv: "77fdcbcd5529320782b87e96b0d833e7fcd16a2406806015e9beb8b2ee49e203"
+    test.csv:  "04ee1f59e84debfcf56efc3096153e01df7e69ae4e017ef9e22ec56fa3bcf857"
   target: default_next_month
   event_definition: "1 if the client defaulted on the payment due in the month following the observation month"
   time_column: null
@@ -57,9 +60,11 @@ thresholds:
   - {metric: calibration_slope, split: test,  min: 0.80, max: 1.20}
   - {metric: psi,               features: all, max: 0.25}
 
-# Developer-declared numbers about the real fit. Filled in Phase 3 from the committed real-sample
-# run (never from memory); verified like report claims when --data is given.
-claims: []
+# Developer-declared numbers about the real fit, copied from the committed real-sample run
+# (never from memory); verified like report claims when --data is given.
+claims:                               # from artifacts/real/metrics.json (run of 2026-09-07); evaluated only under --data (D-016)
+  - {text: "AUC on the test split is 0.755",         metric: auc,   split: test, value: 0.755}
+  - {text: "Brier score on the test split is 0.139", metric: brier, split: test, value: 0.139}
 
 scenarios: null
 

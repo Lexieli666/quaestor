@@ -17,7 +17,7 @@ coefficients and is what every test, CI and the demo use. `--data DIR` fits the 
 | citation | Yeh, I. (2009). doi [10.24432/C55S3H](https://doi.org/10.24432/C55S3H) |
 | licence | CC BY 4.0 — redistribution of a derived sample is permitted with attribution |
 | rows | 30,000 clients, one row each, six months of statement history |
-| what is committed | nothing from the file itself: not a row, not a digest of a row. `package.yaml`'s `data.manifest` records the SHA-256 of the two CSVs `sample.py` writes, so the fit is reproducible from a file the operator downloads |
+| what is committed | nothing from the file itself: not a row, not a digest of a row. `package.yaml`'s `data.manifest` records the SHA-256 of the two CSVs `sample.py` writes, and `artifacts/real/` holds the aggregates of the real run (`metrics.json`, `model_summary.json`, `splits.json`, `features.json`), which CC BY 4.0 permits as derived statistics (spec §4) |
 
 The licence is the reason this dataset is the shipped default rather than the loan dataset of the
 original project, whose terms do not permit redistributing a sample (spec §4.1).
@@ -112,16 +112,23 @@ Seed 20260901, `--synthetic 5000`, this machine (Python 3.12.14, scikit-learn 1.
 
 ## Measured on the real sample
 
-Filled after the first real run: the sample is not downloaded in this repository, and
-`CLAUDE.md` forbids quoting a number no committed run produced.
+Run of 2026-09-07 on this machine (Python 3.12.14, scikit-learn 1.9.0), `sample.py` over all
+30,000 UCI clients, then `python -m code.run --data`. The numbers below are copied from
+`artifacts/real/metrics.json` and `artifacts/real/splits.json`, which are the committed record of
+that run; `package.yaml`'s two developer `claims` are rounded from the same file.
 
 | | |
 |---|---|
-| `train.csv` SHA-256 | *filled after the first real run* |
-| `test.csv` SHA-256 | *filled after the first real run* |
-| clients, event rate | *filled after the first real run* |
-| champion test AUC / Brier | *filled after the first real run* |
-| wall-clock | *filled after the first real run* |
+| `train.csv` SHA-256 | `77fdcbcd5529320782b87e96b0d833e7fcd16a2406806015e9beb8b2ee49e203` |
+| `test.csv` SHA-256 | `04ee1f59e84debfcf56efc3096153e01df7e69ae4e017ef9e22ec56fa3bcf857` |
+| clients, event rate | train 21,000 (0.2212), test 9,000 (0.2212) |
+| features retained | 10 of 12 (`bill_last`, `utilisation_mean_6m` removed) |
+| champion test AUC / Brier | 0.7550 / 0.1385 |
+| champion train AUC / Brier | 0.7546 / 0.1384 |
+| wall-clock, `python -m code.run --data` | 1.33 s (`time`, total) |
+
+The sample itself lives outside the repository (`~/code/data-raw/credit/`); `--data` re-verifies
+the two digests before fitting.
 
 ## Files
 
@@ -130,6 +137,7 @@ package.yaml     the declaration Quaestor validates against (spec 3.2)
 README.md        this file
 synthetic.py     the human-facing panel writer; re-exports the process out of code/
 sample.py        builds train.csv and test.csv from the UCI file; never run by a test
+artifacts/real/  aggregates of the committed real-sample run: metrics, coefficients, split digests, features
 code/            the only directory the sandbox copies into the subprocess
   run.py         the entrypoint: python -m code.run --out DIR [--data DIR | --synthetic N]
   features.py    the twelve features, the stratified split, the VIF screen
