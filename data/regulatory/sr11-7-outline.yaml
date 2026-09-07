@@ -1,0 +1,38 @@
+# Section outline of SR 11-7, "Supervisory Guidance on Model Risk Management"
+# (Board of Governors of the Federal Reserve System, SR Letter 11-7, April 4, 2011; attachment
+# ~21 pages). Verified 2026-09-07 against the PDF at
+# https://www.federalreserve.gov/boarddocs/srletters/2011/sr1107a1.pdf
+# Used by corpus/ingest.py to split the extracted text into citable sections. Headings are the
+# document's own; section_id values are Quaestor's.
+document: SR11-7
+title: Supervisory Guidance on Model Risk Management
+issued: 2011-04-04
+source_url: https://www.federalreserve.gov/boarddocs/srletters/2011/sr1107a1.pdf
+sections:
+  - {section_id: I,     heading: "Introduction"}
+  - {section_id: II,    heading: "Purpose and Scope"}
+  - {section_id: III,   heading: "Overview of Model Risk Management"}
+  - {section_id: IV,    heading: "Model Development, Implementation, and Use"}
+  - {section_id: IV.1,  heading: "Model Development and Implementation", parent: IV}
+  - {section_id: IV.2,  heading: "Model Use", parent: IV}
+  - {section_id: V,     heading: "Model Validation"}
+  - {section_id: V.1,   heading: "Key Elements of Comprehensive Validation", parent: V}
+  - {section_id: V.1.a, heading: "Evaluation of Conceptual Soundness", parent: V.1}
+  - {section_id: V.1.b, heading: "Ongoing Monitoring", parent: V.1}
+  - {section_id: V.1.c, heading: "Outcomes Analysis", parent: V.1}
+  - {section_id: V.2,   heading: "Validation of Vendor and Other Third-Party Products", parent: V}
+  - {section_id: VI,    heading: "Governance, Policies, and Controls"}
+  - {section_id: VI.1,  heading: "Board of Directors and Senior Management", parent: VI}
+  - {section_id: VI.2,  heading: "Policies and Procedures", parent: VI}
+  - {section_id: VI.3,  heading: "Roles and Responsibilities", parent: VI}
+  - {section_id: VI.4,  heading: "Internal Audit", parent: VI}
+  - {section_id: VI.5,  heading: "External Resources", parent: VI}
+  - {section_id: VI.6,  heading: "Model Inventory", parent: VI}
+  - {section_id: VI.7,  heading: "Documentation", parent: VI}
+  - {section_id: VII,   heading: "Conclusion"}
+# Report-section anchors (02-SPEC.md section 3.11): conceptual soundness -> V.1.a;
+# data integrity -> IV.1 and V.1.a; outcomes analysis -> V.1.c; sensitivity -> V.1.a (sensitivity
+# analysis is discussed under conceptual soundness) and V.1.b (benchmarking);
+# ongoing monitoring -> V.1.b; documentation -> VI.7.
+# OCC Bulletin 2011-12 carries the same interagency guidance text; ingest it as document OCC2011-12
+# with the same outline, and let the retriever cite whichever copy matched.

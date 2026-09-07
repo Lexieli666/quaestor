@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "illustrative-0000",
+  "illustrative": true,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A gradient-boosting challenger outperforms the champion by 0.0323 AUC",
+      "narrative": "The challenger's test AUC of 0.7735 exceeds the champion's 0.7412 by more than the 0.03 effective-challenge threshold. The champion's additive logit appears to miss an interaction, most plausibly between utilisation and current delinquency. Recommendation: test an interaction term or a spline on utilisation in the champion and document the choice.",
+      "evidence": [
+        "d995c29d",
+        "4bb1344e",
+        "02d4d1a8",
+        "de8d94b3"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

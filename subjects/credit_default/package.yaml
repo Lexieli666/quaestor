@@ -1,0 +1,68 @@
+# subjects/credit_default/package.yaml — the credit-default scoring subject (02-SPEC.md §3.2, §4.1).
+#
+# One file serves both data modes. `python -m code.run --data DIR --out DIR` fits on the sample that
+# sample.py built from the UCI data; `python -m code.run --synthetic N --out DIR` fits on N rows drawn
+# by synthetic.py from a logistic process with known coefficients, one near-collinear pair (bill_last,
+# bill_mean_6m) and one interaction term (utilisation × delinq_last) that an additive champion cannot
+# represent, so the challenger comparison has something to find. The feature list below is the set
+# code/run.py engineers in either mode, before its VIF screen; model_summary.json names the features
+# the screen removed. Developer `claims` describe the real fit and are evaluated only when --data is
+# given; under --synthetic they are listed in Appendix D as not evaluated (DESIGN, Phase 1).
+name: credit_default
+version: "1.0"
+model_type: binary_classification
+entrypoint: "python -m code.run"
+
+data:
+  source: >-
+    UCI Default of Credit Card Clients (dataset id 350; CC BY 4.0; Yeh, I. (2009),
+    doi 10.24432/C55S3H), 30,000 clients, sampled by sample.py. Synthetic mode: synthetic.py.
+  manifest: null                      # set after the real sample is built (Phase 3): {train.csv: sha256, test.csv: sha256}
+  target: default_next_month
+  event_definition: "1 if the client defaulted on the payment due in the month following the observation month"
+  time_column: null
+  id_column: client_id
+
+splits:
+  train: {rule: "random 70% of clients, stratified on default_next_month, seed 20260901"}
+  test:  {rule: "the remaining 30%"}
+  out_of_time: null
+  vintage_holdout: null
+
+# timing ∈ {at_origination, before_period_start, during_period, after_outcome}. Every feature here is
+# known at or before the start of the observation month; `after_outcome` on any feature is an L1
+# candidate before the subject runs.
+features:
+  - {name: limit_bal,            timing: at_origination,      note: "credit limit"}
+  - {name: age,                  timing: at_origination}
+  - {name: utilisation,          timing: before_period_start, note: "last statement balance / limit_bal"}
+  - {name: utilisation_mean_6m,  timing: before_period_start, note: "mean of statement balance / limit_bal over the six prior statements"}
+  - {name: pay_ratio_last,       timing: before_period_start, note: "last payment / previous statement balance, capped at 2"}
+  - {name: pay_ratio_mean_6m,    timing: before_period_start}
+  - {name: delinq_last,          timing: before_period_start, note: "months past due on the last statement (0 = current)"}
+  - {name: delinq_count_6m,      timing: before_period_start, note: "prior statements with months past due > 0"}
+  - {name: delinq_max_6m,        timing: before_period_start}
+  - {name: bill_mean_6m,         timing: before_period_start}
+  - {name: bill_last,            timing: before_period_start, note: "near-collinear with bill_mean_6m by construction in synthetic mode; the VIF screen is expected to remove one of the pair"}
+  - {name: bill_trend_6m,        timing: before_period_start, note: "slope of statement balance over the six prior statements"}
+
+regime:
+  column: null
+
+# Developer-declared pass/fail rules. A breach is a T1 finding; every value here is stored as an
+# artifact so the report can cite it.
+thresholds:
+  - {metric: auc,               split: test,  min: 0.70}
+  - {metric: brier,             split: test,  max: 0.20}
+  - {metric: calibration_slope, split: test,  min: 0.80, max: 1.20}
+  - {metric: psi,               features: all, max: 0.25}
+
+# Developer-declared numbers about the real fit. Filled in Phase 3 from the committed real-sample
+# run (never from memory); verified like report claims when --data is given.
+claims: []
+
+scenarios: null
+
+runtime:
+  max_seconds: 300
+  max_memory_mb: 4096

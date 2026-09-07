@@ -14,3 +14,10 @@ run that was not committed.
   repository layout, the scaffold tests, the CI quality gate on Python 3.11 and 3.12, and the
   project documents (`README.md`, `PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`, `LICENSE`,
   `docs/DESIGN.md`).
+- Phase 1 executable specification: `examples/golden_report/` (`report.md`, `claims.json`,
+  `findings.json`, `REPORT_SCHEMA.json`, the new `CLAIMS_SCHEMA.json` and `FINDINGS_SCHEMA.json`,
+  `MANIFEST.json`, `README.md`), `subjects/credit_default/package.yaml`,
+  `data/regulatory/sr11-7-outline.yaml`, `docs/REPORT_SCHEMA.md` and `tests/test_golden_spec.py`.
+  Every number in the golden report is illustrative and no citation in it resolves; the directory
+  fixes the report's shape, the claim grammar and the citation syntax, and is pinned by
+  `MANIFEST.json` and by DECISIONS D-011.

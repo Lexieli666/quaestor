@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Lexieli666/quaestor/examples/golden_report/FINDINGS_SCHEMA.json",
+  "title": "Quaestor findings.json — Finding and envelope",
+  "description": "Validates findings.json as written by the agent (docs/REPORT_SCHEMA.md section 8, 02-SPEC.md section 3.9). findings.json is the scoring target for the seeded-defect study, so candidates_not_promoted and checks_without_candidates are required: the miss list must be readable from structured data rather than from prose. Every object is closed and every enum is exhaustive. This schema cannot check the evidence rule — a Finding whose evidence hash is not in the artifact store fails at construction, not here.",
+  "type": "object",
+  "required": [
+    "schema_version", "package", "version", "configuration", "run_id", "illustrative",
+    "findings", "candidates_not_promoted", "checks_without_candidates"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "package": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+    "version": {"type": "string", "minLength": 1},
+    "configuration": {"enum": ["full_agent", "rules_only", "plain_llm"]},
+    "run_id": {"type": "string", "minLength": 1},
+    "illustrative": {"type": "boolean", "description": "true only in examples/golden_report/."},
+    "findings": {
+      "description": "Severity-ordered; the id numbering follows that order.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "candidates_not_promoted": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/candidate_not_promoted"}
+    },
+    "checks_without_candidates": {
+      "description": "Tool name to the defect classes it screened for and did not raise.",
+      "type": "object",
+      "propertyNames": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {"$ref": "#/$defs/defect_class"}
+      }
+    }
+  },
+  "unevaluatedProperties": false,
+  "$defs": {
+    "defect_class": {
+      "enum": ["L1", "L2", "R1", "C1", "S1", "M1", "D1", "T1", "O1", "E1", "X1", "R0"]
+    },
+    "severity": {"enum": ["high", "medium", "low", "info"]},
+    "section": {
+      "enum": [
+        "summary", "conceptual_soundness", "data_integrity", "outcomes", "sensitivity",
+        "findings", "monitoring"
+      ]
+    },
+    "evidence": {
+      "description": "Artifact hash prefixes; non-empty. Construction fails if one is not in the store.",
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "pattern": "^[0-9a-f]{8}$"}
+    },
+    "finding": {
+      "title": "Finding",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "defect_class", "severity", "suggested_severity", "severity_reason", "tool",
+        "title", "narrative", "evidence", "section", "candidates_merged"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^F-[0-9]{3}$"},
+        "defect_class": {"$ref": "#/$defs/defect_class"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "suggested_severity": {
+          "$ref": "#/$defs/severity",
+          "description": "What the check suggested; equal to severity unless the agent changed it."
+        },
+        "severity_reason": {
+          "type": ["string", "null"],
+          "description": "The agent's one-sentence reason, required when severity and suggested_severity differ."
+        },
+        "tool": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "The tool whose candidate or candidates became this finding."
+        },
+        "title": {"type": "string", "minLength": 1},
+        "narrative": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Drafted; every number in it is also a claim in section 6."
+        },
+        "evidence": {"$ref": "#/$defs/evidence"},
+        "section": {"$ref": "#/$defs/section"},
+        "candidates_merged": {"type": "integer", "minimum": 1}
+      },
+      "allOf": [
+        {
+          "description": "severity_reason is required when the agent changed the severity, so a null reason means the two severities agree.",
+          "if": {"properties": {"severity_reason": {"type": "null"}}, "required": ["severity_reason"]},
+          "then": {
+            "anyOf": [
+              {"properties": {"severity": {"const": "high"}, "suggested_severity": {"const": "high"}}},
+              {"properties": {"severity": {"const": "medium"}, "suggested_severity": {"const": "medium"}}},
+              {"properties": {"severity": {"const": "low"}, "suggested_severity": {"const": "low"}}},
+              {"properties": {"severity": {"const": "info"}, "suggested_severity": {"const": "info"}}}
+            ]
+          }
+        }
+      ]
+    },
+    "candidate_not_promoted": {
+      "description": "A candidate the validator judged not to warrant a finding.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defect_class", "tool", "evidence", "reason"],
+      "properties": {
+        "defect_class": {"$ref": "#/$defs/defect_class"},
+        "tool": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "evidence": {"$ref": "#/$defs/evidence"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
