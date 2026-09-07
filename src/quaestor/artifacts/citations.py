@@ -10,8 +10,10 @@ existed, which is the point of a golden report. Five forms:
   ``feature`` (DECISIONS D-026).
 * two adjacent ``[[art:...]]`` tokens -- the two operands of a ``delta`` or ``ratio`` claim, in
   order.
-* ``[[reg:<doc>:<section_id>]]`` -- a span of the regulatory corpus. Parsed here; resolved against
-  the corpus in Phase 6, so resolution returns :attr:`CitationStatus.deferred` until then.
+* ``[[reg:<doc>:<section_id>]]`` -- a span of the committed regulatory corpus, ``SR11-7`` or
+  ``SR26-2`` (DECISIONS D-055). Resolved against the JSONL that :mod:`quaestor.corpus` ships, so a
+  citation to a document that was never ingested or to a section the guidance does not have is
+  ``dangling`` and the message names the citation.
 * ``[[table:<logical_name>]]`` -- a drafter directive the renderer expands (D-013).
 
 Resolution is deterministic and has no model in it. A citation that names a hash the store does not
@@ -33,6 +35,7 @@ from typing import Any, Final
 
 from pydantic import BaseModel, ConfigDict
 
+from ..corpus import RegulatoryCorpus, load_corpus
 from ..errors import ArtifactError
 from .store import SHORT_HASH_LENGTH, ArtifactKind, ArtifactStore
 
@@ -84,12 +87,10 @@ class CitationStatus(StrEnum):
     Attributes:
         resolved: The citation points at something that exists.
         dangling: It does not, and the message says why.
-        deferred: It is a ``reg`` citation, which the corpus resolves from Phase 6 on.
     """
 
     resolved = "resolved"
     dangling = "dangling"
-    deferred = "deferred"
 
 
 class Citation(BaseModel):
@@ -205,8 +206,10 @@ class ResolvedCitation(BaseModel):
         citation: The citation as parsed.
         status: Whether it resolved.
         value: The number it resolves to, when it names a scalar or a numeric cell or path.
-        message: Why it did not resolve, or why resolution is deferred; ``None`` when resolved.
+        message: Why it did not resolve; ``None`` when it resolved.
         kind: The kind of artifact it resolved to, when it resolved to one.
+        heading: The guidance heading a ``reg`` citation resolved to, so that a renderer can name
+            the section a report anchors itself to without re-reading the corpus.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -216,6 +219,7 @@ class ResolvedCitation(BaseModel):
     value: float | None = None
     message: str | None = None
     kind: ArtifactKind | None = None
+    heading: str | None = None
 
     @property
     def is_resolved(self) -> bool:
@@ -223,30 +227,48 @@ class ResolvedCitation(BaseModel):
         return self.status is CitationStatus.resolved
 
 
-def resolve(citation: Citation, store: ArtifactStore) -> ResolvedCitation:
-    """Resolve one citation against an artifact store.
+def resolve(
+    citation: Citation,
+    store: ArtifactStore,
+    *,
+    corpus: RegulatoryCorpus | None = None,
+) -> ResolvedCitation:
+    """Resolve one citation against an artifact store and the regulatory corpus.
 
     Args:
         citation: A parsed citation.
         store: The run's artifact store.
+        corpus: The corpus a ``reg`` citation resolves against; defaults to the committed one.
 
     Returns:
-        The resolution. ``reg`` citations are :attr:`CitationStatus.deferred`, because the corpus
-        arrives in Phase 6; every other failure is :attr:`CitationStatus.dangling` with a message
-        that quotes the citation.
+        The resolution. Every failure is :attr:`CitationStatus.dangling` with a message that
+        quotes the citation, which is what the repair loop hands back to the drafter.
     """
     if citation.kind is CitationKind.reg:
-        return ResolvedCitation(
-            citation=citation,
-            status=CitationStatus.deferred,
-            message=(
-                f"{citation.raw} is resolved against the regulatory corpus, which is ingested in "
-                "Phase 6 (spec section 3.8)"
-            ),
-        )
+        return _resolve_guidance(citation, corpus or load_corpus())
     if citation.kind is CitationKind.table:
         return _resolve_table_directive(citation, store)
     return _resolve_artifact(citation, store)
+
+
+def _resolve_guidance(citation: Citation, corpus: RegulatoryCorpus) -> ResolvedCitation:
+    """Resolve ``[[reg:<doc>:<section_id>]]`` against the committed corpus."""
+    doc, section_id = citation.doc or "", citation.section_id or ""
+    if doc not in corpus.documents():
+        return _dangling(
+            citation,
+            f"{citation.raw} names document {doc!r}, which is not in the regulatory corpus; it "
+            f"holds {corpus.documents()}. OCC Bulletin 2011-12 is deliberately not ingested "
+            "(DECISIONS D-055)",
+        )
+    span = corpus.get(doc, section_id)
+    if span is None:
+        return _dangling(
+            citation,
+            f"{citation.raw} names section {section_id!r}, which {doc} does not have; its "
+            f"sections are {corpus.section_ids(doc)}",
+        )
+    return ResolvedCitation(citation=citation, status=CitationStatus.resolved, heading=span.heading)
 
 
 def _dangling(citation: Citation, message: str) -> ResolvedCitation:

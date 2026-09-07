@@ -8,14 +8,16 @@ run next, not only what went wrong.
 
 The hierarchy is closed. A new stage does not get a new exception class without a ``DECISIONS.md``
 entry, because the CLI's top-level handler and the study's resumability both branch on these
-types. The one addition this project made is :class:`LLMProviderError`, which is a transport
-failure rather than a bad answer (DECISIONS D-024).
+types. Two additions this project made: :class:`LLMProviderError`, which is a transport failure
+rather than a bad answer (DECISIONS D-024), and :class:`CorpusError`, which is the regulatory
+corpus failing to ingest, load or resolve (DECISIONS D-058).
 """
 
 from __future__ import annotations
 
 __all__ = [
     "ArtifactError",
+    "CorpusError",
     "LLMOutputError",
     "LLMProviderError",
     "PackageError",
@@ -62,6 +64,16 @@ class SandboxError(QuaestorError):
 
 class ArtifactError(QuaestorError):
     """An artifact is missing, is of the wrong kind, or a citation into it does not resolve."""
+
+
+class CorpusError(QuaestorError):
+    """The regulatory corpus cannot be ingested, read, or asked for a document.
+
+    Distinct from :class:`ArtifactError`, which is a citation into *this run's* computed evidence.
+    A ``[[reg:...]]`` citation that names a section the guidance does not have is not raised: it
+    resolves to ``dangling``, because a drafter inventing a section is prose to repair, not a
+    pipeline failure (DECISIONS D-058).
+    """
 
 
 class ToolError(QuaestorError):

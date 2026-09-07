@@ -116,7 +116,8 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
     # failure rather than a discovery. Updated by the phase that adds a module, in that phase's
     # own commit: Phase 2 added errors, hashing, trace, findings, package/, artifacts/ and llm/;
     # Phase 3 added sandbox/contract.py and sandbox/runner.py; Phase 5 added the eight tool
-    # modules of tools/ plus its registry, thresholds, frames and hand-written statistics.
+    # modules of tools/ plus its registry, thresholds, frames and hand-written statistics; Phase 6
+    # added corpus/bm25.py, corpus/documents.py, corpus/ingest.py and tools/guidance.py.
     modules = sorted(
         p.relative_to(REPO_ROOT / "src" / "quaestor").as_posix()
         for p in (REPO_ROOT / "src" / "quaestor").rglob("*.py")
@@ -129,6 +130,9 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "artifacts/store.py",
         "cli.py",
         "corpus/__init__.py",
+        "corpus/bm25.py",
+        "corpus/documents.py",
+        "corpus/ingest.py",
         "errors.py",
         "findings.py",
         "hashing.py",
@@ -149,6 +153,7 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "tools/challenger.py",
         "tools/collinearity.py",
         "tools/frames.py",
+        "tools/guidance.py",
         "tools/leakage.py",
         "tools/metrics.py",
         "tools/profiler.py",

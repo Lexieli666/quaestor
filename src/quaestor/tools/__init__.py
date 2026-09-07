@@ -5,11 +5,10 @@ the JSON schema is generated once and consumed by three callers -- the planner, 
 the CLI -- and returns artifacts plus finding candidates drawn from the fixed class list
 ``L1 L2 R1 C1 S1 M1 D1 T1 O1 E1 X1 R0``.
 
-Eight of spec section 3.7's nine tools are registered by :func:`default_registry`. The ninth,
-``retrieve_guidance``, needs the regulatory corpus and its BM25 index, which arrive in Phase 6;
-nothing is registered for it here, so a planner that asks for it is refused by name and the
-refusal is traced, rather than getting a stub that returns no guidance and looks as though it
-worked.
+All nine of spec section 3.7's tools are registered by :func:`default_registry` from Phase 6 on.
+``retrieve_guidance`` was deliberately absent in Phase 5, because it needs the regulatory corpus
+and its BM25 index and a stub that returned no spans would have looked to a planner like guidance
+that had been retrieved; the corpus arrived with Phase 6 and the tool with it.
 """
 
 from __future__ import annotations
@@ -18,6 +17,7 @@ from typing import Any
 
 from .challenger import ChallengerCompareTool
 from .collinearity import CheckCollinearityTool
+from .guidance import RetrieveGuidanceTool, guidance_name
 from .leakage import CheckLeakageTool
 from .metrics import ComputeMetricsTool, Subpopulation
 from .profiler import ProfileDataTool
@@ -35,6 +35,7 @@ __all__ = [
     "CheckStabilityTool",
     "ComputeMetricsTool",
     "ProfileDataTool",
+    "RetrieveGuidanceTool",
     "RunModelTool",
     "RunScenariosTool",
     "Subpopulation",
@@ -45,6 +46,7 @@ __all__ = [
     "ToolRegistry",
     "ToolResult",
     "default_registry",
+    "guidance_name",
     "package_threshold_names",
 ]
 
@@ -54,7 +56,8 @@ def default_registry() -> ToolRegistry:
 
     Returns:
         The registry. ``run_model`` first, because everything else reads what it wrote; then the
-        checks, in the order the report's sections need them.
+        checks, in the order the report's sections need them; ``retrieve_guidance`` last, because
+        it reads nothing a run produced and every section calls it.
     """
     tools: list[Tool[Any]] = [
         RunModelTool(),
@@ -65,5 +68,6 @@ def default_registry() -> ToolRegistry:
         CheckCollinearityTool(),
         ChallengerCompareTool(),
         RunScenariosTool(),
+        RetrieveGuidanceTool(),
     ]
     return ToolRegistry(tools)

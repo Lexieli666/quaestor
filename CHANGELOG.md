@@ -79,9 +79,35 @@ run that was not committed.
   is in that rule's evidence. Run through the tools at seed 20260901, the clean synthetic
   `credit_default` raises exactly `{E1 low}` and the clean synthetic `msr_prepayment` exactly `{}`
   (D-053). `retrieve_guidance` is deliberately not registered until its corpus exists in Phase 6.
+- Phase 6 regulatory corpus: `quaestor.corpus` — the committed spans of **SR 11-7** (21 sections,
+  superseded 2026-04-17) and **SR 26-2** (16 sections, current; the interagency revision the OCC
+  issued as Bulletin 2026-13), with `SOURCES.json` recording each document's status, source URL,
+  issue date, PDF `sha256`, page count, outline `sha256` and ingest date; `corpus/ingest.py`, a
+  dev-time `python -m quaestor.corpus.ingest --sr117 PDF --sr262 PDF [--out DIR]` that is the only
+  code in the project importing `pypdf` and is idempotent; `corpus/bm25.py`, BM25 written by hand
+  at `k1 = 1.5`, `b = 0.75` with `retrieve(query, k=3, docs=None)` over one document or both; and
+  the ninth tool, `retrieve_guidance`, storing `guidance.<query_hash>` and raising no finding
+  candidate, which brings the registry to nine. `retrieve_guidance("outcomes analysis")` returns
+  SR 26-2 V.1.b, SR 11-7 V.1.c and SR 11-7 V.1, in that order (D-054, D-055). `data/README.md`
+  says where the two PDFs come from and why they are not committed.
 
 ### Changed
 
+- `[[reg:DOC:SECTION]]` citations resolve. `CitationStatus.deferred` is gone: a regulatory citation
+  now resolves against the committed corpus, carrying the section's heading, or dangles with a
+  message naming the citation — `[[reg:SR11-7:V.3]]` lists the sections SR 11-7 has, and
+  `[[reg:OCC2011-12:V]]` says which two documents the corpus holds (D-055, D-058).
+- `quaestor.errors` gains `CorpusError`, the second addition to the closed spec §3.1 hierarchy
+  after `LLMProviderError`: the corpus failing to ingest or to load, never a dangling citation
+  (D-058).
+- **Sanctioned golden edit (D-011).** `examples/golden_report/REPORT_SCHEMA.json`'s regulatory
+  citation pattern widens from `(SR11-7|OCC2011-12)` to `(SR11-7|SR26-2)`; `MANIFEST.json` and the
+  D-011 pin are regenerated to
+  `40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116`, and `docs/REPORT_SCHEMA.md`
+  §5 names the same two documents. No other byte of `examples/golden_report/` changes and
+  `tests/test_golden_spec.py` is unchanged.
+- `data/regulatory/sr11-7-outline.yaml` records that the letter was superseded, and its trailing
+  note no longer asks for OCC Bulletin 2011-12 to be ingested (D-055).
 - `pyproject.toml`: `mypy` gains an `ignore_missing_imports` override for `sklearn.*`, which ships
   no `py.typed`, and **loses its `python_version = "3.11"` pin** — numpy 2.5 requires Python 3.12
   and writes `type` statements in its stubs, which mypy refuses to parse when told to assume 3.11.

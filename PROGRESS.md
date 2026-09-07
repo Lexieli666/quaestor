@@ -32,9 +32,13 @@ are named in brackets.
   - clean synthetic `credit_default` raises exactly {E1 low} and clean synthetic
     `msr_prepayment` exactly {} **at tool level** (D-053); the pipeline-level assertion, over
     findings and a rendered report, stays with Phase 8
-- [ ] **Phase 6** — Corpus ingest + BM25 + guidance citations (spec §3.8)
+- [x] **Phase 6** — Corpus ingest + BM25 + guidance citations (spec §3.8)
   - the acceptance criterion's `retrieve_guidance("outcomes analysis")` must return `V.1.c`, not
     the `V.3` spec §3.7 names: the verified outline wins over the spec's sentence (D-054)
+  - the corpus holds **two** documents, `SR11-7` (superseded 2026-04-17, kept so historical
+    citations resolve) and `SR26-2` (current, the drafter's default from Phase 8); OCC Bulletin
+    2011-12 is **not** ingested, and spec §3.8's `occ-2011-12.jsonl` is therefore never written
+    (D-055)
 - [ ] **Phase 7** — Findings + claim verifier (spec §3.9–3.10)
 - [ ] **Phase 8** — Drafter, repair, renderer, planner, configs; end-to-end on synthetic with
   `FakeLLM` (spec §3.11–3.13)
@@ -159,6 +163,16 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   the one code path of this phase no local run covers. No test calls a live model, downloads data,
   trains on real data or reads an API key; `sample.py` is covered for argument handling and the UCI
   column map only, on a three-row frame the test writes itself. No push.
+- 2026-09-07 — **Phase 3 follow-up (commit `524c169`)** — `data(credit_default)`: first real-sample
+  run. Shipped `subjects/credit_default/artifacts/real/{splits,features,metrics,model_summary}.json`
+  (aggregates and coefficients only, no rows), the `data.manifest` sha256 digests and the developer
+  `claims:` in `subjects/credit_default/package.yaml`, and the provenance section of the subject's
+  `README.md`. **The commit turned CI red on one fixture test**: `tests/test_package.py::
+  test_a_data_dir_without_a_manifest_verifies_nothing` had borrowed the shipped `credit_default`
+  package, which now declares a manifest, so the assertion it made was no longer true of its
+  fixture; the repair — pointing the test at `tests/fixtures/hazard_package/`, which declares no
+  manifest — shipped inside `a0e5b27` (Phase 4). Phases 4 and 5 both omitted this line; it is
+  written here in Phase 6's commit, out of order, rather than left unrecorded.
 - 2026-09-07 — **Phase 4** — gate green on the four conditions that apply plus 5a: `pytest -q` 534
   passed, 0 failed, 0 skipped, 0 xfailed (93 new); coverage of `src/quaestor` **100%**
   (`coverage run -m pytest`, 1453 statements) against the 85% floor; `ruff check` and `ruff format
@@ -239,3 +253,38 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   comparison from D-046's 3.09 to 2.945 (D-051). `retrieve_guidance` is deliberately unregistered
   until Phase 6. No test calls a live model, downloads data, trains on real data or reads an API
   key. No push.
+- 2026-09-07 — **Phase 6** — gate green on the four conditions that apply plus 5a: `pytest -q` 769
+  passed, 0 failed, 0 skipped, 0 xfailed (74 new); coverage of `src/quaestor` **100%**
+  (`coverage run -m pytest`, 3034 statements) against the 85% floor; `ruff check` and `ruff format
+  --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean (42 source
+  files). Gate condition **5a applies and passes** — `tests/test_golden_spec.py` (13 checks,
+  **unchanged**) still pins `examples/golden_report/`, which this phase edited **once, under
+  D-011's procedure**: the D-011 table row and the new pin were written first, then
+  `REPORT_SCHEMA.json`'s `x-quaestor-citation-patterns.regulatory` widened from
+  `(SR11-7|OCC2011-12)` to `(SR11-7|SR26-2)`, `MANIFEST.json` was regenerated to sha256
+  **`40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116`**, and
+  `docs/REPORT_SCHEMA.md` §5's document list was updated. No other byte of the directory changed.
+  **5b belongs to Phase 9**, where `quaestor validate` arrives — the CLI is still the Phase 0
+  version stub, so the `quaestor validate --synthetic --llm fake` line of `CLAUDE.md`'s command
+  list was not run, and the corpus, the retriever and `retrieve_guidance` were exercised directly
+  and through `ToolRegistry.call` instead. **Gate condition 6 belongs to Phase 11**, where
+  `tests/probatio/` arrives (D-007). Shipped `src/quaestor/corpus/{documents,bm25,ingest}.py`, the
+  committed corpus `src/quaestor/corpus/{sr11-7.jsonl,sr26-2.jsonl,SOURCES.json}`,
+  `src/quaestor/tools/guidance.py`, `data/regulatory/sr26-2-outline.yaml`, `data/README.md`,
+  `tests/{test_corpus,test_bm25,test_tool_guidance}.py`, DECISIONS D-055 to D-059 with the new
+  D-011 row, and the Phase 6 section of `docs/DESIGN.md`. `quaestor.errors` gains `CorpusError`
+  (D-058) and `CitationStatus.deferred` is **gone**: a `[[reg:...]]` citation now resolves against
+  the corpus or dangles. **Reality first (D-055): SR 11-7 was superseded on 2026-04-17 by SR 26-2**
+  (Federal Reserve, interagency with the OCC and the FDIC; the OCC issued the identical text as
+  Bulletin 2026-13, rescinding OCC 2011-12), so the corpus holds `SR11-7` **and** `SR26-2`, and
+  **OCC 2011-12 is deliberately not ingested**. **The ingest was run once in this session** on
+  `~/code/data-raw/regulatory/{sr1107a1,sr2602a1}.pdf`, which are not committed: **SR 11-7, 21
+  pages → 21 sections**, pdf sha256 `0046c0e4…`; **SR 26-2, 12 pages → 16 sections**, pdf sha256
+  `209ce4c1…`. **Every heading of both outlines matched the PDF text in document order, so no
+  outline was changed**; two SR 26-2 sections (`IV`, `V.1`) are pure container headings and are
+  ingested with an empty body. `retrieve_guidance("outcomes analysis")` returns, in order,
+  **SR26-2 V.1.b (4.5018), SR11-7 V.1.c (4.2604) and SR11-7 V.1 (3.3853)** — the acceptance
+  criterion of spec §3.7 as D-054 corrects it. BM25 is by hand at `k1 = 1.5`, `b = 0.75` with the
+  `+1` idf smoothing (D-057), checked longhand against a three-document toy corpus. The registry
+  now holds **nine** tools. No test reads a PDF, calls a live model, downloads data, trains on real
+  data or reads an API key. No push.

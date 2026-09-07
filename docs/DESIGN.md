@@ -481,3 +481,71 @@ somebody else's model.
 Phase 6. A stub returning no spans would let a planner call it, get an empty answer and carry on
 as though guidance had been retrieved; an unregistered name is refused by `ToolRegistry.get`, and
 the refusal is traced.
+
+## Phase 6 — The regulatory corpus, BM25 by hand and the ninth tool
+
+**Two documents, and one of them is superseded on purpose.** SR 11-7 was superseded on 2026-04-17
+by SR 26-2, the interagency revision the OCC issued as Bulletin 2026-13. The corpus holds both:
+`SR26-2` because it is the current guidance and what the drafter will cite from Phase 8, and
+`SR11-7` because a citation written before April 2026 — the golden report's, this repository's
+own, any bank document a validator has on file — must keep resolving. `SOURCES.json` records each
+document's status, so "which guidance is this?" is answerable from the data rather than from
+prose. OCC Bulletin 2011-12 is deliberately absent: it carried the same text as SR 11-7 and has
+been rescinded, so ingesting it would give the retriever two ways to say one thing and would put a
+rescinded issuance in front of a reader. The rejected alternative is ingesting OCC 2026-13 as a
+third document — identical text under a second number, which would split the BM25 statistics
+across duplicate sections and leave the retriever choosing between two identical spans on nothing
+but corpus order (DECISIONS D-055).
+
+**The ingest is a dev-time script and the corpus is data.** `python -m quaestor.corpus.ingest`
+reads two PDFs the human downloaded, extracts their text with `pypdf`, splits by the outline files
+in `data/regulatory/`, and writes three files into the package: `sr11-7.jsonl`, `sr26-2.jsonl` and
+`SOURCES.json`. `pypdf` is imported inside one function of that script and nowhere else, so no
+validation run and no test has a PDF parser in it; the PDFs themselves are never committed, and
+`SOURCES.json` carries each one's `sha256` and page count so that the committed text can be traced
+back to the bytes it came from. The rejected alternative is parsing the PDFs at runtime, which
+would make every report depend on a parser's version and would put the corpus's provenance inside
+a user's run instead of inside a reviewed commit.
+
+**Splitting is equality, not similarity.** A heading matches a line only when the line *is* the
+heading, its whitespace collapsed and its `I.` / `1.` / `a.` label removed; the search for each
+heading starts after the previous one. That is what keeps SR 11-7's table-of-contents entry
+`V. Model Validation, page 9` from being taken for the body heading `V. MODEL VALIDATION`, and
+what keeps `Model Use` from matching the wrong one of the two sections that phrase heads. A
+heading the outline names and the document lacks is an error naming it, and the fix in the message
+says to correct the outline, never the text. Fuzzy matching was rejected for exactly that reason:
+a near-match would pass and nobody would see which heading had drifted (D-056).
+
+**BM25 by hand, with the `+1` idf.** `k1 = 1.5` and `b = 0.75` come from the spec; the smoothing
+does not, and it decides the ranking. `ln((N − df + 0.5)/(df + 0.5) + 1)` keeps a term that
+appears in every section at a small positive weight, where the unsmoothed form makes it negative
+and quietly inverts the ranking of any query whose terms are all common — over a corpus about
+models, that is the query "model". A span's scored text is its heading followed by its body,
+because the acceptance query is "outcomes analysis" and that phrase is a section's *name* rather
+than something its prose repeats. Spans scoring zero are dropped, so a query about something the
+guidance does not discuss returns nothing rather than three arbitrary sections a drafter would
+then cite. There is no persisted index: 37 sections is a linear pass, and a hand-written scorer is
+the only kind whose arithmetic a test can check longhand, which `tests/test_bm25.py` does digit by
+digit on a three-document toy corpus. A stop-word list was rejected: on two documents it would be
+tuned against the queries it was tested on, and the idf already does the job visibly (D-057).
+
+**`[[reg:...]]` stops being deferred.** Phase 2 parsed regulatory citations and returned
+`deferred`, because there was nothing to resolve them against; that status is now gone from
+`CitationStatus`, and a `reg` citation resolves against the committed JSONL or dangles with a
+message naming it — `[[reg:SR11-7:V.3]]` lists the sections SR 11-7 actually has, and
+`[[reg:OCC2011-12:V]]` says which two documents the corpus holds. A resolved regulatory citation
+carries the section's heading, so a renderer can name the anchor without re-reading the corpus. The
+new `CorpusError` covers the corpus failing to load or to ingest and is deliberately *not* what a
+dangling citation raises: a broken installation stops a run, an invented citation is prose the
+repair loop fixes (D-058).
+
+**The ninth tool computes nothing about the model.** `retrieve_guidance(query, k, docs)` stores
+one JSON artifact, `guidance.<query_hash>`, holding the spans with their scores, and raises no
+finding candidate — it can raise none, because guidance is what a section is anchored to and not
+evidence that a model is wrong. The artifact matters as much as the return value: it is what the
+drafter is shown and therefore what the trace records it was shown, so a report anchored to the
+wrong section is diagnosable afterwards without re-running anything. The name hashes the whole
+request rather than slugifying the query, because "outcomes analysis" and "outcomes analysis, by
+split" slugify alike and the store refuses to reuse a name for a different payload; the golden
+report's readable `guidance.outcomes_analysis` stays illustrative, under the carve-out Phase 5
+already wrote into `tests/test_tools_clean.py` (D-059).

@@ -83,7 +83,7 @@ table layout: every cell carries its own inline citation and is an ordinary clai
 | `[[art:<hash8>:<logical_name>]]` | `hash8` prefixes a stored artifact and `logical_name` is in its index entry; the artifact is a scalar | `[[art:4bb1344e:metrics.test.auc]]` |
 | `[[art:<hash8>:<logical_name>#<row_key>.<column>]]` | as above and the artifact is a table with a row whose first-column value is `row_key`, or a JSON artifact with that dotted path (list elements addressed by their `feature` value, or by their `name` when they carry no `feature`: DECISIONS D-026) | `[[art:20368492:deciles.test#1.lift]]`, `[[art:843f4548:run.model_summary#coefficients.utilisation.value]]` |
 | `[[art:…]][[art:…]]` (two, adjacent) | both resolve; only valid on a claim with `comparison` `delta` or `ratio` | `0.0126 [[art:…:metrics.test.auc]][[art:…:metrics.train.auc]]` |
-| `[[reg:<doc>:<section_id>]]` | `section_id` exists in the corpus JSONL for `doc` ∈ {SR11-7, OCC2011-12} | `[[reg:SR11-7:V.1.c]]` |
+| `[[reg:<doc>:<section_id>]]` | `section_id` exists in the corpus JSONL for `doc` ∈ {SR11-7, SR26-2} — the superseded 2011 guidance, kept so historical citations resolve, and the current 2026 revision the drafter cites by default (DECISIONS D-055) | `[[reg:SR26-2:V.1.b]]`, `[[reg:SR11-7:V.1.c]]` |
 | `[[table:<logical_name>]]` | drafter output only; the renderer expands it or, if the name is not a table artifact, leaves a `⟦unverified: table <name>⟧` marker | |
 
 Logical names: lowercase-initial dotted segments; class codes keep their case

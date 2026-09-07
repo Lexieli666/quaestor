@@ -61,7 +61,7 @@
   "x-quaestor-renderer-block-pattern": "<!-- quaestor:renderer:begin (scope|table [a-z0-9_.]+) -->[\\s\\S]*?<!-- quaestor:renderer:end -->",
   "x-quaestor-citation-patterns": {
     "artifact": "\\[\\[art:[0-9a-f]{8}:[a-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_-]+)*(#[A-Za-z0-9_.-]+)?\\]\\]",
-    "regulatory": "\\[\\[reg:(SR11-7|OCC2011-12):[IVX]+(\\.[0-9]+)?(\\.[a-z])?\\]\\]",
+    "regulatory": "\\[\\[reg:(SR11-7|SR26-2):[IVX]+(\\.[0-9]+)?(\\.[a-z])?\\]\\]",
     "table_directive_in_drafter_output": "^\\[\\[table:[a-z0-9_]+(\\.[a-z0-9_-]+)*\\]\\]$",
     "unverified_wrapper": "⟦unverified: [^⟧]+⟧"
   },

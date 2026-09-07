@@ -8,6 +8,8 @@ document: SR11-7
 title: Supervisory Guidance on Model Risk Management
 issued: 2011-04-04
 source_url: https://www.federalreserve.gov/boarddocs/srletters/2011/sr1107a1.pdf
+superseded_by: SR26-2
+superseded_on: 2026-04-17
 sections:
   - {section_id: I,     heading: "Introduction"}
   - {section_id: II,    heading: "Purpose and Scope"}
@@ -34,5 +36,9 @@ sections:
 # data integrity -> IV.1 and V.1.a; outcomes analysis -> V.1.c; sensitivity -> V.1.a (sensitivity
 # analysis is discussed under conceptual soundness) and V.1.b (benchmarking);
 # ongoing monitoring -> V.1.b; documentation -> VI.7.
-# OCC Bulletin 2011-12 carries the same interagency guidance text; ingest it as document OCC2011-12
-# with the same outline, and let the retriever cite whichever copy matched.
+# Superseded on 2026-04-17 by SR 26-2 (interagency, Federal Reserve / OCC / FDIC; the same text is
+# OCC Bulletin 2026-13, which rescinds OCC Bulletin 2011-12). This document stays in the corpus so
+# that a historical citation still resolves; the drafter cites SR26-2 by default from Phase 8, and
+# its anchors are in data/regulatory/sr26-2-outline.yaml. OCC Bulletin 2011-12 is deliberately not
+# ingested: it carried the same text as this letter and has been rescinded, so a second copy of a
+# superseded document would only give the retriever two ways to say one thing (DECISIONS D-055).

@@ -1,0 +1,29 @@
+{
+  "documents": [
+    {
+      "document": "SR11-7",
+      "ingested": "2026-09-07",
+      "issued": "2011-04-04",
+      "outline_sha256": "a9935671db150e18601d73e3d4026e5d67fc2947893a6069c724a4ab1c0fc526",
+      "pages": 21,
+      "pdf_sha256": "0046c0e4eb705830d43312da000271655000beb2a349e1cc3802815638c62cc0",
+      "sections": 21,
+      "source_url": "https://www.federalreserve.gov/boarddocs/srletters/2011/sr1107a1.pdf",
+      "status": "superseded by SR26-2 on 2026-04-17",
+      "title": "Supervisory Guidance on Model Risk Management"
+    },
+    {
+      "document": "SR26-2",
+      "ingested": "2026-09-07",
+      "issued": "2026-04-17",
+      "outline_sha256": "f9f38353470687a6c8f4948a8744de14099c7d72da4fb0d712f59235a8916fb1",
+      "pages": 12,
+      "pdf_sha256": "209ce4c14cea8aab3dc2f27bae1293efb6e1b60f9577a68d9595f85e4b94b0af",
+      "sections": 16,
+      "source_url": "https://www.federalreserve.gov/supervisionreg/srletters/SR2602a1.pdf",
+      "status": "current",
+      "title": "Supervisory Guidance on Model Risk Management (revised)"
+    }
+  ],
+  "schema_version": 1
+}

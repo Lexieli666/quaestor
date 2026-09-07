@@ -162,11 +162,12 @@ here and recorded.
   commit the changed files. The pin therefore always states what the bytes must satisfy, never what
   they happen to be.
   - **Pinned hash:** `MANIFEST.json` has sha256
-    `1f7df2f39df557dc4b8e39d46e36dbefef4a8f15889c8546b06054c8c8c76c80`
+    `40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116`
 
   | date | `MANIFEST.json` `sha256` | reason |
   |---|---|---|
   | 2026-09-07 | `1f7df2f39df557dc4b8e39d46e36dbefef4a8f15889c8546b06054c8c8c76c80` | Phase 1: the golden report set is introduced (the Cowork draft of 2026-09-07, copied byte-for-byte) together with the two schemas written for it |
+  | 2026-09-07 | `40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116` | Phase 6: regulatory citation pattern widened from `(SR11-7|OCC2011-12)` to `(SR11-7|SR26-2)` after SR 26-2 superseded SR 11-7 (D-055). One character range in `REPORT_SCHEMA.json`; no other byte of the directory changes, and every `[[reg:...]]` citation the golden report already carries still matches |
 
 - **Why:** Gate condition 5 as written is a `git diff` against a commit nobody records, which means
   in practice nobody runs it. Two hash links turn it into an ordinary test: the manifest catches a
@@ -1240,3 +1241,134 @@ here and recorded.
   visible now, in the phase that read the acceptance criteria, rather than discovered by whoever
   finds the test failing. Rejected alternative: adding a `V.3` alias to the outline, which would
   put an identifier in the corpus that the source document does not use.
+
+## D-055. The corpus holds SR 11-7 and SR 26-2; OCC Bulletin 2011-12 is not ingested
+
+- **Date:** 2026-09-07 (Phase 6, decided with the user in Cowork)
+- **Q:** Spec §3.8 says to ingest two documents, SR 11-7 and OCC Bulletin 2011-12, "and let the
+  retriever cite whichever copy matched". Since that sentence was written, **SR 11-7 was
+  superseded on 2026-04-17 by SR 26-2** — "Revised Guidance on Model Risk Management", Board of
+  Governors of the Federal Reserve System, interagency with the OCC and the FDIC; the OCC issued
+  the identical text as **Bulletin 2026-13**, which **rescinds OCC Bulletin 2011-12**. What does
+  the corpus hold?
+- **A:** Two documents, and neither of them is an OCC bulletin:
+  - **`SR11-7`** — *Supervisory Guidance on Model Risk Management*, issued 2011-04-04,
+    <https://www.federalreserve.gov/boarddocs/srletters/2011/sr1107a1.pdf>, 21 pages, ingested as
+    21 sections, recorded in `SOURCES.json` with status `superseded by SR26-2 on 2026-04-17`. It
+    stays in the corpus so that a **historical citation still resolves**: the golden report, this
+    project's own earlier documents and any bank document written before April 2026 cite it, and
+    a citation that stops resolving is the one failure this tool cannot afford.
+  - **`SR26-2`** — *Supervisory Guidance on Model Risk Management (revised)*, issued 2026-04-17,
+    <https://www.federalreserve.gov/supervisionreg/srletters/SR2602a1.pdf>, 12 pages, ingested as
+    16 sections, status `current`. It is **the drafter's default from Phase 8**.
+  - **OCC Bulletin 2011-12 is not ingested.** It carried the same interagency text as SR 11-7 and
+    has been rescinded by OCC 2026-13; a second copy of a superseded document would give the
+    retriever two ways to say one thing and would put a rescinded issuance in front of a reader.
+    The trailing note in `data/regulatory/sr11-7-outline.yaml` that asked for it is replaced.
+    `[[reg:OCC2011-12:V]]` is therefore **dangling**, and the message says so by name.
+- **Consequences**, all of which are discharged in this phase except the last:
+  - The sanctioned golden edit of D-011: `examples/golden_report/REPORT_SCHEMA.json`'s
+    `x-quaestor-citation-patterns.regulatory` widens from `(SR11-7|OCC2011-12)` to
+    `(SR11-7|SR26-2)`. One character range; the golden report's own citations are all `SR11-7`
+    and still match. `docs/REPORT_SCHEMA.md` §5 names the same two documents.
+  - `data/regulatory/sr26-2-outline.yaml` is copied in from the Cowork draft. **Every one of its
+    sixteen headings matched the PDF text at ingest, in document order, so no heading was
+    changed**; the same is true of the twenty-one in `sr11-7-outline.yaml`. Had one not matched,
+    the outline would have been corrected to the document, never the text to the outline.
+  - **Phase 16 (README and pitch) must say "shaped after the interagency model-validation
+    guidance, SR 11-7 as revised by SR 26-2"**, and must never say "compliant" or "certified".
+    The two-document corpus is what makes that sentence checkable rather than decorative.
+- **Why:** A validation copilot whose regulatory anchors point at a superseded letter is wrong in
+  the way that matters most to its reader, and one that silently dropped the superseded letter
+  would break every citation written before April 2026. Keeping both, and recording each
+  document's status in `SOURCES.json`, is the only arrangement in which "which guidance does this
+  sentence rest on?" has an answer a machine can check. Rejected alternative: ingesting OCC
+  2026-13 as a third document, which is the same text as SR 26-2 under another number — it would
+  double the corpus, split the BM25 statistics across duplicate sections, and force the retriever
+  to pick between two identical spans on nothing but corpus order.
+
+## D-056. The outline is a claim about the document, and the ingest holds it to that
+
+- **Date:** 2026-09-07 (Phase 6)
+- **Q:** How does `corpus/ingest.py` decide where a section begins, and what happens when the
+  outline and the PDF disagree?
+- **A:** A heading matches a line of the extracted text when the line, with its whitespace
+  collapsed and an optional `I.` / `1.` / `a.` label removed, **equals** the outline's heading
+  case-insensitively; the search for each heading starts after the previous one, so the outline's
+  order must be the document's order. A heading the outline names and the text lacks raises
+  `CorpusError` naming the heading, the section id and the document, with the fix "correct the
+  heading in the outline to the document's own wording; never force the text to the outline".
+  Three further rules, each visible in the committed JSONL: the text before the first heading (the
+  cover page and, in SR 11-7, the table of contents) is discarded; a line that is only a page
+  number — `Page 9` in SR 11-7, a bare `2` in SR 26-2 — is dropped; and a heading whose next
+  heading follows it immediately is ingested with an **empty body** rather than with the text of
+  the sections beneath it. Two SR 26-2 sections are like that, `IV` and `V.1`, and they are pure
+  container headings in the document too.
+- **Why:** Equality rather than containment is what keeps `V. Model Validation, page 9` in SR
+  11-7's table of contents from being mistaken for the body heading `V. MODEL VALIDATION` eight
+  pages later; the in-order search is what keeps `Model Use` from matching the wrong one of the
+  two places that phrase heads a section. Both documents split cleanly under these rules, which
+  is the evidence that they are strict enough. Rejected alternative: fuzzy matching on a
+  similarity score, which would have made "the outline is a verified claim about the document"
+  untrue — a near-match would pass and nobody would ever see which heading had drifted.
+
+## D-057. BM25's idf smoothing, and scoring the heading with the body
+
+- **Date:** 2026-09-07 (Phase 6)
+- **Q:** Spec §3.8 fixes `k1 = 1.5`, `b = 0.75` and the tokenizer, and says nothing about the idf
+  or about what text a section's document is. Both choices change the ranking.
+- **A:** `idf(t) = ln((N − df + 0.5) / (df + 0.5) + 1)`, the Robertson/Sparck Jones form **with
+  the `+ 1` inside the logarithm**; and a span's scored text is **its heading followed by its
+  body**. Ties are broken by corpus order, and a span scoring zero is not returned at all.
+- **Why:** Without the `+ 1`, a term appearing in every document has idf `ln(0.5/(N+0.5)) < 0`, so
+  a query whose only term is "model" would score every section of a corpus about models
+  identically negative and the "ranking" would be the corpus order in reverse — the failure is
+  silent and looks like a working retriever. Scoring the heading matters because the acceptance
+  query is *"outcomes analysis"* and that phrase is the name of the section rather than something
+  its prose repeats: on the body alone, SR 11-7 V.1.b ("Ongoing Monitoring", which discusses
+  outcomes analysis in passing) competes with the section actually called Outcomes Analysis.
+  Dropping zero-scoring spans is what makes "the guidance does not discuss prepayment convexity"
+  return nothing instead of three arbitrary sections a drafter would then cite. Rejected
+  alternative: adding a stop-word list so that "the" and "of" stop contributing, which on a corpus
+  of two documents would be tuned against the queries it was tested on, and which the idf already
+  does in a way a reader can check.
+
+## D-058. `CorpusError`, and why a dangling `[[reg:...]]` is not one
+
+- **Date:** 2026-09-07 (Phase 6)
+- **Q:** Spec §3.1's exception hierarchy is closed. The corpus can fail to ingest, fail to load,
+  and be asked for a document it does not hold. Which exception is that?
+- **A:** A new `CorpusError(QuaestorError)`, added under the same rule that admitted
+  `LLMProviderError` in D-024. It is raised when an outline is missing or malformed, when a
+  heading is not in the document, when a committed JSONL is missing or unreadable, and when a
+  retrieval is restricted to a document that was never ingested. It is **not** raised when a
+  `[[reg:DOC:SECTION]]` citation names a document or a section the corpus does not have: that
+  resolves to `dangling` with a message quoting the citation, exactly as a bad `[[art:...]]` does.
+  `retrieve_guidance` converts the errors it can provoke into `ToolError`, so a planner sees one
+  failure type from a tool call.
+- **Why:** The two failures are different in kind and in audience. A corpus that will not load is
+  a broken installation and stops the run; a drafter that invented `[[reg:SR11-7:V.3]]` is prose
+  the repair loop fixes, and turning it into an exception would abort a report over a sentence.
+  Making the distinction in the type is what lets Phase 7's verifier count dangling regulatory
+  citations in the grounding denominator without catching installation failures by accident.
+  Rejected alternative: reusing `ArtifactError` for the corpus, which reads as "this run's
+  computed evidence is wrong" when the truth is "the shipped guidance text is missing".
+
+## D-059. `guidance.<query_hash>`, not the golden report's readable slug
+
+- **Date:** 2026-09-07 (Phase 6)
+- **Q:** Spec §3.7 names the artifact `guidance.<query_hash>`. The golden report's Appendix B
+  shows `guidance.outcomes_analysis`, a slug of the query. Which does `retrieve_guidance` store?
+- **A:** `guidance.<query_hash>`, where the hash is the `stable_hash` of the whole request —
+  query, `k` and the document restriction — so that the same request in a run resolves to the same
+  artifact and a different request cannot land on the same name. The golden's readable slug stays
+  as it is: it is illustrative, and `tests/test_tools_clean.py` has excluded `guidance.*` from the
+  Appendix-B resolution check since Phase 5, which is exactly the carve-out this decision needs.
+- **Why:** The store refuses to put a different payload under a name it already holds, because a
+  citation written against the old hash would stop resolving (D-023). A slug makes that refusal
+  reachable by ordinary drafting: "outcomes analysis" and "outcomes analysis, by split" slugify
+  to the same name and would collide, and a plan that asked for `k=3` and then `k=5` on one query
+  would collide with itself. Hashing the request also makes the trace answer "which guidance was
+  the drafter shown for this section?" exactly rather than approximately. Rejected alternative:
+  a slug with a disambiguating counter, which makes the artifact's name depend on the order the
+  plan happened to run in, so two runs of one package would produce different Appendix B names.

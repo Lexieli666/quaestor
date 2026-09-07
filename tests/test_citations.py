@@ -176,10 +176,17 @@ def test_a_table_directive_resolves_to_its_table(store: ArtifactStore) -> None:
     assert resolved.kind is ArtifactKind.table
 
 
-def test_a_regulatory_citation_is_deferred_until_phase_6(store: ArtifactStore) -> None:
+def test_a_regulatory_citation_resolves_against_the_committed_corpus(store: ArtifactStore) -> None:
     resolved = resolve(one("[[reg:SR11-7:V.1.c]]"), store)
-    assert resolved.status is CitationStatus.deferred
-    assert "Phase 6" in (resolved.message or "")
+    assert resolved.is_resolved
+    assert resolved.heading == "Outcomes Analysis"
+    assert resolved.value is None
+
+
+def test_the_current_guidance_resolves_too(store: ArtifactStore) -> None:
+    resolved = resolve(one("[[reg:SR26-2:V.1.b]]"), store)
+    assert resolved.is_resolved
+    assert resolved.heading == "Outcomes Analysis"
 
 
 # --- what dangles ---------------------------------------------------------------------------------
@@ -192,6 +199,19 @@ def dangling_message(text: str, store: ArtifactStore) -> str:
     message = resolved.message or ""
     assert text in message, "a dangling message must quote the citation as it was written"
     return message
+
+
+def test_a_guidance_section_the_document_does_not_have_dangles(store: ArtifactStore) -> None:
+    # Spec 3.7 asks for SR 11-7 "V.3"; the document has no such section (DECISIONS D-054).
+    message = dangling_message("[[reg:SR11-7:V.3]]", store)
+    assert "[[reg:SR11-7:V.3]]" in message
+    assert "V.1.c" in message
+
+
+def test_a_guidance_document_that_was_never_ingested_dangles(store: ArtifactStore) -> None:
+    message = dangling_message("[[reg:OCC2011-12:V]]", store)
+    assert "[[reg:OCC2011-12:V]]" in message
+    assert "SR11-7" in message and "SR26-2" in message
 
 
 def test_a_logical_name_not_in_the_index_dangles(store: ArtifactStore) -> None:

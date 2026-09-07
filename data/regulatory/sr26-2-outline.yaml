@@ -1,0 +1,42 @@
+# Section outline of SR 26-2, "Revised Guidance on Model Risk Management" (Board of Governors of
+# the Federal Reserve System, SR Letter 26-2, April 17, 2026; interagency with the OCC and FDIC;
+# attachment 12 pages). The same text is the attachment to OCC Bulletin 2026-13. SR 26-2 supersedes
+# SR 11-7 (April 4, 2011) and SR 21-8; OCC 2026-13 rescinds OCC 2011-12.
+# Outline transcribed 2026-09-07 in Cowork from the OCC 2026-13 attachment (bulletin202613a.pdf,
+# 12 pp.); Claude Code re-verifies the headings against SR2602a1.pdf at ingest and records the PDF's
+# sha256 in SOURCES.json. Headings are the document's own; section_id values are Quaestor's.
+document: SR26-2
+title: Supervisory Guidance on Model Risk Management (revised)
+issued: 2026-04-17
+source_url: https://www.federalreserve.gov/supervisionreg/srletters/SR2602a1.pdf
+supersedes: [SR11-7, SR21-8]
+same_text_as: OCC Bulletin 2026-13 attachment (https://www.occ.gov/news-issuances/bulletins/2026/bulletin-2026-13.html)
+sections:
+  - {section_id: I,     heading: "Introduction"}
+  - {section_id: II,    heading: "Purpose and Scope"}
+  - {section_id: III,   heading: "Overview of Model Risk and Model Risk Management"}
+  - {section_id: IV,    heading: "Model Development and Model Use"}
+  - {section_id: IV.1,  heading: "Model Development", parent: IV}
+  - {section_id: IV.2,  heading: "Model Use", parent: IV}
+  - {section_id: V,     heading: "Model Validation and Monitoring"}
+  - {section_id: V.1,   heading: "Components of Model Validation", parent: V}
+  - {section_id: V.1.a, heading: "Conceptual Soundness", parent: V.1}
+  - {section_id: V.1.b, heading: "Outcomes Analysis", parent: V.1}
+  - {section_id: V.2,   heading: "Ongoing Model Monitoring", parent: V}
+  - {section_id: VI,    heading: "Governance and Controls"}
+  - {section_id: VI.1,  heading: "Roles and Responsibilities", parent: VI}
+  - {section_id: VI.2,  heading: "Model Inventory", parent: VI}
+  - {section_id: VI.3,  heading: "Documentation", parent: VI}
+  - {section_id: VII,   heading: "Vendor and Other Third-Party Products"}
+# Report-section anchors (02-SPEC.md section 3.11), current guidance:
+#   conceptual soundness -> V.1.a; data integrity -> IV.1 ("critical assessment of data quality,
+#   relevance, and inputs"); outcomes analysis -> V.1.b; sensitivity and scenario analysis -> IV.1
+#   ("comparison of alternative assumptions and methodologies") and V.1.a (benchmarking);
+#   ongoing monitoring -> V.2; documentation -> VI.3; effective challenge -> III.
+# Scope notes worth quoting in the README: II sets the guidance's expected relevance at banking
+# organizations over $30 billion in total assets and says it "does not set forth enforceable
+# standards"; footnote 3 excludes generative and agentic AI models from scope while keeping
+# traditional statistical models within it -- the copilot is out of scope, the subjects it validates
+# are in scope.
+# SR 11-7 stays in the corpus as the superseded text (document SR11-7, its own outline file) so that
+# historical citations resolve; the drafter cites SR26-2 by default.

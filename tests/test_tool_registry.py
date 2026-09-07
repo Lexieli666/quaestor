@@ -96,7 +96,7 @@ def context(tmp_path: Path) -> ToolContext:
 # --- the registry --------------------------------------------------------------------------------
 
 
-def test_the_default_registry_holds_the_eight_tools_of_phase_5() -> None:
+def test_the_default_registry_holds_the_nine_tools_of_spec_3_7() -> None:
     registry = default_registry()
     assert registry.names() == [
         "run_model",
@@ -107,11 +107,12 @@ def test_the_default_registry_holds_the_eight_tools_of_phase_5() -> None:
         "check_collinearity",
         "challenger_compare",
         "run_scenarios",
+        "retrieve_guidance",
     ]
-    assert len(registry) == 8
+    assert len(registry) == 9
     assert "run_model" in registry
-    # retrieve_guidance is Phase 6 and is deliberately not registered as a stub.
-    assert "retrieve_guidance" not in registry
+    # retrieve_guidance was withheld through Phase 5 rather than stubbed; Phase 6 registers it.
+    assert "retrieve_guidance" in registry
 
 
 def test_every_registered_tool_declares_a_name_a_description_and_closed_args() -> None:
@@ -139,8 +140,8 @@ def test_the_catalogue_carries_the_name_description_and_schema_of_each_tool() ->
 
 
 def test_an_unknown_tool_is_refused_by_name_and_lists_the_known_ones() -> None:
-    with pytest.raises(ToolError, match="no tool named 'retrieve_guidance'"):
-        default_registry().get("retrieve_guidance")
+    with pytest.raises(ToolError, match="no tool named 'check_everything'"):
+        default_registry().get("check_everything")
     with pytest.raises(ToolError, match="run_model"):
         default_registry().schema("nope")
 
