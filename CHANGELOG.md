@@ -65,9 +65,27 @@ run that was not committed.
   0.7753, challenger-minus-champion AUC gap −0.0415, and a value change of −1,297,986 at −300bp
   against +168,055 at +300bp — the negative-convexity sign pattern, which is a property of the
   process rather than a tuned number (D-040, D-047).
+- Phase 5 tools: `quaestor.tools` — `ToolRegistry`, `ToolContext`, `ToolResult` and a generic
+  `Tool` whose nested pydantic `Args` model is closed (`extra="forbid"`) and whose JSON schema is
+  generated once at registration for the planner, the MCP server and the CLI; the effective
+  thresholds keyed by the logical artifact names they are stored under; the statistics of spec
+  §3.7 written by hand with a longhand test each (PSI with ten quantile bins and a 0.5% floor,
+  CSI, KS, Gini, Brier, log loss, the calibration slope and intercept by Newton iterations, VIF,
+  Belsley's condition number, CPR, the calibration and decile tables); and eight of the nine tools
+  — `run_model`, `profile_data`, `compute_metrics`, `check_leakage`, `check_stability`,
+  `check_collinearity`, `challenger_compare` and `run_scenarios` — with a positive and a negative
+  test for every candidate rule of the fixed class list. Every tool call writes exactly one
+  `tool_call` trace event, and every threshold a rule applied is stored as an artifact whose hash
+  is in that rule's evidence. Run through the tools at seed 20260901, the clean synthetic
+  `credit_default` raises exactly `{E1 low}` and the clean synthetic `msr_prepayment` exactly `{}`
+  (D-053). `retrieve_guidance` is deliberately not registered until its corpus exists in Phase 6.
 
 ### Changed
 
+- `pyproject.toml`: `mypy` gains an `ignore_missing_imports` override for `sklearn.*`, which ships
+  no `py.typed`, and **loses its `python_version = "3.11"` pin** — numpy 2.5 requires Python 3.12
+  and writes `type` statements in its stubs, which mypy refuses to parse when told to assume 3.11.
+  CI checks both versions and mypy now infers the one it runs under (D-049).
 - `ScenariosSpec` gains `servicing_fee_bp`, `discount_rate_annual` and `convexity_expectation`
   (a new `ConvexityExpectation`), all required, and insists that `rate_shocks_bp` include the base
   case. Spec §4.2 requires a declared servicing fee and §3.7's `X1` requires a declared convexity

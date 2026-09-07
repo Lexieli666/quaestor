@@ -115,7 +115,8 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
     # Pinned so that a module landing without its tests, or a module quietly disappearing, is a
     # failure rather than a discovery. Updated by the phase that adds a module, in that phase's
     # own commit: Phase 2 added errors, hashing, trace, findings, package/, artifacts/ and llm/;
-    # Phase 3 added sandbox/contract.py and sandbox/runner.py.
+    # Phase 3 added sandbox/contract.py and sandbox/runner.py; Phase 5 added the eight tool
+    # modules of tools/ plus its registry, thresholds, frames and hand-written statistics.
     modules = sorted(
         p.relative_to(REPO_ROOT / "src" / "quaestor").as_posix()
         for p in (REPO_ROOT / "src" / "quaestor").rglob("*.py")
@@ -145,6 +146,18 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "sandbox/contract.py",
         "sandbox/runner.py",
         "tools/__init__.py",
+        "tools/challenger.py",
+        "tools/collinearity.py",
+        "tools/frames.py",
+        "tools/leakage.py",
+        "tools/metrics.py",
+        "tools/profiler.py",
+        "tools/registry.py",
+        "tools/run.py",
+        "tools/scenarios.py",
+        "tools/stability.py",
+        "tools/stats.py",
+        "tools/thresholds.py",
         "trace.py",
         "verifier/__init__.py",
     ]

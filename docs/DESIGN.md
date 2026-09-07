@@ -403,3 +403,81 @@ subject is somebody else's code, the sandbox copies only its own `code/`, and a 
 module would either have to be copied in anyway or make one subject's fit depend on a file the
 other subject owns. The two copies are identical and the two subjects' tests both check the
 last-declared rule, so a divergence would be visible.
+
+## Phase 5 — The tools, the registry and the statistics by hand
+
+**One trace event per tool call, written in one place.** Every call goes through
+`ToolRegistry.call`, which validates the arguments against the tool's own `Args` model, times the
+run and writes the `tool_call` event — tool, argument hash, duration, artifacts, candidate
+classes. No tool writes its own, which is why `RunModelTool` deliberately calls
+`quaestor.sandbox.run_model` *without* a trace writer even though the sandbox is perfectly capable
+of emitting one: the study counts tool calls from the trace, and one call that produced two events
+would make every count of a run that ran a subject wrong by one. The rejected alternative — letting
+each tool emit and having the registry not — spreads the field names of the event the study reads
+across nine modules.
+
+**A threshold is read by the name it is stored under, or not at all.** `Thresholds` is keyed by
+logical artifact name (`threshold.M1.vif`, `rule.calibration_first_event_rate`), and
+`Thresholds.artifact(store, key)` both stores the value and returns the artifact whose hash goes
+into the candidate's evidence. There is no way to read a threshold without naming where a reader
+can find it, which is what makes spec §12's "thresholds hard-coded in prose" unwriteable here. The
+thresholds are stored **whether or not they are breached**, because the golden report's §3 says
+the missingness screen "fires when missingness differs between splits by more than 10%" while
+raising no candidate at all: prose that describes a rule that passed is still prose with a number
+in it, and every number in a report needs an artifact behind it. The rejected alternative — storing
+a threshold only when it decides something — makes exactly the sentences a clean report is made of
+uncitable.
+
+**The statistics are written out because a validator has to defend them one line at a time.** PSI,
+CSI, KS, Brier, log loss, the calibration slope, VIF and Belsley's kappa are about fifteen lines
+each in `tools/stats.py`, each with a longhand test whose expected value was computed by hand. Two
+of them are not the obvious implementation. The calibration slope is fitted by Newton iterations
+rather than by `LogisticRegression`, whose default `C = 1.0` penalises the coefficient: a perfectly
+calibrated sample would come back with a slope short of 1 by an amount that depends on the sample
+size, and the test that asserts a slope of exactly 1.0 on a sample constructed to have one could
+not exist. PSI's bins are closed at the top (`(e1, e2]`), not half-open, because a feature with a
+mass point — an imputed zero, a capped ratio — has several quantile edges at that point, and under
+`numpy.histogram`'s convention every one of those rows lands in the *upper* bin along with
+everything above it: a feature that is zero in 95% of the training rows and 50% of the test rows
+then scores a PSI of exactly zero (D-051).
+
+**`csi.<feature>` is not `psi.<feature>` under another name.** The golden report cites both, with
+different values, so they cannot be the same computation. CSI here is the shift in the linear
+predictor attributable to one feature: the same bins, weighted by what the feature contributes to
+the fitted log odds in each of them. It answers "how much of the score's movement is this feature
+responsible for", which the feature's own PSI cannot, and it is comparable across features because
+it is in one unit. No rule reads it, so it is a reporting choice (D-052).
+
+**`check_stability` refits, and says so.** The champion is one fit with one coefficient per
+feature, so there is nothing of its own to compare across regimes; the tool fits a plain
+unpenalised logistic regression *within each regime* on the standardised retained features and
+compares those. The AUC half of the rule is different in kind: it is computed from the champion's
+own stored scores within each regime, so it is a statement about the model that shipped. Ranking
+the features by the refits' own mean absolute coefficient rather than by the champion's is what
+lets the rule work on the hazard subject at all, whose design expands `loan_age` into spline
+columns under names no regime fit shares (D-053).
+
+**`run_scenarios` reads the subject's projection and recomputes everything derived from it.**
+Rolling the fitted hazard forward needs the fitted hazard, which the validator never imports, so
+spec §4.2 has the subject write `projection.json` itself. What the tool refuses to take on trust is
+the arithmetic on top of it: the value change at each shock is recomputed as that shock's value
+minus the base case's, and the convexity as the sum of the changes at the extremes. Where the
+subject's own `value_change` or `convexity` disagrees with the recomputation the tool says so in
+its summary and stores its own number — the same rule that keeps the developer's `metrics.json` out
+of the outcomes analysis.
+
+**`run_model` is the one tool that turns an exception into a finding.** The sandbox raises when a
+subject fails, because a caller that asked for a run and did not get one must not carry on as
+though it had; a *validation* of that subject does carry on, since "the model does not run" is the
+finding. The tool tells the two cases apart by the store: the sandbox writes `run.stdout`,
+`run.stderr`, `run.duration_s` and `run.status` before it raises anything about how the subprocess
+ended, so their presence means the subject ran and failed, and their absence means the run never
+started — a package with no `code/`, a contradictory pair of arguments — which is a failure of the
+request and not a defect of the model. The rejected alternative, catching every `SandboxError` as
+an `R0`, would put "you called the tool wrongly" into a validation report as a finding about
+somebody else's model.
+
+**`retrieve_guidance` is registered by nothing.** It needs the corpus and the BM25 index of
+Phase 6. A stub returning no spans would let a planner call it, get an empty answer and carry on
+as though guidance had been retrieved; an unregistered name is refused by `ToolRegistry.get`, and
+the refusal is traced.

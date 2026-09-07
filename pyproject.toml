@@ -92,8 +92,11 @@ convention = "pep257"
 "subjects/**" = ["D"]
 "examples/**" = ["D"]
 
+# `python_version` is deliberately not pinned: it is inferred from the interpreter mypy runs on,
+# which is 3.11 and 3.12 in CI. numpy 2.5 requires Python 3.12 and its stubs use the `type`
+# statement, which mypy refuses to parse when told to assume 3.11 -- so a pin here would fail on a
+# 3.12 machine against the numpy that machine is entitled to install (DECISIONS D-049).
 [tool.mypy]
-python_version = "3.11"
 strict = true
 files = ["src/quaestor"]
 
@@ -102,6 +105,14 @@ files = ["src/quaestor"]
 # inside the one code path that builds a client.
 [[tool.mypy.overrides]]
 module = ["anthropic.*"]
+ignore_missing_imports = true
+
+# scikit-learn ships no `py.typed` marker and no stub package exists that this project would
+# rather depend on than the library itself; the estimators are used through three call shapes
+# (`fit`, `predict`, `predict_proba`) whose results are immediately converted to numpy arrays of a
+# declared dtype, so nothing untyped escapes a tool module (DECISIONS D-049).
+[[tool.mypy.overrides]]
+module = ["sklearn.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

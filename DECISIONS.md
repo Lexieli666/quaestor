@@ -977,6 +977,21 @@ here and recorded.
   arrived at in the order that cannot be trusted. Rejected alternative: raising the package's
   threshold to 3.5, which would hide a real drift finding on the one comparison where PSI means
   what it says.
+- **Consequence for the study, added 2026-09-07 (Phase 5).** `04-SEEDED-DEFECT-STUDY.md` §2's
+  `msr` `S1` recipe is "train on pre-2015 vintages, out-of-time is 2020+ with no monitoring
+  split", whose expected signal is "PSI > 0.25 on features or on `y_score`". That signal lands
+  entirely on the train-to-**out_of_time** comparison, which this decision reports and does not
+  test, so the recipe as written would be seeded and then detected by nothing — a guaranteed miss
+  that says something about the recipe rather than about the detector. **The recipe will be
+  redesigned or dropped in Phase 10**, and whichever happens is recorded in `docs/STUDY.md`:
+  either it becomes a shift between the *train and test* loans (the credit subject's own recipe,
+  "train on one segment, score all"), or the `msr` row of the taxonomy loses `S1` and the study
+  reports 13 seeded variants rather than 14. It is not fixed by re-scoping `S1`, because the
+  scoping was decided on the clean control before any variant existed. Measured through the
+  Phase 5 tools, whose binning puts a value exactly on a bin edge into the lower bin: the worst
+  train-to-out_of_time feature PSI is **2.945** on `burnout` where D-046's Phase 4 measurement
+  read 3.09, and train-to-vintage_holdout `note_rate` is **0.609** where it read 0.62 — the same
+  conclusion by a slightly different convention (D-051).
 
 ## D-047. What the clean synthetic hazard panel actually contains, measured
 
@@ -1042,3 +1057,186 @@ here and recorded.
   as a prepayment would fit beautifully for a reason no reader could see. Rejected alternative:
   reading the layout from the published Excel file dictionary at run time, which is a download
   inside a data-building step and a second file to keep.
+
+## D-049. The tool contract: nested `Args`, a frozen context, and thresholds keyed by their names
+
+- **Date:** 2026-09-07 (Phase 5)
+- **Q:** Spec §3.7 fixes a tool as "a class with `name`, `description`, `Args` (pydantic), and
+  `run(args, ctx)`", says the JSON schemas are "generated from `Args` once and consumed by the
+  planner, the MCP server and the CLI", and says the default thresholds live in `configs.py` —
+  which arrives in Phase 8, three phases after the tools that need them. Four shapes had to be
+  chosen: where the thresholds live, what `ctx` is, how `Args` is typed, and how `mypy --strict`
+  sees scikit-learn.
+- **A:** (a) The class-default thresholds live in `src/quaestor/tools/thresholds.py` and
+  `configs.py` will import them, not restate them. (b) Each threshold's dictionary key *is* its
+  logical artifact name — `threshold.M1.vif`, `rule.calibration_first_event_rate` — and
+  `Thresholds.artifact(store, key)` is the only way a tool reads one, so a threshold that decided
+  a candidate is in the store by construction. An override naming a key that is not a default is
+  an error. (c) `ToolContext` is a frozen dataclass of `package`, `store`, `out_dir`, `trace` and
+  `thresholds`, not a pydantic model: three of the five fields are objects with behaviour and
+  structural validation of them buys nothing. (d) `Tool` is generic in its `Args` type
+  (`Tool["ProfileDataTool.Args"]`) with the model itself declared as a nested class, so
+  `tool.Args.model_json_schema()` is generated once at registration and `run` is typed against the
+  concrete model. (e) `pyproject.toml` gains a `mypy` override making `sklearn.*` an untyped
+  import, and *loses* its `python_version = "3.11"` pin, because numpy 2.5 — which requires Python
+  3.12 — writes `type` statements in its stubs that mypy refuses to parse when told to assume 3.11;
+  CI still checks both versions, on each of which mypy now infers the version it is running under.
+- **Why:** A tool module that imported `configs` would make the tool layer depend on the pipeline
+  layer, and Phase 8 would then be free to change a threshold without any tool's test noticing.
+  Keying the thresholds by their artifact names is what makes spec §12's "thresholds hard-coded in
+  prose rather than stored as artifacts" impossible to write here: there is no way to read a
+  threshold that does not also name where it is stored. The mypy pin had to go rather than the
+  numpy version: pinning numpy below 2.5 would be a runtime dependency change, which is a
+  stop-and-ask, to work around a type-checker configuration. Rejected alternative for (d): a
+  non-generic `Tool` whose `run` takes a bare `BaseModel` and re-validates inside, which types
+  every tool's body as `Any` and makes the planner's schema and the tool's own reading of its
+  arguments two separate claims.
+
+## D-050. `O1`'s first rule is read as train minus test, a generalisation gap
+
+- **Date:** 2026-09-07 (Phase 5)
+- **Q:** Spec §3.7 states `O1` as "test-minus-train AUC gap > 0.08". Read literally that fires
+  when the *test* AUC exceeds the training AUC by 0.08 — a model that generalises better than it
+  fits, which is a curiosity rather than a defect and which the threshold's own name,
+  `threshold.O1.auc_gap`, does not describe. Which subtraction is meant?
+- **A:** Train minus test. `compute_metrics` raises `O1` when the training AUC exceeds the test
+  AUC by more than `threshold.O1.auc_gap`, and the candidate's sentence says so in words. The
+  golden report settles it: its §4 calls the same quantity "the train-to-test AUC gap" of 0.0126
+  against "a generalisation-gap threshold of 0.08", computed as train (0.7538) minus test
+  (0.7412), and `examples/golden_report/` is the executable specification of what a report says.
+- **Why:** Overfitting is the thing the rule exists to catch, and every seeded-defect recipe that
+  targets `O1` produces a model that fits its training split better than its test split. A rule
+  read the other way would score zero on every one of them and fire on sampling noise in the
+  opposite direction. Recording it rather than silently implementing the sensible reading matters
+  because the study's detection numbers are stated per class: a reader who takes `O1`'s definition
+  from spec §3.7 and finds a different one in the code deserves to be told which is authoritative
+  and why. Rejected alternative: implementing the absolute gap, which would fire on a test split
+  that happens to be easier and would make `O1` a test of split luck.
+
+## D-051. PSI bins are closed at the top, so a mass point does not split across the boundary
+
+- **Date:** 2026-09-07 (Phase 5)
+- **Q:** PSI cuts the expected sample into ten quantile bins and applies the same edges to the
+  actual sample. A feature whose value is zero in most rows has several of its quantile edges at
+  exactly zero, which collapse to one edge; on which side of that edge do the zeros fall?
+- **A:** Below it. The bins are `(-inf, e1], (e1, e2], ..., (ek, inf)` — a value equal to an edge
+  belongs to the bin the edge closes — implemented with `numpy.digitize(..., right=True)`. The
+  alternative, `numpy.histogram`'s half-open `[e1, e2)` bins with `-inf` as the first edge, puts
+  every zero into the *upper* bin along with everything above it, and a feature that is zero in
+  95% of the training rows and 50% of the test rows then scores a PSI of exactly **0**: the two
+  samples are reported as identical when one has moved by 45 points. Under the convention adopted
+  the same pair scores 1.325, which is what a reader expects. A test asserts both.
+- **Why:** Every feature a seeded `D1` or `S1` recipe touches is a candidate for a mass point —
+  an imputed zero, a capped ratio, a delinquency count — so the degenerate case is not exotic. The
+  change moves the clean panels' numbers in the fourth decimal (`credit_default`'s worst PSI reads
+  0.0110 against the 0.0102 of the Phase 3 measurement; `msr_prepayment`'s reads 0.0619 against
+  0.065) and moves the out-of-time comparison from 3.09 to 2.945, none of which changes a verdict.
+  Rejected alternative: leaving the histogram convention and documenting the zero, which is a
+  documented wrong answer.
+
+## D-052. CSI is the coefficient-weighted shift, not a second name for a feature's PSI
+
+- **Date:** 2026-09-07 (Phase 5)
+- **Q:** Spec §3.7 has `profile_data` produce both `psi.<feature>` and `csi.<feature>`, and the
+  golden report cites `psi.utilisation` at 0.021 and `csi.max` at 0.018 — two different numbers.
+  In much of the scorecard literature "PSI" means the shift in the *score* and "CSI" the shift in
+  a *characteristic*, which would make `csi.<feature>` an exact copy of `psi.<feature>` here.
+  What is the second number?
+- **A:** `csi.<feature>` is the shift in the linear predictor attributable to that feature: the
+  same bins as its PSI, but the redistribution of mass is weighted by what the feature contributes
+  to the fitted log odds in each bin — the champion's coefficient times the bin's mean standardised
+  value — and the result is reported as an absolute value in log-odds. A feature the champion does
+  not carry a coefficient for, because the design expanded it (the hazard champion's spline on
+  `loan_age`) or the screen removed it, contributes zero. Measured on the clean controls: `csi.max`
+  is 0.0236 on `credit_default` and 0.0344 on `msr_prepayment`.
+- **Why:** Two artifact names that always hold the same number are a reporting bug, and the golden
+  report — which is the specification — writes them as different numbers. The version adopted
+  answers a question the feature's own PSI cannot: *how much of the score's movement is this
+  feature responsible for*, which is what a monitoring pack uses CSI for and which is directly
+  comparable across features because it is in one unit. No candidate rule reads it, so the
+  definition is a reporting choice rather than a detection one. Rejected alternative: making CSI
+  the feature-level PSI and PSI the score-level index only, which would leave nothing to store
+  under `psi.<feature>` — a name the golden report cites twice.
+
+## D-053. What the clean synthetic subjects raise through the tools, measured
+
+- **Date:** 2026-09-07 (Phase 5)
+- **Q:** D-017 fixes `credit_default`'s clean control at exactly one finding, `E1` at severity
+  low, and D-047 fixes `msr_prepayment`'s at none. Both were asserted at data level. What do the
+  eight tools of spec §3.7 actually raise, and what are the numbers behind each rule that did not
+  fire?
+- **A:** Exactly what the two decisions predict. At seed 20260901 on this machine (Python 3.12.14,
+  scikit-learn 1.9.0, numpy 2.5.3, pandas 3.0.5):
+
+  **`credit_default`, `--synthetic 5000`, eight tool calls in 2.60 s over 130 artifacts →
+  `{E1}`.** `T1`: test AUC 0.7480 ≥ 0.70, Brier 0.1489 ≤ 0.20, calibration slope 1.0027 ∈
+  [0.80, 1.20], worst PSI 0.0110 ≤ 0.25 — four declared thresholds, four passes. `C1`: slope
+  1.0027, mean predicted 0.2211 against an observed 0.2247, a relative gap of 1.59% against 25%.
+  `O1`: train 0.7584 minus test 0.7480 is 0.0104 against 0.08; no period split is declared.
+  `S1`: worst feature PSI 0.0110 (`limit_bal`), score PSI 0.0070, `csi.max` 0.0236. `D1`: no
+  missing value in either split. `L1`: no feature declared during or after the outcome, strongest
+  single feature `delinq_last` at AUC 0.6831 against 0.90, no name matches the lexicon. `L2`:
+  row-hash overlap 0.0000. `M1`: worst retained VIF 7.295, Belsley kappa 5.547 against 10 and 30.
+  **`E1`: the challenger scores 0.8240 against the champion's 0.7480, a lead of +0.0760 against
+  0.03**, at severity `low` — the one candidate. The planner's follow-up finds AUC 0.7588 on the
+  744 test clients below the median credit limit against 0.7218 on the 756 above it, which is the
+  *opposite* ordering to the golden report's illustrative numbers and is a monitoring
+  recommendation rather than a finding, since no threshold governs it.
+
+  **`msr_prepayment`, `--synthetic 2000`, eight tool calls in 4.39 s over 220 artifacts → `{}`.**
+  `T1`: test AUC 0.7753 ≥ 0.65, slope 0.9365 ∈ [0.80, 1.20], worst train-to-test PSI 0.0619 ≤
+  0.25. `C1`, on **every** split: slopes 0.9937 (train), 0.9365 (test), 0.9969 (out_of_time) and
+  0.8373 (vintage_holdout), all inside the band, with relative mean-to-observed gaps of 1.2%,
+  0.7%, 5.1% and 17.2%, all inside 25% — the vintage holdout is the closest call in the whole
+  control and it passes on both halves of the rule. **`O1`'s second rule, measured as spec §3.7
+  writes it and not softened:** out_of_time AUC 0.7846 is *above* test's 0.7753, and vintage
+  holdout 0.7718 is below it by 0.0035, against a threshold of 0.05 — so the rule as written does
+  not fire, and the margin on the vintage holdout is a factor of fourteen. `S1`: 0.0619 on
+  train-to-test (D-046); the reported-not-tested comparisons are 2.945 on `burnout` out-of-time
+  and 0.609 on `note_rate` for the vintage. `L1`: strongest single feature `incentive` at 0.7239.
+  `L2`: overlap 0.0000. `M1`: worst VIF 4.976, kappa 4.943. `E1`: challenger 0.7337, a lead of
+  **−0.0415**. `R1`: the champion's AUC within the training split's regimes is 0.7227 falling and
+  0.7238 rising, a spread of 0.0011 against 0.10, and none of the ten retained features changes
+  sign between the per-regime refits. `X1`: value change −1,297,986 at −300 bp and +168,055 at
+  +300 bp, monotone across all seven shocks, convexity −1,129,932, which is the `negative` the
+  package declares. `cpr.<split>.mae` is 0.0266 on train and 0.0426 on test; no package declares a
+  `cpr_mae` threshold today, and one that does gets it checked by `T1` with no further change.
+
+  Two scoping decisions inside this are Phase 5's own, both taken before the numbers above were
+  read. **`C1` is applied to every split computed**, not to `test` alone: D-046's argument for
+  keeping `S1` on train-against-test is that a later period's *composition* differs by
+  construction, which is not true of whether the model's probabilities still mean what they say —
+  that is precisely what an outcomes analysis asks of an out-of-time split. **`R1` compares
+  per-regime refits**, fitted here on the standardised retained features within each regime of the
+  *training* split, ranked by mean absolute coefficient across regimes: the champion is one fit and
+  has one coefficient per feature, so there is nothing of its own to compare across regimes, and
+  its hazard design expands `loan_age` into spline columns no regime shares. The champion's *own*
+  scores are what `stability.auc_by_regime` is computed from, so the AUC half of the rule is a
+  statement about the model that shipped.
+- **Why:** These are the numbers Phase 8's pipeline-level assertion rests on and the numbers the
+  study's false-alarm rate is measured against, so they are recorded here rather than left in a
+  test's assertions. The two closest calls are named because they are where a later change will
+  first show: the vintage holdout's calibration slope of 0.8373 sits 0.037 above the band's floor,
+  and `R1`'s sign-flip rule was already known to be near the noise at other seeds (D-047).
+
+## D-054. SR 11-7's outcomes-analysis section is `V.1.c`, not the `V.3` spec §3.7 names
+
+- **Date:** 2026-09-07 (Phase 5)
+- **Q:** Spec §3.7's acceptance criterion says `retrieve_guidance("outcomes analysis")` must
+  return a span whose `section_id` is SR 11-7 **§V.3**. The section outline this project verified
+  against the published PDF, `data/regulatory/sr11-7-outline.yaml`, has outcomes analysis at
+  **V.1.c** — one of the three elements of "Model Validation" under V.1, "Evaluation of Conceptual
+  Soundness" and its siblings — and has no V.3 at all. Which identifier does Phase 6 assert?
+- **A:** `V.1.c`. The outline wins because it was checked against the document; the spec's `V.3`
+  is a drafting error in a sentence written before the outline existed. Phase 6's acceptance test
+  therefore asserts that the retrieved span's `section_id` is `V.1.c`, and `docs/DESIGN.md` records
+  the substitution so that a reader comparing the spec with the tests is not left to guess. The
+  golden report already cites `[[reg:SR11-7:V.1.c]]` in its outcomes section, which is the third
+  witness.
+- **Why:** A regulatory citation that does not resolve is the one failure this project cannot
+  afford, since the whole claim of the tool is that its citations are machine-checked. Asserting
+  `V.3` would either force a fake section into the corpus or make Phase 6's acceptance test
+  permanently red. Recording it in Phase 5 rather than Phase 6 is deliberate: the decision is
+  visible now, in the phase that read the acceptance criteria, rather than discovered by whoever
+  finds the test failing. Rejected alternative: adding a `V.3` alias to the outline, which would
+  put an identifier in the corpus that the source document does not use.

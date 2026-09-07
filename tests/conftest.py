@@ -98,3 +98,32 @@ def msr_run() -> ModuleType:
 def msr_sample() -> ModuleType:
     """`subjects/msr_prepayment/sample_freddie.py`, covered for arguments and the column map."""
     return load_module("msr_prepayment_subject_sample", MSR_PREPAYMENT / "sample_freddie.py")
+
+
+# --- Phase 5: one clean run of each subject, and the variants the tool tests perturb -------------
+#
+# A tool reads the spec 3.3 contract and nothing else, so a rule can be tested by running the real
+# subject once and then perturbing the files it wrote -- an `after_outcome` timing, a duplicated
+# row, a shifted split, a reintroduced collinear column, a false declared threshold, a sign-flipped
+# projection. That is a truer test than a hand-written frame: the negative case is the subject as
+# it actually is, and the positive case differs from it by one edit a reader can name.
+
+
+@pytest.fixture(scope="session")
+def credit_run_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Run the synthetic `credit_default` subject once and return the directory it wrote."""
+    from quaestor import load_package, run_model
+
+    out_dir = tmp_path_factory.mktemp("tools_credit") / "run"
+    run_model(load_package(CREDIT_DEFAULT), None, out_dir, synthetic=5000)
+    return out_dir
+
+
+@pytest.fixture(scope="session")
+def msr_run_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Run the synthetic `msr_prepayment` subject once and return the directory it wrote."""
+    from quaestor import load_package, run_model
+
+    out_dir = tmp_path_factory.mktemp("tools_msr") / "run"
+    run_model(load_package(MSR_PREPAYMENT), None, out_dir, synthetic=2000)
+    return out_dir

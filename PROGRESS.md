@@ -25,8 +25,16 @@ are named in brackets.
     every `package.yaml` threshold passed; the projection's negative-convexity sign pattern
     holds); the pipeline-level assertion of exactly {} needs the tools, the findings and the
     report, so it stays with Phase 8, and it depends on D-046's reading of the `psi` threshold
-- [ ] **Phase 5** — Tools, registry, statistics by hand (spec §3.7)
+- [x] **Phase 5** — Tools, registry, statistics by hand (spec §3.7)
+  - eight of spec §3.7's nine tools are registered; **`retrieve_guidance` is not**, because it
+    needs the corpus and the BM25 index of Phase 6, and a stub that returned no spans would look
+    to a planner like guidance that had been retrieved
+  - clean synthetic `credit_default` raises exactly {E1 low} and clean synthetic
+    `msr_prepayment` exactly {} **at tool level** (D-053); the pipeline-level assertion, over
+    findings and a rendered report, stays with Phase 8
 - [ ] **Phase 6** — Corpus ingest + BM25 + guidance citations (spec §3.8)
+  - the acceptance criterion's `retrieve_guidance("outcomes analysis")` must return `V.1.c`, not
+    the `V.3` spec §3.7 names: the verified outline wins over the spec's sentence (D-054)
 - [ ] **Phase 7** — Findings + claim verifier (spec §3.9–3.10)
 - [ ] **Phase 8** — Drafter, repair, renderer, planner, configs; end-to-end on synthetic with
   `FakeLLM` (spec §3.11–3.13)
@@ -190,3 +198,44 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   is covered for argument handling, the FRED month-close convention, the stratified draw and the
   Freddie Mac column map only, on three-loan pipe-delimited frames the tests write themselves. No
   push.
+- 2026-09-07 — **Phase 5** — gate green on the four conditions that apply plus 5a: `pytest -q` 695
+  passed, 0 failed, 0 skipped, 0 xfailed (161 new); coverage of `src/quaestor` **100%**
+  (`coverage run -m pytest`, 2696 statements) against the 85% floor; `ruff check` and `ruff format
+  --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean (38 source
+  files). Gate condition **5a applies and passes** — `tests/test_golden_spec.py` still pins
+  `examples/golden_report/`, which this phase did not touch, and `tests/test_tools_clean.py` now
+  asserts that **every logical name in the golden report's Appendix B other than `guidance.*`
+  resolves in a real run's store**; **5b is still not applicable**, since `quaestor validate`
+  arrives in Phase 9 and the CLI is still the Phase 0 version stub — the `quaestor validate
+  --synthetic --llm fake` line of `CLAUDE.md`'s command list was therefore not run, and the eight
+  tools were driven through `ToolRegistry.call` instead. Gate condition 6 is **not applicable**:
+  `tests/probatio/` arrives in Phase 11 (D-007). Shipped `src/quaestor/tools/` — `registry.py`
+  (`ToolRegistry`, `ToolContext`, `ToolResult`, the generic `Tool` with its nested `Args`, one
+  `tool_call` trace event per call), `thresholds.py` (every spec §3.7 number keyed by the logical
+  name it is stored under), `stats.py` (PSI, CSI, KS, Gini, Brier, log loss, the calibration slope
+  and intercept by hand-written Newton iterations, VIF, Belsley's kappa, CPR, the calibration and
+  decile tables), `frames.py` (the one place a tool reads the spec §3.3 contract) and the eight
+  tools `run.py`, `profiler.py`, `metrics.py`, `leakage.py`, `stability.py`, `collinearity.py`,
+  `challenger.py`, `scenarios.py`; `tests/{test_stats,test_tool_registry,test_tool_rules,
+  test_tool_frames,test_tools_clean}.py` and `tests/toolsupport.py`; the two clean-run fixtures in
+  `tests/conftest.py`; DECISIONS D-049 to D-054 and the consequence paragraph added to D-046; the
+  Phase 5 section of `docs/DESIGN.md`. `pyproject.toml` gains a `mypy` override for `sklearn.*`
+  (no `py.typed`) and **loses its `python_version = "3.11"` pin**, which numpy 2.5's stubs — 3.12
+  syntax, on a distribution that requires 3.12 — make unparsable on a 3.12 machine; CI still checks
+  both versions (D-049). **Measured through the tools at seed 20260901 on this machine (Python
+  3.12.14, scikit-learn 1.9.0, numpy 2.5.3, pandas 3.0.5): `credit_default --synthetic 5000`, eight
+  tool calls in 2.60 s over 130 artifacts, raising exactly `{E1 low}` — challenger 0.8240 against
+  the champion's 0.7480, a lead of +0.0760 against 0.03; every other rule clear, the closest being
+  the worst retained VIF at 7.295 against 10. `msr_prepayment --synthetic 2000`, eight tool calls
+  in 4.39 s over 220 artifacts, raising exactly `{}` — the closest calls being the vintage
+  holdout's calibration slope at 0.8373 against a floor of 0.80 and its mean-to-observed gap at
+  17.2% against 25%. `O1`'s second rule was measured as spec §3.7 writes it and not adjusted: the
+  out-of-time AUC of 0.7846 is *above* test's 0.7753 and the vintage holdout's 0.7718 is below it
+  by 0.0035 against a threshold of 0.05 (D-053).** Two scoping decisions are Phase 5's own, both
+  taken before those numbers were read: `C1` is applied to every split computed, and `R1` compares
+  per-regime refits while reading the AUC half of its rule from the champion's own scores. PSI's
+  bins are closed at the top so that a mass point does not split across the boundary, which moves
+  the clean panels' indices in the fourth decimal and the reported-not-tested out-of-time
+  comparison from D-046's 3.09 to 2.945 (D-051). `retrieve_guidance` is deliberately unregistered
+  until Phase 6. No test calls a live model, downloads data, trains on real data or reads an API
+  key. No push.
