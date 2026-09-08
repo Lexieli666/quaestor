@@ -23,6 +23,7 @@ from quaestor.report.repair import (
     SectionDraft,
     is_wrapped,
     repair_sections,
+    scope_to_flagged_lines,
     wrap_unverified,
     wrapped_values,
 )
@@ -312,14 +313,22 @@ def test_a_number_the_re_draft_corrects_in_place_is_still_paired(store: Artifact
     assert [repair.after.value for repair in outcome.repairs] == [0.7412]
 
 
-def test_a_moved_sentence_pairs_by_the_logical_name_it_still_cites(
+def test_a_reworded_sentence_pairs_by_the_logical_name_it_still_cites(
     store: ArtifactStore,
 ) -> None:
-    """The second ground: the re-draft moved the sentence and kept the citation (D-105)."""
+    """The second ground: the re-draft rewrote the sentence and kept the citation (D-105).
+
+    The line is not the same line any more -- with its numbers and citations taken out it reads
+    differently -- so the skeleton cannot pair the two, and the cited name is what does. Under
+    D-109 the rewrite stays on the line it was flagged on, which is where the sentence a repair
+    round rewrites now stays.
+    """
     citation = store.artifact("metrics.test.auc").citation()
     outcome = repair_sections(
         [draft_of(store, f"Discrimination reaches 0.7500 {citation} on the held-out split.")],
-        drafter=drafter_returning(f"Held out, the model reaches an AUC of 0.7412 {citation}."),
+        drafter=drafter_returning(
+            f"Discrimination reaches 0.7412 {citation} on the held-out test split, comfortably."
+        ),
         verify=verify_with(store),
         inputs={SECTION: DraftInputs()},
         max_rounds=1,
@@ -346,3 +355,135 @@ def test_a_re_draft_that_leaves_no_link_at_all_is_recorded_as_a_removal(
         max_rounds=1,
     )
     assert outcome.repairs == []
+
+
+# --- Phase 9 follow-up 5: the re-draft is taken line by line (D-109, D-111) --------------------
+
+
+def _scoped(store: ArtifactStore, previous: str, redraft: str, path: Path) -> tuple[str, int]:
+    """Run one repair round over `previous` and return the section after it and its trace count."""
+    trace = TraceWriter(path / "trace.jsonl", run_id="scoped")
+    outcome = repair_sections(
+        [draft_of(store, previous)],
+        drafter=drafter_returning(redraft),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        trace=trace,
+        max_rounds=1,
+    )
+    event = TraceReader(trace.path).events("repair")[0]
+    return outcome.drafts[0].markdown, int(event.payload["lines_redrafted"])
+
+
+def test_a_re_draft_that_alters_an_unrelated_line_leaves_that_line_alone(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """D-109: the round flagged one number and the model rewrote the paragraph around it.
+
+    The unflagged line of the fifth live run's section 4 came back with a clause about another
+    slice spliced into it, every citation resolving, so nothing downstream could see it was wrong.
+    """
+    citation = store.artifact("metrics.test.auc").citation()
+    keep = f"On the whole split the AUC is 0.7412 {citation}, which is the headline."
+    previous = f"{keep}\nOn the low-limit half the AUC is 0.68."
+    redraft = (
+        f"On the whole split the AUC is 0.7412 {citation}, which is not the figure for this slice."
+        f"\nOn the low-limit half the AUC is 0.7412 {citation}."
+    )
+    markdown, redrafted = _scoped(store, previous, redraft, tmp_path)
+    assert markdown.split("\n")[0] == keep
+    assert markdown.split("\n")[1] == f"On the low-limit half the AUC is 0.7412 {citation}."
+    assert redrafted == 1
+
+
+def test_the_flagged_line_is_still_replaced_by_its_re_draft(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """Scoping the round must not switch the round off: the flagged line takes the new text."""
+    citation = store.artifact("metrics.test.auc").citation()
+    previous = "An opening sentence with no number in it.\nThe AUC is 0.7500.\nA closing sentence."
+    redraft = (
+        "An opening sentence with no number in it.\n"
+        f"The AUC is 0.7412 {citation}.\nA closing sentence."
+    )
+    markdown, redrafted = _scoped(store, previous, redraft, tmp_path)
+    assert markdown == (
+        "An opening sentence with no number in it.\n"
+        f"The AUC is 0.7412 {citation}.\nA closing sentence."
+    )
+    assert redrafted == 1
+
+
+def test_a_flagged_line_the_re_draft_dropped_is_dropped(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """Removing the number by removing the sentence is still one of the three answers."""
+    previous = "An opening sentence with no number in it.\nThe AUC is 0.7500."
+    markdown, redrafted = _scoped(
+        store, previous, "An opening sentence with no number in it.", tmp_path
+    )
+    assert markdown == "An opening sentence with no number in it."
+    assert redrafted == 1
+
+
+def test_the_repair_event_records_how_many_lines_were_re_drafted(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """Two flagged lines, one of them returned unchanged: one line re-drafted."""
+    citation = store.artifact("metrics.test.auc").citation()
+    previous = "The first AUC is 0.7500.\nThe second AUC is 0.68."
+    redraft = f"The first AUC is 0.7412 {citation}.\nThe second AUC is 0.68."
+    _, redrafted = _scoped(store, previous, redraft, tmp_path)
+    assert redrafted == 1
+
+
+def test_a_replacement_citing_another_artifact_is_a_removal_not_a_rewrite(
+    tmp_path: Path,
+) -> None:
+    """D-111, and it is the fifth live run's own case: 10160 must not pair with 10500.
+
+    Two sub-population paragraphs written to one sentence skeleton. The flagged count cites
+    `metrics.train.sub.limit_bal_low.n`; the verified 10500 beside it cites another slice's `n`
+    and sits inside the relative window of 10160. Under D-105 read as two alternative grounds the
+    skeleton paired them and Appendix A reported a rewrite; the name is what decides.
+
+    The flagged count is written 10161 rather than the run's own 10160 because the live extractor
+    called it a `count` and held it to half a unit, while the offline fake calls every unmarked
+    token a `ratio` -- and 10160's trailing zero is a place value under D-069, so the fake reads
+    it as a claim of ten thousand one hundred and sixty to the nearest ten and verifies it. The
+    pairing this test is about is the same either way.
+    """
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("metrics.train.sub.limit_bal_low.n", 10158, ArtifactKind.scalar, "rows in the slice")
+    store.put("metrics.train.sub.utilisation_high.n", 10500, ArtifactKind.scalar, "rows")
+    low = store.artifact("metrics.train.sub.limit_bal_low.n").citation()
+    high = store.artifact("metrics.train.sub.utilisation_high.n").citation()
+    previous = (
+        f"On train the slice holds n of 10161 {low}.\nOn train the slice holds n of 10500 {high}."
+    )
+    redraft = f"On train the slice holds many rows.\nOn train the slice holds n of 10500 {high}."
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="named")
+    outcome = repair_sections(
+        [draft_of(store, previous)],
+        drafter=drafter_returning(redraft),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        trace=trace,
+        max_rounds=1,
+    )
+    assert outcome.repairs == []
+    event = TraceReader(trace.path).events("repair")[0]
+    assert event.payload["repaired"] == []
+    assert event.payload["removed"] == [10161.0]
+
+
+def test_a_re_draft_of_a_section_whose_lines_carry_no_flagged_claim_is_taken_whole(
+    store: ArtifactStore,
+) -> None:
+    """The scoping needs a line to scope to: with none, the round is the round it always was."""
+    previous = "The AUC is 0.68."
+    failures = draft_of(store, "A sentence from another draft entirely, holding 0.68.").failures
+    assert failures
+    markdown, redrafted = scope_to_flagged_lines(previous, "A wholly new line.", failures)
+    assert markdown == "A wholly new line."
+    assert redrafted == 1

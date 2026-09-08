@@ -746,3 +746,59 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   DECISIONS D-099 to D-108, the Phase 9 follow-up 4 section of `docs/DESIGN.md` and the
   `CHANGELOG.md` entries. No test calls a live model, downloads data, trains on real data or reads
   an API key. No push.
+- 2026-09-08 — **Phase 9 follow-up 5** — the operator's **fifth** `credit_default` live run
+  (`--llm claude-cli`, real UCI sample, `full_agent`, `claude-opus-5[1m]`) **rendered**: 22 model
+  calls (4 plan, 9 draft, 9 extract), 17 tool calls **none of which raised**, 250 artifacts, 417
+  claim checks, 289 pre-repair claims at grounding precision **0.9827** rising to **1.0000** over
+  285, zero findings, exit 0, **$6.0535**, **1328.47 s**. The bounded loop ran four steps and **all
+  four executed** — `limit_bal below_median`, `delinq_last equals:0`, `delinq_last equals:1`,
+  `utilisation above_median`, different slices from attempt 4's on the same prompt, subject and
+  model — and the report carries the **first `### Open items` the pipeline has produced live**: two
+  questions for the model developer, on the two delinquency slices whose AUC gap (0.1238 and
+  0.1037) exceeds `threshold.O1.slice_auc_gap` at 0.08 on 0.775 and 0.1218 of test. **Six of the
+  seven defects attempt 4 found did not recur** (D-099, D-100, D-103, D-104, D-106, D-108, each
+  read off the report); the seventh, D-105, did. Committed as
+  `eval/results/first-live/credit-attempt5/` on D-087's terms (`find … -name '*.csv' -size +20k`
+  prints nothing). Gate green on the five conditions that apply: `pytest -q` **1340 passed**, 0
+  failed, 0 skipped, 0 xfailed; coverage of `src/quaestor` **100%** (`coverage run -m pytest`,
+  6,012 statements) against the 85% floor; `ruff check` and `ruff format --check` clean on `src
+  tests eval subjects`; `mypy --strict src/quaestor` clean (60 source files); gate condition 5
+  green — `examples/golden_report/` is untouched, and `quaestor validate --synthetic --llm fake`
+  renders both subjects (credit_default 1.0000 → 1.0000 over 49 claims, 1 finding, 168 artifacts;
+  msr_prepayment 1.0000 → 1.0000 over 45 claims, 0 findings, 271 artifacts). Seven defects fixed,
+  DECISIONS **D-109 to D-115**. (a) **The first defect a live run has produced that the verifier is
+  structurally unable to catch** (D-109): the repair round on section 4 flagged four numbers and
+  the drafter, sent the whole section, also rewrote an unflagged line into "…by -0.02732
+  `[[art:41fca294:metrics.train.sub.utilisation_high.auc_gap]]` **is not the figure for this
+  slice**; on train the gap is -0.001109…" — another slice's train gap spliced into the limit_bal
+  paragraph, every citation resolving, so grounding precision was 1.0000. A round now takes from
+  the re-draft only the lines that carried a flagged claim, each returned line attributed to the
+  line of the previous draft it most resembles with citations removed; every other line is kept
+  byte-identical, `REDRAFT_SIMILARITY` is the floor under the argmax, the event records
+  `lines_redrafted`, and `REPAIR_INSTRUCTION` states the rule. **Replayed on the run's own section
+  4 it re-drafts four lines and never writes the damaged sentence.** (b) Integral values reach the
+  drafter unrounded (D-110): `four_significant_figures(10158)` is 10160 and a count is held to half
+  a unit, which is two of the five failed claims and one count deleted from the prose. (c) A cited
+  claim pairs by its name and only an uncited one by its line (D-111): section 4's four slice
+  paragraphs share one skeleton, so D-105's line ground paired the flagged 10160 with another
+  slice's verified 10500 and Appendix A reports "1 rewritten, 4 removed" of a round that rewrote
+  none and removed five. (d) Three tokens that are not claims were counted and removed (D-112): the
+  `0` and `1` of "**delinq_last equals 0.**" are a slice rule's parameters, now written
+  `delinq_last == 0` in inline code, and "Section 4 of this report" is now an exclusion beside
+  `§4`. (e) The citation carries the logical name, so the prose does not (D-113). (f) Section 7 is
+  told the run compared a challenger (D-114), having written that benchmarking "was not part of
+  this validation" three pages after section 2 reported it. (g) A follow-up slice reports its nine
+  metrics per split as a `metrics.<split>.sub.<slug>` table the renderer expands, and the brief
+  asks for the gap, the share and the level-versus-ordering reading instead of the enumeration
+  (D-115) — **72 of the run's 285 claims**, and D-013 keeps a table's cells out of extraction.
+  **What extraction cost, and what it does not measure.** 76,400 output tokens over 417 claim
+  checks is **183 per check**, against 173 on attempt 4, 284 on attempt 3 and 357 on attempt 1,
+  with `verifier/extract.py` byte-identical across the last three: four runs of one prompt on one
+  model, n = 1 each, measuring how much the model chose to think. The *total* is not variance —
+  417 checks against 262 is the four executed slices — and that is what D-115 addresses. Also
+  shipped: the dated `docs/EVALUATION.md` §1 entry for `credit-attempt5` with attempt 1's repair
+  row amended to name D-099's tokenizer as the cause of its `9.982`/`6` removals,
+  `tests/test_live_credit_attempt5.py` (23 checks re-deriving every figure from that directory,
+  including a line-by-line replay of the repair round), DECISIONS D-109 to D-115, the Phase 9
+  follow-up 5 section of `docs/DESIGN.md` and the `CHANGELOG.md` entries. No test calls a live
+  model, downloads data, trains on real data or reads an API key. No push.

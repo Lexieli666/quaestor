@@ -81,6 +81,10 @@ Rules, all of them checked after you answer:
   it, and a report that says one section's selection is the whole run contradicts itself. Say what
   the numbers you have show, and where you need one you were not given, write the sentence without
   it.
+- Do not write an artifact's logical name in the prose. The citation after the number carries it,
+  and a sentence that also spells it out reads "by up to threshold.O1.slice_auc_gap at 0.08" where
+  it should read "by up to 0.08 [[art:...:threshold.O1.slice_auc_gap]]". Say in words what the
+  number is, and let the citation say where it came from.
 - One sentence per line. The claim extractor works line by line, so a sentence split over two
   lines is two claims and a paragraph on one line is one.
 - For a table artifact, do not retype the cells. Write the directive [[table:<logical_name>]] on a
@@ -118,7 +122,12 @@ Problems, one per line, in the form the verifier reported them:
 
 Re-draft the whole section under the same rules. For each problem above, either cite the artifact
 the number actually comes from, correct the number to what the artifact says, or remove the number
-and say it in words. Do not introduce new numbers to explain the old ones."""
+and say it in words. Do not introduce new numbers to explain the old ones.
+Only the lines carrying the numbers listed above are taken from your answer; every other line of
+the section is kept exactly as it stands in the draft above. So do not reword, reorder or delete a
+line that is not named in a problem: the change would be discarded, and a line you rewrote into a
+statement about something else would be kept only if the number in it happened to be one of these.
+Return the whole section all the same, so that each corrected line reads in its place."""
 """What a repair round adds to the prompt (spec section 3.11's "cite or remove", made concrete)."""
 
 
@@ -271,6 +280,13 @@ def _follow_ups_block(follow_ups: Sequence[FollowUp], section: ReportSection) ->
     Section 6 is asked for a different sentence about the same step. It is given only the steps
     whose result is materially worse than the headline, and it writes each as an open item -- a
     request for a developer response -- rather than under a heading of its own (D-102).
+
+    Two things the block carries besides the names. The step's **slice rule** as an expression,
+    which the drafter is asked to write inside backticks: the fifth live run's paragraphs opened
+    "**delinq_last equals 0.**" and the rule's own parameter was counted as a claim (D-112). And
+    the step's **tables**, which the drafter points the renderer at rather than transcribing:
+    nine metrics on each of two splits, for each of four slices, was 72 of that run's 285 claims
+    (D-115).
     """
     if not follow_ups:
         return ""
@@ -284,6 +300,10 @@ def _follow_ups_block(follow_ups: Sequence[FollowUp], section: ReportSection) ->
             f" -- why: {follow_up.why}"
         )
         lines.append(f"  artifacts: {', '.join(follow_up.artifacts)}")
+        if follow_up.slice_rule:
+            lines.append(f"  slice rule, to be written in prose as `{follow_up.slice_rule}`")
+        if follow_up.tables:
+            lines.append("  tables: " + ", ".join(f"[[table:{name}]]" for name in follow_up.tables))
         if follow_up.detail:
             lines.append(f"  materiality: {follow_up.detail}")
     if section is ReportSection.findings:
@@ -291,15 +311,24 @@ def _follow_ups_block(follow_ups: Sequence[FollowUp], section: ReportSection) ->
             "Each of those is an open item and not a finding: no rule fired on any of them. Write "
             f"one line per step under `{OPEN_ITEMS_HEADING}`, asking the model developer what the "
             "model discriminates on inside that segment, and cite the slice's own value, the "
-            "headline it is compared with and the bound the comparison was made against."
+            "headline it is compared with and the bound the comparison was made against. Name the "
+            "segment by its slice rule, written inside backticks exactly as given above."
         )
     else:
         lines.append(
             f"Report every one of them under the heading `{FOLLOW_UPS_HEADING}`, written exactly "
             "like that on a line of its own and placed after the rest of this section: for each, "
-            "what was asked, why it was asked, and what the numbers say, every number carrying its "
-            "citation. A step the run paid for and the report does not mention is a question a "
-            "reader cannot see was asked."
+            "what was asked, why it was asked, and what the numbers say. A step the run paid for "
+            "and the report does not mention is a question a reader cannot see was asked."
+        )
+        lines.append(
+            "Name each step by its slice rule, written inside backticks exactly as given above. "
+            "Do **not** enumerate the step's metrics in prose: write each of its table directives "
+            "on a line of its own, and then, in sentences of your own, how the slice reads -- how "
+            "far its AUC falls below the split's own and against which bound, how much of the "
+            "split it holds and against which floor, and whether mean predicted against the "
+            "observed rate says the weakness is in the level of the probabilities or in their "
+            "ordering. Every number in those sentences carries its citation."
         )
     return "\n".join(lines) + "\n"
 

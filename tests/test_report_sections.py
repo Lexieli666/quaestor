@@ -19,6 +19,7 @@ from quaestor.package import PackageSpec, Use, load_package
 from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
 from quaestor.report.sections import (
     CALIBRATION_FIRST_RULE,
+    CHALLENGER_DELTA,
     DEFECT_CLASS_NAMES,
     MAX_JSON_PATHS,
     SECTION_BRIEFS,
@@ -34,6 +35,7 @@ from quaestor.report.sections import (
     four_significant_figures,
     monitoring_brief,
     ordered_briefs,
+    prompt_value,
     recomputed_for_declared_bounds,
     section_four_order,
     section_heading,
@@ -44,6 +46,8 @@ from quaestor.tools.leakage import FEATURE_OVERLAP_BOUND
 from quaestor.tools.metrics import THRESHOLD_TABLE, metric_artifact_name
 from quaestor.tools.run import MAX_SECONDS_NAME
 from quaestor.tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
+from quaestor.verifier import ClaimStatus, match_claim
+from quaestor.verifier.claim import Claim, ClaimSource, Unit
 from quaestor.vocab import SECTION_ORDER, ReportSection
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -594,3 +598,112 @@ def test_the_follow_up_block_names_the_step_s_own_question(tmp_path: Path) -> No
     assert "what the\nmodel discriminates on inside that segment" in findings or (
         "what the model discriminates on inside that segment" in findings
     )
+
+
+# --- Phase 9 follow-up 5: the prompt, the challenger and the slice tables ------------------------
+
+
+def test_an_integral_value_reaches_the_prompt_unrounded(tmp_path: Path) -> None:
+    """D-110: 10,158 rows is 10158 in the prompt, not 10160, and a claim of it verifies."""
+    assert prompt_value(10158.0) == 10158
+    assert prompt_value(0.74801204) == pytest.approx(0.748)
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("metrics.train.sub.limit_bal_low.n", 10158, ArtifactKind.scalar, "rows in the slice")
+    store.put("metrics.test.auc", 0.74801204, ArtifactKind.scalar, "auc on test")
+    briefs = {
+        item.name: item.to_payload()
+        for item in artifact_briefs(store, brief_for(ReportSection.outcomes))
+    }
+    shown = briefs["metrics.train.sub.limit_bal_low.n"]["value"]
+    assert shown == 10158
+    assert isinstance(shown, int)
+    claim = Claim(
+        text=f"The slice holds {shown} rows.",
+        value=float(shown),
+        unit=Unit.count,
+        section=ReportSection.outcomes,
+        source=ClaimSource.report,
+        citation=store.artifact("metrics.train.sub.limit_bal_low.n").citation(),
+    )
+    assert match_claim(claim, store).claim.status is ClaimStatus.verified
+
+
+def test_the_monitoring_brief_says_a_challenger_was_compared(tmp_path: Path) -> None:
+    """D-114: section 7 wrote that benchmarking "was not part of this validation"."""
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("metrics.test.event_rate", 0.2246, ArtifactKind.scalar, "event rate")
+    order = SectionOrder(False, OrderReason.event_rate)
+    without = monitoring_brief(brief_for(ReportSection.monitoring), order, store)
+    assert "challenger" not in without.brief
+    store.put(CHALLENGER_DELTA, -0.012, ArtifactKind.scalar, "challenger AUC minus champion's")
+    with_challenger = monitoring_brief(brief_for(ReportSection.monitoring), order, store)
+    assert "A challenger model was compared" in with_challenger.brief
+    assert "was not part of it" in with_challenger.brief
+    assert monitoring_brief(brief_for(ReportSection.monitoring), order).brief == without.brief
+
+
+def test_the_drafter_is_told_the_citation_carries_the_logical_name() -> None:
+    """D-113: "by up to threshold.O1.slice_auc_gap at 0.08" is the name written twice."""
+    from quaestor.report.drafter import DRAFT_INSTRUCTION
+
+    assert "Do not write an artifact's logical name in the prose" in DRAFT_INSTRUCTION
+
+
+def test_a_section_is_offered_the_slice_tables_its_prefix_names(tmp_path: Path) -> None:
+    """D-115: `metrics.<split>.sub.<slug>` is a family one run names, so the entry is a prefix."""
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("metrics.test.auc", 0.755, ArtifactKind.scalar, "auc on test")
+    store.put(
+        "metrics.test.sub.limit_bal_low",
+        [{"metric": "auc", "value": 0.7477}, {"metric": "share", "value": 0.487}],
+        ArtifactKind.table,
+        "every metric on the limit_bal below_median slice of test",
+    )
+    outcomes = brief_for(ReportSection.outcomes)
+    assert outcomes.wants_table("metrics.test.sub.limit_bal_low")
+    assert not brief_for(ReportSection.sensitivity).wants_table("metrics.test.sub.limit_bal_low")
+    shown = {item.name: item for item in artifact_briefs(store, outcomes)}
+    assert shown["metrics.test.sub.limit_bal_low"].to_payload()["directive"] == (
+        "[[table:metrics.test.sub.limit_bal_low]]"
+    )
+
+
+def test_the_follow_up_block_gives_the_slice_rule_and_the_table_and_not_the_enumeration(
+    tmp_path: Path,
+) -> None:
+    """D-112 and D-115: the rule reaches the prose as code, the metrics as a directive."""
+    from quaestor.report.drafter import Drafter
+
+    store = _slice_store(tmp_path, gap=0.1238, share=0.775)
+    store.put(
+        "metrics.test.sub.s_eq_0",
+        [{"metric": "auc", "value": 0.6312}, {"metric": "share", "value": 0.775}],
+        ArtifactKind.table,
+        "every metric on the delinq_last equals:0 slice of test",
+    )
+    follow_up = follow_up_for(
+        store,
+        "compute_metrics",
+        {"splits": ["test"], "subpopulation": {"column": "delinq_last", "rule": "equals:0"}},
+        "a delinquency-driven score may lose its edge among clean payers",
+        sorted(store.names()),
+    )
+    assert follow_up.slice_rule == "delinq_last == 0"
+    assert follow_up.tables == ("metrics.test.sub.s_eq_0",)
+    drafter = Drafter(None, package="credit_default", version="1.0")  # type: ignore[arg-type]
+    prompt = drafter.prompt(brief_for(ReportSection.outcomes), follow_ups=[follow_up])
+    assert "`delinq_last == 0`" in prompt
+    assert "[[table:metrics.test.sub.s_eq_0]]" in prompt
+    assert "Do **not** enumerate the step's metrics in prose" in prompt
+    findings = drafter.prompt(brief_for(ReportSection.findings), follow_ups=[follow_up])
+    assert "`delinq_last == 0`" in findings
+
+
+def test_a_follow_up_that_asked_for_no_slice_carries_no_rule(tmp_path: Path) -> None:
+    """`slice_rule` is empty rather than invented for a step that sliced nothing."""
+    store = _slice_store(tmp_path, gap=0.01, share=0.5)
+    follow_up = follow_up_for(
+        store, "profile_data", {"splits": ["test"]}, "why", ["profile.test.n"]
+    )
+    assert follow_up.slice_rule == ""
+    assert follow_up.tables == ()

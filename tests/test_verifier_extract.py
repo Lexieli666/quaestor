@@ -457,3 +457,25 @@ def test_the_line_index_path_still_resolves_a_line_that_holds_an_exponent(
     assert [claim.value for claim in found.claims] == [9.982e-06]
     assert found.claims[0].text.startswith("- bill_mean_6m,")
     assert found.unattributed == []
+
+
+# --- Phase 9 follow-up 5: a section reference is not a claim (D-112) ---------------------------
+
+
+def test_a_reference_to_a_section_of_this_report_is_not_a_claim(store: ArtifactStore) -> None:
+    """The fifth live report's section 7 opened "Section 4 of this report reported …"."""
+    markdown = (
+        "Section 4 of this report reported discrimination before calibration, because the rate "
+        f"is at or above 0.05 {store.artifact('metrics.test.auc').citation()}.\n"
+    )
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [0.05]
+    patterns = {exclusion.pattern: exclusion.examples for exclusion in extraction.exclusions}
+    assert "Section 4" in patterns["section_number"]
+
+
+def test_a_number_after_the_word_section_in_another_sense_is_still_a_claim() -> None:
+    """The pattern needs the digits to follow the word, so a sentence about a slice is untouched."""
+    markdown = "The cross-section holds 4 rows and the mean is 0.5.\n"
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [4.0, 0.5]

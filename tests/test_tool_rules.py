@@ -25,7 +25,7 @@ from quaestor.findings import DefectClass, Severity
 from quaestor.tools import Thresholds, ToolContext, ToolResult, default_registry
 from quaestor.tools.collinearity import sign_of
 from quaestor.tools.leakage import DUPLICATE_MULTIPLE, FEATURE_OVERLAP_BOUND, duplicate_share
-from quaestor.tools.metrics import THRESHOLD_TABLE
+from quaestor.tools.metrics import THRESHOLD_TABLE, subpopulation_expression
 from quaestor.tools.run import MAX_SECONDS_NAME
 from quaestor.tools.thresholds import EFFECTIVE_SUFFIX, effective_name
 from toolsupport import context, read_json, variant_package, write_csv, write_json
@@ -1131,3 +1131,12 @@ def test_a_split_whose_outcome_is_constant_is_sign_checked_against_nothing(
     assert ctx.store.value("sign_check.n_disagreements") == 0
     assert not [name for name in ctx.store.names() if name.endswith(".agrees")]
     assert "vif.max" in ctx.store, "the collinearity statistics are unaffected"
+
+
+def test_a_slice_rule_reads_as_an_expression_over_its_column() -> None:
+    """D-112: the prose writes the rule in code, so its parameter is not read as a claim."""
+    assert subpopulation_expression("delinq_last", "equals:0") == "delinq_last == 0"
+    assert subpopulation_expression("limit_bal", "below_median") == "limit_bal < median(limit_bal)"
+    assert subpopulation_expression("utilisation", "above_median") == (
+        "utilisation >= median(utilisation)"
+    )

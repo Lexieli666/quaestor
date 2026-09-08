@@ -48,6 +48,8 @@ __all__ = [
     "ComputeMetricsTool",
     "Subpopulation",
     "metric_artifact_name",
+    "sub_metrics_table_name",
+    "subpopulation_expression",
 ]
 
 THRESHOLD_TABLE: Final = "thresholds.evaluation"
@@ -62,6 +64,20 @@ the subject's wall-clock cap as a performance threshold. A table the tool comput
 only points at cannot disagree with the rest of the report, which is D-013's argument applied to
 the one table a validation report is most often read for (DECISIONS D-092).
 """
+
+
+def sub_metrics_table_name(split: str, slug: str) -> str:
+    """Return the name of the table holding one sub-population's metrics on one split.
+
+    Args:
+        split: The split the slice was taken of.
+        slug: The slice's own name segment, from :attr:`Subpopulation.slug`.
+
+    Returns:
+        ``metrics.<split>.sub.<slug>``, the stem the slice's scalars already share.
+    """
+    return f"metrics.{split}.sub.{slug}"
+
 
 SCALAR_METRICS: Final = (
     "n",
@@ -122,6 +138,30 @@ def metric_artifact_name(metric: str, split: str | None) -> str | None:
     if template is None or split is None:
         return None
     return template.format(split=split)
+
+
+def subpopulation_expression(column: str, rule: str) -> str:
+    """Return the slice rule as an expression over the column, for prose to quote in code.
+
+    Args:
+        column: The column sliced on.
+        rule: ``below_median``, ``above_median`` or ``equals:<value>``.
+
+    Returns:
+        ``delinq_last == 0``, ``limit_bal < median(limit_bal)``, ``utilisation >=
+        median(utilisation)``.
+
+    The drafter is asked to write this inside backticks, which the tokenizer masks as inline code.
+    On the fifth live run two follow-up paragraphs opened "**delinq_last equals 0.**" and
+    "**delinq_last equals 1.**", and the 0 and the 1 -- the parameters of a slice rule, not
+    quantities anything computed -- were counted as claims, flagged as unsupported and removed in
+    a repair round (DECISIONS D-112).
+    """
+    if rule == "below_median":
+        return f"{column} < median({column})"
+    if rule == "above_median":
+        return f"{column} >= median({column})"
+    return f"{column} == {rule.split(':', 1)[1]}"
 
 
 class Subpopulation(ToolArgs):
@@ -429,13 +469,25 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
         frame: pd.DataFrame,
         values: Mapping[str, float],
     ) -> list[Artifact]:
-        """Store how one slice reads against its split: the AUC gap and the share of the rows."""
-        stem = f"metrics.{split}.sub.{slice_.slug}"
+        """Store how one slice reads against its split, and the slice's metrics as a table.
+
+        The eight scalars and the share are also stored as ``metrics.<split>.sub.<slug>``, one row
+        per metric, so that the section reporting the slice can point at a table instead of
+        enumerating nine cited numbers per split. That is D-092's argument about the threshold
+        table, applied to the family the bounded loop generates: on the fifth live run four slices
+        wrote 72 of the report's 285 claims and most of its 417 claim checks, all of them
+        transcription of numbers a table renders from the store, and a table's cells are excluded
+        from extraction because the renderer and not a model wrote them (D-013, DECISIONS D-115).
+        The AUC gap and the share stay scalars as well: they are what the interpreting sentences
+        cite, and a number in prose needs an artifact behind it.
+        """
+        stem = sub_metrics_table_name(split, slice_.slug)
         headline = f"metrics.{split}.auc"
+        share = float(values["n"]) / float(len(frame))
         stored: list[Artifact] = [
             ctx.store.put(
                 f"{stem}.share",
-                float(values["n"]) / float(len(frame)),
+                share,
                 ArtifactKind.scalar,
                 f"the share of {split} the {slice_.column} {slice_.rule} slice holds",
             )
@@ -450,6 +502,16 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                     f"below AUC on all of {split}",
                 )
             )
+        rows = [{"metric": metric, "value": values[metric]} for metric in SCALAR_METRICS]
+        rows.append({"metric": "share", "value": share})
+        stored.append(
+            ctx.store.put(
+                stem,
+                rows,
+                ArtifactKind.table,
+                f"every metric on the {slice_.column} {slice_.rule} slice of {split}",
+            )
+        )
         return stored
 
     @staticmethod

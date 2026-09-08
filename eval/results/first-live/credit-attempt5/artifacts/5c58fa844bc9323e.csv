@@ -1,0 +1,6 @@
+metric,split,bound,value,result
+auc,test,minimum 0.7,0.7550239453,pass
+brier,test,maximum 0.2,0.1385162411,pass
+calibration_slope,test,minimum 0.8,0.9885680158,pass
+calibration_slope,test,maximum 1.2,0.9885680158,pass
+psi,,maximum 0.25,0.00308251646,pass

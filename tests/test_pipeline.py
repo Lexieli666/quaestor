@@ -24,9 +24,11 @@ import jsonschema
 import pytest
 
 from quaestor import Configuration, TraceReader, validate
+from quaestor.artifacts import ArtifactKind
 from quaestor.pipeline import UNEVIDENCED_PREFIX, ValidationRun
 from quaestor.report import UNVERIFIED_OPEN, check_report
 from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
+from quaestor.tools.metrics import SCALAR_METRICS
 from quaestor.tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR, Thresholds
 from reportsupport import SectionFake
 
@@ -527,3 +529,28 @@ def test_the_loop_is_shown_the_columns_it_can_slice_on(tmp_path: Path) -> None:
     assert "`limit_bal`" in plan_prompts[0]
     assert "`credit_limit`" not in plan_prompts[0]
     assert "`default_next_month`" in plan_prompts[0]
+
+
+def test_a_follow_up_reports_its_metrics_as_a_table_and_interprets_them_in_prose(
+    tmp_path: Path,
+) -> None:
+    """D-115: the nine metrics are a rendered table, and the gap and the share stay cited prose."""
+    run = run_validate(
+        CREDIT,
+        tmp_path / "out",
+        llm=SectionFake(plan_actions=list(SLICE_ACTIONS)),
+        synthetic=SMALL,
+    )
+    table = "metrics.test.sub.limit_bal_low"
+    assert run.store.entry(table).kind is ArtifactKind.table
+    rows = run.store.load(table)
+    assert [str(row["metric"]) for row in rows] == [*SCALAR_METRICS, "share"]
+    outcomes = _section(run.report, "## 4. Outcomes analysis")
+    assert f"<!-- quaestor:renderer:begin table {table} -->" in outcomes
+    assert f"[[table:{table}]]" not in outcomes, "the directive is expanded, not left standing"
+    follow_ups = outcomes.split(FOLLOW_UPS_HEADING, 1)[1]
+    assert f"{table}.auc_gap" in follow_ups
+    assert f"{table}.share" in follow_ups
+    claims = {claim.citation for claim in run.claims.post_repair if claim.citation}
+    assert any(f"{table}.auc_gap" in citation for citation in claims)
+    assert any(f"{table}.share" in citation for citation in claims)

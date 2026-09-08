@@ -230,6 +230,17 @@ run that was not committed.
 - `tests/test_live_credit_attempt4.py`: 28 checks re-deriving every figure `docs/EVALUATION.md`
   quotes about the fourth live run from that run's own trace, claims, findings, index and 22
   cassettes.
+- `quaestor.report.repair.scope_to_flagged_lines` and `REDRAFT_SIMILARITY`, which take from a
+  repair round only the lines that carried a flagged claim; the `repair` trace event gains
+  `lines_redrafted` and `REPAIR_INSTRUCTION` states the rule (D-109).
+- `quaestor.report.sections.prompt_value`, `SectionBrief.wants_table`, `CHALLENGER_DELTA`, and
+  `FollowUp.tables` / `FollowUp.slice_rule` (D-110, D-112, D-114, D-115).
+- `quaestor.tools.metrics.subpopulation_expression` and `sub_metrics_table_name`, and the
+  `metrics.<split>.sub.<slug>` table each executed slice now stores beside its scalars (D-112,
+  D-115).
+- `tests/test_live_credit_attempt5.py`: 23 checks re-deriving every figure `docs/EVALUATION.md`
+  quotes about the fifth live run from that run's own trace, claims, findings, index and 22
+  cassettes, including a line-by-line replay of its repair round.
 
 
 ### Changed
@@ -366,7 +377,22 @@ run that was not committed.
   nearest-value fallback is offered only claims whose line — citations and numbers removed — is
   the same, or which cite a logical name the flagged claim cited.
 - **Integral values reach the drafting prompt as integers (D-106)**, which D-094 did for the
-  renderer's tables only.
+  renderer's tables only, **and unrounded (D-110)**: `four_significant_figures(10158)` is 10160,
+  which the matcher then refuses because a count is held to half a unit.
+- **A repair round re-drafts lines, not sections (D-109).** Only the lines carrying flagged claims
+  are taken from the re-draft; every other line of the section is kept byte-identical, each
+  returned line being attributed to the line of the previous draft it most resembles.
+- **A flagged claim that cites a logical name is paired only by that name (D-111**, ordering
+  D-105's two grounds**)**; the line is the ground for a flagged claim with no citation.
+- **A reference to a section of this report, written in words, is an excluded token (D-112)**, and
+  a follow-up's slice rule reaches the prose as inline code, `delinq_last == 0`.
+- **`DRAFT_INSTRUCTION` forbids writing an artifact's logical name in the prose (D-113)**: the
+  citation after the number carries it.
+- **`monitoring_brief` takes the store and says a challenger was compared, where one was
+  (D-114).**
+- **A follow-up slice's metrics reach the report as a `[[table:...]]` directive rather than as an
+  enumeration in prose (D-115)**, with the AUC gap, the share and the level-versus-ordering
+  reading left as cited sentences. Section 4's `tables` entry `metrics.` is a prefix.
 - Section 6's brief and the no-findings block forbid the drafter to describe what was reviewed;
   the renderer's "Checks that ran and raised no candidate" line is the enumeration (D-103).
 - Section 7's brief carries section 4's ordering decision and the ground for it, filled by
@@ -384,6 +410,29 @@ run that was not committed.
 
 ### Fixed
 
+- **The fifth live run's repair round rewrote a line nobody flagged (D-109).** Asked to correct
+  four numbers in section 4, the drafter also turned "…falls below its split's by 0.007286 on test
+  and by -0.001109 on train, both within the allowance" into a sentence reporting another slice's
+  train gap and adjudicating itself mid-clause. Every citation in it resolves, so grounding
+  precision was 1.0000 and no claim-level check could see it — the first defect a live run has
+  produced that the verifier is structurally unable to catch.
+- **Two sub-population counts reached the fifth run's drafter rounded (D-110)**, 10158 as 10160
+  and 16207 as 16210, and the matcher holds a count to half a unit; one of the two left the prose
+  in the repair round rather than being corrected.
+- **Appendix A of the fifth live run reads "10160 (mismatch) → 10500 (verified)" and "1 rewritten,
+  4 removed" of a round that rewrote nothing and removed five (D-111)**: section 4's four
+  sub-population paragraphs share one sentence skeleton, so D-105's line ground paired a flagged
+  count with another slice's untouched one.
+- **Three tokens that are not claims were counted, flagged and removed (D-112)**: the `0` and `1`
+  of "**delinq_last equals 0.**", which are a slice rule's parameters, and the `4` of "Section 4
+  of this report".
+- **The fifth live report writes logical names into its prose (D-113)**, as in "by up to
+  threshold.O1.slice_auc_gap at 0.08 [[art:0a827b87:threshold.O1.slice_auc_gap]]".
+- **Its section 7 wrote that benchmarking against an alternative model "was not part of this
+  validation" (D-114)** three pages after section 2 reported the challenger comparison.
+- **Each of its four follow-up slices wrote nine metrics on each of two splits into prose
+  (D-115)** — 72 of 285 claims, and most of the 155 extra claim checks the run made over the
+  fourth's.
 - **All six failed claims of the fourth live run were one tokenizer defect (D-099).** `1.92e-05`
   tokenised as `1.92` and `05`, so three exponent literals produced six `unattributed` claims —
   a mantissa the artifact does not hold and a bare exponent that is a claim of five the report

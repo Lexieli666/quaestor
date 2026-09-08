@@ -18,7 +18,8 @@ needs, so that none of them has a reason to re-derive a part of it.
 The six exclusion classes are D-015's, in D-015's order: a renderer block or a ``[[table:...]]``
 directive (nothing inside was written by a model), the hex characters and the logical name inside
 an artifact citation, a regulatory section id, inline code, a finding id, section and list
-numbering, and the package version string. Masking writes spaces over each region rather than
+numbering -- including a cross-reference to a section of this report written in words, "Section 4"
+(D-112) -- and the package version string. Masking writes spaces over each region rather than
 deleting it, so every offset a caller computes still points where it did in the original text.
 """
 
@@ -95,6 +96,20 @@ r"""Section and list numbering: ``§6``, and a ``1.`` that opens a line.
 Anchored to the start of the line on purpose. An unanchored ``\d+\.`` followed by a space also
 matches the ``0.`` of "no feature is flagged 0." and would silently delete a claim, which is the
 failure mode an exclusion list is most dangerous for: it lowers the denominator invisibly."""
+
+_SECTION_REFERENCE_RE: Final = re.compile(r"(?<![\w-])[Ss]ection[ \t]+\d+(?:\.\d+)*")
+"""A cross-reference to a section of this report: ``Section 4 of this report``, ``section 5.2``.
+
+The fifth live run's section 7 opened a paragraph "Section 4 of this report reported discrimination
+before calibration", and the 4 was counted as a claim, flagged as unsupported and removed in a
+repair round -- the sentence that survives says "the performance section of this report". A
+section number is the report's own numbering, which :data:`_SECTION_NUMBER_RE` already excludes
+where the section writes it as ``§4`` or as a heading, and a reference in words is the same number
+(DECISIONS D-112).
+
+The lookbehind refuses ``sub-section 4`` only to the extent of not matching the hyphen form as a
+whole word; what it exists for is to keep the pattern from firing inside a longer word.
+"""
 
 _REG_SECTION_ID_RE: Final = re.compile(
     r"\bSR\s?\d{2}-\d+\b|\bOCC\s?\d{4}-\d+\b|\b[IVX]+(?:\.\d+)+(?:\.[a-z])?\b"
@@ -357,6 +372,7 @@ def _masked(markdown: str, package_version: str | None) -> tuple[str, list[Exclu
     text = _mask(text, _FINDING_ID_RE, "finding_id", found)
     text = _mask(text, _HEADING_RE, "section_number", found, example="token")
     text = _mask(text, _SECTION_NUMBER_RE, "section_number", found)
+    text = _mask(text, _SECTION_REFERENCE_RE, "section_number", found)
     text = _mask(text, _REG_SECTION_ID_RE, "regulatory_section_id", found)
     text = _mask_version(text, package_version, found)
     return text, found

@@ -13,6 +13,11 @@ the wrapper is the same argument at the other end of the loop. ``REPORT_SCHEMA.j
 refusal rule enforces it: under ``full_agent`` an uncovered number that is not wrapped is a report
 the renderer will not write.
 
+The re-draft is asked for in whole and taken in part: only the lines that carried a flagged claim
+are taken from it, and every other line of the section is kept byte-identical (D-109). A model
+correcting one sentence rewrites its neighbours too, and a rewritten neighbour whose citations all
+resolve is a sentence no part of this pipeline can see is wrong.
+
 Each round is one ``repair`` trace event and one or more ``repairs`` entries in ``claims.json``.
 Pairing a claim before a round with the claim that replaced it after it is done by id first -- an
 uncited number that gains its citation keeps its id, because the id is a hash of section, text and
@@ -27,6 +32,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+from difflib import SequenceMatcher
 from typing import Final
 
 from ..findings import Finding, FindingCandidate
@@ -42,6 +48,7 @@ from .sections import ArtifactBrief, FollowUp, SectionBrief
 
 __all__ = [
     "MAX_REPAIR_ROUNDS",
+    "REDRAFT_SIMILARITY",
     "UNVERIFIED_CLOSE",
     "UNVERIFIED_OPEN",
     "DraftInputs",
@@ -50,6 +57,7 @@ __all__ = [
     "Verify",
     "is_wrapped",
     "repair_sections",
+    "scope_to_flagged_lines",
     "wrap_unverified",
     "wrapped_values",
 ]
@@ -72,6 +80,24 @@ different statement, and pairing it would put a false row in the repairs table.
 
 Nearness is necessary and not sufficient: :func:`_same_statement` decides which claims the window
 is even applied to (D-105).
+"""
+
+REDRAFT_SIMILARITY: Final = 0.5
+"""How much of a line a re-draft must keep for the new line to be read as that line rewritten.
+
+A repair round re-drafts the whole section and only the flagged lines are taken from it (D-109),
+so each line the drafter returns has to be attributed to the line of the previous draft it is a
+rewrite of. The attribution itself is the argument of the whole line against every line of the
+previous draft: a new line belongs to the old line it most resembles, which is what keeps the
+re-drafted sibling of a flagged paragraph attached to its own original instead of being spliced
+over the flagged one. This is only the floor beneath that -- a new line that resembles even its
+best old line this little is a sentence the drafter wrote fresh, and it is not taken.
+
+On the fifth live run the five flagged lines resemble their own replacements at 0.839, 0.941,
+0.942, 0.974 and 0.981, so the floor has a wide margin under every rewrite that run made. It is
+generous on purpose: with the argmax doing the discriminating, being wrong towards the floor
+costs a line the drafter meant to keep, and a repair round that silently shortens a section is a
+worse outcome than one that keeps a sentence it could have dropped.
 """
 
 _CITED_NAME_RE: Final = re.compile(r"\[\[art:[0-9a-fA-F]+:(?P<name>[^\]#]+)")
@@ -169,6 +195,11 @@ def _logical_names(claim: VerifiedClaim) -> frozenset[str]:
     return frozenset(match.group("name") for match in _CITED_NAME_RE.finditer(claim.citation or ""))
 
 
+def _uncited(text: str) -> str:
+    """Return a line with its citations removed and its whitespace collapsed."""
+    return " ".join(_CITATION_TOKEN_RE.sub(" ", text).split())
+
+
 def _skeleton(text: str) -> str:
     """Return a claim's line with its citations and its numbers removed, whitespace collapsed.
 
@@ -178,22 +209,132 @@ def _skeleton(text: str) -> str:
     included (D-085) -- and so both change the claim id, which is why the id-first pass cannot
     recognise them and something weaker than equality is needed.
     """
-    bare = _CITATION_TOKEN_RE.sub(" ", text)
-    return " ".join(NUMERIC_TOKEN_RE.sub(" ", bare).split())
+    return " ".join(NUMERIC_TOKEN_RE.sub(" ", _uncited(text)).split())
 
 
 def _same_statement(before: Match, after: Match) -> bool:
     """Whether two claims are close enough to be the same statement, corrected.
 
-    Two grounds, either of which is enough. **The same line around the number**: the sentence with
-    its numbers and its citations taken out is the same, which is the line the re-draft kept while
-    it corrected the number or added the citation. **The same logical name**: the replacement cites
-    an artifact the flagged claim cited, so it is about the same quantity wherever in the section
-    the re-draft moved the sentence to.
+    The two grounds of D-105 are not alternatives, they are ordered by what the flagged claim
+    carries. **A flagged claim that cites a logical name is about that quantity**, so its
+    replacement has to cite it too, wherever in the section the re-draft moved the sentence to.
+    **Only a flagged claim with no citation falls back on the line**: the sentence with its numbers
+    and its citations taken out, which is what a re-draft keeps while it attaches the citation the
+    number was missing, and which is the one case where there is no name to compare.
+
+    Reading the two as alternatives is what the fifth live run paid for. The four sub-population
+    paragraphs of its section 4 are written to one sentence skeleton, so the flagged
+    ``metrics.train.sub.limit_bal_low.n`` of 10160 and the untouched, verified
+    ``metrics.train.sub.utilisation_high.n`` of 10500 had the same line with their numbers and
+    citations removed, and 10500 is inside the window of 10160 (DECISIONS D-111).
     """
-    if _skeleton(before.claim.text) == _skeleton(after.claim.text):
-        return True
-    return bool(_logical_names(before.claim) & _logical_names(after.claim))
+    names = _logical_names(before.claim)
+    if names:
+        return bool(names & _logical_names(after.claim))
+    return _skeleton(before.claim.text) == _skeleton(after.claim.text)
+
+
+def _collapsed(text: str) -> str:
+    """Return a line with its whitespace collapsed, which is how two lines are compared here."""
+    return " ".join(text.split())
+
+
+def _flagged_line_numbers(lines: Sequence[str], failures: Sequence[Match]) -> set[int]:
+    """Return the indices of the previous draft's lines that carry a flagged claim.
+
+    ``Claim.text`` *is* the line the number sits on -- the extractor returns the line's number and
+    the caller resolves it against the prose it sent (D-085), and the pre-pass builds an
+    unattributed claim from the same line -- so the flagged lines are found by matching that text
+    back against the draft, with whitespace collapsed on both sides because the pre-pass strips it.
+    """
+    wanted = {_collapsed(match.claim.text) for match in failures}
+    return {index for index, line in enumerate(lines) if _collapsed(line) in wanted}
+
+
+def _closest(lines: Sequence[str], candidate: str) -> int | None:
+    """Return the index of the line of the previous draft this new line is a rewrite of.
+
+    The line of the previous draft the candidate most resembles, ties going to the earlier one,
+    and ``None`` when even that one shares too little with it: below
+    :data:`REDRAFT_SIMILARITY` and not the same sentence with its numbers and citations taken out.
+
+    The argmax is the part that matters. A section whose paragraphs are written to one skeleton --
+    the fifth live run's four sub-population paragraphs -- offers several old lines that read alike,
+    and the re-drafted sibling of a flagged line resembles *its own* original more than it
+    resembles the flagged one, because its numbers are its own. Attributing every new line before
+    deciding what to keep is therefore what stops the sibling being spliced over the flagged line.
+
+    Citations are removed before the comparison, for the reason :func:`_skeleton` removes them:
+    attaching one is a thing a repair *does*, and a citation is thirty-odd characters of hash and
+    logical name that two lines of a section often share exactly. Left in, they made a line whose
+    citation was being added resemble any other line carrying that citation more than its own
+    former self.
+    """
+    wanted = _uncited(candidate)
+    best: tuple[float, int] | None = None
+    for index, line in enumerate(lines):
+        if not line.strip():
+            continue
+        ratio = SequenceMatcher(None, _uncited(line), wanted).ratio()
+        if best is None or ratio > best[0]:
+            best = (ratio, index)
+    if best is None or best[0] < REDRAFT_SIMILARITY:
+        return None
+    return best[1]
+
+
+def scope_to_flagged_lines(
+    previous: str, redraft: str, failures: Sequence[Match]
+) -> tuple[str, int]:
+    """Take from a re-draft only the lines that carried a flagged claim (DECISIONS D-109).
+
+    A repair round asks for the whole section because a sentence cannot be corrected out of its
+    context, and the model returns the whole section -- including lines nothing was wrong with. On
+    the fifth live run the round on section 4 flagged four numbers and the re-draft also rewrote an
+    unflagged line of the same paragraph into "the slice AUC falls below its split's by 0.007286 on
+    test and by -0.02732 [[art:41fca294:metrics.train.sub.utilisation_high.auc_gap]] is not the
+    figure for this slice; on train the gap is -0.001109", a sentence about another slice spliced
+    into this one. Every citation in it resolved, so grounding precision was 1.0000 and nothing
+    downstream could see it: the verifier checks that a number matches its artifact, not that a
+    sentence is about the thing the paragraph is about.
+
+    So the re-draft is scoped. Every line of the previous draft that carried no flagged claim is
+    kept byte-identical; a flagged line is replaced by the line of the re-draft that replaced it,
+    or dropped where the re-draft dropped it; and a line the re-draft added elsewhere is not taken.
+
+    Args:
+        previous: The section as it stood before this round.
+        redraft: What the drafter returned.
+        failures: The claims that did not verify, whose ``text`` is the line each sits on.
+
+    Returns:
+        The section with the flagged lines re-drafted and nothing else changed, and how many of
+        those lines the re-draft actually changed.
+    """
+    lines = previous.split("\n")
+    flagged = _flagged_line_numbers(lines, failures)
+    if not flagged:
+        # Nothing in the previous draft carries a flagged claim -- the section was drafted from a
+        # prose the failures did not come from -- so there is no line to scope the re-draft to.
+        return redraft, len(redraft.split("\n"))
+    taken: dict[int, list[str]] = {}
+    for candidate in redraft.split("\n"):
+        if not candidate.strip():
+            continue
+        index = _closest(lines, candidate)
+        if index is not None and index in flagged:
+            taken.setdefault(index, []).append(candidate)
+    result: list[str] = []
+    changed = 0
+    for index, line in enumerate(lines):
+        if index not in flagged:
+            result.append(line)
+            continue
+        rewritten = taken.get(index, [])
+        if rewritten != [line]:
+            changed += 1
+        result.extend(rewritten)
+    return "\n".join(result), changed
 
 
 def _pair(before: Match, after: Sequence[Match], taken: set[int]) -> int | None:
@@ -284,7 +425,7 @@ def repair_sections(
                 break
             problems = draft.problems
             given = inputs.get(draft.section, DraftInputs())
-            markdown = drafter.draft(
+            returned = drafter.draft(
                 draft.brief,
                 artifacts=given.artifacts,
                 spans=given.spans,
@@ -294,6 +435,7 @@ def repair_sections(
                 previous=draft.markdown,
                 problems=problems,
             )
+            markdown, redrafted = scope_to_flagged_lines(draft.markdown, returned, failures)
             extraction, matches = verify(draft.section, markdown)
             rows, removed = _round_records(draft.section, failures, matches)
             draft = SectionDraft(
@@ -315,6 +457,7 @@ def repair_sections(
                     instructions=problems,
                     repaired=[row.claim_id for row in rows if row.after.status == "verified"],
                     removed=removed,
+                    lines_redrafted=redrafted,
                     still_failing=[
                         match.claim.id
                         for match in matches

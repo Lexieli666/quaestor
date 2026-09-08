@@ -28,13 +28,14 @@ from pydantic import BaseModel, ConfigDict
 from ..artifacts.store import ArtifactKind, ArtifactStore
 from ..findings import DefectClass
 from ..package import PackageSpec, Use
-from ..tools.metrics import THRESHOLD_TABLE, metric_artifact_name
+from ..tools.metrics import THRESHOLD_TABLE, metric_artifact_name, subpopulation_expression
 from ..tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
 from ..vocab import SECTION_ORDER, ReportSection
 from .schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
 
 __all__ = [
     "CALIBRATION_FIRST_RULE",
+    "CHALLENGER_DELTA",
     "DEFECT_CLASS_NAMES",
     "FOLLOW_UPS_HEADING",
     "SLICE_GAP_BOUND",
@@ -58,6 +59,7 @@ __all__ = [
     "follow_up_for",
     "monitoring_brief",
     "outcomes_brief",
+    "prompt_value",
     "recomputed_for_declared_bounds",
     "section_four_order",
     "sections_for_follow_up",
@@ -123,6 +125,11 @@ class FollowUp:
         args: The arguments it asked for, as the registry validated them.
         why: The loop's own reason for asking, which is the question the section answers.
         artifacts: The logical names the step produced, in store order.
+        tables: Those of them that are table artifacts, which the section points the renderer at
+            instead of enumerating their cells (D-115).
+        slice_rule: The step's sub-population as an expression over the column, ``delinq_last ==
+            0``, which the section writes inside backticks so that the rule's own parameter is not
+            read as a claim (D-112). Empty for a step that asked for no slice.
         material: Whether this step's result is materially worse than the headline under
             :data:`SLICE_GAP_BOUND` and large enough under :data:`SLICE_SHARE_FLOOR`, so that it
             belongs in section 6's open items as well as in the section that computed it.
@@ -134,6 +141,8 @@ class FollowUp:
     args: Mapping[str, Any] = field(default_factory=dict)
     why: str = ""
     artifacts: tuple[str, ...] = ()
+    tables: tuple[str, ...] = ()
+    slice_rule: str = ""
     material: bool = False
     detail: str = ""
 
@@ -169,6 +178,29 @@ def four_significant_figures(value: float) -> float:
         The rounded value. ``0.7480120…`` becomes ``0.748``; ``1500`` stays ``1500``.
     """
     return float(f"{value:.{SIGNIFICANT_FIGURES}g}")
+
+
+def prompt_value(value: float) -> float:
+    """Return the value the drafting prompt carries: exact when integral, four figures otherwise.
+
+    Args:
+        value: The artifact value.
+
+    Returns:
+        The value the prompt shows. ``10158`` stays ``10158``; ``0.7480120…`` becomes ``0.748``.
+
+    Four significant figures is a rule about *precision*, and a count has none to lose: rounding
+    10,158 rows to 10,160 does not simplify a measurement, it states a different number of rows.
+    The matcher holds a count to half a unit (spec section 0), so the rounded value cannot verify
+    against the artifact it came from, and the drafter is being asked to write a number this
+    pipeline will then flag. On the fifth live run that is two of the five failed claims --
+    ``metrics.train.sub.limit_bal_low.n`` reached the prompt as 10160 against an artifact of 10158,
+    and ``metrics.train.sub.delinq_last_eq_0.n`` as 16210 against 16207 -- and one of the two
+    counts left the prose in the repair round rather than being corrected (DECISIONS D-110).
+    """
+    if float(value).is_integer() and abs(value) < 1e15:
+        return value
+    return four_significant_figures(value)
 
 
 def as_written(value: float) -> float | int:
@@ -342,8 +374,10 @@ class SectionBrief:
         scalars: Logical names, or dotted prefixes ending in ``.``, whose scalars this section
             may cite.
         jsons: Exact names of JSON artifacts whose numeric paths this section may cite.
-        tables: Exact names of table artifacts this section may direct the renderer to expand;
-            only those present in the store are offered.
+        tables: Names of table artifacts this section may direct the renderer to expand, or
+            dotted prefixes ending in ``.`` for a family whose members one run names -- the
+            bounded loop's ``metrics.<split>.sub.<slug>`` tables are one per slice it asked for
+            (D-115). Only those present in the store are offered.
     """
 
     section: ReportSection
@@ -365,6 +399,19 @@ class SectionBrief:
         """
         return any(
             name == item or (item.endswith(".") and name.startswith(item)) for item in self.scalars
+        )
+
+    def wants_table(self, name: str) -> bool:
+        """Whether a table's logical name is one this section may direct the renderer to expand.
+
+        Args:
+            name: The logical name.
+
+        Returns:
+            ``True`` when the name is listed exactly, or begins with a listed prefix.
+        """
+        return any(
+            name == item or (item.endswith(".") and name.startswith(item)) for item in self.tables
         )
 
 
@@ -520,6 +567,26 @@ _MONITORING_ORDERING: Final[Mapping[SectionOrder, str]] = {
         "calibration: it did not."
     ),
 }
+CHALLENGER_DELTA: Final = "challenger.delta_auc"
+"""The artifact that says a challenger was compared with the champion, which section 2 reports."""
+
+_MONITORING_CHALLENGER: Final = (
+    "A challenger model was compared with the champion in this validation and section 2 reports "
+    "the comparison, so do not write that benchmarking against an alternative model was not part "
+    "of it. What monitoring adds is a comparison the development data cannot give: a benchmark "
+    "against an external or vendor reference, or against the challenger refitted on production "
+    "vintages. Say which of those you mean."
+)
+"""What section 7 is told when the run compared a challenger (DECISIONS D-114).
+
+The fifth live report's section 7 wrote that "benchmarking against an alternative internal or
+vendor model, or against retail credit bureau data, was not part of this validation" three pages
+after section 2 reported the challenger's AUC against the champion's. The sentence is the kind
+D-100 forbids -- a section calling a quantity absent because its own selection does not carry it
+-- and the fix is the same shape: put the fact in the brief rather than the prohibition in the
+prompt, because a drafter told only not to say it has nothing true to say instead.
+"""
+
 """What section 7 is told about section 4's ordering, by what decided it (DECISIONS D-104).
 
 The fourth live report's section 7 recommended that a monitoring report "order calibration
@@ -599,7 +666,13 @@ SECTION_BRIEFS: Final[Mapping[ReportSection, SectionBrief]] = {
             "rule.",
         ),
         jsons=("run.metrics",),
-        tables=("thresholds.evaluation", "calibration.test", "deciles.test", "cpr.test"),
+        tables=(
+            "thresholds.evaluation",
+            "calibration.test",
+            "deciles.test",
+            "cpr.test",
+            "metrics.",
+        ),
     ),
     ReportSection.sensitivity: SectionBrief(
         section=ReportSection.sensitivity,
@@ -822,8 +895,14 @@ def follow_up_for(
         The follow-up, with :attr:`FollowUp.material` and :attr:`FollowUp.detail` filled in.
     """
     names = tuple(artifacts)
+    tables = tuple(
+        name for name in names if name in store and store.entry(name).kind is ArtifactKind.table
+    )
+    rule = _slice_rule(args)
     if SLICE_GAP_BOUND not in store or SLICE_SHARE_FLOOR not in store:
-        return FollowUp(tool=tool, args=dict(args), why=why, artifacts=names)
+        return FollowUp(
+            tool=tool, args=dict(args), why=why, artifacts=names, tables=tables, slice_rule=rule
+        )
     bound, floor = store.value(SLICE_GAP_BOUND), store.value(SLICE_SHARE_FLOOR)
     reasons: list[str] = []
     material = False
@@ -856,9 +935,22 @@ def follow_up_for(
         args=dict(args),
         why=why,
         artifacts=names,
+        tables=tables,
+        slice_rule=rule,
         material=material,
         detail="; ".join(reasons),
     )
+
+
+def _slice_rule(args: Mapping[str, Any]) -> str:
+    """Return a step's sub-population as an expression, or empty where it asked for no slice."""
+    slice_ = args.get("subpopulation")
+    if not isinstance(slice_, Mapping):
+        return ""
+    column, rule = slice_.get("column"), slice_.get("rule")
+    if not isinstance(column, str) or not isinstance(rule, str):  # pragma: no cover - validated
+        return ""
+    return subpopulation_expression(column, rule)
 
 
 def sections_for_follow_up(
@@ -889,20 +981,29 @@ def sections_for_follow_up(
     ]
 
 
-def monitoring_brief(brief: SectionBrief, order: SectionOrder) -> SectionBrief:
-    """Return section 7's brief for one run's section-4 ordering (DECISIONS D-104).
+def monitoring_brief(
+    brief: SectionBrief, order: SectionOrder, store: ArtifactStore | None = None
+) -> SectionBrief:
+    """Return section 7's brief for one run's section-4 ordering and effective challenge.
 
     Args:
         brief: Section 7's brief as declared.
-        order: What section 4 did, and on which ground.
+        order: What section 4 did, and on which ground (D-104).
+        store: The run's artifact store, so that a run which compared a challenger says so and
+            section 7 cannot write that benchmarking was not part of it (D-114). With no store
+            the paragraph is left out, which is what a caller holding only an ordering asserts.
 
     Returns:
         The brief this run's section 7 is drafted from: the declared paragraph with one more
-        sentence saying what section 4 did. It is appended rather than substituted into a
-        placeholder so that the declared brief is a brief a drafter could be sent as it stands.
+        sentence saying what section 4 did, and one more about the challenger where there was one.
+        They are appended rather than substituted into a placeholder so that the declared brief is
+        a brief a drafter could be sent as it stands.
     """
     fields = dict(brief.__dict__)
-    fields["brief"] = f"{brief.brief}\n{_MONITORING_ORDERING[order]}"
+    text = f"{brief.brief}\n{_MONITORING_ORDERING[order]}"
+    if store is not None and CHALLENGER_DELTA in store:
+        text = f"{text}\n{_MONITORING_CHALLENGER}"
+    fields["brief"] = text
     return SectionBrief(**fields)
 
 
@@ -922,8 +1023,8 @@ def artifact_briefs(
 
     The scalar selectors select **scalars**: a table matched by one of them is not offered, or a
     section that may cite ``calibration.`` would be handed every calibration table the run
-    produced and would print four of them. A section shows the tables its brief names, and only
-    those.
+    produced and would print four of them. A section shows the tables its own ``tables`` list
+    names, exactly or by a prefix ending in ``.``, and only those.
 
     Returns:
         One :class:`ArtifactBrief` per artifact, scalars and JSON artifacts carrying values at
@@ -935,7 +1036,11 @@ def artifact_briefs(
         if brief.matches(name) and store.entry(name).kind is ArtifactKind.scalar
     }
     wanted |= {name for name in brief.jsons if name in store}
-    wanted |= {name for name in brief.tables if name in store}
+    wanted |= {
+        name
+        for name in store.names()
+        if store.entry(name).kind is ArtifactKind.table and brief.wants_table(name)
+    }
     wanted |= {name for name in extra if name in store}
     wanted |= recomputed_for_declared_bounds(store, brief)
     briefs = [_artifact_brief(store, name) for name in sorted(wanted)]
@@ -951,7 +1056,7 @@ def _artifact_brief(store: ArtifactStore, name: str) -> ArtifactBrief | None:
             name=name,
             hash8=hash8,
             kind=entry.kind,
-            value=four_significant_figures(entry.value),
+            value=prompt_value(entry.value),
             summary=entry.summary,
         )
     if entry.kind is ArtifactKind.json:
@@ -960,7 +1065,7 @@ def _artifact_brief(store: ArtifactStore, name: str) -> ArtifactBrief | None:
             name=name,
             hash8=hash8,
             kind=entry.kind,
-            values={path: four_significant_figures(value) for path, value in flat.items()},
+            values={path: prompt_value(value) for path, value in flat.items()},
             summary=entry.summary,
             truncated=len(flat) >= MAX_JSON_PATHS,
         )
@@ -986,6 +1091,6 @@ def ordered_briefs(store: ArtifactStore, spec: PackageSpec | None = None) -> lis
         if section is ReportSection.outcomes:
             brief = outcomes_brief(brief, order)
         elif section is ReportSection.monitoring:
-            brief = monitoring_brief(brief, order)
+            brief = monitoring_brief(brief, order, store)
         briefs.append(brief)
     return briefs

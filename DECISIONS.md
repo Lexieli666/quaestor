@@ -2816,3 +2816,256 @@ here and recorded.
   documents at `k=3`, the revision's three first and each document's own best first, that the
   run's own data-quality query now offers `SR26-2:IV.1`, and that the whole-corpus top three for
   that query are all superseded — the defect, recorded in a test.
+
+## D-109. A repair round re-drafts lines, not sections
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 5, decided in Cowork)
+- **Q:** The fifth live run's repair round on section 4 flagged four numbers. The drafter was sent
+  the whole section and returned the whole section, and one line it was not asked about came back
+  changed: "…falls below its split's by 0.007286 [[art:15e1edcb:metrics.test.sub.limit_bal_low.
+  auc_gap]] on test and by -0.001109 […] on train, both within the allowance" became "…on test and
+  by -0.02732 [[art:41fca294:metrics.train.sub.utilisation_high.auc_gap]] **is not the figure for
+  this slice**; on train the gap is -0.001109 […]". The sentence now reports another slice's train
+  gap inside the limit_bal paragraph, and adjudicates itself in the middle of a clause. Every
+  citation in it resolves and every number matches its artifact, so grounding precision was 1.0000
+  and no part of this pipeline could see anything wrong. What is a repair round allowed to change?
+- **A:** The lines that carry a flagged claim, and nothing else. `scope_to_flagged_lines` takes the
+  previous draft and the re-draft and returns the previous draft with the flagged lines replaced by
+  the re-draft's version of them: every other line is kept byte-identical, and a line the re-draft
+  added elsewhere is not taken. The flagged lines are found by matching `Claim.text` -- which *is*
+  the line the number sits on (D-085) -- back against the draft. Each returned line is attributed to
+  the line of the previous draft it most resembles, citations removed before the comparison and
+  ties going to the earlier line; a returned line whose best match is an unflagged line is the
+  re-draft of *that* line and is discarded, and one whose best match is a flagged line replaces it.
+  `REDRAFT_SIMILARITY` = 0.5 is the floor beneath the argmax: a line that resembles even its best
+  match this little is a sentence the drafter wrote fresh. The `repair` trace event gains
+  `lines_redrafted`, and `REPAIR_INSTRUCTION` tells the drafter the rule, because a model asked for
+  a whole section and given no reason to leave the rest of it alone will not.
+- **Why:** This is the first defect any of the five live runs has produced that the verifier is
+  *structurally* unable to catch. Grounding precision measures whether a number matches the artifact
+  it cites; it says nothing about whether the sentence is about the thing the paragraph is about,
+  and a repair round is exactly the moment when a model rewrites prose nobody is checking for that.
+  The apparatus already assumes the drafter's first pass is the text under review -- the extraction,
+  the matching, the candidate list, the whole selection mechanism -- and the repair loop was the one
+  place where that text could be replaced wholesale on the strength of four numbers. Scoping the
+  round to lines makes the blast radius of a repair equal to the damage that provoked it.
+  The argmax is what makes it safe on this report's own shape. Section 4's four sub-population
+  paragraphs are written to one sentence skeleton, so a flagged line has three siblings that read
+  almost exactly like it; attributing every returned line to its closest original *before* deciding
+  what to keep is what stops a re-drafted sibling being spliced over the flagged line, because a
+  sibling's numbers are its own and it resembles its own former self more. Measured on the run's own
+  section 4, replayed line by line: the four flagged lines match their replacements at 0.926, 0.931,
+  0.974 and 0.981 with citations removed, no other returned line attributes to a flagged line at
+  all, and the damaged gap sentence keeps its original text.
+  Rejected alternatives: asking the drafter for only the flagged lines, which takes the sentence out
+  of the paragraph it has to read in and is the context a repair most needs; diffing the two drafts
+  and asking a model whether each changed line is an improvement, which is a second model call to
+  check the first and has the same blind spot; re-extracting the whole section and comparing claim
+  sets, which is what already happens and which passed this report; and forbidding the drafter to
+  change an unflagged line in the prompt alone, which is a rule with no enforcement -- the same
+  argument D-106 makes against putting a serialiser's job in an instruction. Measured:
+  `tests/test_repair.py` asserts that a re-draft altering an unrelated line leaves it unchanged,
+  that a flagged line is still replaced, that a flagged line the re-draft dropped is dropped, and
+  that the event records the count.
+
+## D-110. Integral values reach the drafter unrounded
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 5)
+- **Q:** Two of the fifth live run's five failed claims are counts the prompt itself rounded.
+  `four_significant_figures(10158)` is 10160 and `four_significant_figures(16207)` is 16210, so
+  `metrics.train.sub.limit_bal_low.n` and `metrics.train.sub.delinq_last_eq_0.n` reached the drafter
+  as numbers their artifacts do not hold. The drafter copied what it was shown, which is the rule
+  the whole selection mechanism rests on; the matcher holds a count to half a unit (D-014), so both
+  failed as `mismatch`, one was removed from the prose in the repair round and the other became the
+  false pairing of D-111. D-106 already decided that an integral value is *spelled* as an integer.
+  Should it also be rounded like a measurement?
+- **A:** No. `prompt_value` returns an integral value exactly and everything else at four
+  significant figures, and `_artifact_brief` uses it for a scalar and for every path of a JSON
+  artifact. `four_significant_figures` is unchanged and still decides the precision of a
+  measurement; `as_written` is unchanged and still decides the spelling. This decides which values
+  have a precision to round at all.
+- **Why:** Four significant figures is a rule about how much precision a report needs to quote, and
+  a count has none to give up: 10,158 rows rounded to 10,160 is not a simpler statement of the same
+  quantity, it is a different number of rows. The pipeline was therefore showing the drafter a
+  number, telling it to write what it was shown, and then flagging it -- the same shape as D-099,
+  where the prompt taught the drafter a form its own verifier could not read, and the same shape as
+  D-084 and D-091 before that. It also costs the report a real sentence: the repair round's answer
+  to "you wrote 10160; the artifact says 10158" was to delete the count, so the fifth report's
+  limit_bal paragraph states the slice's share of train and not how many rows that is.
+  Rejected alternatives: widening the matcher's tolerance for a count to the precision the prose
+  wrote, which is D-069 read backwards and would verify "10,000 rows" against 10,158; rounding the
+  artifact rather than the prompt, which changes the evidence to fit the presentation; and leaving
+  it to the repair loop, which is what this run measured -- two model calls and a lost count.
+  Measured: `tests/test_report_sections.py` asserts 10158 reaches the prompt as the integer 10158,
+  that a measurement is still rounded, and that a claim of 10158 verifies against the artifact.
+
+## D-111. A cited claim is paired by its name, and only an uncited one by its line
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 5)
+- **Q:** D-105 gave `_pair`'s fallback two grounds, either sufficient: the same line with numbers
+  and citations removed, or the same cited logical name. Section 4 of the fifth live run writes its
+  four sub-population paragraphs to one sentence skeleton, so the flagged
+  `metrics.train.sub.limit_bal_low.n` of 10160 and the untouched, verified
+  `metrics.train.sub.utilisation_high.n` of 10500 have the same line under that test -- and 10500 is
+  inside the relative window of 10160. Appendix A reads "10160 (mismatch) → 10500 (verified)" and
+  "1 claim(s) rewritten and 4 number(s) removed" of a round that rewrote nothing and removed five.
+  Which ground applies when?
+- **A:** They are ordered, not alternative. A flagged claim that cites a logical name is a statement
+  about that quantity, so its replacement must cite it too; the line is consulted only for a flagged
+  claim with no citation, which is the case it exists for -- a number that gains the citation it was
+  missing, where there is no name to compare and the sentence is what survives. The relative window
+  still applies on top of either.
+- **Why:** D-105 got the grounds right and their relation wrong, and the report that found it is the
+  first one whose section 4 has four paragraphs of the same shape -- which is the bounded loop's
+  own doing, since each executed step adds one. A skeleton is a strong test on a report of seven
+  hand-written paragraphs and a weak one on a report with a generated family in it, and the number
+  of siblings only grows: the fix has to be a test that does not weaken as the loop does more work.
+  The name is that test, and it is available exactly when the flagged claim has one. The cost is the
+  case where a re-draft corrects the number *and* moves the citation to the artifact it should have
+  cited -- one of the three answers the repair prompt offers -- which is now recorded as a removal
+  and a new claim rather than as a rewrite. That is D-105's own direction, stated again: an
+  under-reported rewrite is a number a reader can find in the prose and see was not removed, and a
+  false pairing invites them to believe a sentence about the low-limit half was corrected into a
+  sentence about the high-utilisation half. Under D-109 the fallback also has less to do, because a
+  replacement now sits on the line the flagged claim sat on; the pairing is kept general because
+  `_pair` is also what `rules_only` and any future re-draft path go through.
+  Rejected alternatives: requiring both grounds, which loses the uncited-number case that is the
+  fallback's whole purpose; keeping the skeleton but requiring the two claims to be on the same line
+  index, which D-109 makes true by construction and which therefore tests nothing; and narrowing the
+  window, which D-105 already rejected and which this collision would survive -- 10500 against 10160
+  is 3.3%. Measured: `tests/test_repair.py` reproduces the run's two paragraphs and asserts the
+  round is recorded as a removal with an empty `repaired` list, and the reworded-in-place case still
+  pairs by name.
+
+## D-112. A section reference and a slice rule are not claims
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 5, decided in Cowork)
+- **Q:** Three of the fifth live run's five failed claims are not numbers anybody claimed. Section
+  4's follow-up paragraphs open "**delinq_last equals 0.**" and "**delinq_last equals 1.**" -- the
+  parameters of the slice rule the bounded loop asked for -- and section 7 opens a paragraph
+  "Section 4 of this report reported discrimination before calibration". All three were counted in
+  the denominator, flagged as `unsupported`, and removed by a repair round that spent two model
+  calls on them. D-015's exclusion list already holds section numbering, inline code and finding
+  ids. Are these three the same kind of thing?
+- **A:** Yes, and each is handled where it belongs. A reference to a section of this report written
+  in words is an exclusion: `_SECTION_REFERENCE_RE` masks `[Ss]ection \d+(\.\d+)*` under the
+  existing `section_number` class, beside the `§4` and heading forms it already masks. A slice rule
+  is not an exclusion but a formatting rule: `subpopulation_expression` renders the loop's step as
+  `delinq_last == 0`, the follow-up block shows it to the drafter that way, and the brief asks for
+  it inside backticks -- which the tokenizer has masked as inline code since D-015.
+- **Why:** The two halves are different because the numbers are. A section number is the report's
+  own numbering wherever it appears, so a reader of the exclusion list can check the rule without
+  seeing the sentence; that is what an exclusion class is, and the alternative is a pattern that has
+  to look at what the sentence means. A slice parameter is not like that: `0` in "delinq_last equals
+  0" is a value in the data, and a rule excluding a bare integer after a column name would exclude
+  real claims about that column. What makes it not a claim is that it is a *rule*, and the way prose
+  says "this is a rule and not a measurement" is to set it in code -- which the tokenizer already
+  understands, which needs no new pattern, and which reads better besides. So one number leaves the
+  denominator by a rule about the report's structure and two by a rule about how the report writes.
+  Both directions are recorded here because D-077's list is the audit trail for the denominator, and
+  a denominator that quietly shrinks is the failure an exclusion list is most dangerous for.
+  Rejected alternatives: excluding a bare integer that follows the word `equals`, which is a pattern
+  over English and would swallow "the event rate equals 0"; leaving all three to the repair loop,
+  which is what this run paid for -- three of five failures and a round on section 7 that existed
+  only for them; and asking the drafter not to mention section numbers, which forbids a
+  cross-reference a validation report legitimately makes. Measured:
+  `tests/test_verifier_extract.py` asserts the run's own section-7 sentence yields one claim and
+  records "Section 4" as excluded, and that "the cross-section holds 4 rows" still claims four;
+  `tests/test_report_sections.py` asserts the rule reaches both prompts as `delinq_last == 0`.
+
+## D-113. The citation carries the logical name, so the prose does not
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 5)
+- **Q:** The fifth live report writes "A sub-population's AUC may fall below its split's own AUC by
+  up to threshold.O1.slice_auc_gap at 0.08 [[art:0a827b87:threshold.O1.slice_auc_gap]]" and "at or
+  above the ordering rule's bound of 0.05 [[art:42f1351e:rule.calibration_first_event_rate]]". The
+  name is in the sentence and in the citation immediately after it. Nothing is wrong -- every claim
+  verifies -- and the sentences read like a debug log.
+- **A:** `DRAFT_INSTRUCTION` gains the rule: do not write an artifact's logical name in the prose,
+  because the citation after the number carries it. Say in words what the number is.
+- **Why:** The drafter was never told, and it had a reason to guess: the prompt shows it a JSON
+  object whose keys are logical names, tells it to copy the citation exactly, and gives it no
+  vocabulary for the quantity other than the name. The remedy is one sentence in the standing
+  instruction rather than in a brief, for D-100's reason -- every section can do this, and the one
+  that did it twice is not the one that will do it next. It is not enforced downstream and this
+  entry does not pretend otherwise: a logical name in prose is a readability defect and not a
+  grounding defect, and the verifier has nothing to say about it. Rejected alternatives: stripping
+  the names in the renderer, which edits the sentence the claim id hashes (D-099's argument against
+  normalising prose after drafting); and shipping the artifact's `summary` in place of its name in
+  the prompt, which is a larger change to what the drafter can cite and would leave it unable to
+  copy a citation it cannot see.
+
+## D-114. Section 7 is told the run compared a challenger
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 5)
+- **Q:** The fifth live report's section 7 writes "Benchmarking against an alternative internal or
+  vendor model, or against retail credit bureau data, was not part of this validation" under "What
+  this validation could not cover". Section 2 of the same report reports the challenger comparison
+  `challenger_compare` ran, with the challenger's AUC against the champion's and the threshold that
+  decides whether the difference matters. The sentence is true of section 7's own selection --
+  `challenger.` is not among its scalars -- and false of the report.
+- **A:** `monitoring_brief` takes the store, and where `challenger.delta_auc` is in it the brief
+  gains a paragraph: a challenger was compared and section 2 reports it, so do not write that
+  benchmarking was not part of this validation; what monitoring adds is the comparison development
+  data cannot give -- an external or vendor reference, or the challenger refitted on production
+  vintages -- and say which you mean.
+- **Why:** This is D-100 again, in the half D-100 did not reach. That decision made a section shown
+  a *bound* also shown the *value*, and forbade any section to call a quantity absent; it could not
+  stop a section calling an entire **activity** absent, because an activity is not an artifact
+  selector and the prohibition is about numbers. Telling section 7 what section 2 did is the same
+  fix as D-104's -- pass the fact to the sentence that needs it -- and the same reason it is a fact
+  and not a prohibition: a drafter told only what not to say has nothing true to put there, and
+  "monitoring should benchmark" with no reference to what validation already benchmarked is a
+  weaker recommendation than the one the report can actually make. It is keyed on the artifact
+  rather than on the configuration because `rules_only` and a package with no challenger both
+  produce runs where the sentence would be correct.
+  Rejected alternatives: adding `challenger.` to section 7's selector, which hands it numbers it has
+  no recommendation to make about and invites it to restate section 2 (spec section 3.11's wandering
+  report); a standing rule in `DRAFT_INSTRUCTION` forbidding any section to say an activity was not
+  performed, which would also forbid Appendix D's own subject matter -- `check_stability` really was
+  not run; and leaving it, which ships a report whose section 7 contradicts its section 2 in a
+  paragraph a reader of the limitations is reading precisely for what is missing. Measured:
+  `tests/test_report_sections.py` asserts the paragraph appears exactly when the artifact is in the
+  store, and that the two-argument call is unchanged.
+
+## D-115. A follow-up slice reports its metrics as a table
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 5, decided in Cowork)
+- **Q:** The fifth live run's four executed steps each wrote nine metrics on each of two splits into
+  section 4's prose, one cited number at a time: 72 of the report's 285 claims, and most of the 155
+  extra claim checks it ran over the fourth run's. Extraction is 76,400 of the run's 123,170 output
+  tokens. The numbers are right and every one of them verifies. Is the enumeration what the section
+  is for?
+- **A:** No. `compute_metrics` stores `metrics.<split>.sub.<slug>` -- one row per metric, the eight
+  scalars and the share -- beside the scalars it already stores, the renderer expands
+  `[[table:...]]` for it as for any table artifact, and section 4's `tables` entry becomes the
+  prefix `metrics.` because the family's members are named by the run and not by this file. The
+  follow-up brief asks for the directive on a line of its own and then the interpreting sentences:
+  how far the slice's AUC falls below the split's own and against which bound, how much of the split
+  it holds and against which floor, and whether mean predicted against the observed rate puts the
+  weakness in the level of the probabilities or in their ordering. The gap and the share stay
+  scalars and stay cited in prose, because that is what the sentences are about.
+- **Why:** It is D-092's argument about `thresholds.evaluation`, applied to the family the bounded
+  loop generates. A table the tool computed and the drafter only points at cannot disagree with the
+  store, cannot be mistyped, and is not extraction's business at all -- D-013 excludes a renderer
+  block from the claim set because no model wrote it. So the evidence in the report is unchanged and
+  strictly better attested, while the claims that carry it stop scaling with the number of steps the
+  loop takes. That scaling is the point: the loop is meant to ask more questions as the project goes
+  on, and a design where each question adds eighteen transcribed numbers to one section's prose gets
+  more expensive and less readable with every step it earns. What is left in prose is the part that
+  is a judgement -- a gap read against a bound, a share read against a floor, a level-versus-ordering
+  reading -- which is what a validator writes and a table cannot.
+  Not claimed here: a measured saving. The three cost figures this project has are three runs of one
+  prompt on one model at n = 1 each, and D-085's entry in `docs/EVALUATION.md` says at length why
+  that is variance and not evidence. The claim is structural -- 72 fewer claims to extract, check and
+  print, on the run this was measured on -- and the money is Phase 12's to measure.
+  Rejected alternatives: one table per slice with a column per split, which reads better and does not
+  fit `metrics.<split>.sub.<slug>`, the stem the scalars already share and the name the citation
+  resolver already understands; dropping the per-metric scalars now that a table carries them, which
+  would leave the interpreting sentences with nothing to cite and break D-102's materiality reading;
+  capping how many metrics a follow-up paragraph may enumerate, which is a limit on the drafter
+  rather than a better shape for the evidence; and leaving it to the study, which is Phase 12 paying
+  for the enumeration on every variant of every configuration. Measured: `tests/test_pipeline.py`
+  asserts a follow-up step's report carries the expanded table block and still cites `auc_gap` and
+  `share` in prose; `tests/test_report_sections.py` asserts the prefix offers the table to section 4
+  and not to section 5.
