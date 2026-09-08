@@ -133,3 +133,71 @@ def test_a_number_with_nothing_after_it_carries_no_citation() -> None:
     assert citation_of("the value is 0.5", len("the value is 0.5")) is None
     line = "the value is 0.5 [[art:a1b2c3d4:metrics.test.auc]]"
     assert citation_of(line, len("the value is 0.5")) == "[[art:a1b2c3d4:metrics.test.auc]]"
+
+
+# --- the Phase 9 follow-up 4 additions ----------------------------------------------------------
+
+
+def test_the_extractor_returns_an_exponent_literal_as_one_claim() -> None:
+    """D-099: the fake's own tokenizer reads the exponent form the drafter is shown."""
+    prose = numbered_prose(
+        "Refitting without `utilisation` changes test AUC by 1.92e-05 "
+        "[[art:a1b2c3d4:ablation.utilisation.delta_auc]]."
+    )
+    prompt = (
+        "You are extracting the numeric claims of one section.\n"
+        f"Prose:\n{prose}\n"
+        "\n"
+        "Answer with one JSON object"
+    )
+    claims = json.loads(OfflineLLM().complete(prompt).text)["claims"]
+    assert [claim["value"] for claim in claims] == [1.92e-05]
+    assert claims[0]["citation"] == "[[art:a1b2c3d4:ablation.utilisation.delta_auc]]"
+
+
+def _follow_up_prompt(*, section_six: bool) -> str:
+    """A drafting prompt carrying the follow-up block the pipeline builds (D-101)."""
+    artifacts = json.dumps(
+        [
+            {
+                "kind": "scalar",
+                "name": "metrics.test.sub.limit_bal_low.auc",
+                "value": 0.6817,
+                "hash8": "a1b2c3d4",
+                "citation": "[[art:a1b2c3d4:metrics.test.sub.limit_bal_low.auc]]",
+            }
+        ]
+    )
+    tail = (
+        "### Open items"
+        if section_six
+        else "Report every one of them under the heading `### Follow-up analyses`"
+    )
+    return (
+        "You are drafting one section of a validation report.\n"
+        f"Artifacts you may cite (values at four significant figures):\n{artifacts}\n\n"
+        "Guidance spans retrieved for this section:\n(none retrieved)\n\n"
+        "Findings raised for this section: none\n"
+        "Follow-up analyses the bounded planning loop ran, whose artifacts are among those above:\n"
+        '- compute_metrics({"splits": ["test"]}) -- why: does it hold on the low-limit half\n'
+        "  artifacts: metrics.test.sub.limit_bal_low.auc, metrics.test.sub.limit_bal_low.n\n"
+        f"{tail}\n"
+    )
+
+
+def test_a_section_asked_for_follow_ups_writes_the_heading_and_cites_them() -> None:
+    markdown = draft(_follow_up_prompt(section_six=False))
+    assert "### Follow-up analyses" in markdown
+    body = markdown.split("### Follow-up analyses", 1)[1]
+    assert "[[art:a1b2c3d4:metrics.test.sub.limit_bal_low.auc]]" in body
+    assert "0.6817" in body
+    # A name the artifact list does not carry cannot be cited, so the fake does not write it.
+    assert "metrics.test.sub.limit_bal_low.n" not in body
+
+
+def test_section_six_puts_a_material_follow_up_under_open_items_instead() -> None:
+    markdown = draft(_follow_up_prompt(section_six=True))
+    assert "### Follow-up analyses" not in markdown
+    body = markdown.split("### Open items", 1)[1]
+    assert "[[art:a1b2c3d4:metrics.test.sub.limit_bal_low.auc]]" in body
+    assert "model developer" in body

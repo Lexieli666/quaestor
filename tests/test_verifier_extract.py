@@ -413,3 +413,47 @@ def test_numeric_tokens_reads_separators_and_per_cent_signs() -> None:
     ]
     assert token_value("3,500") == 3500.0
     assert token_value("22.0%") == 22.0
+
+
+# --- exponent notation, one token (DECISIONS D-099) ---------------------------------------------
+
+
+@pytest.mark.parametrize("literal", ["1.92e-05", "-5.589e-05", "9.982e-06"])
+def test_an_exponent_literal_is_one_token_with_its_own_value(literal: str) -> None:
+    """The three literals of the fourth live run, each of which tokenised as two numbers."""
+    tokens = numeric_tokens(f"the delta is {literal} on the test split")
+    assert [token for _, token in tokens] == [literal]
+    assert token_value(literal) == float(literal)
+
+
+def test_the_pre_pass_counts_an_exponent_literal_once(store: ArtifactStore) -> None:
+    """Six of the fourth live run's claims were the two halves of three exponent literals."""
+    store.put("ablation.utilisation.delta_auc", 1.9204697640939905e-05, ArtifactKind.scalar)
+    citation = store.artifact("ablation.utilisation.delta_auc").citation()
+    prose = f"Refitting without utilisation changes test AUC by 1.92e-05 {citation}.\n"
+    found = extract(
+        SECTION,
+        prose,
+        llm_returning({"line": 1, "value": 1.92e-05, "citation": citation}),
+    )
+    assert [claim.value for claim in found.claims] == [1.92e-05]
+    assert found.unattributed == []
+    matches = match_claims(found.claims, store, unattributed=found.unattributed_ids)
+    assert [match.status for match in matches] == [ClaimStatus.verified]
+
+
+def test_the_line_index_path_still_resolves_a_line_that_holds_an_exponent(
+    store: ArtifactStore,
+) -> None:
+    """D-085's index, over prose whose line is now one token shorter than it used to be."""
+    store.put("csi.bill_mean_6m", 9.982086887188549e-06, ArtifactKind.scalar)
+    citation = store.artifact("csi.bill_mean_6m").citation()
+    prose = f"The largest characteristic shift is small.\n- bill_mean_6m, 9.982e-06 {citation}\n"
+    found = extract(
+        SECTION,
+        prose,
+        llm_returning({"line": 2, "value": 9.982e-06, "citation": citation}),
+    )
+    assert [claim.value for claim in found.claims] == [9.982e-06]
+    assert found.claims[0].text.startswith("- bill_mean_6m,")
+    assert found.unattributed == []

@@ -15,6 +15,7 @@ import pytest
 
 from quaestor import ArtifactStore, TraceReader, TraceWriter, load_package
 from quaestor.artifacts import ArtifactKind
+from quaestor.corpus import retrieve
 from quaestor.errors import ToolError
 from quaestor.tools import RetrieveGuidanceTool, ToolContext, default_registry, guidance_name
 
@@ -47,10 +48,41 @@ def test_outcomes_analysis_retrieves_both_guidance_sections(context: ToolContext
     spans = payload(context, result.artifact_names[0])["spans"]
     assert isinstance(spans, list)
     found = {(span["doc"], span["section_id"]) for span in spans}
-    assert len(spans) == 3
+    assert len(spans) == 6, "k is per document, and the corpus holds two (D-108)"
     assert ("SR11-7", "V.1.c") in found
     assert ("SR26-2", "V.1.b") in found
     assert result.candidates == []
+
+
+def test_the_current_guidance_comes_first_and_each_document_gets_its_own_k(
+    context: ToolContext,
+) -> None:
+    """D-108: three spans of SR 26-2, then three of SR 11-7, each document's best first."""
+    result = default_registry().call("retrieve_guidance", {"query": "outcomes analysis"}, context)
+    spans = payload(context, result.artifact_names[0])["spans"]
+    assert isinstance(spans, list)
+    docs = [span["doc"] for span in spans]
+    assert docs == ["SR26-2"] * 3 + ["SR11-7"] * 3
+    for half in (spans[:3], spans[3:]):
+        scores = [float(span["score"]) for span in half]  # type: ignore[index]
+        assert scores == sorted(scores, reverse=True)
+
+
+def test_a_query_the_superseded_text_answers_better_still_offers_the_revision(
+    context: ToolContext,
+) -> None:
+    """The defect D-108 fixes: on this query a single ranked list returned no SR 26-2 span."""
+    query = "data quality accuracy completeness and representativeness"
+    result = default_registry().call("retrieve_guidance", {"query": query}, context)
+    spans = payload(context, result.artifact_names[0])["spans"]
+    assert isinstance(spans, list)
+    assert {(span["doc"], span["section_id"]) for span in spans} >= {
+        ("SR26-2", "IV.1"),
+        ("SR11-7", "III"),
+    }
+    assert [span.doc for span in retrieve(query, 3, None)] == ["SR11-7"] * 3, (
+        "the fourth live run's own retrieval: the whole-corpus top three were all superseded"
+    )
 
 
 # --- the artifact ---------------------------------------------------------------------------------
@@ -94,7 +126,7 @@ def test_the_artifact_records_the_request_beside_the_spans(context: ToolContext)
     assert stored["k"] == 2
     assert stored["docs"] == ["SR11-7", "SR26-2"]
     spans = stored["spans"]
-    assert isinstance(spans, list) and len(spans) == 2
+    assert isinstance(spans, list) and len(spans) == 4, "two per document (D-108)"
     assert set(spans[0]) == {"doc", "section_id", "heading", "text", "score"}
 
 

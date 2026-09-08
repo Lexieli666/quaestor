@@ -41,6 +41,8 @@ from typing import Any, Final
 from .fake import FakeLLM
 
 __all__ = [
+    "FOLLOW_UPS_HEADING",
+    "OPEN_ITEMS_HEADING",
     "OfflineLLM",
     "citation_of",
     "masked_line",
@@ -51,7 +53,7 @@ __all__ = [
 _CITATION_RE: Final = re.compile(r"\[\[[^\]]*\]\]")
 _CODE_RE: Final = re.compile(r"`[^`\n]*`")
 _FINDING_ID_RE: Final = re.compile(r"\bF-\d{3}\b")
-_TOKEN_RE: Final = re.compile(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?%?")
+_TOKEN_RE: Final = re.compile(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?:[eE][+-]?\d+)?%?")
 
 
 def written(value: float) -> str:
@@ -171,6 +173,48 @@ imported the report layer would invert the dependency the drafter already declar
 direction. Everything this fake knows about a prompt it knows by reading the prompt's text, and
 this is one more marker in that list.
 """
+
+FOLLOW_UPS_HEADING: Final = "### Follow-up analyses"
+"""The heading a section carries when the bounded loop ran a step on its material (D-101).
+
+Spelled out here for the reason :data:`OPEN_ITEMS_HEADING` is.
+"""
+
+_FOLLOW_UP_ARTIFACTS_PREFIX: Final = "artifacts: "
+"""How the drafting prompt's follow-up block introduces the names one step produced."""
+
+
+def _follow_up_artifacts(prompt: str) -> list[str]:
+    """Return the logical names the prompt's follow-up block says the loop's steps produced.
+
+    Args:
+        prompt: The prompt as sent.
+
+    Returns:
+        The names, in prompt order, deduplicated. Empty when the prompt carries no follow-up
+        block, which is every section the bounded loop asked nothing about.
+    """
+    names: list[str] = []
+    for line in prompt.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith(_FOLLOW_UP_ARTIFACTS_PREFIX):
+            continue
+        for name in stripped[len(_FOLLOW_UP_ARTIFACTS_PREFIX) :].split(","):
+            if name.strip() and name.strip() not in names:
+                names.append(name.strip())
+    return names
+
+
+def _wants_follow_ups(prompt: str) -> bool:
+    """Whether this prompt asks for the follow-up subsection (D-101).
+
+    Args:
+        prompt: The prompt as sent.
+
+    Returns:
+        ``True`` when the follow-up block named the heading, which section 6's block does not.
+    """
+    return FOLLOW_UPS_HEADING in prompt
 
 
 def _wants_open_items(prompt: str) -> bool:
@@ -305,13 +349,40 @@ class OfflineLLM(FakeLLM):
                 lines.extend(self._json_sentences(item))
             elif item.get("kind") == "table":
                 lines.append(str(item["directive"]))
+        reported = self._follow_up_lines(prompt)
         if _wants_open_items(prompt):
             lines.append(OPEN_ITEMS_HEADING)
-            lines.append(
-                "No observation of this run needs a developer response beyond the findings above; "
-                "the owner of anything that later does is the model developer."
+            lines.extend(
+                reported
+                or [
+                    "No observation of this run needs a developer response beyond the findings "
+                    "above; the owner of anything that later does is the model developer."
+                ]
             )
+        if _wants_follow_ups(prompt):
+            lines.append(FOLLOW_UPS_HEADING)
+            lines.extend(reported or ["The loop's step produced no scalar this section may cite."])
         return json.dumps({"markdown": "\n".join(lines)})
+
+    def _follow_up_lines(self, prompt: str) -> list[str]:
+        """Write one cited sentence per scalar the bounded loop's steps produced.
+
+        The names come out of the prompt's own follow-up block and the citations out of its
+        artifact list, so this fake reports exactly the steps it was asked about and cites them
+        the way the drafter is told to (D-101).
+        """
+        citable = {
+            str(item["name"]): item
+            for item in _artifacts(prompt)
+            if item.get("kind") == "scalar" and item.get("value") is not None
+        }
+        return [
+            f"The follow-up analysis records `{name}` as "
+            f"{written(float(citable[name]['value']))} {citable[name]['citation']}, "
+            "which the model developer is asked to account for."
+            for name in _follow_up_artifacts(prompt)
+            if name in citable
+        ]
 
     @staticmethod
     def _json_sentences(item: Mapping[str, Any]) -> list[str]:

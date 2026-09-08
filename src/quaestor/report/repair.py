@@ -16,13 +16,15 @@ the renderer will not write.
 Each round is one ``repair`` trace event and one or more ``repairs`` entries in ``claims.json``.
 Pairing a claim before a round with the claim that replaced it after it is done by id first -- an
 uncited number that gains its citation keeps its id, because the id is a hash of section, text and
-value and only the citation moved -- then by nearest unpaired verified value, and a number the
-drafter removed instead of citing leaves no ``after`` side and is recorded on the trace event
-alone (DECISIONS D-073).
+value and only the citation moved -- then by nearest unpaired verified value **among the claims
+that are the same statement**, which is the same line or the same cited logical name (D-105), and a
+number the drafter removed instead of citing leaves no ``after`` side and is recorded on the trace
+event alone (DECISIONS D-073).
 """
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Final
@@ -33,10 +35,10 @@ from ..verifier.claim import ClaimStatus, VerifiedClaim
 from ..verifier.claims_doc import Repair, RepairSide
 from ..verifier.extract import Extraction
 from ..verifier.match import Match
-from ..verifier.tokens import eligible_numbers, numeric_tokens, token_value
+from ..verifier.tokens import NUMERIC_TOKEN_RE, eligible_numbers, numeric_tokens, token_value
 from ..vocab import ReportSection
 from .drafter import Drafter, GuidanceSpan
-from .sections import ArtifactBrief, SectionBrief
+from .sections import ArtifactBrief, FollowUp, SectionBrief
 
 __all__ = [
     "MAX_REPAIR_ROUNDS",
@@ -67,7 +69,21 @@ RELATIVE_PAIRING_WINDOW: Final = 0.1
 A repair corrects a number the drafter got slightly wrong -- 0.0136 for 0.0126 -- or attaches a
 citation to one it wrote correctly. A number that moved by more than a tenth of itself is a
 different statement, and pairing it would put a false row in the repairs table.
+
+Nearness is necessary and not sufficient: :func:`_same_statement` decides which claims the window
+is even applied to (D-105).
 """
+
+_CITED_NAME_RE: Final = re.compile(r"\[\[art:[0-9a-fA-F]+:(?P<name>[^\]#]+)")
+"""The logical name inside an artifact citation, which is what says two claims are about one thing.
+
+The ``#`` path is deliberately not part of the name: ``run.model_summary#coefficients.age.value``
+and ``run.model_summary#coefficients.age.se`` are two numbers of one artifact, and a re-draft that
+corrects one of them is still a repair of the sentence that cited it.
+"""
+
+_CITATION_TOKEN_RE: Final = re.compile(r"\[\[[^\]]*\]\]")
+"""Any citation, removed before two lines are compared: gaining one is what a repair often is."""
 
 Verify = Callable[[ReportSection, str], "tuple[Extraction, list[Match]]"]
 """Extract and match one section's markdown. Injected, because each configuration extracts its own
@@ -84,12 +100,14 @@ class DraftInputs:
         spans: The guidance retrieved for it.
         candidates: The candidates raised on its material.
         findings: The findings section 6 must write about.
+        follow_ups: The bounded loop's executed steps this section is asked to report (D-101).
     """
 
     artifacts: Sequence[ArtifactBrief] = ()
     spans: Sequence[GuidanceSpan] = ()
     candidates: Sequence[FindingCandidate] = ()
     findings: Sequence[Finding] = ()
+    follow_ups: Sequence[FollowUp] = ()
 
 
 @dataclass
@@ -146,12 +164,51 @@ class RepairOutcome:
     rounds: int = 0
 
 
+def _logical_names(claim: VerifiedClaim) -> frozenset[str]:
+    """Return the logical names a claim's citation resolves to, or nothing when it has none."""
+    return frozenset(match.group("name") for match in _CITED_NAME_RE.finditer(claim.citation or ""))
+
+
+def _skeleton(text: str) -> str:
+    """Return a claim's line with its citations and its numbers removed, whitespace collapsed.
+
+    What is left is the sentence the drafter wrote around the number, which is what survives the
+    two things a repair does to a line: it corrects the number, or it attaches the citation the
+    number was missing. Both change ``Claim.text`` -- the text is the whole line, citations
+    included (D-085) -- and so both change the claim id, which is why the id-first pass cannot
+    recognise them and something weaker than equality is needed.
+    """
+    bare = _CITATION_TOKEN_RE.sub(" ", text)
+    return " ".join(NUMERIC_TOKEN_RE.sub(" ", bare).split())
+
+
+def _same_statement(before: Match, after: Match) -> bool:
+    """Whether two claims are close enough to be the same statement, corrected.
+
+    Two grounds, either of which is enough. **The same line around the number**: the sentence with
+    its numbers and its citations taken out is the same, which is the line the re-draft kept while
+    it corrected the number or added the citation. **The same logical name**: the replacement cites
+    an artifact the flagged claim cited, so it is about the same quantity wherever in the section
+    the re-draft moved the sentence to.
+    """
+    if _skeleton(before.claim.text) == _skeleton(after.claim.text):
+        return True
+    return bool(_logical_names(before.claim) & _logical_names(after.claim))
+
+
 def _pair(before: Match, after: Sequence[Match], taken: set[int]) -> int | None:
     """Return the index in ``after`` of the claim that replaced ``before``, or ``None``.
 
     By id first: a number that gained a citation keeps its id, because the id hashes the section,
     the text and the value and only the citation moved. Then by nearest verified value inside
-    :data:`RELATIVE_PAIRING_WINDOW`, which is the drafter correcting a number it got wrong.
+    :data:`RELATIVE_PAIRING_WINDOW`, which is the drafter correcting a number it got wrong -- but
+    only among the claims :func:`_same_statement` admits, because a value on its own is not an
+    identity. On the fourth live run the flagged ``1.92`` of "refitting without utilisation
+    changes test AUC by 1.92e-05" was paired with the surviving, unrelated ``2`` of "2 are known
+    at origination", which sits inside the window of anything near two: Appendix A then reported
+    one claim rewritten and five numbers removed of a round that rewrote none and removed six,
+    and the repairs table carried a row joining two sentences with nothing to do with each other
+    (DECISIONS D-105).
     """
     for index, match in enumerate(after):
         if index not in taken and match.claim.id == before.claim.id:
@@ -160,6 +217,8 @@ def _pair(before: Match, after: Sequence[Match], taken: set[int]) -> int | None:
     scale = max(abs(before.claim.value), 1e-9)
     for index, match in enumerate(after):
         if index in taken or match.claim.status is not ClaimStatus.verified:
+            continue
+        if not _same_statement(before, match):
             continue
         distance = abs(match.claim.value - before.claim.value) / scale
         if distance <= RELATIVE_PAIRING_WINDOW and (best is None or distance < best[0]):
@@ -231,6 +290,7 @@ def repair_sections(
                 spans=given.spans,
                 candidates=given.candidates,
                 findings=given.findings,
+                follow_ups=given.follow_ups,
                 previous=draft.markdown,
                 problems=problems,
             )

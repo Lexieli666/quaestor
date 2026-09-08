@@ -210,6 +210,26 @@ run that was not committed.
 - `quaestor.pipeline.RUN_STAMP_FORMAT`, the UTC stamp a run id now carries (D-093).
 - `quaestor.llm.offline.OfflineLLM.choose_scalars`, the hook that lets a fake built to produce one
   defect reach the artifact its defect is about.
+- `### Follow-up analyses`, a level-3 subsection required of every section the bounded loop ran a
+  step for: `quaestor.report.schema.FOLLOW_UPS_HEADING`, `check_structure`'s `follow_up_headings`
+  argument, `quaestor.report.sections.FollowUp` / `follow_up_for` / `sections_for_follow_up`,
+  `DraftInputs.follow_ups`, `ReportInputs.follow_ups` and
+  `quaestor.report.renderer.NO_FOLLOW_UP_PROSE`. The drafting prompt gains the block that names
+  each executed step, its arguments, its own `why` and the artifacts it added (D-101).
+- `threshold.O1.slice_auc_gap` (0.08) and `threshold.O1.slice_min_share` (0.10), with
+  `metrics.<split>.sub.<slug>.auc_gap` and `.share` from `compute_metrics`: the rule that decides
+  whether a sub-population's result is an open item in section 6 or supporting evidence where it
+  was computed. Neither raises a candidate (D-102).
+- `quaestor.report.sections.recomputed_for_declared_bounds`, which derives the recomputed value of
+  every declared package threshold from the `thresholds.evaluation` rows, so any section shown a
+  declared bound is shown the value that answers it (D-100).
+- `quaestor.report.sections.monitoring_brief` and `as_written`, and
+  `quaestor.tools.guidance.retrieve_per_document` (D-104, D-106, D-108).
+- `quaestor.pipeline._data_columns` and `loop_prompt`'s `data_columns`, so the bounded loop is
+  shown the columns a sub-population can be selected on (D-107).
+- `tests/test_live_credit_attempt4.py`: 28 checks re-deriving every figure `docs/EVALUATION.md`
+  quotes about the fourth live run from that run's own trace, claims, findings, index and 22
+  cassettes.
 
 
 ### Changed
@@ -333,7 +353,27 @@ run that was not committed.
   reading the removals off the `repair` trace events where D-073 records them.
 - `ClaudeCLILLM` reports `tokens_in` as `input_tokens + cache_creation_input_tokens +
   cache_read_input_tokens`. The third live run recorded 38 input tokens for 19 calls against the
-  176,851 its cassettes hold (D-093).
+  176,851 its cassettes hold (D-093); on the fourth run the trace and the cassettes agree at
+  219,975.
+- **`NUMERIC_TOKEN_RE` reads exponent notation as one token (D-099)**, and the tolerance is the
+  mantissa's precision at the exponent's scale: `1.920e-05` claims 10^-8 and is held to half of
+  it. The offline fake's copy of the expression and `tests/test_golden_spec.py` check 7's literal
+  move with it, and `eval/verifier_eval.py`'s fake extractor masks citations before tokenising.
+- **`retrieve_guidance`'s `k` is per document searched, the current guidance's spans first
+  (D-108).** Two documents and `k=3` return at most six spans; which to cite is the drafter's
+  choice under D-055, and `corpus.retrieve` is unchanged.
+- **A repair pairs on the line or on the cited name, never on nearness alone (D-105).** The
+  nearest-value fallback is offered only claims whose line — citations and numbers removed — is
+  the same, or which cite a logical name the flagged claim cited.
+- **Integral values reach the drafting prompt as integers (D-106)**, which D-094 did for the
+  renderer's tables only.
+- Section 6's brief and the no-findings block forbid the drafter to describe what was reviewed;
+  the renderer's "Checks that ran and raised no candidate" line is the enumeration (D-103).
+- Section 7's brief carries section 4's ordering decision and the ground for it, filled by
+  `ordered_briefs` from the same `section_four_order` that fills section 4's (D-104).
+- `DRAFT_INSTRUCTION` gains a standing rule: the artifacts listed are this section's selection and
+  not the store, and no section may write that a quantity is absent, uncomputed or "not carried"
+  (D-100).
 
 ### Removed
 
@@ -344,6 +384,34 @@ run that was not committed.
 
 ### Fixed
 
+- **All six failed claims of the fourth live run were one tokenizer defect (D-099).** `1.92e-05`
+  tokenised as `1.92` and `05`, so three exponent literals produced six `unattributed` claims —
+  a mantissa the artifact does not hold and a bare exponent that is a claim of five the report
+  never made. Attempt 3's removal of `9.982` and `6` was the same defect a run earlier, recorded
+  there as two extraction misses. The drafter writes the form because `json.dumps` prints a value
+  of 1.9e-05 at four significant figures that way.
+- **The fourth live run's section 7 wrote that "no recomputed test Brier value is carried in this
+  report's artifact store" (D-100)** while `metrics.test.brier` sat in the store and was cited in
+  three other sections: the monitoring selector hand-listed three of the four recomputed values a
+  declared bound needs.
+- **Three executed loop steps and twenty-four sub-population scalars reached the store and nothing
+  reached the prose (D-101, D-102)** — among them test AUC of 0.5875 on the 6,048 rows of 9,000
+  where `delinq_count_6m == 0`, against 0.7550 on the whole split.
+- **The fourth live run's section 6 enumerated reviews that did not happen (D-103)**, including
+  "input data lineage" and "documentation of intended use and known limitations" on a package
+  whose Appendix D says it has no `docs/`; the prompt had asked it to say what was checked instead
+  without giving it the list.
+- **Section 7 recommended leading with calibration "as this report does" of a report that led with
+  discrimination (D-104)**, because section 4's ordering decision was told to no other section.
+- **Appendix A reported "1 claim(s) rewritten and 5 number(s) removed" of a round that rewrote
+  none and removed six (D-105)**: `_pair`'s nearest-value fallback paired the removed `1.92` of an
+  ablation sentence with the unrelated verified `2` of "2 are known at origination".
+- **The prose read "the timing screen flags 0.0 features" (D-106).**
+- **The bounded loop's first step asked for a sub-population of `credit_limit` on a subject whose
+  column is `limit_bal` (D-107)**, spending a model call and a tool call on a static fact.
+- **The data-quality and sensitivity retrievals returned three SR 11-7 spans each and no SR 26-2
+  span at all (D-108)**, so sections 3 and 5 opened on text superseded in April 2026 while
+  `SR26-2:IV.1` and `SR26-2:V.1.a` sat unretrieved.
 - **The first live report that rendered carried two false sentences, both the tool's fault
   (D-091, D-092).** Section 3 called a 1.256% feature-vector overlap an exceedance "recorded as a
   finding" while section 6 correctly said none was raised: the bound the rule applied under D-086

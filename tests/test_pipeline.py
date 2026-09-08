@@ -26,6 +26,8 @@ import pytest
 from quaestor import Configuration, TraceReader, validate
 from quaestor.pipeline import UNEVIDENCED_PREFIX, ValidationRun
 from quaestor.report import UNVERIFIED_OPEN, check_report
+from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
+from quaestor.tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR, Thresholds
 from reportsupport import SectionFake
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +45,7 @@ def run_validate(
     llm: SectionFake | None = None,
     config: Configuration = Configuration.full_agent,
     synthetic: int = 5000,
+    thresholds: Thresholds | None = None,
 ) -> ValidationRun:
     """Run the pipeline once, offline, with the shared fake."""
     return validate(
@@ -51,6 +54,7 @@ def run_validate(
         config=config,
         synthetic=synthetic,
         out=out,
+        thresholds=thresholds,
         quaestor_version="0.1.0.dev0",
     )
 
@@ -425,3 +429,101 @@ def test_a_follow_up_that_raises_inside_the_tool_still_produces_a_report(tmp_pat
     )
     assert run.precision_post == 1.0
     assert "E1" in [finding.defect_class.value for finding in run.findings.findings]
+
+
+# --- the Phase 9 follow-up 4: an executed step reaches the prose (D-101, D-102) -----------------
+
+SLICE_ACTIONS = [
+    {
+        "tool": "compute_metrics",
+        "args": {
+            "splits": ["test"],
+            "subpopulation": {"column": "limit_bal", "rule": "below_median"},
+        },
+        "why": "does discrimination hold on the low-limit half, or only in aggregate?",
+    },
+    {"stop": True},
+]
+"""One sub-population step, the shape three of the fourth live run's four steps took."""
+
+
+def _section(report: str, heading: str) -> str:
+    """Return one level-2 section of a rendered report."""
+    from quaestor.report.schema import REQUIRED_HEADINGS
+
+    headings = list(REQUIRED_HEADINGS)
+    after = report.split(heading, 1)[1]
+    later = [item for item in headings[headings.index(heading) + 1 :] if item in after]
+    return after.split(later[0], 1)[0] if later else after
+
+
+def test_a_material_follow_up_is_reported_and_raised_as_an_open_item(tmp_path: Path) -> None:
+    """The gap bound is lowered so that this slice qualifies; nothing else about the run changes."""
+    run = run_validate(
+        CREDIT,
+        tmp_path / "out",
+        llm=SectionFake(plan_actions=list(SLICE_ACTIONS)),
+        synthetic=SMALL,
+        thresholds=Thresholds({SLICE_GAP_BOUND: 0.01}),
+    )
+    slice_auc = "metrics.test.sub.limit_bal_low.auc"
+    assert run.store.value("metrics.test.sub.limit_bal_low.auc_gap") > 0.01
+    outcomes = _section(run.report, "## 4. Outcomes analysis")
+    findings = _section(run.report, "## 6. Findings and recommendations")
+    assert FOLLOW_UPS_HEADING in outcomes
+    assert slice_auc in outcomes.split(FOLLOW_UPS_HEADING, 1)[1]
+    assert slice_auc in findings.split(OPEN_ITEMS_HEADING, 1)[1]
+    assert "finding" not in findings.split(OPEN_ITEMS_HEADING, 1)[1].lower()
+
+
+def test_a_follow_up_inside_the_bound_stays_in_the_section_that_computed_it(
+    tmp_path: Path,
+) -> None:
+    """The same step at the shipped bound: reported, and no open item (D-102)."""
+    run = run_validate(
+        CREDIT,
+        tmp_path / "out",
+        llm=SectionFake(plan_actions=list(SLICE_ACTIONS)),
+        synthetic=SMALL,
+    )
+    slice_auc = "metrics.test.sub.limit_bal_low.auc"
+    assert run.store.value("metrics.test.sub.limit_bal_low.auc_gap") < run.store.value(
+        SLICE_GAP_BOUND
+    )
+    outcomes = _section(run.report, "## 4. Outcomes analysis")
+    findings = _section(run.report, "## 6. Findings and recommendations")
+    assert slice_auc in outcomes.split(FOLLOW_UPS_HEADING, 1)[1]
+    assert slice_auc not in findings
+
+
+def test_a_slice_below_the_size_floor_never_reaches_the_open_items(tmp_path: Path) -> None:
+    """The floor overrides the gap: a small slice's gap is sampling noise, not a question."""
+    run = run_validate(
+        CREDIT,
+        tmp_path / "out",
+        llm=SectionFake(plan_actions=list(SLICE_ACTIONS)),
+        synthetic=SMALL,
+        thresholds=Thresholds({SLICE_GAP_BOUND: 0.01, SLICE_SHARE_FLOOR: 0.9}),
+    )
+    slice_auc = "metrics.test.sub.limit_bal_low.auc"
+    assert run.store.value("metrics.test.sub.limit_bal_low.share") < 0.9
+    outcomes = _section(run.report, "## 4. Outcomes analysis")
+    findings = _section(run.report, "## 6. Findings and recommendations")
+    assert slice_auc in outcomes.split(FOLLOW_UPS_HEADING, 1)[1]
+    assert slice_auc not in findings
+
+
+def test_a_run_whose_loop_stopped_carries_no_follow_up_subsection(credit: ValidationRun) -> None:
+    """The heading is required of the sections the loop ran a step for, and of no others."""
+    assert FOLLOW_UPS_HEADING not in credit.report
+
+
+def test_the_loop_is_shown_the_columns_it_can_slice_on(tmp_path: Path) -> None:
+    """D-107: the step that asked for `credit_limit` on a subject whose column is `limit_bal`."""
+    llm = SectionFake(plan_actions=[{"stop": True}])
+    run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
+    plan_prompts = [call.prompt for call in llm.calls if "You are the planning half" in call.prompt]
+    assert len(plan_prompts) == 1
+    assert "`limit_bal`" in plan_prompts[0]
+    assert "`credit_limit`" not in plan_prompts[0]
+    assert "`default_next_month`" in plan_prompts[0]

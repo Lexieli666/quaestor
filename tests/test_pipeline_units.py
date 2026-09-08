@@ -24,6 +24,7 @@ from quaestor.pipeline import (
     PlainFinding,
     PlainReport,
     _checks_without_candidates,
+    _data_columns,
     _model_id,
     _not_checked,
     _plain_findings,
@@ -35,6 +36,7 @@ from quaestor.pipeline import (
     _title_and_narrative,
 )
 from quaestor.report.sections import ordered_briefs
+from quaestor.tools import ToolContext
 from quaestor.trace import TraceReader, TraceWriter
 from quaestor.vocab import Configuration, ReportSection
 
@@ -284,3 +286,37 @@ def test_a_run_no_model_answered_names_none(tmp_path: Path) -> None:
     trace = TraceWriter(tmp_path / "trace.jsonl", run_id="r1")
     trace.emit("tool_call", tool="run_model", args_hash="a", duration_s=1.0, artifacts=[], ok=True)
     assert _model_id(list(TraceReader(trace.path))) == ""
+
+
+# --- the columns the bounded loop is shown (DECISIONS D-107) ------------------------------------
+
+
+def _context(out_dir: Path, store: ArtifactStore, tmp_path: Path) -> ToolContext:
+    """A tool context over one output directory, for the two `_data_columns` cases."""
+    return ToolContext(
+        package=load_package(CREDIT),
+        store=store,
+        out_dir=out_dir,
+        trace=TraceWriter(tmp_path / "columns.jsonl", run_id="columns"),
+    )
+
+
+def test_the_columns_come_from_the_first_split_the_subject_wrote(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    out = tmp_path / "run"
+    out.mkdir()
+    (out / "data_train.csv").write_text("client_id,limit_bal,default_next_month\n1,20000,0\n")
+    assert _data_columns(_context(out, store, tmp_path)) == [
+        "client_id",
+        "limit_bal",
+        "default_next_month",
+    ]
+
+
+def test_a_run_that_wrote_no_split_file_shows_the_loop_no_columns(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """`rules_only` and `plain_llm` never reach the loop, and a subject that did not run has no
+    data to slice; an empty list is what the prompt says "none" about."""
+    assert _data_columns(_context(tmp_path / "nothing", store, tmp_path)) == []

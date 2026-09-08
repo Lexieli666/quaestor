@@ -1,0 +1,11 @@
+feature,dtype,n,n_unique
+limit_bal,int64,21000,78
+age,int64,21000,56
+utilisation,float64,21000,18245
+pay_ratio_last,float64,21000,14149
+pay_ratio_mean_6m,float64,21000,17322
+delinq_last,int64,21000,9
+delinq_count_6m,int64,21000,7
+delinq_max_6m,int64,21000,9
+bill_mean_6m,float64,21000,19402
+bill_trend_6m,float64,21000,19272

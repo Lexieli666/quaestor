@@ -74,8 +74,17 @@ are named in brackets.
     `eval/results/first-live/credit-attempt3/` on D-087's terms; two of its sentences are false,
     both because the drafter was handed an incomplete set of artifacts, and the eight defects that
     reading found are fixed in the third Phase 9 follow-up below. Attempt 3 is **kept as the
-    record**; the README excerpt will come from the run after these fixes. The `msr_prepayment`
-    run and a `credit_default` attempt on a build carrying D-091 to D-098 are still outstanding
+    record** of what the pipeline produced that day. The **fourth `credit_default` attempt of
+    2026-09-08 rendered as well** — 22 model calls, 17 tool calls, 161 claims, 0.9641 → 1.0000,
+    zero findings, exit 0, $4.1603, 908.59 s — and is committed as
+    `eval/results/first-live/credit-attempt4/` on D-087's terms. It is the first run whose
+    **bounded loop did anything**: four steps, three executed, and one of them found test AUC of
+    0.5875 on the 6,048 rows of 9,000 where `delinq_count_6m == 0`, which the report never
+    mentioned. All six of its failed claims are one tokenizer defect and six of its sentences are
+    the same shape of defect as attempt 3's; the ten that reading found are fixed in the fourth
+    Phase 9 follow-up below. The README excerpt will come from the run after **these** fixes. The
+    `msr_prepayment` run and a `credit_default` attempt on a build carrying D-099 to D-108 are
+    still outstanding
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
 - [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
@@ -672,3 +681,68 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   model, downloads data, trains on real data or reads an API key; the committed cassettes are read
   as JSON, and the only provider built from them is `ClaudeCLILLM`'s payload mapping driven over
   the recorded `usage` objects. No push.
+- 2026-09-08 — **Phase 9 follow-up 4** — the operator's **fourth** `credit_default` live run
+  (`--llm claude-cli`, real UCI sample, `full_agent`, `claude-opus-5[1m]`) **rendered**: 22 model
+  calls (4 plan, 9 draft, 9 extract), 17 tool calls, 192 artifacts, 262 claim checks, 167
+  pre-repair claims at grounding precision **0.9641** rising to **1.0000** over 161, zero findings,
+  exit 0, **$4.1603**, **908.59 s**. It is the first run in which the bounded loop did anything —
+  four steps, all accepted, step 1's tool raised on a column name and steps 2 to 4 computed three
+  sub-populations — and its own record is accurate for the first time: D-093's model id, run-id
+  stamp and three-field input-token sum all hold, and the trace's 219,975 input tokens are the
+  figure the 22 cassettes carry. Committed as `eval/results/first-live/credit-attempt4/` on
+  D-087's terms (`find … -name '*.csv' -size +20k` prints nothing). Gate green on the five
+  conditions that apply: `pytest -q` **1301 passed**, 0 failed, 0 skipped, 0 xfailed; coverage of
+  `src/quaestor` **100%** (`coverage run -m pytest`, 5,923 statements) against the 85% floor;
+  `ruff check` and `ruff format --check` clean on `src tests eval subjects`; `mypy --strict
+  src/quaestor` clean (60 source files); gate condition 5 green — `examples/golden_report/` is
+  untouched, and `quaestor validate --synthetic --llm fake` renders both subjects (credit_default
+  1.0000 → 1.0000 over 49 claims, 1 finding, 168 artifacts; msr_prepayment 1.0000 → 1.0000 over 45
+  claims, 0 findings, 271 artifacts). Ten defects fixed, DECISIONS **D-099 to D-108**. (a) The
+  tokenizer's missing exponent form (D-099), which is **all six** of the run's failed claims:
+  `1.92e-05` matched as `1.92` and `05`, so three literals produced six `unattributed` claims, and
+  attempt 3's `9.982`/`6` removals were the same defect unrecognised. Exponent notation is one
+  token and the tolerance is the mantissa's precision at the exponent's scale — `1.920e-05` claims
+  10^-8. The offline fake's copy of the expression, `tests/test_golden_spec.py` check 7's literal
+  and `eval/verifier_eval.py`'s fake extractor (which gains the citation mask, because
+  `[[art:2e30351e:answer]]` holds `2e30351`) all move with it. (b) A section's artifact list is a
+  selection and not the store (D-100): `recomputed_for_declared_bounds` derives the recomputed
+  value of every declared bound from the `thresholds.evaluation` rows, so section 7 can no longer
+  be shown a Brier ceiling with no Brier value, and `DRAFT_INSTRUCTION` forbids any section to
+  call a quantity absent, uncomputed or "not carried". (c) The loop's executed steps reach the
+  prose (D-101): `FollowUp` carries the tool, its arguments, its `why` and the names the step
+  **added**, `sections_for_follow_up` assigns it to every matching section but never to the
+  summary or the findings section, and a required level-3 `### Follow-up analyses` subsection
+  reports it — supplied by the renderer where the drafter omitted it, so the rule cannot lose a
+  finished report. (d) Where a follow-up result goes (D-102): `compute_metrics` stores
+  `metrics.<split>.sub.<slug>.{auc_gap,share}` and the two new bounds
+  **`threshold.O1.slice_auc_gap` = 0.08** and **`threshold.O1.slice_min_share` = 0.10**, both
+  artifacts so the sentence can cite them; a slice over the gap on at least the floor is an open
+  item in section 6, written as a question about what the model discriminates on inside a segment
+  whose correlates are also fixed. Neither bound raises a candidate. **On the run's own numbers
+  the never-delinquent segment qualifies at a gap of 0.1676 on 0.672 of the split, and neither
+  `limit_bal` half does (0.0436, 0.0073).** (e) A section with no finding says so once and does
+  not describe what it reviewed (D-103); the renderer's "Checks that ran and raised no candidate"
+  line is the enumeration. (f) Section 4's ordering decision is passed into section 7's brief
+  (D-104), so "as this report does" cannot contradict section 4's own opening sentence. (g)
+  `_pair`'s nearest-value fallback needs the same line — citations and numbers removed — or the
+  same cited logical name (D-105); the attempt's `1.92` → `2` row is now a removal, and Appendix A
+  would read 0 rewritten / 6 removed. (h) Integral values reach the drafting prompt as integers
+  (D-106), which D-094 did for renderer tables only. (i) The loop prompt lists the data's own
+  columns (D-107), read from the header of `data_<split>.csv`. (j) `retrieve_guidance` returns
+  top-`k` **per document**, the current guidance first (D-108): on the run's data-quality and
+  sensitivity queries a single ranked list returned three SR 11-7 spans and no SR 26-2 span at
+  all, so sections 3 and 5 opened on text superseded in April 2026 while `SR26-2:IV.1` and
+  `SR26-2:V.1.a` sat unretrieved; which to cite stays the drafter's choice under D-055.
+  **What D-085 cost on this run, and what it measures.** Extraction output fell from 70,147 tokens
+  over 247 claim checks to **45,230 over 262** — 284 to **173** per check — the whole run from
+  $4.3822 to $4.1603 and from 1,217.79 s to 908.59 s. **None of that is a saving and this line
+  does not claim one:** `verifier/extract.py` is byte-identical between the two builds, the
+  reports differ in length and section shape, and two runs of one prompt on one model, n = 1 each,
+  measure run-to-run variance in how much the model chose to think. A cost claim about extraction
+  needs repeated runs, which is Phase 12's. Also shipped: the dated `docs/EVALUATION.md` §1 entry
+  for `credit-attempt4` (including the never-delinquent segment as the observation the report
+  failed to surface) with attempt 3's repair row amended to name the tokenizer cause,
+  `tests/test_live_credit_attempt4.py` (28 checks re-deriving every figure from that directory),
+  DECISIONS D-099 to D-108, the Phase 9 follow-up 4 section of `docs/DESIGN.md` and the
+  `CHANGELOG.md` entries. No test calls a live model, downloads data, trains on real data or reads
+  an API key. No push.

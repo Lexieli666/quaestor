@@ -12,6 +12,12 @@ that citation against the same corpus. Storing the retrieval means the trace rec
 the drafter was shown, so a report anchored to the wrong section is diagnosable after the fact
 without re-running anything.
 
+``k`` is **per document**: the corpus holds the superseded SR 11-7 and the SR 26-2 revision that
+replaced it, BM25 scores do not compare across two documents, and a single ranked list therefore
+chose the drafter's anchor by term frequency rather than by currency (DECISIONS D-108). Each
+document's own best ``k`` are returned, the current guidance's first, and which one to cite is the
+drafter's decision under D-055.
+
 The logical name carries a hash of the whole request -- query, ``k`` and the document restriction
 -- rather than a slug of the query, because two sections of a report ask for guidance in words
 that slugify identically far more often than they hash identically, and the store refuses to put a
@@ -20,13 +26,52 @@ different payload under a name it already holds (DECISIONS D-059).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+from typing import Final
+
 from ..artifacts import Artifact, ArtifactKind
-from ..corpus import CORPUS_FILES, retrieve, scored_payload
+from ..corpus import CORPUS_FILES, ScoredSpan, retrieve, scored_payload
 from ..errors import CorpusError, ToolError
 from ..hashing import stable_hash
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
 
-__all__ = ["RetrieveGuidanceTool", "guidance_name"]
+__all__ = ["CURRENT_GUIDANCE", "RetrieveGuidanceTool", "guidance_name", "retrieve_per_document"]
+
+CURRENT_GUIDANCE: Final = "SR26-2"
+"""The current guidance, whose spans are returned first (D-055)."""
+
+
+def retrieve_per_document(query: str, k: int, docs: Sequence[str] | None) -> list[ScoredSpan]:
+    """Retrieve the best ``k`` spans **of each document** searched, current guidance first.
+
+    BM25 scores are comparable within a document and not across two documents of different length
+    and vocabulary, and the corpus holds a superseded text and the revision that replaced it
+    (D-055). Ranking them in one list therefore decides which document a section anchors to by an
+    accident of term frequency: on the fourth live run the data-quality, sensitivity and
+    findings queries each returned three SR 11-7 spans and no SR 26-2 span at all, so sections 3
+    and 5 opened on superseded text while SR 26-2 IV.1 and V.1.a sat in the corpus unretrieved.
+    Retrieving per document makes the choice the drafter's, which is where D-055 and
+    ``DRAFT_INSTRUCTION`` already put it -- "prefer a span of the current guidance; cite the
+    superseded text only where it says something the revision does not" -- and gives it something
+    to prefer (DECISIONS D-108).
+
+    Args:
+        query: What to look for.
+        k: How many spans to return **per document**.
+        docs: The documents to search, or ``None`` for the whole corpus.
+
+    Returns:
+        The spans, the current guidance's first and each document's own best first. A document
+        that shares no term with the query contributes nothing.
+
+    Raises:
+        CorpusError: ``docs`` names a document that was never ingested, or the corpus is missing.
+    """
+    searched = list(docs) if docs is not None else list(CORPUS_FILES)
+    ordered = [doc for doc in searched if doc == CURRENT_GUIDANCE] + [
+        doc for doc in searched if doc != CURRENT_GUIDANCE
+    ]
+    return [span for doc in ordered for span in retrieve(query, k, [doc])]
 
 
 def guidance_name(query: str, k: int, docs: list[str] | None) -> str:
@@ -61,7 +106,8 @@ class RetrieveGuidanceTool(Tool["RetrieveGuidanceTool.Args"]):
         Attributes:
             query: What to look for, in plain words -- ``"outcomes analysis"``,
                 ``"benchmarking against a challenger model"``.
-            k: How many spans to return, at most.
+            k: How many spans to return **per document searched**, at most. Two documents and
+                ``k=3`` return at most six spans, the current guidance's three first (D-108).
             docs: Restrict the search to these documents; ``None`` searches both. ``SR26-2`` is
                 the current guidance and ``SR11-7`` the superseded text kept so that historical
                 citations resolve (DECISIONS D-055).
@@ -79,8 +125,9 @@ class RetrieveGuidanceTool(Tool["RetrieveGuidanceTool.Args"]):
             ctx: The run's context.
 
         Returns:
-            One artifact, ``guidance.<query_hash>``, holding the spans with their scores. No
-            finding candidate, ever.
+            One artifact, ``guidance.<query_hash>``, holding the spans with their scores -- the
+            best ``k`` of each document, the current guidance's first (D-108). No finding
+            candidate, ever.
 
         Raises:
             ToolError: The query is empty, ``k`` is not positive, ``docs`` names a document that
@@ -92,7 +139,7 @@ class RetrieveGuidanceTool(Tool["RetrieveGuidanceTool.Args"]):
         if args.k < 1:
             raise ToolError(f"retrieve_guidance was asked for k={args.k}; k must be at least 1")
         try:
-            spans = retrieve(query, args.k, args.docs)
+            spans = retrieve_per_document(query, args.k, args.docs)
         except CorpusError as exc:
             raise ToolError(
                 f"retrieve_guidance cannot search the regulatory corpus: {exc.message}",

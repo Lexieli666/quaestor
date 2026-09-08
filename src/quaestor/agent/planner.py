@@ -400,6 +400,10 @@ Candidate findings so far:
 
 Artifacts already in the store ({n_artifacts} of them), by prefix:
 {prefixes}
+
+Columns of the split a sub-population can be selected on, exactly as the data spells them; a
+column that is not on this list does not exist and asking for one will fail:
+{columns}
 {history}
 Tools you may call, with the JSON schema of each tool's arguments. Only the tools that apply to
 this package are listed; a tool the registry has and this package does not support is not on the
@@ -455,6 +459,7 @@ def loop_prompt(
     candidates: Sequence[FindingCandidate] = (),
     completed: Sequence[CompletedCall] = (),
     artifact_names: Sequence[str] = (),
+    data_columns: Sequence[str] = (),
     history: Sequence[PlanStep] = (),
 ) -> str:
     """Build the prompt one step of the bounded loop is sent.
@@ -466,6 +471,7 @@ def loop_prompt(
         candidates: What has been raised so far.
         completed: What the rule-based plan called, and what each call raised (D-090).
         artifact_names: What is in the store, summarised by prefix rather than dumped.
+        data_columns: The columns of the data a sub-population can be selected on (D-107).
         history: The steps this loop has already taken, so a refusal or a tool failure is fed
             back rather than repeated (D-088).
 
@@ -484,9 +490,23 @@ def loop_prompt(
         candidates=_candidates_block(candidates),
         n_artifacts=len(artifact_names),
         prefixes=_prefixes(artifact_names) or "(none)",
+        columns=_columns_block(data_columns),
         history=_history_block(history),
         catalogue=json.dumps(catalogue, indent=1, ensure_ascii=True),
     )
+
+
+def _columns_block(columns: Sequence[str]) -> str:
+    """Render the data's own column names, so a sub-population can be asked for by name.
+
+    The fourth live run's first step asked for a sub-population of ``credit_limit`` on a subject
+    whose column is ``limit_bal``: the tool raised, D-088 caught it, the message came back through
+    D-090's history block, and the second step asked again with the right name -- one model call
+    and one tool call to learn a list the prompt had in reach the whole time (DECISIONS D-107).
+    """
+    if not columns:
+        return "(none: this configuration ran no subject, so there is no data to slice)"
+    return ", ".join(f"`{name}`" for name in columns)
 
 
 def _prefixes(names: Sequence[str]) -> str:
@@ -518,6 +538,7 @@ def follow_up_plan(
     candidates: Sequence[FindingCandidate] = (),
     completed: Sequence[CompletedCall] = (),
     artifact_names: Sequence[str] = (),
+    data_columns: Sequence[str] = (),
     roots: Sequence[Path] = (),
     max_steps: int = MAX_FOLLOW_UP_STEPS,
     trace: TraceWriter | None = None,
@@ -533,6 +554,7 @@ def follow_up_plan(
         candidates: What the rule-based plan raised, which is what the loop reasons about.
         completed: What the rule-based plan called and what each call raised (D-090).
         artifact_names: What is already in the store, summarised by prefix for the prompt.
+        data_columns: The columns of the data a sub-population can be selected on (D-107).
         roots: Directories besides the package that a path argument may name.
         max_steps: How many steps the loop may take. Spec section 3.12 says four.
         trace: The run's trace; one ``plan_step`` event per step, accepted or refused.
@@ -556,6 +578,7 @@ def follow_up_plan(
             candidates=candidates,
             completed=completed,
             artifact_names=names,
+            data_columns=data_columns,
             history=steps,
         )
         action = structured(

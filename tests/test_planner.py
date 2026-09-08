@@ -529,3 +529,24 @@ def test_a_step_that_named_no_tool_contributes_no_history_line() -> None:
     prompt = loop_prompt(default_registry(), load_package(CREDIT), remaining=4, history=[stopped])
     assert "What earlier steps of this loop did:" not in prompt
     assert "step 1" not in prompt
+
+
+# --- the loop is shown the data's own column names (DECISIONS D-107) ----------------------------
+
+
+def test_the_prompt_lists_the_columns_a_sub_population_can_be_selected_on() -> None:
+    """The fourth live run spent a step and a tool call on a column name that does not exist."""
+    prompt = loop_prompt(
+        default_registry(),
+        load_package(CREDIT),
+        remaining=4,
+        data_columns=["client_id", "limit_bal", "delinq_count_6m", "default_next_month"],
+    )
+    assert "`limit_bal`" in prompt
+    assert "`delinq_count_6m`" in prompt
+    assert "does not exist" in prompt
+
+
+def test_a_configuration_with_no_data_says_so_rather_than_showing_an_empty_list() -> None:
+    prompt = loop_prompt(default_registry(), load_package(CREDIT), remaining=4)
+    assert "(none: this configuration ran no subject" in prompt

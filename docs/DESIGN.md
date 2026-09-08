@@ -982,3 +982,142 @@ and for each defect asserts both halves: the attempt's own store lacks
 `threshold.package.max_seconds`, and a run of the same plan on this build is the other way round.
 The token defect is asserted against the attempt's own recorded `usage` objects, which is the one
 place `ClaudeCLILLM`'s mapping can be checked against a real payload without calling a model.
+
+## Phase 9 follow-up 4 — What the first working loop changed
+
+The fourth live `credit_default` validation is the first in which the bounded follow-up loop did
+anything: 22 model calls, 17 tool calls, four plan steps of which three executed, 161 post-repair
+claims, grounding precision 0.9641 rising to 1.0000, no finding, exit 0, $4.1603, 908.59 s. Its own
+record is accurate for the first time — D-093's model id, run-id stamp and three-field token sum
+all hold, and the cassettes agree with the trace. `docs/EVALUATION.md` §1 carries the run; this
+section carries the design argument.
+
+**The pipeline taught the drafter a form its own verifier could not read (D-099).** All six of the
+run's failed claims are one defect. `NUMERIC_TOKEN_RE` had no exponent form, so `1.92e-05` matched
+as `1.92` and then, the lookbehind having refused the sign, as `05`: a mantissa the artifact does
+not hold and a bare exponent that is a *claim of five the report never made*. Three literals
+produced six `unattributed` claims, and attempt 3's removal of `9.982` and `6` was the same defect
+a run earlier, recorded there as an extraction miss. The drafter did not invent the notation:
+`json.dumps` writes a value of 1.9e-05 at four significant figures as `1.92e-05`, and the drafting
+prompt is where it came from. The tolerance half matters as much as the tokenizer half — the
+mantissa keeps the precision and the exponent moves it, so `1.920e-05` claims 10^-8 and is held to
+half of that, where holding the mantissa's three decimals against an unscaled `0.0005` would verify
+anything of that order and read D-069 backwards. The two other copies of the expression in the tree
+move with it: the offline fake's, which is deliberately a copy because a provider may not import
+the report layer, and `tests/test_golden_spec.py` check 7's literal. `eval/verifier_eval.py`'s fake
+extractor gains the citation mask the offline fake always had, because `[[art:2e30351e:answer]]`
+holds `2e30351`, which is `inf`.
+
+**A selector is not a list of the names its author thought of (D-100).** Section 7 recommended
+monitoring the Brier score against its declared ceiling and then wrote that "no recomputed test
+Brier value is carried in this report's artifact store" — of a report that cites
+`metrics.test.brier` in three other sections. The monitoring selector took every
+`threshold.package.*` and hand-listed three of the four recomputed values a declared bound needs.
+So the fix is at the selector and it is a derivation:
+`recomputed_for_declared_bounds` reads the `thresholds.evaluation` rows D-092 already writes and
+adds `metric_artifact_name(metric, split)` for every bound this section matched, which means the
+selector cannot fall behind `package.yaml` again. `DRAFT_INSTRUCTION` gains the standing rule
+beside it — the artifacts listed are this section's selection and not the store, and no section may
+call a quantity absent, uncomputed or "not carried" — because every section has a selection and
+every section can make this mistake. The prompt rule could not have been the whole fix: the
+sentence was true of what the drafter was shown, and a drafter forbidden to say a number is missing
+while genuinely not having it would simply have said nothing about Brier monitoring.
+
+**A step the run paid for is reported (D-101).** Three executed loop steps computed twenty-four
+sub-population scalars, among them test AUC of 0.5875 and Gini of 0.1749 on the 6,048 rows of 9,000
+where `delinq_count_6m == 0`, against 0.7550 and 0.5100 on the whole split. Section 4's selector
+matched every one and its drafter was shown every one, and the report says nothing about any of
+them — correctly, because the brief does not ask and the step's own stated reason was never passed
+to any prompt. That is D-090's argument in the other direction: do not withhold from the model what
+the caller already has, and the caller had `PlannedCall.why`. `FollowUp` carries the tool, the
+arguments, the reason and the names the step **added** to the store; a section whose selector
+matched one of those names is shown the block and must answer it under `### Follow-up analyses`, a
+level-3 heading for D-096's reason. Three parts of the rule are decisions rather than mechanics.
+Routing on what a step *added* rather than on everything it stored, because a follow-up
+`compute_metrics` recomputes every split's metrics on its way to the slice and routing on those
+names put the block in section 2, which cites `metrics.test.auc` and knows nothing about slices.
+The summary is never assigned a step although its `metrics.` selector matches, because section 1 is
+derivative by construction and an analysis reported there before it is reported anywhere is a
+headline with no body. And the renderer supplies the heading where the drafter omitted it, so the
+rule cannot throw away a finished report — which is the lesson of D-084 stated as a constraint on
+every new structural rule.
+
+**Where a follow-up result goes is a rule, and a rule needs a bound in the store (D-102).** The
+practitioner's answer is that a slice materially worse than the headline is a question for the
+model developer and belongs in section 6's open items, and any other slice is supporting evidence
+where it was computed. "Materially worse" therefore has to be citable (D-091), so
+`compute_metrics` stores `metrics.<split>.sub.<slug>.auc_gap` and `.share` beside the eight scalars,
+and `threshold.O1.slice_auc_gap` = 0.08 and `threshold.O1.slice_min_share` = 0.10 through
+`Thresholds.artifact`. The bound is new rather than a second use of `threshold.O1.auc_gap`, which
+carries the same number, because the two comparisons are different questions:
+`threshold.O1.auc_gap` reads train against test and measures overfitting, while a slice-to-headline
+gap reads one split against part of itself and measures heterogeneity. Sharing the number would
+mean re-tuning one rule silently re-tunes the other and that `THRESHOLD_SUMMARIES` puts a
+train-to-test caption on a within-split comparison, which is D-092's naming argument. The size
+floor exists because a slice of thirty rows can differ from its split by anything at all. Neither
+bound raises a candidate, on D-095's argument: a model that discriminates less well on a segment
+selected by one of its own features is usually a model conditioning correctly. And an open item is
+written as a question — conditioning on a delinquency count also conditions on its correlates, so
+the segment is also one of near-constant delinquency history, and what a developer is asked is what
+the model discriminates on inside it.
+
+**A section with nothing to report says so once (D-103).** Section 6 said no finding was raised and
+then listed seven reviews, two of which — "input data lineage" and "documentation of intended use
+and known limitations" — no check performs, on a package whose Appendix D says it has no `docs/`.
+The prompt had asked it to "say what was checked instead" without giving it the list, so it
+produced a plausible one, which is the one thing a validation report must never do: overstating
+coverage is worse than understating it. The list was two lines lower the whole time, in the
+renderer's own "Checks that ran and raised no candidate" line built from
+`checks_without_candidates`. So the drafter is forbidden to describe what was reviewed, and the
+computed line is the enumeration — D-013's argument about retyping what the store holds, applied to
+a sentence rather than a table.
+
+**Section 7 is told what section 4 did (D-104).** Section 7 recommended that monitoring lead with
+calibration below a 0.05 event rate "as this report does", of a report whose section 4 opens by
+saying it reports discrimination first. D-098 made `section_four_order` return the ground as well
+as the answer and gave it to section 4's brief alone; `ordered_briefs` now fills section 7's brief
+from the same function, with the sentence that says which way section 4 reported and, where it led
+with discrimination, the prohibition on the sentence this run wrote. One function fills both, so
+the two sections cannot disagree. This is the third instance in three follow-ups of one section
+reasoning correctly from an incomplete brief, and the fix is the same shape each time.
+
+**Nearness is not identity (D-105).** Appendix A reported "1 claim(s) rewritten and 5 number(s)
+removed" of a round that rewrote none and removed six, and `claims.json` carried a row saying the
+`1.92` of an ablation sentence became the `2` of "2 are known at origination".  `_pair` tried the
+claim id, failed — the re-draft dropped the sentence, and the id hashes the text — and fell through
+to "the nearest unpaired verified value within a tenth", which on a report of 167 claims is a
+coincidence waiting to happen. What the fallback is actually for is the two things a repair does to
+a line, and both leave the line's prose standing, so the test is now about the line: the claim's
+text with its citations and numbers removed, or the logical name it still cites. The reason the
+id-first pass cannot do that job is that `Claim.text` is the whole line including the citation
+(D-085), so attaching a citation changes the id — which the docstring claiming otherwise had wrong.
+Where a re-draft leaves neither link the round is recorded as a removal, which under-reports one
+rewrite and cannot invent a row joining two unrelated sentences; a reader can find the number in
+the prose and see it was not removed, whereas a false pairing invites them to believe a sentence
+about utilisation was corrected into a sentence about feature timing.
+
+**Two smaller ones, and one deferred nothing (D-106, D-107, D-108).** The prose reads "the timing
+screen flags 0.0 features": D-094 made integral values integers in the renderer's tables and left
+the drafting prompt out, and the prompt is the half a reader quotes. The loop's first step asked for
+a sub-population of `credit_limit` on a subject whose column is `limit_bal`, spending a model call
+and a tool call on a static fact, so `loop_prompt` now carries the data's own column names, read
+from the header of `data_<split>.csv` rather than from `package.yaml` — the subject's screen drops
+features before fitting, and what a slice can be taken on is what the data holds. And
+`retrieve_guidance` ranked one list across both corpus documents, so the data-quality and
+sensitivity queries returned three SR 11-7 spans each and no SR 26-2 span at all: sections 3 and 5
+could only open on text superseded in April 2026, while `SR26-2:IV.1` and `SR26-2:V.1.a` sat
+unretrieved. BM25 scores compare inside a document and not across two of different length and
+vocabulary, so a single ranked list chose the report's anchor by term frequency — which is not the
+retriever's decision to make. `k` becomes per document, the revision's spans first, and which to
+cite stays the drafter's choice under D-055 and `DRAFT_INSTRUCTION`. That instruction was already
+there and already obeyed; it did nothing for a section that was never shown a revision span, which
+is worth recording as the shape of a prompt fix that cannot work.
+
+**How the attempt is checked.** `tests/test_live_credit_attempt4.py` re-derives every figure
+`docs/EVALUATION.md` quotes from that directory's trace, claims, findings, index and 22 cassettes,
+and for each defect asserts both halves: the run's own six failures are the two halves of three
+literals and each literal verifies on this build; the twenty-four slice scalars were all selected
+for section 4 and the step's reason appears in no cassette's prompt; the monitoring selector still
+does not name `metrics.test.brier` and `artifact_briefs` now hands it over; the run's own two
+retrievals held no SR 26-2 span and `retrieve_per_document` offers three; and the pairing that
+produced Appendix A's false row is refused by `_pair` on the run's own two sentences.

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Final
@@ -318,6 +319,15 @@ def perturb(value: float, kind: str, item_id: str, seed: int = SEED) -> float:
     return transposed if transposed is not None else value * (1.0 + magnitude)
 
 
+_CITATION_RE: Final = re.compile(r"\[\[[^\]]*\]\]")
+"""Any double-bracket citation, whose hash and logical name are not claims (D-015)."""
+
+
+def _blank(match: re.Match[str]) -> str:
+    """Replace a matched region with spaces, keeping every offset after it where it was."""
+    return " " * len(match.group(0))
+
+
 def _written(value: float, unit: Unit) -> str:
     """Render a number the way a report would write it, with a per cent sign where one belongs."""
     text = f"{value:.4f}".rstrip("0").rstrip(".") if value != int(value) else f"{int(value)}"
@@ -352,10 +362,13 @@ def fake_extractor(unit: Unit = Unit.ratio) -> FakeLLM:
     """Return a `FakeLLM` that extracts the numbers of a prompt's prose deterministically.
 
     It reads the numbered prose out of the extraction prompt, takes every numeric token of every
-    line, and attaches the citation that follows the token on that line together with the line
-    number the prompt printed beside it (D-085). That is what a competent extractor
-    does, so the offline half measures the *matcher* and the pre-pass end to end while the live
-    half of Phase 13 measures a model.
+    line **outside a citation**, and attaches the citation that follows the token on that line
+    together with the line number the prompt printed beside it (D-085). That is what a competent
+    extractor does, so the offline half measures the *matcher* and the pre-pass end to end while
+    the live half of Phase 13 measures a model. The citation is blanked with spaces rather than
+    cut, so every offset still points where it did: ``[[art:2e30351e:answer]]`` holds the token
+    ``2e30351`` under the exponent-aware tokenizer of D-099, and a fake that claimed it would be
+    offering the matcher a number no report wrote.
 
     Args:
         unit: The unit to report for a token that carries no per cent sign.
@@ -370,7 +383,7 @@ def fake_extractor(unit: Unit = Unit.ratio) -> FakeLLM:
         for number, line in sorted(numbered_lines(prose).items()):
             if not line.strip():
                 continue
-            for offset, token in numeric_tokens(line):
+            for offset, token in numeric_tokens(_CITATION_RE.sub(_blank, line)):
                 rest = line[offset + len(token) :].lstrip()
                 citation = rest.split("]]", 1)[0] + "]]" if rest.startswith("[[art:") else None
                 claims.append(

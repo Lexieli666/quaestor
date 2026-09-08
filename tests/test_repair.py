@@ -258,3 +258,91 @@ def test_a_section_draft_reports_its_failures_and_their_messages(store: Artifact
     assert draft.section is SECTION
     assert len(draft.failures) == 1
     assert draft.problems and "no citation" in draft.problems[0]
+
+
+# --- nearness is not identity (DECISIONS D-105) -------------------------------------------------
+
+
+def test_the_fourth_live_run_s_pairing_is_a_removal_and_not_a_repair(tmp_path: Path) -> None:
+    """The attempt-4 case: `1.92` removed, and the unrelated verified `2` left where it was.
+
+    The flagged claim is the `1.92` of "changes test AUC by 1.92e-05" -- an exponent literal the
+    tokenizer of the day split in two (D-099) -- and the re-draft dropped the sentence. The `2` of
+    "2 are known at origination" survived it, verified, two per cent away, and the nearest-value
+    fallback paired the two: Appendix A reported one claim rewritten and five numbers removed of a
+    round that rewrote none and removed six, and the repairs table joined two unrelated sentences.
+    """
+    store = ArtifactStore(tmp_path / "attempt4")
+    store.put("ablation.utilisation.delta_auc", 1.9204697640939905e-05, ArtifactKind.scalar, "d")
+    store.put("run.features", {"at_origination": 2}, ArtifactKind.json, "features by timing")
+    delta = store.artifact("ablation.utilisation.delta_auc").citation()
+    timing = "[[art:" + store.artifact("run.features").hash[:8] + ":run.features#at_origination]]"
+    before = (
+        f"Refitting without utilisation changes test AUC by ⟦x⟧1.92 {delta}, a term barely used.\n"
+        f"Of these, 2 {timing} are known at origination."
+    ).replace("⟦x⟧", "")
+    after = f"Of these, 2 {timing} are known at origination."
+
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="attempt4")
+    outcome = repair_sections(
+        [draft_of(store, before)],
+        drafter=drafter_returning(after),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        trace=trace,
+        max_rounds=1,
+    )
+    assert outcome.rounds == 1
+    assert outcome.repairs == [], "the 1.92 was removed; nothing replaced it"
+    event = TraceReader(tmp_path / "trace.jsonl").events("repair")[0]
+    assert event.payload["removed"] == [1.92]
+    assert event.payload["repaired"] == []
+
+
+def test_a_number_the_re_draft_corrects_in_place_is_still_paired(store: ArtifactStore) -> None:
+    """D-105 restricts the fallback and must not switch it off: this is what it exists for."""
+    citation = store.artifact("metrics.test.auc").citation()
+    outcome = repair_sections(
+        [draft_of(store, f"The AUC is 0.7500 {citation}.")],
+        drafter=drafter_returning(f"The AUC is 0.7412 {citation}."),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        max_rounds=1,
+    )
+    assert [repair.after.value for repair in outcome.repairs] == [0.7412]
+
+
+def test_a_moved_sentence_pairs_by_the_logical_name_it_still_cites(
+    store: ArtifactStore,
+) -> None:
+    """The second ground: the re-draft moved the sentence and kept the citation (D-105)."""
+    citation = store.artifact("metrics.test.auc").citation()
+    outcome = repair_sections(
+        [draft_of(store, f"Discrimination reaches 0.7500 {citation} on the held-out split.")],
+        drafter=drafter_returning(f"Held out, the model reaches an AUC of 0.7412 {citation}."),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        max_rounds=1,
+    )
+    assert [repair.before.status for repair in outcome.repairs] == [ClaimStatus.mismatch]
+    assert [repair.after.value for repair in outcome.repairs] == [0.7412]
+
+
+def test_a_re_draft_that_leaves_no_link_at_all_is_recorded_as_a_removal(
+    store: ArtifactStore,
+) -> None:
+    """The boundary D-105 accepts: no shared line, no shared name, so no repairs row.
+
+    The number is still in the prose, and the round is counted as a removal. That is the direction
+    that cannot invent a row joining two unrelated sentences, which is the failure the fourth live
+    run's Appendix A actually shipped.
+    """
+    citation = store.artifact("metrics.test.auc").citation()
+    outcome = repair_sections(
+        [draft_of(store, "Discrimination on the held-out split reaches 0.7500.")],
+        drafter=drafter_returning(f"Held out, the model reaches an AUC of 0.7412 {citation}."),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        max_rounds=1,
+    )
+    assert outcome.repairs == []

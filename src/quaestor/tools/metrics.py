@@ -27,6 +27,7 @@ gap, which is the reading the golden report's prose and the threshold's own name
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from typing import Any, Final
 
 import numpy as np
@@ -40,7 +41,7 @@ from ..package import ThresholdSpec
 from . import stats
 from .frames import feature_frame, predictions, require_split, scored_frame
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
-from .thresholds import package_threshold_names
+from .thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR, package_threshold_names
 
 __all__ = [
     "THRESHOLD_TABLE",
@@ -365,8 +366,23 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
     def _subpopulation(
         self, ctx: ToolContext, splits: list[str], slice_: Subpopulation
     ) -> list[Artifact]:
-        """Compute the scalar metrics on one slice of each split."""
-        artifacts: list[Artifact] = []
+        """Compute the scalar metrics on one slice of each split, and how it reads.
+
+        Besides the eight scalars, each slice stores two numbers and the two bounds they are read
+        against: ``metrics.<split>.sub.<slug>.auc_gap``, the split's own AUC minus the slice's, and
+        ``metrics.<split>.sub.<slug>.share``, the slice's share of the split. They decide **where**
+        the result is reported -- a slice materially worse than the headline and large enough to
+        matter is a question for the model developer in section 6's open items, and any other slice
+        is supporting evidence in the section that computed it -- and they raise **no candidate**:
+        a model that discriminates less well on a segment selected by one of its own features is
+        usually a model conditioning correctly, and a rule that fired on it would be the false
+        alarm D-086 exists to refuse. Storing the two bounds is D-091: the sentence that says a
+        slice is materially worse cites the number that decided it (DECISIONS D-102).
+        """
+        artifacts: list[Artifact] = [
+            ctx.thresholds.artifact(ctx.store, SLICE_GAP_BOUND),
+            ctx.thresholds.artifact(ctx.store, SLICE_SHARE_FLOOR),
+        ]
         for split in splits:
             frame = scored_frame(ctx, split)
             if slice_.column not in frame.columns:
@@ -402,7 +418,39 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                 )
                 for metric in SCALAR_METRICS
             ]
+            artifacts += self._slice_reading(ctx, split, slice_, frame, values)
         return artifacts
+
+    @staticmethod
+    def _slice_reading(
+        ctx: ToolContext,
+        split: str,
+        slice_: Subpopulation,
+        frame: pd.DataFrame,
+        values: Mapping[str, float],
+    ) -> list[Artifact]:
+        """Store how one slice reads against its split: the AUC gap and the share of the rows."""
+        stem = f"metrics.{split}.sub.{slice_.slug}"
+        headline = f"metrics.{split}.auc"
+        stored: list[Artifact] = [
+            ctx.store.put(
+                f"{stem}.share",
+                float(values["n"]) / float(len(frame)),
+                ArtifactKind.scalar,
+                f"the share of {split} the {slice_.column} {slice_.rule} slice holds",
+            )
+        ]
+        if headline in ctx.store:
+            stored.append(
+                ctx.store.put(
+                    f"{stem}.auc_gap",
+                    ctx.store.value(headline) - values["auc"],
+                    ArtifactKind.scalar,
+                    f"how far AUC on the {slice_.column} {slice_.rule} slice of {split} falls "
+                    f"below AUC on all of {split}",
+                )
+            )
+        return stored
 
     @staticmethod
     def _mask(frame: pd.DataFrame, slice_: Subpopulation) -> pd.Series[bool]:

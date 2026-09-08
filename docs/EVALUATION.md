@@ -2,7 +2,8 @@
 
 Every number in this file comes from a run committed in this repository, and the run is named
 where the number is used. `tests/test_live_credit_attempt1.py`,
-`tests/test_live_credit_attempt2.py` and `tests/test_live_credit_attempt3.py` re-derive each
+`tests/test_live_credit_attempt2.py`, `tests/test_live_credit_attempt3.py` and
+`tests/test_live_credit_attempt4.py` re-derive each
 figure of section 1 from the trace it claims to come from, so a number that drifts from its run fails the suite rather than sitting in a
 document. Where a figure was computed from a file the repository deliberately
 does *not* hold — a real sample's rows — it says so at the point of use.
@@ -188,7 +189,7 @@ finding at any severity, exit 0.
 | candidates raised | **none**, by any of the 13 |
 | plan steps (bounded loop) | 1 — the model stopped at once |
 | claim checks | **247**: 244 verified, 2 unattributed, 1 unsupported |
-| repair rounds | **2** — section 3 (`9.982` and `6`) and section 4 (`50`); all three numbers were **removed**, none rewritten |
+| repair rounds | **2** — section 3 (`9.982` and `6`) and section 4 (`50`); all three numbers were **removed**, none rewritten. The first two are **one defect, not two numbers**: the section wrote `9.982e-06` and the tokenizer of the day had no exponent form, so it split the literal into `9.982` and `06` and no claim could ever have covered either half. It is D-099, found on the fourth attempt and unrecognised here |
 | claims, post-repair | **159**, all verified |
 | findings | **0** |
 | output tokens | **104,675** — 525 plan, 34,003 draft, 70,147 extract |
@@ -264,5 +265,129 @@ denser report is more to think about — and reasoning is now **68% of everythin
 generates**. That is where the next cost decision has to look, and this entry claims no saving the
 trace does not show.
 
+### 2026-09-08 — `credit_default`, `full_agent`, Claude CLI — fourth attempt, and the first loop
+
+The record is `eval/results/first-live/credit-attempt4/`.
+
+**The run.** The same command as the first three attempts, on a build carrying D-084 to D-098. It
+rendered: 161 post-repair claims, grounding precision 0.9641 before repair and 1.0000 after, no
+finding at any severity, exit 0. It is the first attempt in which the **bounded follow-up loop did
+anything**: four steps, three of them executed.
+
+| quantity | value |
+|---|---|
+| model calls | **22** — 4 plan, 9 draft, 9 extract; no re-ask. Seven sections, plus one repair re-draft each for sections 2 and 3 and their re-extractions |
+| model | `claude-opus-5[1m]`, through `ClaudeCLILLM` — on every one of the 22 calls |
+| tool calls | **17** — the 13 of the rule-based plan, plus the loop's four `compute_metrics` calls, one of which raised — 3.16 s in total, over 192 artifacts |
+| candidates raised | **none**, by any of the 16 that ran |
+| plan steps (bounded loop) | **4**, all accepted; step 1's tool raised and steps 2, 3 and 4 executed |
+| claim checks | **262**: 256 verified, 6 unattributed, 0 unsupported, 0 mismatched, 0 dangling |
+| repair rounds | **2** — section 2 (`1.92`, `5`, `-5.589`, `5`) and section 3 (`9.982`, `6`) |
+| claims, post-repair | **161**, all verified |
+| findings | **0** |
+| output tokens | **77,808** — 1,357 plan, 31,221 draft, 45,230 extract |
+| input tokens | **219,975**, and the cassettes record the same figure: D-093's three-field sum agrees with the record for the first time |
+| longest single call | an extraction: **9,359 output tokens, 102.9 s** |
+| notional cost | **$4.1603**, of which $1.8347 extraction, $1.9922 drafting, $0.3333 the four plan steps |
+| wall-clock | **15:09** from the first traced event to the last (908.59 s) |
+| report written | **yes** |
+
+**Every number in the report verifies, and its own record is accurate.** The three things D-093
+fixed hold: the front matter names `claude-opus-5[1m]` and not the adapter, the `run_id` carries
+the run's own UTC second (`credit_default-full_agent-20260908T090332Z-d03b07c6`), and Appendix C's
+input-token figure is the one the cassettes carry. D-092's `thresholds.evaluation` table replaced
+the drafted one and no row of it is wrong. What the reading found instead is **six failed claims
+that are all one tokenizer defect**, and **six sentences or omissions that are all one shape**: a
+section reasoning correctly from a brief that did not carry the fact its sentence needed.
+
+**One defect, six claims.** The six pre-repair failures are `1.92`, `5`, `-5.589`, `5`, `9.982`
+and `6`. There are three literals: `1.92e-05` and `-5.589e-05` in section 2's ablation sentences
+and `9.982e-06` in section 3's characteristic-shift list. `NUMERIC_TOKEN_RE` had no exponent form,
+so each split into a mantissa the artifact does not hold and a bare exponent — `1.92` and `05` —
+and the pre-pass counted both against the report. Attempt 3's two removals of `9.982` and `6` were
+the same defect one run earlier, recorded there as an extraction miss; that entry is amended above.
+The drafter did not invent the notation: `json.dumps` writes a value of 1.9e-05 at four significant
+figures as `1.92e-05`, and the drafting prompt is where it came from. So the pipeline taught the
+drafter a form its own verifier could not read, and the grounding precision this project asks to be
+judged on paid for it.
+
+**The loop worked, and the report does not say so.** Step 1 asked `compute_metrics` for a
+sub-population of `credit_limit`; the column is `limit_bal`, the tool raised, D-088 caught it and
+D-090's history block carried the message into step 2, which asked again correctly. Steps 2, 3 and
+4 computed `metrics.test.sub.limit_bal_low.*`, `.limit_bal_high.*` and `.delinq_count_6m_eq_0.*`.
+The third is the observation of the run:
+
+| | test split | `delinq_count_6m == 0` |
+|---|---|---|
+| rows | 9,000 | **6,048** |
+| AUC | 0.7550 | **0.5875** |
+| Gini | 0.5100 | **0.1749** |
+| event rate | 0.2213 | 0.1212 |
+
+On two thirds of the held-out split the model ranks barely better than a coin. Section 4's selector
+matched all twenty-four of the loop's scalars and its drafter was shown every one of them, and the
+report mentions none: the brief does not ask for them and the step's own stated reason —
+"discrimination and calibration often collapse on the never-delinquent majority segment, which no
+prior call examined" — was never passed to any prompt. That is the single largest thing this run
+found and failed to surface, and it is what D-101 and D-102 are for. The number is not by itself a
+defect: conditioning on a delinquency count also conditions on its correlates, so the segment is
+also one of near-constant delinquency history, and what a developer should be asked is what the
+model discriminates on inside it.
+
+| # | what the live run exposed | kind | fixed in |
+|---|---|---|---|
+| DECISIONS D-099 | `NUMERIC_TOKEN_RE` had no exponent form, so `1.92e-05` tokenised as `1.92` and `05`. All six pre-repair failures are this one cause, over three literals, and attempt 3's `9.982`/`6` removals were the same defect unrecognised. Exponent notation is now one token, and the tolerance is the mantissa's precision at the exponent's scale — `1.920e-05` claims 10^-8 and is held to half of it. | defect | this commit |
+| DECISIONS D-100 | Section 7 wrote that "no recomputed test Brier value is carried in this report's artifact store" while `metrics.test.brier` sat in the store and was cited in three other sections: the monitoring selector listed the declared ceiling and hand-listed three of the four recomputed values. Every section shown a declared bound is now shown the recomputed value for it, derived from the `thresholds.evaluation` rows, and `DRAFT_INSTRUCTION` forbids any section to call a quantity absent. | defect | same commit |
+| DECISIONS D-101 | Three executed loop steps and twenty-four scalars reached the store and nothing reached the prose. A section whose selector matched a step's artifacts is now shown the step, its arguments and its `why`, and must report it under a required `### Follow-up analyses` subsection. | gap | same commit |
+| DECISIONS D-102 | A follow-up result had no route to a developer's attention. A slice whose AUC gap exceeds `threshold.O1.slice_auc_gap` on at least `threshold.O1.slice_min_share` of the split is an open item in section 6 — a question, not a verdict — and both bounds are stored artifacts so the sentence can cite them. On this run's numbers the never-delinquent segment qualifies at 0.1676 and neither `limit_bal` half does. | gap | same commit |
+| DECISIONS D-103 | Section 6, with nothing raised, enumerated seven reviews including "input data lineage" and "documentation of intended use and known limitations" — on a package whose Appendix D says it has no `docs/`. The prompt had asked it to "say what was checked instead" without giving it the list. It is now forbidden to describe what was reviewed; the renderer's "Checks that ran and raised no candidate" line is the enumeration. | defect | same commit |
+| DECISIONS D-104 | Section 7 recommended leading with calibration below a 0.05 event rate "as this report does"; section 4 of the same report led with discrimination, and said so in its opening sentence. Section 4's ordering decision, rule and all, is now passed into section 7's brief. | defect | same commit |
+| DECISIONS D-105 | Appendix A reported "1 claim(s) rewritten and 5 number(s) removed" of a round that rewrote none and removed six: `_pair`'s nearest-value fallback paired the removed `1.92` with the unrelated verified `2` of "2 are known at origination". The fallback now needs the same line — citations and numbers removed — or the same cited logical name. | defect | same commit |
+| DECISIONS D-106 | The prose reads "flags 0.0 features": D-094 made integral values integers in the renderer's tables and left the drafting prompt out. | defect | same commit |
+| DECISIONS D-107 | Step 1 asked for a sub-population of `credit_limit` on a subject whose column is `limit_bal`, spending a model call and a tool call on a static fact. The loop prompt now lists the data's columns. | cost | same commit |
+| DECISIONS D-108 | `retrieve_guidance` ranked one list across both corpus documents, so the data-quality and sensitivity queries returned three SR 11-7 spans each and no SR 26-2 span at all, and sections 3 and 5 opened on text superseded in April 2026 while `SR26-2:IV.1` and `SR26-2:V.1.a` sat unretrieved. `k` is now per document, the revision's spans first, and which to cite stays the drafter's choice under D-055. | defect | same commit |
+
+All ten ship in one commit, which cannot cite its own hash; the run-log line under Phase 9 in
+`PROGRESS.md` is written in the same commit.
+
+**What the six prose defects have in common.** Not one is a hallucination and not one is an
+arithmetic slip. In every case the drafter reasoned correctly over what its prompt carried, and its
+prompt was missing the fact the sentence needed: section 7 had a Brier ceiling and no Brier value,
+and had section 4's ordering rule but not section 4's ordering; section 6 was asked for a list of
+checks it had never been given; section 4 had twenty-four numbers and no question. That is the same
+shape as D-084, D-091 and D-092 — a fact one part of the pipeline knew and another did not — which
+is now the commonest of the twenty-four defects the four live runs have found. The fix is the same
+shape too, and it is not a prompt instruction on its own: put the fact where the sentence that
+needs it can see it, and say the rule once for every section rather than in the brief of the
+section that got it wrong.
+
+**What D-085 cost and saved on this run, and what that measures.** Attempt 3's entry measured
+D-085's line-index change and reported that extraction output had gone *up*. On this run it is down:
+
+| | attempt 3 | attempt 4 |
+|---|---|---|
+| extraction calls | 9 | 9 |
+| claim checks | 247 | 262 |
+| extraction output, total | 70,147 | 45,230 |
+| **extraction output per claim check** | **284** | **173** |
+| notional cost, whole run | $4.3822 | $4.1603 |
+| wall-clock, whole run | 1,217.79 s | 908.59 s |
+
+**None of that is a saving, and this entry does not claim one.** The extractor's code did not change
+between the two runs: D-085 shipped before attempt 3, and nothing in `verifier/extract.py` differs
+between the two builds. What differs is the report — a longer section 2 with an ablation family,
+a shorter section 4 — and how much the model chose to think. Two runs of one prompt on one model,
+n = 1 each, are a measurement of run-to-run variance and of nothing else, and the honest reading of
+the two entries together is that the reasoning half of an extraction call is not stable enough for
+either number to be evidence about the field D-085 removed. A cost claim about extraction needs
+repeated runs, which is Phase 12's business.
+
+**What the loop is worth, so far.** One live run of the bounded loop, four steps, $0.3333 and
+30.5 s of model time, one column name the tool refused, and one observation — AUC 0.5875 on 6,048 of
+9,000 test rows — that no rule in this project screens for and no other part of the pipeline would
+have produced. It is also the strongest argument yet for the seeded-defect study's third
+configuration: the rules found nothing on this panel, and the model's own question found the thing
+a validator would most want to ask about.
+
 **Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, and a `credit_default`
-attempt on a build carrying D-091 to D-098. Both are the operator's, and neither has happened.
+attempt on a build carrying D-099 to D-108. Both are the operator's, and neither has happened.

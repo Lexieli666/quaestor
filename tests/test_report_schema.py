@@ -17,6 +17,7 @@ import pytest
 from quaestor.errors import ReportSchemaError
 from quaestor.report.schema import (
     APPENDIX_A_HEADING,
+    FOLLOW_UPS_HEADING,
     OPEN_ITEMS_HEADING,
     REPORT_SCHEMA,
     REQUIRED_HEADINGS,
@@ -202,3 +203,47 @@ def test_the_schema_declares_the_three_refusal_rules_the_renderer_implements() -
     assert any("front matter" in rule for rule in rules)
     assert any("Appendix A" in rule for rule in rules)
     assert any("⟦unverified" in rule for rule in rules)
+
+
+# --- the follow-up subsection (DECISIONS D-101) -------------------------------------------------
+
+
+def test_a_section_the_loop_ran_a_step_for_must_carry_the_follow_up_heading() -> None:
+    """The assertion that the renderer supplied the heading; it can never refuse a live run."""
+    report = MINIMAL_REPORT + "\n" + required_renderer_blocks()[0]["begin"] + "\n"
+    problems = check_structure(
+        report,
+        configuration=Configuration.full_agent,
+        follow_up_headings=["## 4. Outcomes analysis"],
+    )
+    assert any(FOLLOW_UPS_HEADING in problem for problem in problems)
+    assert any("## 4. Outcomes analysis" in problem for problem in problems)
+
+
+def test_the_follow_up_heading_is_looked_for_inside_its_own_section() -> None:
+    """A heading under section 5 does not satisfy the rule for section 4."""
+    lines = MINIMAL_REPORT.splitlines()
+    at_four = lines.index("## 4. Outcomes analysis")
+    with_it = "\n".join([*lines[: at_four + 1], FOLLOW_UPS_HEADING, *lines[at_four + 1 :]])
+    report = with_it + "\n" + required_renderer_blocks()[0]["begin"] + "\n"
+    assert (
+        check_structure(
+            report,
+            configuration=Configuration.full_agent,
+            follow_up_headings=["## 4. Outcomes analysis"],
+        )
+        == []
+    )
+    assert any(
+        FOLLOW_UPS_HEADING in problem
+        for problem in check_structure(
+            report,
+            configuration=Configuration.full_agent,
+            follow_up_headings=["## 5. Sensitivity and scenario analysis"],
+        )
+    )
+
+
+def test_no_section_is_asked_for_the_subsection_when_the_loop_ran_no_step() -> None:
+    report = MINIMAL_REPORT + "\n" + required_renderer_blocks()[0]["begin"] + "\n"
+    assert check_structure(report, configuration=Configuration.full_agent) == []

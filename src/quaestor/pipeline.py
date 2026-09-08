@@ -66,9 +66,17 @@ from .report.repair import (
     repair_sections,
     wrap_unverified,
 )
-from .report.sections import ArtifactBrief, SectionBrief, artifact_briefs, ordered_briefs
+from .report.sections import (
+    ArtifactBrief,
+    FollowUp,
+    SectionBrief,
+    artifact_briefs,
+    follow_up_for,
+    ordered_briefs,
+    sections_for_follow_up,
+)
 from .tools import ToolContext, ToolResult, default_registry, guidance_name
-from .tools.thresholds import Thresholds
+from .tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR, Thresholds
 from .trace import EventType, TraceEvent, TraceReader, TraceWriter
 from .verifier.claim import Claim, VerifiedClaim
 from .verifier.claims_doc import ClaimsDocument
@@ -323,6 +331,28 @@ def _profile_for_baseline(out_dir: Path, store: ArtifactStore, split: str = "tra
     return profile
 
 
+def _data_columns(ctx: ToolContext) -> list[str]:
+    """Return the columns of the split the loop can slice on, for the plan prompt (D-107).
+
+    The first declared split's ``data_<split>.csv`` header, read without its rows. On the fourth
+    live run the loop's first step asked ``compute_metrics`` for a sub-population of
+    ``credit_limit``, which is not a column of this subject -- the column is ``limit_bal`` -- and
+    spent a step and a tool call being told the list the prompt could have carried.
+
+    Args:
+        ctx: The run's context, whose ``out_dir`` holds the subject's contract files.
+
+    Returns:
+        The column names, or an empty list when the file is not there yet -- a configuration that
+        does not run the subject has no data for the loop to slice.
+    """
+    for split in ctx.splits:
+        path = ctx.out_dir / f"data_{split}.csv"
+        if path.is_file():
+            return [str(name) for name in pd.read_csv(path, nrows=0).columns]
+    return []
+
+
 def _payload(store: ArtifactStore, name: str) -> Any:
     """Return one JSON artifact's payload, or an empty object when the run did not write it."""
     return store.load(name) if name in store else {}
@@ -401,26 +431,65 @@ def _current_first(spans: Sequence[GuidanceSpan]) -> list[GuidanceSpan]:
     ]
 
 
+def _follow_ups(
+    store: ArtifactStore,
+    briefs: Sequence[SectionBrief],
+    executed: Sequence[tuple[PlannedCall, Sequence[str]]],
+) -> dict[ReportSection, list[FollowUp]]:
+    """Assign each executed step of the bounded loop to the sections asked to report it.
+
+    A section whose selector matched the step's artifacts reports it under
+    ``### Follow-up analyses``; section 6 is given the steps whose result is materially worse than
+    the headline and writes those as open items (DECISIONS D-101, D-102).
+
+    Args:
+        store: The run's artifact store, which holds the gap, the share and the two bounds.
+        briefs: The seven briefs, in report order.
+        executed: The loop's accepted-and-executed calls, each with the logical names it added.
+
+    Returns:
+        Section to follow-ups, in the order the loop ran them.
+    """
+    assigned: dict[ReportSection, list[FollowUp]] = {}
+    for call, added in executed:
+        follow_up = follow_up_for(store, call.tool, dict(call.args), call.why, added)
+        wanted = sections_for_follow_up(briefs, follow_up)
+        if follow_up.material:
+            wanted = [*wanted, ReportSection.findings]
+        for section in wanted:
+            assigned.setdefault(section, []).append(follow_up)
+    return assigned
+
+
 def _draft_inputs(
     store: ArtifactStore,
     briefs: Sequence[SectionBrief],
     candidates_by_section: Mapping[ReportSection, list[FindingCandidate]],
     spans: Mapping[ReportSection, list[GuidanceSpan]],
     findings: Sequence[Finding],
+    follow_ups: Mapping[ReportSection, list[FollowUp]] | None = None,
 ) -> dict[ReportSection, DraftInputs]:
     """Assemble, per section, everything the drafter is allowed to see."""
+    assigned = dict(follow_ups or {})
     evidence_names = sorted(
         {store.get(digest).name for finding in findings for digest in finding.evidence}
     )
+    open_item_names = sorted(
+        {name for item in assigned.get(ReportSection.findings, []) for name in item.artifacts}
+        | ({SLICE_GAP_BOUND, SLICE_SHARE_FLOOR} if ReportSection.findings in assigned else set())
+    )
     inputs: dict[ReportSection, DraftInputs] = {}
     for brief in briefs:
-        extra = evidence_names if brief.section is ReportSection.findings else ()
+        extra: Sequence[str] = ()
+        if brief.section is ReportSection.findings:
+            extra = [*evidence_names, *open_item_names]
         artifacts: list[ArtifactBrief] = artifact_briefs(store, brief, extra=extra)
         inputs[brief.section] = DraftInputs(
             artifacts=artifacts,
             spans=spans.get(brief.section, []),
             candidates=candidates_by_section.get(brief.section, []),
             findings=list(findings) if brief.section is ReportSection.findings else [],
+            follow_ups=assigned.get(brief.section, []),
         )
     return inputs
 
@@ -647,12 +716,21 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
         candidates = list(loaded.pre_run_candidates()) + candidates
 
     steps: list[PlanStep] = []
+    executed: list[tuple[PlannedCall, tuple[str, ...]]] = []
     if spec_config.max_follow_ups:
 
         def _execute(call: PlannedCall) -> ToolResult:
+            known = set(store.names())
             result = registry.call(call.tool, dict(call.args), ctx)
             results.append(result)
             candidates.extend(result.candidates)
+            # What the step *added*, not everything it stored: a follow-up `compute_metrics`
+            # recomputes every split's metrics on its way to the slice, and routing the step by
+            # names the rule-based plan had already produced would report it in whichever section
+            # cites `metrics.test.auc` (D-101).
+            executed.append(
+                (call, tuple(name for name in result.artifact_names if name not in known))
+            )
             return result
 
         steps = follow_up_plan(
@@ -663,6 +741,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
             completed=completed_calls(plan, results),
             artifact_names=store.names(),
             roots=[out_dir] + ([Path(data_dir)] if data_dir is not None else []),
+            data_columns=_data_columns(ctx),
             max_steps=spec_config.max_follow_ups,
             trace=trace,
             execute=_execute,
@@ -701,7 +780,10 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     spans = _guidance(store)
     from .report.drafter import merge_candidates  # noqa: PLC0415 - one caller, one import
 
-    inputs = _draft_inputs(store, briefs, merge_candidates(candidates), spans, document.findings)
+    follow_ups = _follow_ups(store, briefs, executed)
+    inputs = _draft_inputs(
+        store, briefs, merge_candidates(candidates), spans, document.findings, follow_ups
+    )
     drafter = Drafter(
         llm,
         package=loaded.spec.name,
@@ -745,6 +827,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
                 spans=inputs[brief.section].spans,
                 candidates=inputs[brief.section].candidates,
                 findings=inputs[brief.section].findings,
+                follow_ups=inputs[brief.section].follow_ups,
             )
             for brief in briefs
         }
@@ -826,6 +909,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
         store=store,
         events=events,
         not_checked=_not_checked(loaded, spec_config, tools_run, developer_note),
+        follow_ups=follow_ups,
         model_id=_model_id(events),
         quaestor_version=quaestor_version or _quaestor_version(),
         generated=started,

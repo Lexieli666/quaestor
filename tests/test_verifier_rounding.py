@@ -39,6 +39,9 @@ def store(tmp_path: Path) -> ArtifactStore:
     store.put("metrics.test.event_rate", 0.2212, ArtifactKind.scalar)
     store.put("metrics.test.n", 1500, ArtifactKind.scalar)
     store.put("vif.utilisation", 4.3149, ArtifactKind.scalar)
+    store.put("ablation.utilisation.delta_auc", 1.9204697640939905e-05, ArtifactKind.scalar)
+    store.put("ablation.pay_ratio_last.delta_auc", -5.589426925389773e-05, ArtifactKind.scalar)
+    store.put("csi.bill_mean_6m", 9.982086887188549e-06, ArtifactKind.scalar)
     return store
 
 
@@ -146,3 +149,43 @@ def test_a_declared_rounding_narrows_and_cannot_widen(store: ArtifactStore) -> N
     tight = match_claim(written(store, "4.31", "vif.utilisation", rounding=4), store)
     assert loose.status is ClaimStatus.verified
     assert tight.status is ClaimStatus.mismatch
+
+
+# --- exponent notation (DECISIONS D-099) --------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("token", "decimals"),
+    [("1.92e-05", 7), ("-5.589e-05", 8), ("9.982e-06", 9), ("1.920e-05", 8), ("5e3", -3)],
+)
+def test_the_exponent_shifts_the_place_value_of_the_last_digit(token: str, decimals: int) -> None:
+    """The mantissa keeps the precision and the exponent moves it: 1.920e-05 claims 10^-8."""
+    assert written_decimals(float(token), f"the figure is {token} on the test split.") == decimals
+
+
+@pytest.mark.parametrize(
+    ("token", "name"),
+    [
+        ("1.92e-05", "ablation.utilisation.delta_auc"),
+        ("1.920e-05", "ablation.utilisation.delta_auc"),
+        ("-5.589e-05", "ablation.pay_ratio_last.delta_auc"),
+        ("9.982e-06", "csi.bill_mean_6m"),
+    ],
+)
+def test_the_fourth_live_run_s_exponent_claims_verify(
+    store: ArtifactStore, token: str, name: str
+) -> None:
+    """The three literals of the fourth live run, and the extra decimal D-099's test asks for.
+
+    Every one of them was `unattributed` on that run -- the tokenizer split `1.92e-05` into 1.92
+    and 05, so no claim could ever have covered either half.
+    """
+    match = match_claim(written(store, token, name), store)
+    assert match.status is ClaimStatus.verified, match.message
+    assert match.claim.value == pytest.approx(float(token))
+
+
+def test_an_exponent_claim_one_order_out_still_does_not_verify(store: ArtifactStore) -> None:
+    """The tolerance is the mantissa's precision scaled, not the mantissa's precision."""
+    match = match_claim(written(store, "1.92e-04", "ablation.utilisation.delta_auc"), store)
+    assert match.status is ClaimStatus.mismatch

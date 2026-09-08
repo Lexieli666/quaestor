@@ -36,8 +36,10 @@ from ..verifier.claim import Claim, ClaimSource, Unit
 from ..vocab import ReportSection
 from .sections import (
     DEFECT_CLASS_NAMES,
+    FOLLOW_UPS_HEADING,
     OPEN_ITEMS_HEADING,
     ArtifactBrief,
+    FollowUp,
     SectionBrief,
     written_number,
 )
@@ -74,6 +76,11 @@ Rules, all of them checked after you answer:
   the JSON below. A number with no citation is counted against this report.
 - Write no number that is not in the JSON below. If you want to say something the artifacts do not
   support, say it in words without a number.
+- The artifacts below are **this section's selection, not the store**. Never write that a quantity
+  is absent, uncomputed, not recomputed, not available or "not carried": another section may hold
+  it, and a report that says one section's selection is the whole run contradicts itself. Say what
+  the numbers you have show, and where you need one you were not given, write the sentence without
+  it.
 - One sentence per line. The claim extractor works line by line, so a sentence split over two
   lines is two claims and a paragraph on one line is one.
 - For a table artifact, do not retype the cells. Write the directive [[table:<logical_name>]] on a
@@ -252,13 +259,68 @@ def _candidates_block(candidates: Sequence[FindingCandidate]) -> str:
     return "\n".join(lines)
 
 
+def _follow_ups_block(follow_ups: Sequence[FollowUp], section: ReportSection) -> str:
+    """Render the executed follow-up steps a section is asked to report.
+
+    The step's own ``why`` is the half that was missing: on the fourth live run the loop asked for
+    three sub-population recomputations, each with a stated reason, and the drafter of the section
+    whose selector matched their artifacts was shown the twenty-four numbers and none of the three
+    questions -- so it answered its brief, which does not ask, and wrote about none of them
+    (DECISIONS D-101).
+
+    Section 6 is asked for a different sentence about the same step. It is given only the steps
+    whose result is materially worse than the headline, and it writes each as an open item -- a
+    request for a developer response -- rather than under a heading of its own (D-102).
+    """
+    if not follow_ups:
+        return ""
+    lines = [
+        "",
+        "Follow-up analyses the bounded planning loop ran, whose artifacts are among those above:",
+    ]
+    for follow_up in follow_ups:
+        lines.append(
+            f"- {follow_up.tool}({json.dumps(dict(follow_up.args), sort_keys=True)})"
+            f" -- why: {follow_up.why}"
+        )
+        lines.append(f"  artifacts: {', '.join(follow_up.artifacts)}")
+        if follow_up.detail:
+            lines.append(f"  materiality: {follow_up.detail}")
+    if section is ReportSection.findings:
+        lines.append(
+            "Each of those is an open item and not a finding: no rule fired on any of them. Write "
+            f"one line per step under `{OPEN_ITEMS_HEADING}`, asking the model developer what the "
+            "model discriminates on inside that segment, and cite the slice's own value, the "
+            "headline it is compared with and the bound the comparison was made against."
+        )
+    else:
+        lines.append(
+            f"Report every one of them under the heading `{FOLLOW_UPS_HEADING}`, written exactly "
+            "like that on a line of its own and placed after the rest of this section: for each, "
+            "what was asked, why it was asked, and what the numbers say, every number carrying its "
+            "citation. A step the run paid for and the report does not mention is a question a "
+            "reader cannot see was asked."
+        )
+    return "\n".join(lines) + "\n"
+
+
 def _findings_block(findings: Sequence[Finding]) -> str:
-    """Render the findings section 6 must write about, each with the heading to copy."""
+    """Render the findings section 6 must write about, each with the heading to copy.
+
+    With no finding to write about, the instruction is one sentence and a prohibition. The fourth
+    live report's section 6 said no finding was raised and then listed seven reviews it had carried
+    out, two of which -- "input data lineage" and "documentation of intended use and known
+    limitations" -- were reviews no check performed, on a package whose Appendix D says it has no
+    docs directory. The enumeration a reader needs is the renderer's own "Checks that ran and
+    raised no candidate" line, built from the run's record, so the drafter is asked not to write a
+    second one (DECISIONS D-103).
+    """
     if not findings:
         return (
-            "\nNo finding was raised. Say so in one sentence, say what was checked instead, and "
-            f"then write the {OPEN_ITEMS_HEADING!r} subsection your brief describes: a validation "
-            "that raised no finding still owes the developer the observations it made.\n"
+            "\nNo finding was raised. Say so in one sentence and do not describe what was reviewed "
+            "instead: the renderer prints the checks that ran and raised no candidate beneath your "
+            f"prose. Then write the {OPEN_ITEMS_HEADING!r} subsection your brief describes: a "
+            "validation that raised no finding still owes the developer the observations it made.\n"
         )
     lines = ["\nFindings to write about, in this order, each under the heading given:"]
     for finding in findings:
@@ -312,6 +374,7 @@ class Drafter:
         spans: Sequence[GuidanceSpan] = (),
         candidates: Sequence[FindingCandidate] = (),
         findings: Sequence[Finding] = (),
+        follow_ups: Sequence[FollowUp] = (),
         previous: str | None = None,
         problems: Sequence[str] = (),
     ) -> str:
@@ -323,15 +386,16 @@ class Drafter:
             spans: The guidance retrieved for it.
             candidates: The candidates raised on its material.
             findings: The findings it must write about; section 6 only.
+            follow_ups: The bounded loop's executed steps whose artifacts this section was shown.
             previous: The draft being repaired, or ``None`` on the first round.
             problems: The verifier's sentences for the claims that did not verify.
 
         Returns:
             The prompt text.
         """
-        extra = ""
+        extra = _follow_ups_block(follow_ups, brief.section)
         if findings or brief.section is ReportSection.findings:
-            extra = _findings_block(findings)
+            extra += _findings_block(findings)
         if previous is not None and problems:
             extra += "\n" + REPAIR_INSTRUCTION.format(
                 previous=previous, problems="\n".join(f"- {problem}" for problem in problems)
@@ -355,6 +419,7 @@ class Drafter:
         spans: Sequence[GuidanceSpan] = (),
         candidates: Sequence[FindingCandidate] = (),
         findings: Sequence[Finding] = (),
+        follow_ups: Sequence[FollowUp] = (),
         previous: str | None = None,
         problems: Sequence[str] = (),
     ) -> str:
@@ -366,6 +431,7 @@ class Drafter:
             spans: The guidance retrieved for it.
             candidates: The candidates raised on its material.
             findings: The findings it must write about; section 6 only.
+            follow_ups: The bounded loop's executed steps whose artifacts this section was shown.
             previous: The draft being repaired, or ``None`` on the first round.
             problems: The verifier's sentences for the claims that did not verify.
 
@@ -384,6 +450,7 @@ class Drafter:
                 spans=spans,
                 candidates=candidates,
                 findings=findings,
+                follow_ups=follow_ups,
                 previous=previous,
                 problems=problems,
             ),

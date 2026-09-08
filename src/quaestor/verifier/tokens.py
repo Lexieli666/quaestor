@@ -54,8 +54,17 @@ returns for a token inside inline code, a citation's hash, a heading or a render
 therefore dropped rather than counted, and the number it wrote is published here so that the
 dropping is auditable rather than silent (DECISIONS D-077)."""
 
-NUMERIC_TOKEN_RE: Final = re.compile(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?%?")
-"""Every numeric token in prose. The same expression ``tests/test_golden_spec.py`` check 7 uses."""
+NUMERIC_TOKEN_RE: Final = re.compile(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?:[eE][+-]?\d+)?%?")
+"""Every numeric token in prose. The same expression ``tests/test_golden_spec.py`` check 7 uses.
+
+The exponent group is one token with the mantissa, not two numbers beside it. Without it
+``1.92e-05`` tokenised as ``1.92`` and ``05``: the mantissa's own claim could never verify -- the
+artifact holds 0.0000192 -- and the exponent's digits became a second, invented claim of five. All
+six pre-repair failures of the fourth live ``credit_default`` run were that one defect, over the
+three literals ``1.92e-05``, ``-5.589e-05`` and ``9.982e-06`` (DECISIONS D-099). The drafter writes
+exponent notation because that is how ``json.dumps`` prints a value of 1.9e-05 at four significant
+figures, so the tokenizer has to read what the prompt taught it to write.
+"""
 
 _RENDERER_BLOCK_RE: Final = re.compile(
     r"<!--\s*quaestor:renderer:begin.*?-->.*?<!--\s*quaestor:renderer:end\s*-->", re.DOTALL
@@ -185,10 +194,12 @@ def token_value(token: str) -> float:
     """Return the number a token writes, without its separators or per cent sign.
 
     Args:
-        token: A numeric token such as ``3,500`` or ``22.0%``.
+        token: A numeric token such as ``3,500``, ``22.0%`` or ``1.92e-05``.
 
     Returns:
-        The number as written: ``3500.0``, ``22.0``.
+        The number as written: ``3500.0``, ``22.0``, ``1.92e-05``. ``float`` reads the exponent
+        form itself, so the mantissa and the exponent are one value here exactly as they are one
+        token in :data:`NUMERIC_TOKEN_RE`.
     """
     return float(token.replace(",", "").rstrip("%"))
 

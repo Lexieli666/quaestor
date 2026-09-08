@@ -28,7 +28,10 @@ Three families of name appear in the store:
 ``rule.calibration_first_event_rate`` is neither: it is not a pass/fail bound but the event rate
 below which the report puts calibration before discrimination (spec section 3.11), and it is
 carried here because it is the same kind of thing -- a number a check applies that a reader is
-entitled to cite.
+entitled to cite. ``threshold.O1.slice_auc_gap`` and ``threshold.O1.slice_min_share`` are two more
+of that kind: they raise no candidate and decide only where a sub-population's result is reported,
+and they are here because a sentence that says a slice is materially worse has to be able to cite
+the number that decided it (DECISIONS D-102).
 """
 
 from __future__ import annotations
@@ -43,11 +46,29 @@ from ..package import ThresholdSpec
 __all__ = [
     "DEFAULT_THRESHOLDS",
     "EFFECTIVE_SUFFIX",
+    "SLICE_GAP_BOUND",
+    "SLICE_SHARE_FLOOR",
     "THRESHOLD_SUMMARIES",
     "Thresholds",
     "effective_name",
     "package_threshold_names",
 ]
+
+SLICE_GAP_BOUND: Final = "threshold.O1.slice_auc_gap"
+"""How far a sub-population's AUC may fall below its split's before the result is an open item.
+
+The one spelling of the name, read by the tool that stores the bound
+(:mod:`quaestor.tools.metrics`) and by the section plan that applies it
+(:mod:`quaestor.report.sections`), so that the number the rule uses and the number the prose cites
+cannot come apart (DECISIONS D-102).
+"""
+
+SLICE_SHARE_FLOOR: Final = "threshold.O1.slice_min_share"
+"""The share of a split a sub-population must hold before its gap can raise an open item (D-102).
+
+A slice of thirty rows can differ from its split's AUC by anything at all, and asking a developer
+to answer for it is asking them to explain sampling noise.
+"""
 
 EFFECTIVE_SUFFIX: Final = "_effective"
 """The tail a derived bound's logical name carries, so a reader can see it was computed.
@@ -84,6 +105,8 @@ DEFAULT_THRESHOLDS: Final[Mapping[str, float]] = {
     "threshold.M1.vif": 10.0,
     "threshold.O1.auc_gap": 0.08,
     "threshold.O1.holdout_gap": 0.05,
+    "threshold.O1.slice_auc_gap": 0.08,
+    "threshold.O1.slice_min_share": 0.10,
     "threshold.R1.auc_gap": 0.10,
     "threshold.R1.sign_flip_coef": 0.05,
     "threshold.S1.psi": 0.25,
@@ -103,6 +126,13 @@ THRESHOLD_SUMMARIES: Final[Mapping[str, str]] = {
     "threshold.M1.vif": "M1: the variance inflation factor of any retained feature",
     "threshold.O1.auc_gap": "O1: the train-to-test AUC gap (D-050)",
     "threshold.O1.holdout_gap": "O1: how far a period split's AUC may fall below test",
+    "threshold.O1.slice_auc_gap": (
+        "how far a sub-population's AUC may fall below the split's before the result is an open "
+        "item (D-102); it raises no candidate"
+    ),
+    "threshold.O1.slice_min_share": (
+        "the share of a split a sub-population must hold before it can raise an open item (D-102)"
+    ),
     "threshold.R1.auc_gap": "R1: the AUC difference across regimes",
     "threshold.R1.sign_flip_coef": "R1: the coefficient a sign flip must exceed in both regimes",
     "threshold.S1.psi": "S1: the population stability index, train against test (D-046)",

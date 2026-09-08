@@ -118,7 +118,7 @@ def test_artifact_citations_and_finding_evidence_resolve_against_appendix_b() ->
 
 # 7
 def test_every_numeric_token_in_the_prose_is_covered_by_a_post_repair_claim() -> None:
-    numeric = re.findall(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?%?", drafted_prose())
+    numeric = re.findall(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?:[eE][+-]?\d+)?%?", drafted_prose())
     unclaimed = Counter(
         (claim["value"], claim["unit"] == "percent") for claim in CLAIMS["post_repair"]
     )

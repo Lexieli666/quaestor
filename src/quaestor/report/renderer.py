@@ -48,10 +48,17 @@ from .schema import (
     check_structure,
     front_matter_of,
 )
-from .sections import OPEN_ITEMS_HEADING, four_significant_figures, section_heading
+from .sections import (
+    FOLLOW_UPS_HEADING,
+    OPEN_ITEMS_HEADING,
+    FollowUp,
+    four_significant_figures,
+    section_heading,
+)
 
 __all__ = [
     "APPENDICES",
+    "NO_FOLLOW_UP_PROSE",
     "NO_OPEN_ITEMS",
     "TEXT_WIDTH",
     "NotChecked",
@@ -76,6 +83,19 @@ APPENDICES: Final = (
     "## Appendix D — Not checked",
 )
 """The four appendix headings, in order, exactly as ``REPORT_SCHEMA.json`` requires them."""
+
+NO_FOLLOW_UP_PROSE: Final = (
+    "The bounded planning loop ran the follow-up call(s) named in Appendix C; this draft did not "
+    "report them."
+)
+"""What ``### Follow-up analyses`` says when the drafter wrote nothing under it (D-101).
+
+It carries no number, on purpose: the renderer's own sentences are inside the prose the uncovered-
+number check reads, so a renderer fallback that quoted a result would be a claim nobody extracted.
+The heading is supplied rather than demanded of the drafter for the reason D-084 spells out -- a
+rule that can throw away a finished report over a missing subsection is a rule that costs more
+than it protects.
+"""
 
 NO_OPEN_ITEMS: Final = "No open item was recorded for this validation."
 """What ``### Open items`` says when the drafter wrote nothing under it.
@@ -124,6 +144,9 @@ class ReportInputs:
         store: The run's artifact store, for Appendix B and for table expansion.
         events: The run's trace events, for Appendix C.
         not_checked: Appendix D's rows.
+        follow_ups: Section to the bounded loop's executed steps that section was asked to
+            report, so that the renderer can supply the ``### Follow-up analyses`` heading where
+            the drafter omitted it and the structure check can assert it is there (D-101).
         quaestor_version: The version stamped on the front matter.
         generated: The one timestamp outside the trace.
     """
@@ -140,6 +163,7 @@ class ReportInputs:
     store: ArtifactStore
     events: Sequence[TraceEvent] = ()
     not_checked: Sequence[NotChecked] = ()
+    follow_ups: Mapping[ReportSection, Sequence[FollowUp]] = field(default_factory=dict)
     model_id: str = ""
     quaestor_version: str = ""
     generated: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -701,6 +725,8 @@ def render_report(inputs: ReportInputs) -> str:
         markdown = inputs.sections.get(section, "").strip()
         if section is ReportSection.findings:
             markdown = _findings_section(markdown, inputs)
+        elif inputs.follow_ups.get(section):
+            markdown = _with_follow_ups(markdown)
         markdown = expand_tables(markdown, inputs.store)
         parts += ["", section_heading(section), ""]
         if section is ReportSection.summary:
@@ -726,6 +752,7 @@ def render_report(inputs: ReportInputs) -> str:
         inputs.configuration,
         inputs.claims.post_repair,
         package_version=spec.version,
+        follow_up_headings=_follow_up_headings(inputs),
     )
     if failures:
         raise ReportSchemaError(
@@ -734,12 +761,37 @@ def render_report(inputs: ReportInputs) -> str:
     return report
 
 
+def _with_follow_ups(markdown: str) -> str:
+    """Supply ``### Follow-up analyses`` where the drafter omitted it (D-101).
+
+    Args:
+        markdown: One section's prose, as drafted.
+
+    Returns:
+        The prose unchanged where the heading is already there, and the prose with the heading and
+        :data:`NO_FOLLOW_UP_PROSE` appended where it is not.
+    """
+    if FOLLOW_UPS_HEADING in markdown:
+        return markdown
+    return "\n\n".join(part for part in (markdown, FOLLOW_UPS_HEADING, NO_FOLLOW_UP_PROSE) if part)
+
+
+def _follow_up_headings(inputs: ReportInputs) -> list[str]:
+    """Return the level-2 headings of the sections that must carry ``### Follow-up analyses``."""
+    return [
+        section_heading(section)
+        for section in SECTION_ORDER
+        if section is not ReportSection.findings and inputs.follow_ups.get(section)
+    ]
+
+
 def check_report(
     report: str,
     configuration: Configuration,
     claims: Sequence[VerifiedClaim],
     *,
     package_version: str | None = None,
+    follow_up_headings: Sequence[str] = (),
 ) -> list[str]:
     """Apply to a rendered report the checks ``tests/test_golden_spec.py`` applies to the golden.
 
@@ -750,6 +802,8 @@ def check_report(
         package_version: The package's version string, passed on to
             :func:`uncovered_numbers`; omitted, the version is not excluded from the prose, so a
             caller that has the package should always pass it. :func:`render_report` does.
+        follow_up_headings: The level-2 headings of the sections the bounded loop ran a step for
+            (D-101); omitted, no section is required to carry the subsection.
 
     Returns:
         One message per problem, empty when the report satisfies the schema.
@@ -757,7 +811,12 @@ def check_report(
     problems = check_front_matter(front_matter_of(report))
     body = drafted_and_rendered_body(report)
     uncovered = uncovered_numbers(body, claims, package_version=package_version)
-    problems += check_structure(report, configuration=configuration, uncovered=uncovered)
+    problems += check_structure(
+        report,
+        configuration=configuration,
+        uncovered=uncovered,
+        follow_up_headings=follow_up_headings,
+    )
     problems += _unwrapped_failures(body, claims)
     for appendix in APPENDICES:
         if appendix not in report:

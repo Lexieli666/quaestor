@@ -32,6 +32,7 @@ from ..vocab import Configuration
 
 __all__ = [
     "APPENDIX_A_HEADING",
+    "FOLLOW_UPS_HEADING",
     "OPEN_ITEMS_HEADING",
     "SCHEMA_FILE",
     "REPORT_SCHEMA",
@@ -70,6 +71,21 @@ the eleven level-2 headings and is pinned to the Phase 1 golden report under D-0
 level-3 one, it is the renderer that guarantees it -- ``_findings_section`` supplies the heading
 when the drafter omits it, exactly as it supplies a finding's heading under D-071 -- and this check
 is the assertion that it did.
+"""
+
+FOLLOW_UPS_HEADING: Final = "### Follow-up analyses"
+"""The subsection a section carries when the bounded loop ran a step on its material (D-101).
+
+The fourth live run's loop spent three of its four steps computing sub-population metrics --
+``metrics.test.sub.limit_bal_low.*``, ``.limit_bal_high.*`` and ``.delinq_count_6m_eq_0.*``, one of
+which showed test AUC falling from 0.755 to 0.587 on the never-delinquent 6,048 rows of 9,000 --
+and the report says nothing about any of them. Section 4's drafter was shown all twenty-four
+scalars and wrote about none, which is the correct behaviour of a drafter told to answer its brief:
+the brief did not ask, and the step's own ``why`` was never passed on. So the step reaches the
+prompt as a question to answer and its answer reaches the report under a heading of its own.
+
+Level 3, like :data:`OPEN_ITEMS_HEADING` and for the same reason: ``REPORT_SCHEMA.json``'s heading
+list is the eleven level-2 headings and is pinned to the Phase 1 golden report under D-011.
 """
 
 RENDERER_BLOCK_RE: Final = re.compile(REPORT_SCHEMA["x-quaestor-renderer-block-pattern"])
@@ -147,6 +163,7 @@ def check_structure(
     *,
     configuration: Configuration,
     uncovered: Sequence[str] = (),
+    follow_up_headings: Sequence[str] = (),
 ) -> list[str]:
     """Check a rendered report's headings, citations, appendices and forbidden patterns.
 
@@ -155,6 +172,10 @@ def check_structure(
         configuration: Which configuration wrote it; the wrapper rule binds ``full_agent``.
         uncovered: Numeric tokens of the prose that no verified claim covers and that nothing
             wrapped, as the renderer computed them.
+        follow_up_headings: The level-2 headings of the sections the bounded loop ran a step for,
+            each of which must carry :data:`FOLLOW_UPS_HEADING`. The renderer supplies that
+            heading where the drafter omitted it, exactly as it supplies section 6's open-items
+            heading, so this is the assertion that it did rather than a rule that can lose a run.
 
     Returns:
         One message per problem, empty when there is none.
@@ -176,6 +197,12 @@ def check_structure(
             f"section 6 has no {OPEN_ITEMS_HEADING!r}; a validation that raised no finding still "
             "records what the developer is asked to answer for"
         )
+    for heading in follow_up_headings:
+        if FOLLOW_UPS_HEADING not in _section_of(report, heading):
+            problems.append(
+                f"{heading!r} has no {FOLLOW_UPS_HEADING!r}; the bounded loop ran a step whose "
+                "artifacts this section was shown, and a step the run paid for is reported"
+            )
     for block in required_renderer_blocks():
         if str(block["begin"]) not in report:
             problems.append(f"the report has no {block['name']} renderer block")
@@ -195,6 +222,26 @@ def check_structure(
     return problems
 
 
+def _section_of(report: str, heading: str) -> str:
+    """Return one level-2 section's body, from its own heading to the next one.
+
+    Args:
+        report: The whole of ``report.md``.
+        heading: The level-2 heading that opens it.
+
+    Returns:
+        The body, or ``""`` when the heading is not there -- in which case the heading check has
+        already reported the real problem.
+    """
+    headings = list(REQUIRED_HEADINGS)
+    if heading not in report or heading not in headings:
+        return ""
+    after = report.split(heading, 1)[1]
+    following = headings[headings.index(heading) + 1 :]
+    nxt = next((later for later in following if later in after), None)
+    return after.split(nxt, 1)[0] if nxt else after
+
+
 def _findings_section_of(report: str) -> str:
     """Return section 6, which is where the open-items subsection has to be.
 
@@ -205,12 +252,7 @@ def _findings_section_of(report: str) -> str:
         Everything between section 6's heading and section 7's, or ``""`` when section 6 is not
         there -- in which case the heading check has already reported the real problem.
     """
-    headings = list(REQUIRED_HEADINGS)
-    findings, monitoring = headings[5], headings[6]
-    if findings not in report:
-        return ""
-    after = report.split(findings, 1)[1]
-    return after.split(monitoring, 1)[0]
+    return _section_of(report, REQUIRED_HEADINGS[5])
 
 
 def _forbidden(report: str) -> list[str]:

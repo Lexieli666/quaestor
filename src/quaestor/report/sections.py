@@ -19,7 +19,7 @@ to guess the shape of the payload.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Final
 
@@ -28,28 +28,39 @@ from pydantic import BaseModel, ConfigDict
 from ..artifacts.store import ArtifactKind, ArtifactStore
 from ..findings import DefectClass
 from ..package import PackageSpec, Use
+from ..tools.metrics import THRESHOLD_TABLE, metric_artifact_name
+from ..tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
 from ..vocab import SECTION_ORDER, ReportSection
-from .schema import OPEN_ITEMS_HEADING
+from .schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
 
 __all__ = [
     "CALIBRATION_FIRST_RULE",
     "DEFECT_CLASS_NAMES",
+    "FOLLOW_UPS_HEADING",
+    "SLICE_GAP_BOUND",
+    "SLICE_SHARE_FLOOR",
     "MAX_JSON_PATHS",
     "OPEN_ITEMS_HEADING",
     "SECTION_BRIEFS",
     "SIGNIFICANT_FIGURES",
     "ArtifactBrief",
+    "FollowUp",
     "OrderReason",
     "SectionBrief",
     "SectionOrder",
     "artifact_briefs",
+    "as_written",
     "ordered_briefs",
     "brief_for",
     "calibration_before_discrimination",
     "flatten_json",
     "four_significant_figures",
+    "follow_up_for",
+    "monitoring_brief",
     "outcomes_brief",
+    "recomputed_for_declared_bounds",
     "section_four_order",
+    "sections_for_follow_up",
     "written_number",
     "section_heading",
 ]
@@ -103,6 +114,30 @@ class SectionOrder:
     reason: OrderReason
 
 
+@dataclass(frozen=True)
+class FollowUp:
+    """One executed step of the bounded loop, as the drafter of a section is shown it.
+
+    Attributes:
+        tool: The tool the loop asked for.
+        args: The arguments it asked for, as the registry validated them.
+        why: The loop's own reason for asking, which is the question the section answers.
+        artifacts: The logical names the step produced, in store order.
+        material: Whether this step's result is materially worse than the headline under
+            :data:`SLICE_GAP_BOUND` and large enough under :data:`SLICE_SHARE_FLOOR`, so that it
+            belongs in section 6's open items as well as in the section that computed it.
+        detail: One clause naming the numbers the materiality decision read and the bounds it read
+            them against, or the reason it does not qualify.
+    """
+
+    tool: str
+    args: Mapping[str, Any] = field(default_factory=dict)
+    why: str = ""
+    artifacts: tuple[str, ...] = ()
+    material: bool = False
+    detail: str = ""
+
+
 DEFECT_CLASS_NAMES: Final[Mapping[DefectClass, str]] = {
     DefectClass.L1: "leakage",
     DefectClass.L2: "contamination",
@@ -136,12 +171,27 @@ def four_significant_figures(value: float) -> float:
     return float(f"{value:.{SIGNIFICANT_FIGURES}g}")
 
 
+def as_written(value: float) -> float | int:
+    """Return a value as the drafting prompt should print it: an integer when it is one.
+
+    Args:
+        value: The artifact value, already rounded to four significant figures.
+
+    Returns:
+        ``int(value)`` when the value is integral and small enough to be exact, the value
+        otherwise. ``900`` is a count of rows and ``0`` a count of features; neither is a
+        measurement, and a drafter shown ``0.0`` writes "flags 0.0 features" (DECISIONS D-106).
+    """
+    return int(value) if float(value).is_integer() and abs(value) < 1e15 else value
+
+
 def written_number(value: float) -> str:
     """Render a number the way report prose writes it: no exponent, no trailing zeros.
 
-    ``format(value, "g")`` writes ``1e-05``, whose first numeric token is ``1``: a drafter that
-    used it would write one number and claim another. Everything here stays in positional
-    notation, which is what a validation report writes anyway.
+    Everything here stays in positional notation, which is what a validation report writes anyway.
+    The tokenizer reads ``1e-05`` as one token now (D-099), so exponent notation is no longer a way
+    for a template to write one number and claim another; positional notation is still what this
+    writes, because ``0.0000192`` is what a reader of a validation report expects to see.
 
     Args:
         value: The number to write.
@@ -250,6 +300,12 @@ class ArtifactBrief(BaseModel):
     def to_payload(self) -> dict[str, Any]:
         """Return the compact JSON object the prompt carries.
 
+        An integral value is written as an integer, so that a count of features is shown as ``0``
+        and not as ``0.0``: the drafter writes what it is shown, and the third live report read
+        "flags 0.0 features". D-094 made the same decision for the renderer's expanded tables and
+        left the prompt out, which is the half of the report a reader most often quotes
+        (DECISIONS D-106).
+
         Returns:
             A plain dict with the keys the drafter is told to read: ``name``, ``hash8``,
             ``citation`` and either ``value`` or ``values``.
@@ -261,10 +317,10 @@ class ArtifactBrief(BaseModel):
             "summary": self.summary,
         }
         if self.kind is ArtifactKind.scalar:
-            payload["value"] = self.value
+            payload["value"] = None if self.value is None else as_written(self.value)
             payload["citation"] = self.citation
         elif self.kind is ArtifactKind.json:
-            payload["values"] = self.values
+            payload["values"] = {path: as_written(value) for path, value in self.values.items()}
             payload["citation_form"] = self.path_citation("<path>")
             if self.truncated:
                 payload["truncated"] = True
@@ -411,6 +467,13 @@ one-sentence statement of the
 defect, then the numbers that show it -- each with its citation -- then what the validator
 concludes and what the developer should do. Do not invent a finding, do not merge two, and do not
 change a severity.
+Where no finding is listed below, say so in one sentence and stop there. Do **not** describe what
+was reviewed, list the reviews that were carried out, or say that any review produced no defect:
+the renderer prints the checks that ran and raised no candidate directly beneath your prose, from
+the run's own record, and a drafted list of reviews beside it is a second account of the same fact
+that nothing checked -- the fourth live report's own list named "input data lineage" and
+"documentation of intended use and known limitations" on a package whose Appendix D says it has no
+docs directory.
 Then close the section with the heading `### Open items`, written exactly like that on a line of
 its own, and under it the observations this validation made that are **not** defects under any
 rule but that a developer should still answer for. One per line, each carrying the citation of
@@ -418,13 +481,53 @@ the artifact it rests on and each naming an owner -- write "model developer" unl
 name someone else. A coefficient whose fitted sign disagrees with its univariate direction, and a
 share of test rows repeating a training feature vector that the within-train duplicate share
 explains, are both open items rather than findings, and are the kind of thing this subsection is
-for. If there is genuinely nothing, write one sentence under the heading saying so. Never write
+for. So is a follow-up analysis marked below as materially worse than the headline: write it as a
+question and not as a verdict -- conditioning on one feature also conditions on everything
+correlated with it, so a segment selected on a delinquency count is also a segment of near-constant
+delinquency history, and what a developer is being asked is what the model discriminates on inside
+that segment rather than to accept that the model is defective there. Cite the slice's own value,
+the headline it is compared with and the bound the comparison was made against.
+If there is genuinely nothing, write one sentence under the heading saying so. Never write
 the word finding about an open item."""
 
 _MONITORING_BRIEF = """\
 Recommend ongoing monitoring: which quantities to track, at what frequency, and against which
 bound -- citing the same threshold artifacts the checks used rather than inventing new numbers --
 and name anything this validation could not cover that monitoring should watch instead."""
+
+_MONITORING_ORDERING: Final[Mapping[SectionOrder, str]] = {
+    SectionOrder(True, OrderReason.declared_use): (
+        "Section 4 of this report reported **calibration before discrimination**, because "
+        "package.yaml declares that this model's output is used as a probability and not only as "
+        "a ranking. Where you recommend how a monitoring report should order its own evidence, "
+        "say what this report did, and do not offer an event rate as the reason it did it."
+    ),
+    SectionOrder(True, OrderReason.event_rate): (
+        "Section 4 of this report reported **calibration before discrimination**, because the "
+        f"observed event rate on the evaluation split is below {CALIBRATION_FIRST_RULE}. Where "
+        "you recommend how a monitoring report should order its own evidence, you may say that "
+        "this report did the same."
+    ),
+    SectionOrder(False, OrderReason.declared_use): (
+        "Section 4 of this report reported **discrimination before calibration**. Do not write "
+        "that this report led with calibration."
+    ),
+    SectionOrder(False, OrderReason.event_rate): (
+        "Section 4 of this report reported **discrimination before calibration**, because the "
+        f"observed event rate on the evaluation split is at or above {CALIBRATION_FIRST_RULE}. "
+        "You may recommend that a monitoring report lead with calibration for a future cohort "
+        "whose rate falls below that bound, but do **not** write that this report led with "
+        "calibration: it did not."
+    ),
+}
+"""What section 7 is told about section 4's ordering, by what decided it (DECISIONS D-104).
+
+The fourth live report's section 7 recommended that a monitoring report "order calibration
+evidence ahead of discrimination evidence, as this report does" -- of a report whose section 4 led
+with discrimination, on the rule's own arithmetic and in its own opening sentence. Section 4's
+ordering was decided in :func:`ordered_briefs` and told to nobody else, so section 7 was asked to
+describe a decision it could not see and described the one the rule it *had* been shown suggests.
+"""
 
 
 SECTION_BRIEFS: Final[Mapping[ReportSection, SectionBrief]] = {
@@ -647,6 +750,162 @@ def outcomes_brief(brief: SectionBrief, order: SectionOrder) -> SectionBrief:
     return SectionBrief(**fields)
 
 
+def recomputed_for_declared_bounds(store: ArtifactStore, brief: SectionBrief) -> set[str]:
+    """Return the recomputed values that answer the declared bounds this section is shown.
+
+    A section shown ``threshold.package.brier.test.max`` is shown ``metrics.test.brier``, and it
+    is derived rather than listed: ``thresholds.evaluation`` already holds one row per bound
+    ``package.yaml`` declares, with the metric and the split it is stated on (D-092), and
+    :func:`~quaestor.tools.metrics.metric_artifact_name` already says which artifact answers a
+    metric on a split. Hand-listing the pair for each section is how section 7 came to be shown a
+    Brier ceiling with no Brier value, and to write that "no recomputed test Brier value is
+    carried in this report's artifact store" while three other sections cited it (D-100).
+
+    Args:
+        store: The run's artifact store.
+        brief: The section's brief, whose selectors decide which bounds it is shown.
+
+    Returns:
+        The logical names of the recomputed scalars, empty when the run computed no threshold
+        table or when this section is shown no declared bound.
+    """
+    if THRESHOLD_TABLE not in store:
+        return set()
+    rows = store.load(THRESHOLD_TABLE)
+    if not isinstance(rows, Sequence):  # pragma: no cover - a table payload is always a row list
+        return set()
+    found: set[str] = set()
+    for row in rows:
+        if not isinstance(row, Mapping):  # pragma: no cover - as above
+            continue
+        metric, split = str(row.get("metric", "")), str(row.get("split") or "")
+        stem = f"threshold.package.{metric}{f'.{split}' if split else ''}"
+        if not (brief.matches(f"{stem}.min") or brief.matches(f"{stem}.max")):
+            continue
+        name = metric_artifact_name(metric, split or None)
+        if name is not None and name in store and store.entry(name).kind is ArtifactKind.scalar:
+            found.add(name)
+    return found
+
+
+SLICE_GAP_SUFFIX: Final = ".auc_gap"
+"""The tail of the artifact that says how far a sub-population fell below its split (D-102)."""
+
+SLICE_SHARE_SUFFIX: Final = ".share"
+"""The tail of the artifact that says how much of the split a sub-population holds (D-102)."""
+
+
+def follow_up_for(
+    store: ArtifactStore,
+    tool: str,
+    args: Mapping[str, Any],
+    why: str,
+    artifacts: Sequence[str],
+) -> FollowUp:
+    """Describe one executed step of the bounded loop, and say where its result belongs.
+
+    A step that produced a sub-population AUC gap is read against :data:`SLICE_GAP_BOUND` and
+    :data:`SLICE_SHARE_FLOOR`, both of which the tool stored: a gap over the bound on a slice at or
+    above the floor is an open item in section 6, and anything else is supporting evidence in the
+    section that computed it. A step that produced no such pair is never material -- there is no
+    rule here for a re-profiled feature, and inventing one would be a rule with no bound to cite
+    (DECISIONS D-102).
+
+    Args:
+        store: The run's artifact store, which holds the gap, the share and the two bounds.
+        tool: The tool the loop asked for.
+        args: The arguments it asked for.
+        why: The loop's own stated reason.
+        artifacts: The logical names the step produced.
+
+    Returns:
+        The follow-up, with :attr:`FollowUp.material` and :attr:`FollowUp.detail` filled in.
+    """
+    names = tuple(artifacts)
+    if SLICE_GAP_BOUND not in store or SLICE_SHARE_FLOOR not in store:
+        return FollowUp(tool=tool, args=dict(args), why=why, artifacts=names)
+    bound, floor = store.value(SLICE_GAP_BOUND), store.value(SLICE_SHARE_FLOOR)
+    reasons: list[str] = []
+    material = False
+    for gap_name in [name for name in names if name.endswith(SLICE_GAP_SUFFIX)]:
+        stem = gap_name[: -len(SLICE_GAP_SUFFIX)]
+        share_name = f"{stem}{SLICE_SHARE_SUFFIX}"
+        if share_name not in store:  # pragma: no cover - the tool stores the pair together
+            continue
+        gap, share = store.value(gap_name), store.value(share_name)
+        if share < floor:
+            reasons.append(
+                f"{stem} holds {share:.4g} of the split, below {SLICE_SHARE_FLOOR} at "
+                f"{floor:.4g}, so it cannot raise an open item however large its gap"
+            )
+        elif gap > bound:
+            material = True
+            reasons.append(
+                f"{stem} falls {gap:.4g} below the split's own AUC, above {SLICE_GAP_BOUND} at "
+                f"{bound:.4g}, on {share:.4g} of the split -- materially worse than the headline, "
+                "so it belongs in section 6's open items as a question for the model developer as "
+                "well as here"
+            )
+        else:
+            reasons.append(
+                f"{stem} falls {gap:.4g} below the split's own AUC, within {SLICE_GAP_BOUND} at "
+                f"{bound:.4g}, so it is supporting evidence for this section and not an open item"
+            )
+    return FollowUp(
+        tool=tool,
+        args=dict(args),
+        why=why,
+        artifacts=names,
+        material=material,
+        detail="; ".join(reasons),
+    )
+
+
+def sections_for_follow_up(
+    briefs: Sequence[SectionBrief], follow_up: FollowUp
+) -> list[ReportSection]:
+    """Return the sections asked to report one follow-up step.
+
+    A section is asked when its own selector matched at least one of the step's artifacts, which
+    is the same rule that decides whether it was shown them: a section cannot report a number it
+    may not cite. **The summary is never one of them.** Section 1 states the headline result and
+    the findings count, so it is derivative by construction, and an analysis reported there before
+    it has been reported anywhere is a headline with no body. Section 6 is not one either -- a
+    material step reaches it as an open item, which is a different sentence with a different point
+    (DECISIONS D-101).
+
+    Args:
+        briefs: The seven briefs, in report order.
+        follow_up: The executed step.
+
+    Returns:
+        The sections, in report order.
+    """
+    return [
+        brief.section
+        for brief in briefs
+        if brief.section not in (ReportSection.summary, ReportSection.findings)
+        and any(brief.matches(name) for name in follow_up.artifacts)
+    ]
+
+
+def monitoring_brief(brief: SectionBrief, order: SectionOrder) -> SectionBrief:
+    """Return section 7's brief for one run's section-4 ordering (DECISIONS D-104).
+
+    Args:
+        brief: Section 7's brief as declared.
+        order: What section 4 did, and on which ground.
+
+    Returns:
+        The brief this run's section 7 is drafted from: the declared paragraph with one more
+        sentence saying what section 4 did. It is appended rather than substituted into a
+        placeholder so that the declared brief is a brief a drafter could be sent as it stands.
+    """
+    fields = dict(brief.__dict__)
+    fields["brief"] = f"{brief.brief}\n{_MONITORING_ORDERING[order]}"
+    return SectionBrief(**fields)
+
+
 def artifact_briefs(
     store: ArtifactStore,
     brief: SectionBrief,
@@ -678,6 +937,7 @@ def artifact_briefs(
     wanted |= {name for name in brief.jsons if name in store}
     wanted |= {name for name in brief.tables if name in store}
     wanted |= {name for name in extra if name in store}
+    wanted |= recomputed_for_declared_bounds(store, brief)
     briefs = [_artifact_brief(store, name) for name in sorted(wanted)]
     return [item for item in briefs if item is not None]
 
@@ -725,5 +985,7 @@ def ordered_briefs(store: ArtifactStore, spec: PackageSpec | None = None) -> lis
         brief = SECTION_BRIEFS[section]
         if section is ReportSection.outcomes:
             brief = outcomes_brief(brief, order)
+        elif section is ReportSection.monitoring:
+            brief = monitoring_brief(brief, order)
         briefs.append(brief)
     return briefs

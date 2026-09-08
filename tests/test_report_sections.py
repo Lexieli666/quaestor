@@ -16,7 +16,7 @@ from pydantic import ValidationError
 from quaestor.artifacts import ArtifactKind, ArtifactStore
 from quaestor.findings import DefectClass
 from quaestor.package import PackageSpec, Use, load_package
-from quaestor.report.schema import OPEN_ITEMS_HEADING
+from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
 from quaestor.report.sections import (
     CALIBRATION_FIRST_RULE,
     DEFECT_CLASS_NAMES,
@@ -26,18 +26,24 @@ from quaestor.report.sections import (
     OrderReason,
     SectionOrder,
     artifact_briefs,
+    as_written,
     brief_for,
     calibration_before_discrimination,
     flatten_json,
+    follow_up_for,
     four_significant_figures,
+    monitoring_brief,
     ordered_briefs,
+    recomputed_for_declared_bounds,
     section_four_order,
     section_heading,
+    sections_for_follow_up,
     written_number,
 )
 from quaestor.tools.leakage import FEATURE_OVERLAP_BOUND
-from quaestor.tools.metrics import THRESHOLD_TABLE
+from quaestor.tools.metrics import THRESHOLD_TABLE, metric_artifact_name
 from quaestor.tools.run import MAX_SECONDS_NAME
+from quaestor.tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
 from quaestor.vocab import SECTION_ORDER, ReportSection
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -350,3 +356,241 @@ def test_section_six_is_asked_for_the_open_items_subsection() -> None:
     assert OPEN_ITEMS_HEADING in brief.brief
     assert "model developer" in brief.brief
     assert "Never write\nthe word finding about an open item." in brief.brief
+
+
+# --- the Phase 9 follow-up 4 additions ----------------------------------------------------------
+
+
+def _threshold_store(tmp_path: Path) -> ArtifactStore:
+    """A store shaped like a real run's: declared bounds, the table, and the recomputed values."""
+    store = ArtifactStore(tmp_path / "artifacts")
+    rows = [
+        {"metric": "auc", "split": "test", "bound": "min 0.7", "value": 0.755, "result": "pass"},
+        {"metric": "brier", "split": "test", "bound": "max 0.2", "value": 0.1385, "result": "pass"},
+        {"metric": "psi", "split": "", "bound": "max 0.25", "value": 0.0031, "result": "pass"},
+    ]
+    store.put(THRESHOLD_TABLE, rows, ArtifactKind.table, "declared bounds")
+    for name, value in (
+        ("threshold.package.auc.test.min", 0.7),
+        ("threshold.package.brier.test.max", 0.2),
+        ("threshold.package.psi.max", 0.25),
+        ("metrics.test.auc", 0.755),
+        ("metrics.test.brier", 0.1385),
+        ("psi.max", 0.0031),
+    ):
+        store.put(name, value, ArtifactKind.scalar, name)
+    return store
+
+
+def test_every_declared_bound_brings_its_recomputed_value_to_the_section_shown_it(
+    tmp_path: Path,
+) -> None:
+    """D-100, stated over every declared threshold rather than over the one that went missing."""
+    store = _threshold_store(tmp_path)
+    rows = store.load(THRESHOLD_TABLE)
+    assert isinstance(rows, list)
+    for section in SECTION_ORDER:
+        brief = brief_for(section)
+        selected = {item.name for item in artifact_briefs(store, brief)}
+        for row in rows:
+            stem = f"threshold.package.{row['metric']}"
+            if row["split"]:
+                stem = f"{stem}.{row['split']}"
+            shown = brief.matches(f"{stem}.min") or brief.matches(f"{stem}.max")
+            name = metric_artifact_name(str(row["metric"]), str(row["split"]) or None)
+            if shown and name is not None:
+                assert name in selected, (section, name)
+
+
+def test_the_monitoring_section_is_shown_the_test_brier_it_said_was_not_carried(
+    tmp_path: Path,
+) -> None:
+    """The fourth live report's own sentence: "no recomputed test Brier value is carried"."""
+    store = _threshold_store(tmp_path)
+    brief = brief_for(ReportSection.monitoring)
+    assert brief.matches("threshold.package.brier.test.max")
+    assert not brief.matches("metrics.test.brier"), "the selector still does not list it by name"
+    assert "metrics.test.brier" in recomputed_for_declared_bounds(store, brief)
+    assert "metrics.test.brier" in {item.name for item in artifact_briefs(store, brief)}
+
+
+def test_a_run_with_no_threshold_table_selects_nothing_extra(tmp_path: Path) -> None:
+    """A package that declares no threshold: the derivation is empty rather than an error."""
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("metrics.test.auc", 0.755, ArtifactKind.scalar, "auc")
+    assert recomputed_for_declared_bounds(store, brief_for(ReportSection.monitoring)) == set()
+
+
+def test_the_drafter_is_told_its_artifact_list_is_a_selection_and_not_the_store() -> None:
+    """D-100's standing rule, which no section brief has to repeat."""
+    from quaestor.report.drafter import DRAFT_INSTRUCTION
+
+    assert "this section's selection, not the store" in DRAFT_INSTRUCTION
+    assert "not carried" in DRAFT_INSTRUCTION
+
+
+def test_an_integral_value_reaches_the_prompt_as_an_integer(tmp_path: Path) -> None:
+    """D-106: a count of features is `0`, and a drafter shown `0.0` writes "flags 0.0 features"."""
+    assert as_written(0.0) == 0
+    assert isinstance(as_written(900.0), int)
+    assert as_written(0.7412) == 0.7412
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("profile.train.n", 3500, ArtifactKind.scalar, "rows")
+    store.put("metrics.test.auc", 0.74801204, ArtifactKind.scalar, "auc")
+    summary = artifact_briefs(store, brief_for(ReportSection.summary))
+    payloads = {item.name: item.to_payload() for item in summary}
+    assert payloads["profile.train.n"]["value"] == 3500
+    assert isinstance(payloads["profile.train.n"]["value"], int)
+    assert payloads["metrics.test.auc"]["value"] == pytest.approx(0.748)
+
+
+# --- section 7 is told how section 4 ordered itself (D-104) -------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("order", "expected", "forbidden"),
+    [
+        (SectionOrder(False, OrderReason.event_rate), "discrimination before calibration", None),
+        (SectionOrder(True, OrderReason.event_rate), "calibration before discrimination", None),
+        (
+            SectionOrder(True, OrderReason.declared_use),
+            "calibration before discrimination",
+            CALIBRATION_FIRST_RULE,
+        ),
+        (SectionOrder(False, OrderReason.declared_use), "discrimination before calibration", None),
+    ],
+)
+def test_the_monitoring_brief_states_what_section_four_did(
+    order: SectionOrder, expected: str, forbidden: str | None
+) -> None:
+    brief = monitoring_brief(brief_for(ReportSection.monitoring), order)
+    assert expected in brief.brief
+    if not order.calibration_first:
+        assert "led with calibration" in brief.brief, "the sentence the fourth run wrote anyway"
+    if forbidden is not None:
+        assert forbidden not in brief.brief
+
+
+def test_ordered_briefs_gives_section_seven_the_same_order_it_gave_section_four(
+    tmp_path: Path,
+) -> None:
+    """The two sections cannot disagree, because one function fills both (D-104)."""
+    store = _rare(tmp_path, "metrics.test.event_rate", 0.2246)
+    briefs = {brief.section: brief for brief in ordered_briefs(store, load_package(CREDIT).spec)}
+    assert "discrimination before calibration" in briefs[ReportSection.outcomes].brief
+    assert "Section 4 of this report reported **discrimination before calibration**" in (
+        briefs[ReportSection.monitoring].brief
+    )
+
+
+# --- section 6 with no finding does not enumerate what it reviewed (D-103) ----------------------
+
+
+def test_section_six_is_forbidden_from_listing_reviews_it_did_not_run() -> None:
+    brief = brief_for(ReportSection.findings)
+    assert "Do **not** describe what\nwas reviewed" in brief.brief
+    assert "input data lineage" in brief.brief
+
+
+def test_the_no_findings_block_says_the_renderer_prints_the_enumeration() -> None:
+    from quaestor.report.drafter import Drafter
+
+    prompt = Drafter(None, package="p", version="1.0").prompt(  # type: ignore[arg-type]
+        brief_for(ReportSection.findings)
+    )
+    assert "do not describe what was reviewed" in prompt
+    assert "checks that ran and raised no candidate" in prompt
+
+
+# --- the executed follow-up steps reach the prose (D-101, D-102) --------------------------------
+
+
+def _slice_store(tmp_path: Path, *, gap: float, share: float) -> ArtifactStore:
+    """A store holding one sub-population's reading and the two bounds it is read against."""
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put(SLICE_GAP_BOUND, 0.08, ArtifactKind.scalar, "the slice gap bound")
+    store.put(SLICE_SHARE_FLOOR, 0.10, ArtifactKind.scalar, "the slice size floor")
+    store.put("metrics.test.sub.s_eq_0.auc", 0.5875, ArtifactKind.scalar, "auc on the slice")
+    store.put("metrics.test.sub.s_eq_0.auc_gap", gap, ArtifactKind.scalar, "the gap")
+    store.put("metrics.test.sub.s_eq_0.share", share, ArtifactKind.scalar, "the share")
+    return store
+
+
+def test_a_slice_materially_worse_than_the_headline_is_material(tmp_path: Path) -> None:
+    """The fourth live run's own numbers: 0.755 - 0.587 on 6,048 of 9,000 rows (D-102)."""
+    store = _slice_store(tmp_path, gap=0.1676, share=0.672)
+    follow_up = follow_up_for(
+        store, "compute_metrics", {"splits": ["test"]}, "does it hold?", sorted(store.names())
+    )
+    assert follow_up.material is True
+    assert SLICE_GAP_BOUND in follow_up.detail
+    assert "open items" in follow_up.detail
+
+
+def test_a_slice_inside_the_bound_is_supporting_evidence(tmp_path: Path) -> None:
+    """0.044 for the high-limit half and 0.007 for the low-limit half, neither material."""
+    store = _slice_store(tmp_path, gap=0.0436, share=0.513)
+    follow_up = follow_up_for(store, "compute_metrics", {}, "why", sorted(store.names()))
+    assert follow_up.material is False
+    assert "supporting evidence" in follow_up.detail
+
+
+def test_a_slice_below_the_size_floor_is_never_material(tmp_path: Path) -> None:
+    """However far it falls: a slice of a twentieth of the split is sampling noise (D-102)."""
+    store = _slice_store(tmp_path, gap=0.4, share=0.05)
+    follow_up = follow_up_for(store, "compute_metrics", {}, "why", sorted(store.names()))
+    assert follow_up.material is False
+    assert SLICE_SHARE_FLOOR in follow_up.detail
+
+
+def test_a_step_with_no_slice_reading_is_reported_and_never_material(tmp_path: Path) -> None:
+    """A re-profiled feature has no bound to be read against, so it raises no open item."""
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("profile.test.missing.age", 0.0, ArtifactKind.scalar, "missingness")
+    follow_up = follow_up_for(
+        store, "profile_data", {}, "did age drift?", ["profile.test.missing.age"]
+    )
+    assert follow_up.material is False
+    assert follow_up.detail == ""
+    assert follow_up.artifacts == ("profile.test.missing.age",)
+
+
+def test_the_summary_and_the_findings_section_never_carry_the_follow_up_subsection(
+    tmp_path: Path,
+) -> None:
+    """Section 1 is derivative and section 6 reports a material step as an open item (D-101)."""
+    store = _slice_store(tmp_path, gap=0.1676, share=0.672)
+    follow_up = follow_up_for(store, "compute_metrics", {}, "why", sorted(store.names()))
+    briefs = ordered_briefs(store, load_package(CREDIT).spec)
+    sections = sections_for_follow_up(briefs, follow_up)
+    assert ReportSection.outcomes in sections
+    assert ReportSection.summary not in sections
+    assert ReportSection.findings not in sections
+    assert brief_for(ReportSection.summary).matches("metrics.test.sub.s_eq_0.auc"), (
+        "section 1 is excluded by the rule and not by its selector"
+    )
+
+
+def test_the_follow_up_block_names_the_step_s_own_question(tmp_path: Path) -> None:
+    """The half the fourth live run withheld: the step's `why` never reached any prompt (D-101)."""
+    from quaestor.report.drafter import Drafter
+
+    store = _slice_store(tmp_path, gap=0.1676, share=0.672)
+    follow_up = follow_up_for(
+        store,
+        "compute_metrics",
+        {"splits": ["test"], "subpopulation": {"column": "delinq_count_6m", "rule": "equals:0"}},
+        "discrimination often collapses on the never-delinquent majority segment",
+        sorted(store.names()),
+    )
+    drafter = Drafter(None, package="credit_default", version="1.0")  # type: ignore[arg-type]
+    outcomes = drafter.prompt(brief_for(ReportSection.outcomes), follow_ups=[follow_up])
+    assert "never-delinquent majority segment" in outcomes
+    assert "delinq_count_6m" in outcomes
+    assert FOLLOW_UPS_HEADING in outcomes
+    findings = drafter.prompt(brief_for(ReportSection.findings), follow_ups=[follow_up])
+    assert FOLLOW_UPS_HEADING not in findings
+    assert OPEN_ITEMS_HEADING in findings
+    assert "what the\nmodel discriminates on inside that segment" in findings or (
+        "what the model discriminates on inside that segment" in findings
+    )

@@ -1,0 +1,13 @@
+feature,timing,flagged
+limit_bal,at_origination,false
+age,at_origination,false
+utilisation,before_period_start,false
+utilisation_mean_6m,before_period_start,false
+pay_ratio_last,before_period_start,false
+pay_ratio_mean_6m,before_period_start,false
+delinq_last,before_period_start,false
+delinq_count_6m,before_period_start,false
+delinq_max_6m,before_period_start,false
+bill_mean_6m,before_period_start,false
+bill_last,before_period_start,false
+bill_trend_6m,before_period_start,false

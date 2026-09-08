@@ -99,13 +99,22 @@ def _decimals_of_token(token: str) -> int:
     significant figures verify against the figure it was rounded from. It cannot make a tolerance
     loose on its own: spec section 0's default for the unit is still the ceiling, so ``10`` cited
     to a threshold of 10 is held to 1% of 10 and not to five.
+
+    **The exponent shifts the place value and the mantissa keeps the precision.** ``1.920e-05``
+    writes three decimals of a mantissa scaled by ``10^-5``, so its last significant digit stands
+    for ``10^-8`` and its decimal count is ``8``; the tolerance that follows is half of that, which
+    is the precision the prose chose and not the precision of the mantissa read on its own. Holding
+    the mantissa's three decimals against an unscaled tolerance of ``0.0005`` would let any value
+    of the same order verify, which is the opposite of D-069 (DECISIONS D-099).
     """
     body = token.rstrip("%").lstrip("-").replace(",", "")
-    whole, dot, fraction = body.partition(".")
+    mantissa, marker, exponent = body.partition("e") if "e" in body else body.partition("E")
+    shift = int(exponent) if marker else 0
+    whole, dot, fraction = mantissa.partition(".")
     if dot:
-        return len(fraction)
+        return len(fraction) - shift
     stripped = whole.rstrip("0")
-    return -(len(whole) - len(stripped))
+    return -(len(whole) - len(stripped)) - shift
 
 
 def _decimals_of_number(value: float) -> int:

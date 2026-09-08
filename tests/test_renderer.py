@@ -37,6 +37,7 @@ from quaestor.report.renderer import (
     uncovered_numbers,
     write_report,
 )
+from quaestor.report.sections import FOLLOW_UPS_HEADING, FollowUp
 from quaestor.trace import TraceReader, TraceWriter
 from quaestor.verifier import (
     ClaimsDocument,
@@ -608,3 +609,53 @@ def test_the_repair_sentence_counts_rewrites_and_removals_apart(
     inputs.events = list(TraceReader(trace.path))
     report = render_report(inputs)
     assert "after 0 claim(s) rewritten and 3 number(s) removed from the prose" in report
+
+
+# --- the follow-up subsection (DECISIONS D-101) -------------------------------------------------
+
+
+def test_the_renderer_supplies_the_follow_up_heading_the_drafter_omitted(
+    inputs: ReportInputs,
+) -> None:
+    """The same argument as `### Open items`: the shape is the pipeline's, not one model call's."""
+    from quaestor.report.renderer import NO_FOLLOW_UP_PROSE
+
+    inputs.follow_ups = {ReportSection.outcomes: [FollowUp(tool="compute_metrics")]}
+    inputs.sections = {**inputs.sections, ReportSection.outcomes: "Discrimination is reported."}
+    report = render_report(inputs)
+    outcomes = report.split("## 4. Outcomes analysis", 1)[1].split("## 5.", 1)[0]
+    assert FOLLOW_UPS_HEADING in outcomes
+    assert NO_FOLLOW_UP_PROSE in outcomes
+    assert check_report(report, inputs.configuration, inputs.claims.post_repair) == []
+
+
+def test_what_the_drafter_wrote_under_the_follow_up_heading_is_left_alone(
+    inputs: ReportInputs,
+) -> None:
+    inputs.follow_ups = {ReportSection.outcomes: [FollowUp(tool="compute_metrics")]}
+    inputs.sections = {
+        **inputs.sections,
+        ReportSection.outcomes: (
+            f"Discrimination is reported.\n\n{FOLLOW_UPS_HEADING}\n\nThe low-limit half was "
+            "recomputed."
+        ),
+    }
+    report = render_report(inputs)
+    assert report.count(FOLLOW_UPS_HEADING) == 1
+    assert "The low-limit half was recomputed." in report
+
+
+def test_a_section_the_loop_did_not_touch_gets_no_follow_up_heading(inputs: ReportInputs) -> None:
+    inputs.follow_ups = {ReportSection.outcomes: [FollowUp(tool="compute_metrics")]}
+    report = render_report(inputs)
+    sensitivity = report.split("## 5. Sensitivity and scenario analysis", 1)[1].split("## 6.", 1)[0]
+    assert FOLLOW_UPS_HEADING not in sensitivity
+
+
+def test_the_findings_section_is_never_asked_for_the_follow_up_heading(
+    inputs: ReportInputs,
+) -> None:
+    """A material step reaches section 6 as an open item, which is a different sentence (D-102)."""
+    inputs.follow_ups = {ReportSection.findings: [FollowUp(tool="compute_metrics", material=True)]}
+    report = render_report(inputs)
+    assert FOLLOW_UPS_HEADING not in report
