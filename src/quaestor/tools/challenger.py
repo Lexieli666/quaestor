@@ -11,14 +11,26 @@ The challenger is deliberately the crudest possible one: a ``HistGradientBoostin
 its defaults with a fixed seed. A tuned challenger would make the comparison a statement about how
 hard the validator tried, and the study's numbers would then depend on tuning effort rather than
 on the champion.
+
+The **ablation** is the same idea turned inwards and raises nothing. One refit of the champion's
+own functional form -- linear in the log-odds, which is what both shipped subjects are -- per
+retained feature, each without that feature, each scored on the same held-out split:
+``ablation.<feature>.delta_auc`` is how much test AUC the model loses by dropping it. That is the
+materiality measure section 2 needs when ``check_collinearity`` reports a coefficient whose sign
+contradicts its univariate direction, because a sign flip on a column the model barely uses is not
+the same statement as one on a column it depends on (DECISIONS D-095).
 """
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
+import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from ..artifacts import Artifact, ArtifactKind
 from ..errors import ToolError
@@ -27,7 +39,22 @@ from . import stats
 from .frames import declared_features, feature_frame, predictions, require_split, scored_frame
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
 
-__all__ = ["CHALLENGER_NAME", "ChallengerCompareTool"]
+__all__ = [
+    "CHALLENGER_NAME",
+    "MAX_ABLATION_FEATURES",
+    "ChallengerCompareTool",
+]
+
+MAX_ABLATION_FEATURES: Final = 25
+"""How many features the ablation will refit for; above it the whole ablation is skipped.
+
+The cost is one refit per feature plus one baseline, and a refit of a logistic scorecard on a
+twenty-thousand-row panel is a few tens of milliseconds -- ten refits on ``credit_default``, eleven
+on ``msr_prepayment``. The cap exists so that a package with two hundred features cannot silently
+turn one tool call into two hundred fits inside the subject's wall-clock budget. When it bites,
+``ablation.skipped`` records that it did and why, because a measurement that was not made must not
+look like a measurement that came back empty (D-095).
+"""
 
 CHALLENGER_NAME: Final = "hist_gradient_boosting"
 """What the challenger is, recorded as an artifact so the report never has to name it in prose."""
@@ -124,6 +151,8 @@ class ChallengerCompareTool(Tool["ChallengerCompareTool.Args"]):
             ),
         ]
 
+        artifacts += self._ablation(ctx, design, held_out, truth, test_truth, features, test)
+
         threshold = ctx.thresholds.artifact(ctx.store, "threshold.E1.delta_auc")
         artifacts.append(threshold)
         limit = ctx.thresholds["threshold.E1.delta_auc"]
@@ -159,6 +188,88 @@ class ChallengerCompareTool(Tool["ChallengerCompareTool.Args"]):
                 f"{champion_auc:.4f} on {test}, a lead of {delta:+.4f} against {limit}"
             ),
         )
+
+    def _ablation(  # noqa: PLR0913 - the two matrices, the two outcome vectors and the names
+        self,
+        ctx: ToolContext,
+        design: pd.DataFrame,
+        held_out: pd.DataFrame,
+        truth: np.typing.NDArray[Any],
+        test_truth: np.typing.NDArray[Any],
+        features: list[str],
+        test: str,
+    ) -> list[Artifact]:
+        """Refit the champion's functional form without each feature and store the AUC it costs.
+
+        The refit is a standardised logistic regression, which is the champion's own form on both
+        shipped subjects. It is **not** the champion's own fit: the subject's coefficients were
+        produced by the subject's code, which this validator never imports (spec section 3.6). So
+        ``ablation.baseline_auc`` is stored beside the deltas and is the number each delta is
+        measured from -- it is close to ``metrics.<test>.auc`` and is not the same number, and
+        subtracting the deltas from the champion's own AUC would mix two fits.
+
+        Args:
+            ctx: The run's context.
+            design: The fitting split's numeric feature matrix.
+            held_out: The held-out split's numeric feature matrix.
+            truth: The fitting split's outcomes.
+            test_truth: The held-out split's outcomes.
+            features: The feature names, in matrix order.
+            test: The held-out split's name, for the captions.
+
+        Returns:
+            The baseline AUC, one delta per feature, or the single ``ablation.skipped`` note.
+        """
+        if len(features) > MAX_ABLATION_FEATURES:
+            return [
+                ctx.store.put(
+                    "ablation.skipped",
+                    {
+                        "reason": "more features than the ablation refits for",
+                        "n_features": len(features),
+                        "max_features": MAX_ABLATION_FEATURES,
+                    },
+                    ArtifactKind.json,
+                    f"the per-feature ablation was not run: {len(features)} features against a "
+                    f"cap of {MAX_ABLATION_FEATURES}",
+                )
+            ]
+        baseline = self._refit_auc(design, held_out, truth, test_truth, features)
+        artifacts = [
+            ctx.store.put(
+                "ablation.baseline_auc",
+                baseline,
+                ArtifactKind.scalar,
+                f"AUC on {test} of a refit of the champion's functional form on every retained "
+                "feature, the level each ablation delta is measured from",
+            )
+        ]
+        for name in features:
+            kept = [other for other in features if other != name]
+            without = self._refit_auc(design, held_out, truth, test_truth, kept)
+            artifacts.append(
+                ctx.store.put(
+                    f"ablation.{name}.delta_auc",
+                    without - baseline,
+                    ArtifactKind.scalar,
+                    f"change in {test} AUC when the champion's form is refitted without {name}",
+                )
+            )
+        return artifacts
+
+    @staticmethod
+    def _refit_auc(
+        design: pd.DataFrame,
+        held_out: pd.DataFrame,
+        truth: np.typing.NDArray[Any],
+        test_truth: np.typing.NDArray[Any],
+        features: list[str],
+    ) -> float:
+        """Fit a standardised logistic regression on the columns and score the held-out split."""
+        model = Pipeline(
+            [("scale", StandardScaler()), ("fit", LogisticRegression(max_iter=1000))]
+        ).fit(design[features], truth)
+        return stats.auc(test_truth, model.predict_proba(held_out[features])[:, 1])
 
     @staticmethod
     def _numeric(frame: pd.DataFrame, features: list[str], split: str) -> pd.DataFrame:

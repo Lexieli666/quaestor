@@ -1,9 +1,9 @@
 # Evaluation: what Quaestor has been measured on, and what it got wrong
 
 Every number in this file comes from a run committed in this repository, and the run is named
-where the number is used. `tests/test_live_credit_attempt1.py` and
-`tests/test_live_credit_attempt2.py` re-derive each figure of section 1 from the trace it claims
-to come from, so a number that drifts from its run fails the suite rather than sitting in a
+where the number is used. `tests/test_live_credit_attempt1.py`,
+`tests/test_live_credit_attempt2.py` and `tests/test_live_credit_attempt3.py` re-derive each
+figure of section 1 from the trace it claims to come from, so a number that drifts from its run fails the suite rather than sitting in a
 document. Where a figure was computed from a file the repository deliberately
 does *not* hold — a real sample's rows — it says so at the point of use.
 
@@ -170,5 +170,99 @@ a report whose post-repair grounding precision is 1.0000. The cassette is **not*
 that prompt deliberately and a cassette's key is a hash of the request, so what the test replays
 is the live model's answer and not the question.
 
+### 2026-09-08 — `credit_default`, `full_agent`, Claude CLI — third attempt, and the first report
+
+The record is `eval/results/first-live/credit-attempt3/`. It is kept as the record of what the
+pipeline produced on 2026-09-08; the excerpt the README will eventually carry comes from the run
+**after** the fixes below, not from this one.
+
+**The run.** The same command as the first two attempts, on a build carrying D-084 to D-090. It
+rendered: 159 post-repair claims, grounding precision 0.9816 before repair and 1.0000 after, no
+finding at any severity, exit 0.
+
+| quantity | value |
+|---|---|
+| model calls | **19** — 1 plan, 9 draft, 9 extract; no re-ask. Seven sections, plus one repair re-draft each for sections 3 and 4 and their re-extractions |
+| model | `claude-opus-5[1m]`, through `ClaudeCLILLM` — on every one of the 19 calls |
+| tool calls | 13 — `run_model`, `profile_data`, `compute_metrics`, `check_leakage`, `check_collinearity`, `challenger_compare`, and `retrieve_guidance` seven times — 2.89 s in total, over 124 artifacts |
+| candidates raised | **none**, by any of the 13 |
+| plan steps (bounded loop) | 1 — the model stopped at once |
+| claim checks | **247**: 244 verified, 2 unattributed, 1 unsupported |
+| repair rounds | **2** — section 3 (`9.982` and `6`) and section 4 (`50`); all three numbers were **removed**, none rewritten |
+| claims, post-repair | **159**, all verified |
+| findings | **0** |
+| output tokens | **104,675** — 525 plan, 34,003 draft, 70,147 extract |
+| input tokens | **176,851** as the cassettes record them; **38** as the trace does (see D-093 below) |
+| longest single call | extraction of section 4: **16,192 output tokens, 180.6 s** |
+| notional cost | **$4.3822**, of which $2.4414 extraction, $1.8569 drafting, $0.0839 the plan |
+| wall-clock | **20:18** from the first traced event to the last (1,217.79 s) |
+| report written | **yes** |
+
+**Two false sentences, both the tool's fault.** Every number in the report verifies; two of its
+*sentences* do not follow from the numbers, and neither is a failure of the model's reasoning.
+
+Section 3, on the contamination screen: "The measured share is above that bound, so the test split
+is not a fully clean holdout under the package's own standard, and **this is recorded as a finding**
+rather than as an observation." Section 6: "**No finding was raised** for the credit_default version
+1.0 model package in this section." `findings.json` is empty, so section 6 is right. Section 3's
+arithmetic is also right on the numbers it was given: it compared `leakage.overlap` = 0.01256 with
+`threshold.L2.overlap` = 0.005. The bound the rule **applied** under D-086 is
+`max(0.005, 2 × 0.011619)` = 0.02324, and 0.01256 does not exceed it — but that number existed only
+inside the checking function's local scope, so it was not an artifact, the drafter was never shown
+it, and no reader could have resolved a citation to it.
+
+Section 4.4, on the developer-declared thresholds: the row `PSI, maximum 0.25` reads "Not
+recomputed in the artifacts available to this section / Not evaluated here", while sections 1 and 3
+of the same report both cite `psi.max` = 0.003083. And the table carries a row
+`Wall-clock seconds, maximum 300` — the subject's runtime cap, listed among AUC and Brier as a
+performance threshold. Both come from the drafter being asked to *assemble* that table out of the
+loose scalars its selector matched: `threshold.package.` matched the runtime cap and did not match
+`psi.max`.
+
+| # | what the live run exposed | kind | fixed in |
+|---|---|---|---|
+| DECISIONS D-091 | A rule that derives its bound from the data kept that bound in a local variable, so the one number section 3 had to compare against was not an artifact and could not be cited. Every such rule now stores it — `threshold.L2.overlap.features_effective`, and `effective_name()` as the one spelling of the pattern — the candidate cites it, section 3's brief says which arm is read against which bound, and the section prompt states the candidate list explicitly, including the literal `candidates raised for this section: none -- describe nothing as a finding`. | defect | this commit |
+| DECISIONS D-092 | Section 4 assembled the developer-threshold table itself and got two of six rows wrong. `compute_metrics` now writes `thresholds.evaluation` — one row per declared bound with the metric, split, bound, recomputed value and `pass`/`fail`/`not evaluated` — and the drafter writes `[[table:thresholds.evaluation]]` instead. The runtime cap moves to `runtime.max_seconds`, out of the threshold family; section 4's selector takes every `threshold.*` and `psi.*` scalar. | defect | same commit |
+| DECISIONS D-093 | Three things the record got wrong about the run: `model: claude-cli` is the adapter, not the model the trace names on all 19 calls; `run_id` was `credit_default-full_agent-d03b07c6`, **the same string attempt 1 carries**; and Appendix C reported 38 input tokens against the 176,851 the cassettes record across `input_tokens`, `cache_creation_input_tokens` and `cache_read_input_tokens`. | defect | same commit |
+| DECISIONS D-094 | The decile table printed `0.6855555556` four lines below prose that wrote `0.4952`: one number, two spellings. Renderer tables now print measures at four significant figures and integral cells as integers. | defect | same commit |
+| DECISIONS D-095 | Section 2's best paragraph — utilisation enters negatively "against the standard view" — rested on nothing the run computed, and said so. `check_collinearity` now stores `sign_check.<feature>.{coef_sign,univariate_direction,agrees}` and `sign_check.n_disagreements`; `challenger_compare` stores `ablation.<feature>.delta_auc` against `ablation.baseline_auc`. Neither raises a candidate. | gap | same commit |
+| DECISIONS D-096 | Section 6 was four sentences saying nothing was raised, while sections 2 and 3 had just made two observations a developer should answer for. Section 6 gains a required `### Open items` subsection. | gap | same commit |
+| DECISIONS D-097 | Appendix A said "after 0 repaired claim(s)" of a run whose two repair rounds removed three numbers: only rewrites become `repairs` rows, and the removals live on the trace. The sentence now counts both. | defect | same commit |
+| DECISIONS D-098 | Section 4's order was decided by the event rate alone, which asks the data what the model is for. `package.yaml` gains an optional `use: ranking \| probability \| both`; `credit_default` declares `ranking`, `msr_prepayment` `probability`; the report states which rule ordered it and cites `rule.calibration_first_event_rate` only where that rule was the reason. | gap | same commit |
+
+All eight ship in one commit, which cannot cite its own hash; the run-log line under Phase 9 in
+`PROGRESS.md` is written in the same commit.
+
+**What the two false sentences have in common.** Neither is a hallucination and neither is an
+arithmetic slip. In both the model was handed an incomplete set of artifacts and reasoned correctly
+over what it had: a threshold it could see but not the threshold that was applied, and a family of
+scalars whose membership was decided by a name prefix rather than by what the numbers are. That is
+the same shape as D-084 — a fact one part of the pipeline knew and another did not — and the fix is
+the same shape too: put the fact in the store, where anything that needs it can cite it. A prompt
+instruction alone would not have been enough here and is not the fix: a drafter told "describe
+nothing as a finding" while holding an exceedance it can demonstrate is being asked to write a
+sentence it can see is wrong.
+
+**What D-085 actually saved, measured.** D-085 replaced the extractor's copied-back line with a
+line index and said the saving would be measured on the next live run rather than estimated. It is
+measurable now, and it is not what the token totals suggest. Extraction output went **up**, from
+63,865 tokens over 8 calls to 70,147 over 9 — but the two runs' cassettes separate reasoning from
+answer, and the answer is the half D-085 changed:
+
+| | attempt 1 | attempt 3 |
+|---|---|---|
+| extraction calls | 8 | 9 |
+| claim checks | 179 | 247 |
+| extraction output, total | 63,865 | 70,147 |
+| — of which thinking | 33,833 (53%) | 47,550 (68%) |
+| — of which answer | 30,032 | 22,597 |
+| **answer tokens per claim check** | **168** | **91** |
+
+So the field D-085 removed cost about what it was thought to: the answer more than halved per
+claim. The bill did not fall, because reasoning grew faster than the answer shrank — a longer,
+denser report is more to think about — and reasoning is now **68% of everything extraction
+generates**. That is where the next cost decision has to look, and this entry claims no saving the
+trace does not show.
+
 **Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, and a `credit_default`
-attempt that reaches a report. Both are the operator's, and neither has happened.
+attempt on a build carrying D-091 to D-098. Both are the operator's, and neither has happened.

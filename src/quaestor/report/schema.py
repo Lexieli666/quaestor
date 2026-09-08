@@ -32,6 +32,7 @@ from ..vocab import Configuration
 
 __all__ = [
     "APPENDIX_A_HEADING",
+    "OPEN_ITEMS_HEADING",
     "SCHEMA_FILE",
     "REPORT_SCHEMA",
     "REQUIRED_HEADINGS",
@@ -53,6 +54,23 @@ REQUIRED_HEADINGS: Final[tuple[str, ...]] = tuple(REPORT_SCHEMA["x-quaestor-requ
 
 APPENDIX_A_HEADING: Final = "## Appendix A — Claims"
 """The appendix the renderer refuses to write a report without."""
+
+OPEN_ITEMS_HEADING: Final = "### Open items"
+"""The subsection section 6 must carry, findings or none (DECISIONS D-096).
+
+A validation that raised no finding is not a validation that found nothing to say. The third live
+run's section 6 was four sentences saying nothing was raised -- while section 2 had just observed
+that a coefficient's sign contradicts subject-matter expectation and section 3 that 1.256% of test
+rows repeat a training feature vector. Neither is a defect under any rule this project applies, and
+both are things a model developer should answer, so the report now has somewhere to put them and
+"no findings" cannot quietly mean "no questions".
+
+It is checked here and **not** added to ``REPORT_SCHEMA.json``'s heading list, which is the list of
+the eleven level-2 headings and is pinned to the Phase 1 golden report under D-011. The rule is a
+level-3 one, it is the renderer that guarantees it -- ``_findings_section`` supplies the heading
+when the drafter omits it, exactly as it supplies a finding's heading under D-071 -- and this check
+is the assertion that it did.
+"""
 
 RENDERER_BLOCK_RE: Final = re.compile(REPORT_SCHEMA["x-quaestor-renderer-block-pattern"])
 """A renderer block: the scope block, or one expanded table."""
@@ -153,6 +171,11 @@ def check_structure(
             f"the report has no {APPENDIX_A_HEADING!r}; a report without its claims appendix is "
             "a report whose numbers cannot be audited"
         )
+    if OPEN_ITEMS_HEADING not in _findings_section_of(report):
+        problems.append(
+            f"section 6 has no {OPEN_ITEMS_HEADING!r}; a validation that raised no finding still "
+            "records what the developer is asked to answer for"
+        )
     for block in required_renderer_blocks():
         if str(block["begin"]) not in report:
             problems.append(f"the report has no {block['name']} renderer block")
@@ -170,6 +193,24 @@ def check_structure(
             f"{'⟦unverified: …⟧'}: {list(uncovered)}"
         )
     return problems
+
+
+def _findings_section_of(report: str) -> str:
+    """Return section 6, which is where the open-items subsection has to be.
+
+    Args:
+        report: The whole of ``report.md``.
+
+    Returns:
+        Everything between section 6's heading and section 7's, or ``""`` when section 6 is not
+        there -- in which case the heading check has already reported the real problem.
+    """
+    headings = list(REQUIRED_HEADINGS)
+    findings, monitoring = headings[5], headings[6]
+    if findings not in report:
+        return ""
+    after = report.split(findings, 1)[1]
+    return after.split(monitoring, 1)[0]
 
 
 def _forbidden(report: str) -> list[str]:

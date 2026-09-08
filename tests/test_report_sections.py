@@ -15,21 +15,34 @@ from pydantic import ValidationError
 
 from quaestor.artifacts import ArtifactKind, ArtifactStore
 from quaestor.findings import DefectClass
+from quaestor.package import PackageSpec, Use, load_package
+from quaestor.report.schema import OPEN_ITEMS_HEADING
 from quaestor.report.sections import (
+    CALIBRATION_FIRST_RULE,
     DEFECT_CLASS_NAMES,
     MAX_JSON_PATHS,
     SECTION_BRIEFS,
     ArtifactBrief,
+    OrderReason,
+    SectionOrder,
     artifact_briefs,
     brief_for,
     calibration_before_discrimination,
     flatten_json,
     four_significant_figures,
     ordered_briefs,
+    section_four_order,
     section_heading,
     written_number,
 )
+from quaestor.tools.leakage import FEATURE_OVERLAP_BOUND
+from quaestor.tools.metrics import THRESHOLD_TABLE
+from quaestor.tools.run import MAX_SECONDS_NAME
 from quaestor.vocab import SECTION_ORDER, ReportSection
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+CREDIT = REPO_ROOT / "subjects" / "credit_default"
+MSR = REPO_ROOT / "subjects" / "msr_prepayment"
 
 
 @pytest.fixture
@@ -217,3 +230,123 @@ def test_an_artifact_brief_is_frozen_and_carries_its_own_citation() -> None:
     assert brief.citation == "[[art:4bb1344e:metrics.test.auc]]"
     with pytest.raises(ValidationError):
         brief.value = 1.0  # type: ignore[misc]
+
+
+# --- section 4's ordering: the declared use, then the event rate (D-098) ------------------------
+
+
+def _rare(tmp_path: Path, name: str, rate: float) -> ArtifactStore:
+    """A store carrying one event rate and the rule it is read against."""
+    store = ArtifactStore(tmp_path / name)
+    store.put("metrics.test.event_rate", rate, ArtifactKind.scalar, "event rate")
+    store.put("rule.calibration_first_event_rate", 0.05, ArtifactKind.scalar, "the rule")
+    return store
+
+
+def _spec(use: Use | None) -> PackageSpec:
+    """The credit package with one `use` declaration swapped in."""
+    spec = load_package(CREDIT).spec
+    return spec.model_copy(update={"use": use})
+
+
+@pytest.mark.parametrize(
+    ("use", "rate", "calibration_first", "reason"),
+    [
+        (Use.probability, 0.2246, True, OrderReason.declared_use),
+        (Use.both, 0.2246, True, OrderReason.declared_use),
+        (Use.ranking, 0.2246, False, OrderReason.event_rate),
+        (Use.ranking, 0.0084, True, OrderReason.event_rate),
+        (None, 0.2246, False, OrderReason.event_rate),
+        (None, 0.0084, True, OrderReason.event_rate),
+    ],
+)
+def test_the_declared_use_outranks_the_event_rate_and_the_reason_is_returned(
+    tmp_path: Path, use: Use | None, rate: float, calibration_first: bool, reason: OrderReason
+) -> None:
+    """A common-rate model used for its probabilities leads with calibration; ranking does not."""
+    store = _rare(tmp_path, f"{use}-{rate}", rate)
+    order = section_four_order(store, _spec(use))
+    assert order == SectionOrder(calibration_first=calibration_first, reason=reason)
+    assert calibration_before_discrimination(store, _spec(use)) is calibration_first
+
+
+def test_the_rule_artifact_is_withheld_from_the_section_the_declared_use_ordered(
+    tmp_path: Path,
+) -> None:
+    """The surest way not to be cited as a reason is not to be handed to the drafter (D-098)."""
+    store = _rare(tmp_path, "declared", 0.2246)
+    by_use = {b.section: b for b in ordered_briefs(store, _spec(Use.probability))}[
+        ReportSection.outcomes
+    ]
+    assert "rule." not in by_use.scalars
+    assert CALIBRATION_FIRST_RULE not in {item.name for item in artifact_briefs(store, by_use)}
+    assert "package.yaml declares" in by_use.brief
+    assert f"do not cite {CALIBRATION_FIRST_RULE}" in by_use.brief
+
+    by_rate = {b.section: b for b in ordered_briefs(store, _spec(Use.ranking))}[
+        ReportSection.outcomes
+    ]
+    assert "rule." in by_rate.scalars
+    assert CALIBRATION_FIRST_RULE in {item.name for item in artifact_briefs(store, by_rate)}
+    assert CALIBRATION_FIRST_RULE in by_rate.brief
+
+
+def test_both_shipped_subjects_declare_what_their_output_is_used_for() -> None:
+    """`credit_default` ranks applicants; `msr_prepayment`'s hazard is multiplied by a balance."""
+    assert load_package(CREDIT).spec.use is Use.ranking
+    assert load_package(MSR).spec.use is Use.probability
+
+
+def test_a_package_may_leave_use_undeclared_or_null() -> None:
+    """Optional and nullable, so every pre-D-098 package keeps the Phase 8 behaviour."""
+    spec = load_package(CREDIT).spec
+    assert spec.model_copy(update={"use": None}).use is None
+    assert PackageSpec.model_validate({**spec.model_dump(mode="json"), "use": None}).use is None
+
+
+# --- section 4 points at the threshold table rather than assembling one (D-092) -----------------
+
+
+def test_section_four_is_offered_every_threshold_and_psi_scalar_and_the_threshold_table() -> None:
+    """The selector that made PSI invisible to the section that reports the declared bounds."""
+    brief = brief_for(ReportSection.outcomes)
+    assert brief.matches("threshold.L2.overlap")
+    assert brief.matches("threshold.package.psi.max")
+    assert brief.matches("psi.max")
+    assert brief.matches("psi.age")
+    assert THRESHOLD_TABLE in brief.tables
+    assert f"[[table:{THRESHOLD_TABLE}]]" in brief.brief
+    assert "do **not** assemble that table yourself" in brief.brief
+
+
+def test_the_runtime_cap_is_citable_from_the_summary_and_from_no_threshold_family() -> None:
+    """`runtime.max_seconds` left `threshold.*`; section 1 still states the cap (D-092)."""
+    assert brief_for(ReportSection.summary).matches(MAX_SECONDS_NAME)
+    assert not brief_for(ReportSection.outcomes).matches(MAX_SECONDS_NAME)
+
+
+def test_section_two_is_offered_the_sign_check_and_the_ablation(store: ArtifactStore) -> None:
+    """The evidence for the paragraph section 2 wrote from inference alone (D-095)."""
+    brief = brief_for(ReportSection.conceptual_soundness)
+    assert brief.matches("sign_check.utilisation.agrees")
+    assert brief.matches("sign_check.n_disagreements")
+    assert brief.matches("ablation.utilisation.delta_auc")
+    assert "univariate direction" in brief.brief
+    assert "ablation delta" in brief.brief
+    assert "do not\ndescribe anything here as a finding" in brief.brief
+
+
+def test_section_three_is_told_which_bound_each_overlap_arm_is_read_against() -> None:
+    """The instruction that D-091's new artifact exists to make followable."""
+    brief = brief_for(ReportSection.data_integrity)
+    assert brief.matches(FEATURE_OVERLAP_BOUND)
+    assert FEATURE_OVERLAP_BOUND in brief.brief
+    assert "do not compare a feature-vector overlap with the declared\nthreshold" in brief.brief
+
+
+def test_section_six_is_asked_for_the_open_items_subsection() -> None:
+    """D-096: the heading, an owner per line, and the word finding forbidden of an open item."""
+    brief = brief_for(ReportSection.findings)
+    assert OPEN_ITEMS_HEADING in brief.brief
+    assert "model developer" in brief.brief
+    assert "Never write\nthe word finding about an open item." in brief.brief

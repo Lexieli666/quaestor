@@ -34,11 +34,18 @@ from ..llm.structured import structured
 from ..trace import TraceWriter
 from ..verifier.claim import Claim, ClaimSource, Unit
 from ..vocab import ReportSection
-from .sections import DEFECT_CLASS_NAMES, ArtifactBrief, SectionBrief, written_number
+from .sections import (
+    DEFECT_CLASS_NAMES,
+    OPEN_ITEMS_HEADING,
+    ArtifactBrief,
+    SectionBrief,
+    written_number,
+)
 
 __all__ = [
     "DRAFT_INSTRUCTION",
     "DRAFT_PURPOSE",
+    "NO_CANDIDATES",
     "REPAIR_INSTRUCTION",
     "DraftedSection",
     "Drafter",
@@ -76,6 +83,9 @@ Rules, all of them checked after you answer:
   cite the superseded SR11-7 only where it says something the revision does not.
 - Write markdown. Do not write a level-2 heading: the renderer writes it.
 - Do not use the words "compliant" or "certified".
+- Call something a finding only if it is in the candidate list at the end of this prompt. The
+  findings section reports exactly that list, and a section that calls anything else a finding
+  contradicts it.
 
 Artifacts you may cite (values at four significant figures):
 {artifacts}
@@ -83,7 +93,7 @@ Artifacts you may cite (values at four significant figures):
 Guidance spans retrieved for this section:
 {guidance}
 
-Finding candidates the checks raised for this section:
+Findings raised for this section:
 {candidates}
 {extra}
 Answer with the section's markdown under the key "markdown"."""
@@ -211,22 +221,45 @@ def _guidance_block(spans: Sequence[GuidanceSpan]) -> str:
     return json.dumps([span.to_payload() for span in spans], indent=1, ensure_ascii=True)
 
 
+NO_CANDIDATES: Final = "candidates raised for this section: none -- describe nothing as a finding"
+"""What the prompt says when nothing fired, word for word (DECISIONS D-091).
+
+The Phase 8 prompt said "(none: every check that ran on this section's material raised nothing)",
+which states the fact and does not state the consequence. On the third live run section 3 read a
+1.256% overlap against the wrong bound, concluded it was an exceedance, and wrote that it "is
+recorded as a finding" -- while section 6, which had the findings, correctly said none was raised.
+Only the drafter can put those two sentences in one report, so the instruction not to belongs
+where the drafter reads it, in the words a reader of the prompt cannot mistake.
+"""
+
+
 def _candidates_block(candidates: Sequence[FindingCandidate]) -> str:
-    """Render the candidate findings a section is asked to account for."""
+    """Render the candidate findings a section is asked to account for, or say there are none."""
     if not candidates:
-        return "(none: every check that ran on this section's material raised nothing)"
-    return "\n".join(
+        return NO_CANDIDATES
+    lines = [f"candidates raised for this section: {len(candidates)}"]
+    lines += [
         f"- {candidate.defect_class.value} "
         f"({DEFECT_CLASS_NAMES[candidate.defect_class]}, suggested severity "
         f"{candidate.suggested_severity.value}, from {candidate.tool}): {candidate.detail}"
         for candidate in candidates
+    ]
+    lines.append(
+        "Those are the only findings this section may describe. A number that exceeds a bound and "
+        "is not in that list is not a finding: report it, say what bound it was read against, and "
+        "leave it to the findings section's open items."
     )
+    return "\n".join(lines)
 
 
 def _findings_block(findings: Sequence[Finding]) -> str:
     """Render the findings section 6 must write about, each with the heading to copy."""
     if not findings:
-        return "\nNo finding was raised. Say so in one sentence and say what was checked instead.\n"
+        return (
+            "\nNo finding was raised. Say so in one sentence, say what was checked instead, and "
+            f"then write the {OPEN_ITEMS_HEADING!r} subsection your brief describes: a validation "
+            "that raised no finding still owes the developer the observations it made.\n"
+        )
     lines = ["\nFindings to write about, in this order, each under the heading given:"]
     for finding in findings:
         lines.append(f"\n{finding_heading(finding)}")

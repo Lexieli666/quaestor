@@ -13,12 +13,17 @@ module that imported ``configs`` would make the tool layer depend on the pipelin
 values are needed by Phase 5's tools three phases before there is a configuration to hold them
 (DECISIONS D-049).
 
-Two families of name appear in the store:
+Three families of name appear in the store:
 
 * ``threshold.<CLASS>.<name>`` -- a class default from the table below, such as
   ``threshold.M1.vif``;
 * ``threshold.package.<metric>[.<split>].<min|max>`` -- a rule the developer declared in
-  ``package.yaml``, such as ``threshold.package.auc.test.min``.
+  ``package.yaml``, such as ``threshold.package.auc.test.min``;
+* ``<declared>.<rule>_effective`` -- the bound a rule *applied*, where the rule derives it from
+  the data rather than reading it off the table, such as
+  ``threshold.L2.overlap.features_effective``. :func:`effective_name` is the one spelling of it,
+  and a rule that computes a bound stores it, because a report that compares a value with an
+  unstored number is a report whose comparison nothing can check (DECISIONS D-091).
 
 ``rule.calibration_first_event_rate`` is neither: it is not a pass/fail bound but the event rate
 below which the report puts calibration before discrimination (spec section 3.11), and it is
@@ -37,10 +42,35 @@ from ..package import ThresholdSpec
 
 __all__ = [
     "DEFAULT_THRESHOLDS",
+    "EFFECTIVE_SUFFIX",
     "THRESHOLD_SUMMARIES",
     "Thresholds",
+    "effective_name",
     "package_threshold_names",
 ]
+
+EFFECTIVE_SUFFIX: Final = "_effective"
+"""The tail a derived bound's logical name carries, so a reader can see it was computed.
+
+``threshold.L2.overlap`` is the number ``package.yaml`` and spec section 3.7 state;
+``threshold.L2.overlap.features_effective`` is the number the feature-overlap rule actually
+applied, which under D-086 is ``max(threshold.L2.overlap, 2 x leakage.duplicates.train)`` and is
+therefore a property of the data as well as of the rule.
+"""
+
+
+def effective_name(base: str, rule: str) -> str:
+    """Return the logical name a rule's computed bound is stored under.
+
+    Args:
+        base: The declared threshold's logical name, such as ``threshold.L2.overlap``.
+        rule: Which arm of the rule the bound belongs to, such as ``features``.
+
+    Returns:
+        ``<base>.<rule>_effective``.
+    """
+    return f"{base}.{rule}{EFFECTIVE_SUFFIX}"
+
 
 DEFAULT_THRESHOLDS: Final[Mapping[str, float]] = {
     "threshold.C1.calibration_slope.max": 1.20,

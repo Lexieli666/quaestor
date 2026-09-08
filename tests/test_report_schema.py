@@ -17,6 +17,7 @@ import pytest
 from quaestor.errors import ReportSchemaError
 from quaestor.report.schema import (
     APPENDIX_A_HEADING,
+    OPEN_ITEMS_HEADING,
     REPORT_SCHEMA,
     REQUIRED_HEADINGS,
     SCHEMA_FILE,
@@ -48,8 +49,27 @@ GOOD_FRONT = {
     "illustrative": False,
 }
 
+
+def _headings_with_open_items() -> list[str]:
+    """The eleven level-2 headings, with section 6's required `### Open items` under its own."""
+    lines: list[str] = []
+    for heading in REQUIRED_HEADINGS:
+        lines.append(heading)
+        if heading == "## 6. Findings and recommendations":
+            lines.append(OPEN_ITEMS_HEADING)
+    return lines
+
+
 MINIMAL_REPORT = "\n".join(
-    ["---", "schema_version: 1", "---", "", "# Validation report", "", *REQUIRED_HEADINGS]
+    [
+        "---",
+        "schema_version: 1",
+        "---",
+        "",
+        "# Validation report",
+        "",
+        *_headings_with_open_items(),
+    ]
 )
 
 
@@ -104,6 +124,21 @@ def test_synthetic_mode_must_state_how_many_rows_it_generated() -> None:
 def test_a_well_formed_report_skeleton_passes_the_structural_checks() -> None:
     report = MINIMAL_REPORT + "\n" + required_renderer_blocks()[0]["begin"] + "\n"
     assert check_structure(report, configuration=Configuration.rules_only) == []
+
+
+def test_a_section_six_without_open_items_is_refused() -> None:
+    """D-096: a report whose section 6 has no open-items subsection is not written."""
+    report = MINIMAL_REPORT.replace(OPEN_ITEMS_HEADING + "\n", "")
+    problems = check_structure(report, configuration=Configuration.rules_only)
+    assert any(OPEN_ITEMS_HEADING in problem for problem in problems)
+
+
+def test_a_report_with_no_section_six_at_all_is_reported_once_for_the_heading() -> None:
+    """With section 6 gone the level-2 rule has already named the real problem (D-096)."""
+    report = MINIMAL_REPORT.replace("## 6. Findings and recommendations\n", "")
+    problems = check_structure(report, configuration=Configuration.rules_only)
+    assert any("level-2 headings" in problem for problem in problems)
+    assert any(OPEN_ITEMS_HEADING in problem for problem in problems)
 
 
 def test_headings_out_of_order_are_reported_with_what_was_found() -> None:

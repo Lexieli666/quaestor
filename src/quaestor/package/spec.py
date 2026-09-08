@@ -33,6 +33,7 @@ __all__ = [
     "SplitRule",
     "SplitsSpec",
     "ThresholdSpec",
+    "Use",
 ]
 
 
@@ -46,6 +47,26 @@ class ModelType(StrEnum):
 
     binary_classification = "binary_classification"
     discrete_time_hazard = "discrete_time_hazard"
+
+
+class Use(StrEnum):
+    """What the model's output is used for, which decides how section 4 orders itself.
+
+    A scorecard whose only job is to rank applicants is judged on discrimination; one whose
+    probabilities are multiplied by an exposure is judged on calibration first, whatever its
+    event rate. The declaration is optional -- ``use: null`` and an absent block both mean the
+    developer did not say -- and where it is absent the rare-event rule of spec section 3.11
+    decides on its own (DECISIONS D-098).
+
+    Attributes:
+        ranking: The score is used to order subjects; the level of the probability is not relied on.
+        probability: The probability itself is used, so calibration is the leading question.
+        both: The output is used both ways, which is the stricter of the two.
+    """
+
+    ranking = "ranking"
+    probability = "probability"
+    both = "both"
 
 
 class FeatureTiming(StrEnum):
@@ -297,6 +318,8 @@ class PackageSpec(BaseModel):
         version: The model version, as a string. YAML's ``1.0`` is a float and is rejected: a
             version is an identifier, and ``1.10`` must not equal ``1.1``.
         model_type: Which family the subject belongs to.
+        use: What the output is used for -- ``ranking``, ``probability`` or ``both`` -- or
+            ``None`` where the developer did not declare it.
         entrypoint: The command the sandbox runs, ``python -m code.run`` by convention.
         data: Where the data comes from and what it predicts.
         splits: The splits the subject writes predictions for.
@@ -313,6 +336,7 @@ class PackageSpec(BaseModel):
     name: str
     version: str
     model_type: ModelType
+    use: Use | None = None
     entrypoint: str
     data: DataSpec
     splits: SplitsSpec

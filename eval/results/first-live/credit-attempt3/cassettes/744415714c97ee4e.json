@@ -1,0 +1,100 @@
+{
+  "calls": 1,
+  "completion": {
+    "cost_usd": 0.08736300000000001,
+    "latency_ms": 11277.0,
+    "model": "claude-opus-5[1m]",
+    "raw": {
+      "api_error_status": null,
+      "duration_api_ms": 11277,
+      "duration_ms": 10240,
+      "fast_mode_disabled_reason": "sdk_opt_in_required",
+      "fast_mode_state": "off",
+      "is_error": false,
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "contextWindow": 200000,
+          "costUSD": 0.0039030000000000002,
+          "inputTokens": 3808,
+          "maxOutputTokens": 32000,
+          "outputTokens": 19,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        },
+        "claude-opus-5[1m]": {
+          "cacheCreationInputTokens": 6825,
+          "cacheReadInputTokens": 600,
+          "canonicalModel": "claude-opus-5",
+          "contextWindow": 1000000,
+          "costUSD": 0.08346,
+          "inputTokens": 2,
+          "maxOutputTokens": 64000,
+          "outputTokens": 596,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        }
+      },
+      "num_turns": 1,
+      "permission_denials": [],
+      "quaestor_bare": false,
+      "result": "{\"markdown\": \"Findings in this section are ordered by severity and each carries the evidence on which it rests, so that recommendations, responses, and exceptions can be tracked through remediation [[reg:SR26-2:VI.3]].\\n\\nNo finding was raised for the credit_default version 1.0 model package in this section.\\n\\nEvery check configured to run against this section's material was executed and each one returned without raising a finding.\\n\\nThe checks drew on the artifacts registered for this section of the review, and no artifact was cited here because none was required to support a finding.\\n\\nThe validator concludes that this section records no defect, and the developer is asked only to retain the underlying artifacts and check records so that the absence of findings remains auditable at the next periodic review.\"}",
+      "session_id": "b7a66bab-d78a-4219-800d-543608fa0fe3",
+      "stop_reason": "end_turn",
+      "subtype": "success",
+      "terminal_reason": "completed",
+      "time_to_request_ms": 114,
+      "total_cost_usd": 0.08736300000000001,
+      "ttft_ms": 7103,
+      "ttft_stream_ms": 1357,
+      "type": "result",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 6825,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 6825,
+        "cache_read_input_tokens": 600,
+        "inference_geo": "not_available",
+        "input_tokens": 2,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 6825,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 6825,
+            "cache_read_input_tokens": 600,
+            "input_tokens": 2,
+            "output_tokens": 596,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 596,
+        "output_tokens_details": {
+          "thinking_tokens": 351
+        },
+        "server_tool_use": {
+          "web_fetch_requests": 0,
+          "web_search_requests": 0
+        },
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "uuid": "c4e50188-67f6-43cb-9021-638e2333bf7d"
+    },
+    "text": "{\"markdown\": \"Findings in this section are ordered by severity and each carries the evidence on which it rests, so that recommendations, responses, and exceptions can be tracked through remediation [[reg:SR26-2:VI.3]].\\n\\nNo finding was raised for the credit_default version 1.0 model package in this section.\\n\\nEvery check configured to run against this section's material was executed and each one returned without raising a finding.\\n\\nThe checks drew on the artifacts registered for this section of the review, and no artifact was cited here because none was required to support a finding.\\n\\nThe validator concludes that this section records no defect, and the developer is asked only to retain the underlying artifacts and check records so that the absence of findings remains auditable at the next periodic review.\"}",
+    "tokens_in": 2,
+    "tokens_out": 596
+  },
+  "key": "744415714c97ee4e",
+  "provider": "claude-cli",
+  "request": {
+    "params": {},
+    "prompt": "You are drafting one section of a model-validation report on the model package credit_default version\n1.0. The report follows the structure of the Federal Reserve's model risk management\nguidance and never claims compliance with it.\n\nSection: ## 6. Findings and recommendations\n\nWhat this section must do:\nWrite the findings section. Open with one sentence anchored by a [[reg:...]] citation saying\nhow findings are ordered and what evidence each carries. Then, for each finding listed below,\ncopy its heading line exactly as given, on a line of its own, and beneath it write: a bold\none-sentence statement of the\ndefect, then the numbers that show it -- each with its citation -- then what the validator\nconcludes and what the developer should do. Do not invent a finding, do not merge two, and do not\nchange a severity.\n\nRules, all of them checked after you answer:\n- Every number you write is followed immediately by its [[art:...]] citation, copied exactly from\n  the JSON below. A number with no citation is counted against this report.\n- Write no number that is not in the JSON below. If you want to say something the artifacts do not\n  support, say it in words without a number.\n- One sentence per line. The claim extractor works line by line, so a sentence split over two\n  lines is two claims and a paragraph on one line is one.\n- For a table artifact, do not retype the cells. Write the directive [[table:<logical_name>]] on a\n  line of its own; the renderer expands it, with its caption and its citation, from the store.\n- Open the section with a sentence that anchors it to the guidance, carrying one [[reg:...]]\n  citation copied from the guidance spans below. Prefer a span of the current guidance, SR26-2;\n  cite the superseded SR11-7 only where it says something the revision does not.\n- Write markdown. Do not write a level-2 heading: the renderer writes it.\n- Do not use the words \"compliant\" or \"certified\".\n\nArtifacts you may cite (values at four significant figures):\n[]  (this section cites no artifact; write it in words)\n\nGuidance spans retrieved for this section:\n[\n {\n  \"citation\": \"[[reg:SR26-2:VI.3]]\",\n  \"heading\": \"Documentation\",\n  \"text\": \"Adequate documentation helps to support effective model risk management. For\\nexample, documentation can help maximize the likelihood of continuity of operations, including\\nsupporting the tracking of recommendations, responses, and exceptions; it can also be used to\\nmore effectively help manage any model remediation efforts.\"\n },\n {\n  \"citation\": \"[[reg:SR11-7:VI.4]]\",\n  \"heading\": \"Internal Audit\",\n  \"text\": \"A bank's internal audit function should assess the overall effectiveness of the model risk\\nmanagement framework, including the framework's ability to address both types of\\nmodel risk described in Section III, for individual models and in the aggregate. Findings\\nfrom internal audit related to models should be documented and reported to the board or\\nits appropriately delegated agent. Banks should ensure that internal audit operates with\\nthe proper incentives, has appropriate skills, and has adequate stature in the organization\\nto assist in model risk management. Internal audit's role is not to duplicate model risk\\nmanagement activities. Instead, its role is to evaluate whether model risk management is\\ncomprehensive, rigorous, and effective. To accomplish this evaluation, internal audit staff\\nshould possess sufficient expertise in relevant modeling concepts as well as their use in\\nparticular business lines. If some internal audit staff perform certain validation activities,\\nthen they should not be involved in the assessment of the overall model risk management\\nframework.\\nInternal audit should verify that acceptable policies are in place and that model owners\\nand control groups comply with those policies. Internal audit should also verify records\\nof model use and validation to test whether validations are performed in a timely manner\\nand whether models are subject to controls that appropriately account for any weaknesses\\nin validation activities. Accuracy and completeness of the model inventory should be\\nassessed. In addition, processes for establishing and monitoring limits on model usage\\nshould be evaluated. Internal audit should determine whether procedures for updating\\nmodels are clearly documented, and test whether those procedures are being carried out\\nas specified. Internal audit should check that model owners and control groups are\\nmeeting documentation standards, including risk reporting. Additionally, internal audit\\nshould perform assessments of supporting operational systems and evaluate the reliability\\nof data used by models.\\nInternal audit also has an important role in ensuring that validation work is conducted\\nproperly and that appropriate effective challenge is being carried out. It should evaluate\\nthe objectivity, competence, and organizational standing of the key validation\\nparticipants, with the ultimate goal of ascertaining whether those participants have the\\nright incentives to discover and report deficiencies. Internal audit should review\\nvalidation activities conducted by internal and external parties with the same rigor to see\\nif those activities are being conducted in accordance with this guidance. [Page Break]\"\n },\n {\n  \"citation\": \"[[reg:SR11-7:V]]\",\n  \"heading\": \"Model Validation\",\n  \"text\": \"Model validation is the set of processes and activities intended to verify that models are\\nperforming as expected, in line with their design objectives and business uses. Effective\\nvalidation helps ensure that models are sound. It also identifies potential limitations and\\nassumptions, and assesses their possible impact. As with other aspects of effective\\nchallenge, model validation should be performed by staff with appropriate incentives,\\ncompetence, and influence.\\nAll model components, including input, processing, and reporting, should be subject to\\nvalidation; this applies equally to models developed in-house and to those purchased\\nfrom or developed by vendors or consultants. The rigor and sophistication of validation\\nshould be commensurate with the bank's overall use of models, the complexity and\\nmateriality of its models, and the size and complexity of the bank's operations.\\nValidation involves a degree of independence from model development and use.\\nGenerally, validation should be done by people who are not responsible for development\\nor use and do not have a stake in whether a model is determined to be valid.\\nIndependence is not an end in itself but rather helps ensure that incentives are aligned\\nwith the goals of model validation. While independence may be supported by separation\\nof reporting lines, it should be judged by actions and outcomes, since there may be\\nadditional ways to ensure objectivity and prevent bias. As a practical matter, some\\nvalidation work may be most effectively done by model developers and users; it is\\nessential, however, that such validation work be subject to critical review by an\\nindependent party, who should conduct additional activities to ensure proper validation.\\nOverall, the quality of the process is judged by the manner in which models are subject to\\ncritical review. This could be determined by evaluating the extent and clarity of\\ndocumentation, the issues identified by objective parties, and the actions taken by\\nmanagement to address model issues.\\nIn addition to independence, banks can support appropriate incentives in validation\\nthrough compensation practices and performance evaluation standards that are tied\\ndirectly to the quality of model validations and the degree of critical, unbiased review. In\\naddition, corporate culture plays a role if it establishes support for objective thinking and\\nencourages questioning and challenging of decisions.\\nStaff doing validation should have the requisite knowledge, skills, and expertise. A high\\nlevel of technical expertise may be needed because of the complexity of many models,\\nboth in structure and in application. These staff also should have a significant degree of\\nfamiliarity with the line of business using the model and the model's intended use. A\\nmodel's developer is an important source of information but cannot be relied on as an\\nobjective or sole source on which to base an assessment of model quality.\\nStaff conducting validation work should have explicit authority to challenge developers\\nand users and to elevate their findings, including issues and deficiencies. The individual\\nor unit to whom those staff report should have sufficient influence or stature within the [Page Break]\\nbank to ensure that any issues and deficiencies are appropriately addressed in a timely\\nand substantive manner. Such influence can be reflected in reporting lines, title, rank, or\\ndesignated responsibilities. Influence may be demonstrated by a pattern of actual\\ninstances in which models, or the use of models, have been appropriately changed as a\\nresult of validation.\\nThe range and rigor of validation activities conducted prior to first use of a model should\\nbe in line with the potential risk presented by use of the model. If significant deficiencies\\nare noted as a result of the validation process, use of the model should not be allowed or\\nshould be permitted only under very tight constraints until those issues are resolved. If\\nthe deficiencies are too severe to be addressed within the model's framework, the model\\nshould be rejected. If it is not feasible to conduct necessary validation activities prior to\\nmodel use because of data paucity or other limitations, that fact should be documented\\nand communicated in reports to users, senior management, and other relevant parties. In\\nsuch cases, the uncertainty about the results that the model produces should be mitigated\\nby other compensating controls. This is particularly applicable to new models and to the\\nuse of existing models in new applications.\\nValidation activities should continue on an ongoing basis after a model goes into use, to\\ntrack known model limitations and to identify any new ones. Validation is an important\\ncheck on model use during periods of benign economic and financial conditions, when\\nestimates of risk and potential loss can become overly optimistic, and when the data at\\nhand may not fully reflect more stressed conditions. Ongoing validation activities help to\\nensure that changes in markets, products, exposures, activities, clients, or business\\npractices do not create new model limitations. For example, if credit risk models do not\\nincorporate underwriting changes in a timely manner, flawed and costly business\\ndecisions could be made before deterioration in model performance becomes apparent.\\nBanks should conduct a periodic review\\u2014at least annually but more frequently if\\nwarranted\\u2014of each model to determine whether it is working as intended and if the\\nexisting validation activities are sufficient. Such a determination could simply affirm\\nprevious validation work, suggest updates to previous validation activities, or call for\\nadditional validation activities. Material changes to models should also be subject to\\nvalidation. It is generally good practice for banks to ensure that all models undergo the\\nfull validation process, as described in the following section, at some fixed interval,\\nincluding updated documentation of all activities.\\nEffective model validation helps reduce model risk by identifying model errors,\\ncorrective actions, and appropriate use. It also provides an assessment of the reliability of\\na given model, based on its underlying assumptions, theory, and methods. In this way, it\\nprovides information about the source and extent of model risk. Validation also can\\nreveal deterioration in model performance over time and can set thresholds for acceptable\\nlevels of error, through analysis of the distribution of outcomes around expected or\\npredicted values. If outcomes fall consistently outside this acceptable range, then the\\nmodels should be redeveloped. [Page Break]\"\n }\n]\n\nFinding candidates the checks raised for this section:\n(none: every check that ran on this section's material raised nothing)\n\nNo finding was raised. Say so in one sentence and say what was checked instead.\n\nAnswer with the section's markdown under the key \"markdown\".\n\nAnswer with one JSON object and nothing else: no prose before or after it, no explanation, no markdown fence. It must validate against this JSON schema:\n{\"additionalProperties\": false, \"description\": \"The one thing a drafter is asked for.\\n\\nAttributes:\\n    markdown: The section's prose, without its level-2 heading.\", \"properties\": {\"markdown\": {\"minLength\": 1, \"title\": \"Markdown\", \"type\": \"string\"}}, \"required\": [\"markdown\"], \"title\": \"DraftedSection\", \"type\": \"object\"}",
+    "system": null
+  },
+  "schema_version": 1
+}

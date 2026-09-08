@@ -866,3 +866,119 @@ attempt never made. The tape is not re-keyed onto today's prompt, because D-089 
 that prompt on purpose and a cassette's key is a hash of the request; what is replayed is the
 answer, byte for byte, and the assertion is that it is now refused with a reason and the run
 renders a report.
+
+## Phase 9 follow-up 3 — What the first rendered live report changed
+
+The third live `credit_default` validation is the first that reached a report: 19 model calls, 13
+tool calls, 159 post-repair claims, grounding precision 0.9816 rising to 1.0000, no finding, exit
+0. Every number in it verifies. Two of its *sentences* are false, and neither is a failure of the
+model's reasoning — in both, the drafter was handed an incomplete set of artifacts and reasoned
+correctly over what it had. `docs/EVALUATION.md` §1 carries the run; this section carries the
+design argument.
+
+**A rule that derives its bound has to store it (D-091).** D-086 made the feature-overlap arm of
+`L2` fire on `max(threshold.L2.overlap, 2 × leakage.duplicates.train)`, which on the live panel is
+0.02324 rather than the declared 0.005. That number lived in a local variable. So section 3 was
+shown a threshold of 0.005 and an overlap of 0.01256, compared them correctly, called the result an
+exceedance and wrote that it "is recorded as a finding" — while section 6, which had
+`findings.json`, correctly said none was raised. The invariant D-086 broke is Phase 5's:
+`Thresholds.artifact` is the only way a tool reads a threshold, so a number that decided a
+candidate is in the store by construction and its hash is in that candidate's evidence. A bound
+computed from the data is still a bound that decided a candidate. `tools/thresholds.py` gains
+`effective_name(base, rule)` as the one spelling of the pattern, `check_leakage` writes
+`threshold.L2.overlap.features_effective`, both `L2` candidates cite it, and section 3's brief says
+which arm is read against which bound. The prompt half is the second line of defence, not the fix:
+`_candidates_block` now writes the literal `candidates raised for this section: none -- describe
+nothing as a finding`, lists and counts the candidates where there are any, and says they are the
+only findings that section may describe. A drafter told "describe nothing as a finding" while
+holding an exceedance it can demonstrate is being asked to write a sentence it can see is wrong,
+which is how a competent model is made to look incompetent.
+
+**A prefix is not a taxonomy (D-092).** Section 4.4's developer-threshold table said PSI was "not
+recomputed in the artifacts available to this section" while sections 1 and 3 both cited
+`psi.max`, and listed the subject's wall-clock cap as a performance threshold. Both follow from
+one selector: `threshold.package.` matched `threshold.package.max_seconds` and did not match
+`psi.max`. D-013 already forbids the drafter to retype a table the store holds, and this was the
+one table it was still being asked to compose — from scalars whose relationship to each other it
+had to infer, for the table a validation report is most often read for. `compute_metrics` now
+writes `thresholds.evaluation` from the same loop that raises `T1`, so the table and the rule
+cannot disagree; the drafter writes `[[table:thresholds.evaluation]]`; the cap becomes
+`runtime.max_seconds`, which is the name `package.yaml` gives it; and section 4's selector takes
+every `threshold.*` and `psi.*` scalar so the prose around the table can cite what it discusses.
+
+**The record has to describe the run (D-093).** Three failures of that, each fixed where it is
+produced. The front matter said `model: claude-cli`, which is a subprocess — the adapter is what
+you re-run and the model id is what a published study compares, so `ReportInputs` gains `model_id`,
+read off the run's own `llm_call` events, and Appendix C gains a `provider adapter` row beside the
+`model` row. The `run_id` was `credit_default-full_agent-d03b07c6`, which is the string attempt 1
+carries: an identifier introduced to join a report to its trace was joining each report to two
+traces, so `_run_id` puts the UTC second the run began in front of the input hash — the hash still
+says two runs had the same inputs, and the stamp says they were different runs. And Appendix C
+reported 38 input tokens for 19 calls: `input_tokens` alone is what the prompt cache neither wrote
+nor read, and `ClaudeCLILLM` now sums it with `cache_creation_input_tokens` and
+`cache_read_input_tokens` for the 176,851 the cassettes actually record. Cached input is cheaper
+than fresh input; it is not free, and Phase 12 publishes a cost per report.
+
+**One number, one spelling (D-094).** The decile table printed `0.6855555556` four lines below
+prose that wrote `0.4952`. The drafter is shown four significant figures and writes what it sees;
+a renderer block beside it showing ten digits of the same quantity invites the arithmetic to be
+checked against the wrong number, and asserts a precision no statistic in the report has.
+`_table_cell` prints measures at four figures and integral cells as integers, recovering the type
+first — a table artifact's payload is canonical text, so a period label like `2024-01` has to
+survive being printed as it stands. The artifact keeps every digit; only the rendering of it is a
+reader's number.
+
+**Evidence for the paragraph the validator wrote from inference (D-095).** Section 2's most useful
+paragraph observed that utilisation enters the champion negatively "against the standard view",
+offered a reading, and said the reading was the validator's own. "The sign is wrong" and "the sign
+is wrong and it costs two AUC points" are different statements to a developer, and only the second
+can be acted on. `check_collinearity` is where the sign check belongs, because a near-dependency
+among the columns is *why* a coefficient takes a sign its own marginal relationship contradicts;
+`challenger_compare` is where the ablation belongs, because an ablation is a refit-and-compare and
+that is what the tool already is. Neither raises a candidate: a sign flip is frequently the model
+correctly conditioning on the other columns, and a rule that fired on it would manufacture exactly
+the false alarm D-086 exists to refuse. `ablation.baseline_auc` is stored beside the deltas because
+the refit is not the champion's own fit — the validator never imports the subject — so the number
+each delta is measured from is named rather than assumed to be `metrics.test.auc`.
+
+**"No findings" must not mean "no questions" (D-096).** Section 6 of the third attempt is four
+sentences saying nothing was raised, immediately after sections 2 and 3 made two observations a
+developer should answer for. A finding in this project is a rule firing, and the rules are
+deliberately narrow — the whole seeded-defect study measures how narrow — so a section 6 that says
+only "no finding was raised" invites the reader to conclude something about the model that it does
+not support. `### Open items` is a required level-3 subsection: one line per observation, each
+citing its artifact and naming an owner. The renderer lifts whatever the drafter wrote under the
+heading, places it last and supplies the heading where the drafter omitted it, on D-071's argument;
+`check_structure` asserts it. It is checked in code rather than added to `REPORT_SCHEMA.json`,
+whose heading list is the eleven level-2 headings and is pinned to the Phase 1 golden under D-011.
+Promoting open items to `info` findings was rejected: they would enter `findings.json`, the
+severity counts and the study's precision denominator, so a helpful observation would score as a
+false alarm.
+
+**Both halves of a repair (D-097).** Appendix A said "after 0 repaired claim(s)" of a run whose two
+rounds removed three numbers. A rewritten claim is paired with what replaced it and becomes a
+`repairs` row; a removed number has no `after` side, and D-073 records it on the trace event alone
+rather than inventing a half-empty row. That was right; the appendix was reading half the record.
+The count comes from the trace rather than from a new `claims.json` field, which keeps
+`CLAIMS_SCHEMA.json` untouched and costs nothing, since the renderer already holds the events for
+Appendix C.
+
+**What the model is for is not a property of the sample (D-098).** Spec §3.11 orders section 4 by
+the event rate. `msr_prepayment`'s hazard probabilities are multiplied by a surviving balance to
+value a servicing strip, so calibration leads whatever its rate is; `credit_default`'s scorecard
+ranks applicants at a 22% default rate. The two questions only coincide because rare events are
+usually modelled for their level. `PackageSpec` gains an optional, nullable
+`use: ranking | probability | both` — the one `package.yaml` change of this follow-up, decided in
+Cowork — and `section_four_order` returns the ordering **and** the ground for it. Where the
+declared use decided, `rule.calibration_first_event_rate` is dropped from section 4's selector
+rather than merely not mentioned in the brief: D-091's lesson applied before the fact, since the
+surest way to stop a drafter citing a number as a justification it did not serve is not to hand it
+the number. A package that declares nothing behaves exactly as it did in Phase 8.
+
+**How the attempt is checked.** `tests/test_live_credit_attempt3.py` re-derives every figure
+`docs/EVALUATION.md` quotes from that directory's trace, claims, findings, index and 19 cassettes,
+and for each defect asserts both halves: the attempt's own store lacks
+`threshold.L2.overlap.features_effective` and `thresholds.evaluation` and carries
+`threshold.package.max_seconds`, and a run of the same plan on this build is the other way round.
+The token defect is asserted against the attempt's own recorded `usage` objects, which is the one
+place `ClaudeCLILLM`'s mapping can be checked against a real payload without calling a model.

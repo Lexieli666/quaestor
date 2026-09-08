@@ -69,7 +69,7 @@ from .report.repair import (
 from .report.sections import ArtifactBrief, SectionBrief, artifact_briefs, ordered_briefs
 from .tools import ToolContext, ToolResult, default_registry, guidance_name
 from .tools.thresholds import Thresholds
-from .trace import TraceReader, TraceWriter
+from .trace import EventType, TraceEvent, TraceReader, TraceWriter
 from .verifier.claim import Claim, VerifiedClaim
 from .verifier.claims_doc import ClaimsDocument
 from .verifier.developer import verify_developer_claims
@@ -79,6 +79,7 @@ from .vocab import Configuration, ReportSection
 
 __all__ = [
     "CLAIMS_FILE",
+    "RUN_STAMP_FORMAT",
     "FINDINGS_FILE",
     "CURRENT_GUIDANCE",
     "PLAIN_PROFILE",
@@ -224,10 +225,39 @@ class ValidationRun:
         return self.claims.precision_post
 
 
-def _run_id(
-    package: ModelPackage, config: ConfigSpec, mode: str, n: int | None, seed: int | None
+RUN_STAMP_FORMAT: Final = "%Y%m%dT%H%M%SZ"
+"""How the per-run component of a run id is spelled: UTC, to the second (DECISIONS D-093)."""
+
+
+def _run_id(  # noqa: PLR0913 - the identifier is a function of everything that identifies a run
+    package: ModelPackage,
+    config: ConfigSpec,
+    mode: str,
+    n: int | None,
+    seed: int | None,
+    at: datetime,
 ) -> str:
-    """Return a run identifier that is a function of the run, so two identical runs agree."""
+    """Return a run identifier that names the run and the occasion, so no two runs share one.
+
+    The hash is what it always was -- the package, its version, the configuration, the data mode,
+    the row count and the seed -- and it is what makes two runs of the same *inputs* recognisable
+    as such. The timestamp in front of it is what makes them distinguishable: the first and third
+    live ``credit_default`` validations both carried ``credit_default-full_agent-d03b07c6``, two
+    runs seventeen minutes and one build apart with the same name in every file each wrote, which
+    is a joining key that does not join (D-093).
+
+    Args:
+        package: The loaded package.
+        config: The configuration.
+        mode: ``synthetic`` or ``real``.
+        n: The synthetic row count, or ``None``.
+        seed: The seed passed to the subject, or ``None``.
+        at: When the run started, as the report's own timestamp records it -- so a caller that
+            pins ``generated`` for a byte-stable test pins the run id with it.
+
+    Returns:
+        ``<package>-<configuration>-<UTC timestamp>-<input hash>``.
+    """
     digest = stable_hash(
         {
             "package": package.spec.name,
@@ -239,7 +269,29 @@ def _run_id(
         },
         length=8,
     )
-    return f"{package.spec.name}-{config.name.value}-{digest}"
+    stamp = at.astimezone(UTC).strftime(RUN_STAMP_FORMAT)
+    return f"{package.spec.name}-{config.name.value}-{stamp}-{digest}"
+
+
+def _model_id(events: Sequence[TraceEvent]) -> str:
+    """Return the model that answered this run, from the completions the trace recorded.
+
+    Args:
+        events: The run's trace events.
+
+    Returns:
+        The model id every ``llm_call`` reported, or a comma-separated list where a run somehow
+        met more than one, or ``""`` where no model answered at all -- which is what ``rules_only``
+        is, and is not the same fact as "the adapter was called ``fake``" (D-093).
+    """
+    seen: list[str] = []
+    for event in events:
+        if event.type is not EventType.llm_call:
+            continue
+        name = str(event.payload.get("model") or "")
+        if name and name not in seen:
+            seen.append(name)
+    return ", ".join(seen)
 
 
 def _profile_for_baseline(out_dir: Path, store: ArtifactStore, split: str = "train") -> Any:
@@ -567,7 +619,8 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
     data_mode = "synthetic" if synthetic is not None else "real"
-    run_id = _run_id(loaded, spec_config, data_mode, synthetic, seed)
+    started = generated or datetime.now(UTC)
+    run_id = _run_id(loaded, spec_config, data_mode, synthetic, seed, started)
     trace = TraceWriter(out_dir / TRACE_FILE, run_id=run_id)
     store = ArtifactStore(out_dir / "artifacts")
     ctx = ToolContext(
@@ -644,7 +697,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
         ),
     )
 
-    briefs = ordered_briefs(store)
+    briefs = ordered_briefs(store, loaded.spec)
     spans = _guidance(store)
     from .report.drafter import merge_candidates  # noqa: PLC0415 - one caller, one import
 
@@ -759,6 +812,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     )
 
     document = _redraft_findings(document, sections.get(ReportSection.findings, ""))
+    events = list(TraceReader(trace.path))
     report_inputs = ReportInputs(
         package=loaded,
         configuration=spec_config.name,
@@ -770,10 +824,11 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
         claims=claims_document,
         findings=document,
         store=store,
-        events=list(TraceReader(trace.path)),
+        events=events,
         not_checked=_not_checked(loaded, spec_config, tools_run, developer_note),
+        model_id=_model_id(events),
         quaestor_version=quaestor_version or _quaestor_version(),
-        generated=generated or datetime.now(UTC),
+        generated=started,
     )
     report_path = write_report(report_inputs, out_dir / REPORT_FILE)
     claims_document.write(out_dir / CLAIMS_FILE)

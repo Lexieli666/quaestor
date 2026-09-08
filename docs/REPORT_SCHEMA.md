@@ -31,7 +31,7 @@ and the same renderer wraps them. The schema is identical across configurations.
 | `package`, `version` | string | `package.yaml` `name`, `version` | §3.11 |
 | `model_type` | enum | `package.yaml` | addition: lets a reader know why §5 has or lacks scenarios |
 | `configuration` | enum | CLI | §3.11 |
-| `model` | string | LLM adapter `name`; `fake` under `FakeLLM`; `illustrative` in the golden | §3.11 |
+| `model` | string | the model id off the completions the run received (`claude-opus-5[1m]`, `fake-1`); the adapter's `name` where nothing answered; `illustrative` in the golden | §3.11, narrowed by D-093 |
 | `run_id` | string | trace | addition: joins the report to `trace.jsonl` |
 | `data_mode`, `synthetic_n` | enum, int | CLI | addition: the report must say when it ran on synthetic data |
 | `grounding_precision_pre`, `_post` | number in [0,1] | verifier | §3.11 |
@@ -46,6 +46,25 @@ Exactly the eleven level-2 headings in `REPORT_SCHEMA.json` `x-quaestor-required
 that order, none other. Each drafted section opens with a sentence that anchors it to the guidance
 with a `[[reg:...]]` citation (anchors from `data/regulatory/sr11-7-outline.yaml`). Findings are
 level-3 headings under section 6: `### F-NNN · <class> <name> · severity **<severity>**`.
+
+Section 6 also carries `### Open items`, always, findings or none (D-096). Under it go the
+observations this validation made that are **not** defects under any rule but that need a
+developer response, each citing the artifact it rests on and each naming an owner (`model
+developer` by default). The drafter is asked for it and the renderer supplies the heading when the
+drafter omits it, on the same argument as a finding's heading (D-071); `check_structure` refuses a
+report whose section 6 has no such heading, so "no findings" cannot quietly mean "no questions".
+
+Section 4 orders itself by two rules, in this order, and **says in the report which one applied**
+(D-098):
+
+1. `package.yaml` declares `use: probability` or `use: both` — calibration before discrimination,
+   whatever the event rate is, because the level of the probability is what the model is used for.
+   `rule.calibration_first_event_rate` is not cited for it, and is not even offered to the drafter
+   of that section.
+2. otherwise the rare-event rule of §3.11 decides: calibration first when the observed event rate
+   on the evaluation split is below `rule.calibration_first_event_rate`, discrimination first
+   otherwise. Either way the report cites the event rate and the rule, because either way the rule
+   is what decided it.
 
 Section identifiers used in `claims.json` and `findings.json` (`section` field):
 `summary`, `conceptual_soundness`, `data_integrity`, `outcomes`, `sensitivity`, `findings`,
@@ -228,3 +247,12 @@ makes a spec tolerance precise enough to implement.
 | tolerance is the precision the prose used, with §0's default as a ceiling and `rounding` narrowing only | §6 | a flat 0.005 verifies `0.021` against `0.0175` and `22.0%` against `0.2212`, which is not what either sentence claims | D-069 (amends D-014) |
 | the exclusion list, its appearance in `claims.json` and its count in Appendix A | §7 | spec §3.10 requires the exclusions to be auditable; inline code is the loophole that needs naming | D-015 |
 | developer claims not evaluated under `--synthetic`, listed in Appendix D | §7 | a synthetic AUC cannot verify a declared real one, and a schema branch would be worse than a status | D-016 |
+| `package.yaml` `use: ranking \| probability \| both`, optional and nullable | §3 | spec §3.11 orders section 4 by the event rate alone, which asks the data what the model is for; a servicing model whose probabilities are multiplied by a balance is judged on calibration at any event rate | D-098 |
+| `### Open items` under section 6, required | §3 | a validation that raised no finding still made observations a developer must answer for, and without somewhere to put them "no findings" reads as "no questions" | D-096 |
+| the front matter's `model` is the model id, and Appendix C carries the adapter beside it | §2 | `claude-cli` is the adapter and not the model; a report that records only the adapter cannot say which model wrote it | D-093 |
+| `run_id` carries the UTC second the run began | §2 | two runs of one package and configuration shared an identifier, which is a joining key that does not join | D-093 |
+| the `thresholds.evaluation` table artifact, written by `compute_metrics` and placed by a `[[table:…]]` directive | §4 | section 4's developer-threshold table was assembled by the drafter from loose scalars and disagreed with the rest of the report about what had been recomputed | D-092 |
+| a rule that derives its bound stores it as `<declared>.<rule>_effective` | §5 | a report that compares a value against a bound no artifact holds is a comparison nothing can check, and the drafter cited the declared bound instead | D-091 |
+| renderer tables print measures at four significant figures and integral cells as integers | §4 | the drafter is shown four figures and writes them; a renderer block printing ten digits of the same number shows the reader two spellings of it | D-094 |
+| Appendix A's repair sentence counts claims rewritten and numbers removed separately | §7 | only rewrites become `repairs` rows, so a loop that removed three numbers and rewrote none printed "after 0 repaired claim(s)" | D-097 |
+

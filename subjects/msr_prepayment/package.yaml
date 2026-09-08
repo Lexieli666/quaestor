@@ -12,6 +12,7 @@
 name: msr_prepayment
 version: "1.0"
 model_type: discrete_time_hazard
+use: probability
 entrypoint: "python -m code.run"
 
 data:

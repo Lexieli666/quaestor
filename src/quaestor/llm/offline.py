@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any, Final
 
 from .fake import FakeLLM
@@ -150,7 +150,7 @@ def _artifacts(prompt: str) -> list[dict[str, Any]]:
 def _guidance(prompt: str) -> list[dict[str, Any]]:
     """Read the guidance spans out of a drafting prompt."""
     block = _between(
-        prompt, "Guidance spans retrieved for this section:\n", "\n\nFinding candidates"
+        prompt, "Guidance spans retrieved for this section:\n", "\n\nFindings raised"
     ).strip()
     if not block or block.startswith("("):
         return []
@@ -161,6 +161,28 @@ def _guidance(prompt: str) -> list[dict[str, Any]]:
 def _finding_headings(prompt: str) -> list[str]:
     """Return the finding headings a section-6 prompt asked to be copied."""
     return [line.strip() for line in prompt.splitlines() if line.strip().startswith("### F-")]
+
+
+OPEN_ITEMS_HEADING: Final = "### Open items"
+"""Section 6's open-items heading, as ``quaestor.report.schema`` fixes it.
+
+Spelled out here rather than imported: this module is the offline *provider*, and a provider that
+imported the report layer would invert the dependency the drafter already declares in the other
+direction. Everything this fake knows about a prompt it knows by reading the prompt's text, and
+this is one more marker in that list.
+"""
+
+
+def _wants_open_items(prompt: str) -> bool:
+    """Whether this is the section-6 prompt, which asks for the open-items subsection (D-096).
+
+    Args:
+        prompt: The prompt as sent.
+
+    Returns:
+        ``True`` when the brief named the heading, which only section 6's does.
+    """
+    return OPEN_ITEMS_HEADING in prompt
 
 
 class OfflineLLM(FakeLLM):
@@ -205,6 +227,20 @@ class OfflineLLM(FakeLLM):
         return (
             f"The value of `{item['name']}` is {written(float(item['value']))} {item['citation']}."
         )
+
+    def choose_scalars(self, items: Sequence[Mapping[str, Any]]) -> Sequence[Mapping[str, Any]]:
+        """Choose which of a section's scalar artifacts this fake writes a sentence about.
+
+        Args:
+            items: Every scalar the section may cite, in logical-name order.
+
+        Returns:
+            The first :attr:`max_scalars` of them. It is a hook because a subclass built to
+            produce one specific defect -- an uncited ``challenger.brier``, say -- has to be able
+            to reach the artifact its defect is about, and a section's scalar list is long enough
+            that alphabetical order alone decides whether it can.
+        """
+        return items[: self.max_scalars]
 
     def plan_action(self) -> dict[str, Any]:
         """Return the bounded loop's next action.
@@ -262,13 +298,19 @@ class OfflineLLM(FakeLLM):
             lines.append("**The check that raised this finding is described below.**")
             lines.append("The evidence for it is cited in the sections above.")
         scalars = [item for item in _artifacts(prompt) if item.get("kind") == "scalar"]
-        for item in scalars[: self.max_scalars]:
+        for item in self.choose_scalars(scalars):
             lines.append(self.scalar_sentence(item, repair=repair))
         for item in _artifacts(prompt):
             if item.get("kind") == "json":
                 lines.extend(self._json_sentences(item))
             elif item.get("kind") == "table":
                 lines.append(str(item["directive"]))
+        if _wants_open_items(prompt):
+            lines.append(OPEN_ITEMS_HEADING)
+            lines.append(
+                "No observation of this run needs a developer response beyond the findings above; "
+                "the owner of anything that later does is the model developer."
+            )
         return json.dumps({"markdown": "\n".join(lines)})
 
     @staticmethod

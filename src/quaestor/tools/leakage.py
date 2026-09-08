@@ -48,15 +48,32 @@ from .frames import (
     scored_frame,
 )
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
+from .thresholds import effective_name
 
 __all__ = [
     "DUPLICATE_MULTIPLE",
+    "FEATURE_OVERLAP_BOUND",
     "NAME_LEXICON",
+    "OVERLAP_THRESHOLD",
     "CheckLeakageTool",
     "Overlaps",
     "duplicate_share",
     "row_hashes",
 ]
+
+OVERLAP_THRESHOLD: Final = "threshold.L2.overlap"
+"""The declared contamination bound, which both arms of ``L2`` are read against."""
+
+FEATURE_OVERLAP_BOUND: Final = effective_name(OVERLAP_THRESHOLD, "features")
+"""``threshold.L2.overlap.features_effective``: the bound the feature-vector arm actually applied.
+
+D-086 derives it -- ``max(threshold.L2.overlap, 2 x leakage.duplicates.train)`` -- so on any real
+panel it is a different number from the declared 0.5%, and on the third live run the drafter,
+having only the declared one, compared 1.256% with 0.5%, called the result an exceedance and said
+it was "recorded as a finding" while section 6 correctly said no finding was raised. The bound the
+rule applied is now an artifact like any other, so the sentence a reader is owed can be written
+with a citation behind it (DECISIONS D-091).
+"""
 
 NAME_LEXICON: Final = (
     "target",
@@ -124,7 +141,8 @@ class Overlaps(NamedTuple):
         ids: The share of test rows whose identifier also appears in train.
         features: The share of test rows whose feature vector also appears in train.
         duplicates: The share of train rows whose feature vector is not unique within train.
-        artifacts: The four artifacts -- the alias, the two overlaps and the duplicate share.
+        artifacts: The five artifacts -- the alias, the two overlaps, the duplicate share and
+            the derived bound the feature arm applied.
     """
 
     ids: float
@@ -228,7 +246,7 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
         # Both thresholds are stored whether or not they are breached: the report says what the
         # screen would have fired on, and a number in prose has to have an artifact behind it.
         single_feature = ctx.thresholds.artifact(ctx.store, "threshold.L1.single_feature_auc")
-        overlap_threshold = ctx.thresholds.artifact(ctx.store, "threshold.L2.overlap")
+        overlap_threshold = ctx.thresholds.artifact(ctx.store, OVERLAP_THRESHOLD)
         artifacts += [single_feature, overlap_threshold]
 
         limit = ctx.thresholds["threshold.L1.single_feature_auc"]
@@ -299,7 +317,9 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
           were rewritten, or it may be two different subjects with the same values, so it is a
           candidate at severity **medium** and only when the cross-split share exceeds both
           ``threshold.L2.overlap`` and :data:`DUPLICATE_MULTIPLE` times the share of train rows
-          that repeat a feature vector inside train.
+          that repeat a feature vector inside train. That derived number is stored as
+          :data:`FEATURE_OVERLAP_BOUND` and read back from the store here, so the bound the rule
+          applied and the bound a report may cite are one artifact (D-091).
 
         Neither rule firing is not silence: all three quantities are stored and the report writes
         them, which is what "the values are reported" means.
@@ -314,8 +334,9 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
         Returns:
             The candidate, or ``None`` when neither rule fires.
         """
-        limit = ctx.thresholds["threshold.L2.overlap"]
-        baseline = max(limit, DUPLICATE_MULTIPLE * overlaps.duplicates)
+        limit = ctx.thresholds[OVERLAP_THRESHOLD]
+        bound = ctx.store.artifact(FEATURE_OVERLAP_BOUND)
+        baseline = ctx.store.value(FEATURE_OVERLAP_BOUND)
         ids_artifact = ctx.store.artifact("leakage.overlap.ids")
         features_artifact = ctx.store.artifact("leakage.overlap.features")
         duplicates_artifact = ctx.store.artifact("leakage.duplicates.train")
@@ -327,7 +348,7 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
                 f"{limit:.2%}; the held-out split is not held out"
             )
             if overlaps.features > baseline:
-                evidence += [features_artifact.hash, duplicates_artifact.hash]
+                evidence += [features_artifact.hash, duplicates_artifact.hash, bound.hash]
                 detail += (
                     f", and {overlaps.features:.4%} of them repeat a feature vector of {train!r} "
                     f"against a within-train duplicate share of {overlaps.duplicates:.4%}"
@@ -342,7 +363,14 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
         if overlaps.features > baseline:
             return FindingCandidate(
                 defect_class=DefectClass.L2,
-                evidence=sorted({features_artifact.hash, duplicates_artifact.hash, threshold.hash}),
+                evidence=sorted(
+                    {
+                        features_artifact.hash,
+                        duplicates_artifact.hash,
+                        threshold.hash,
+                        bound.hash,
+                    }
+                ),
                 detail=(
                     f"{overlaps.features:.4%} of the rows of {test!r} repeat a feature vector of "
                     f"{train!r} while carrying identifiers of their own, against "
@@ -447,7 +475,7 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
             test: The split whose rows are looked up.
 
         Returns:
-            The three shares and the four artifacts they are stored as. ``leakage.overlap`` is
+            The three shares and the five artifacts they are stored as. ``leakage.overlap`` is
             kept as an alias of ``leakage.overlap.features``, because it is the name the Phase 1
             golden report cites and a logical name that stops resolving is a citation that
             dangles (D-086).
@@ -500,6 +528,15 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
                 duplicates,
                 ArtifactKind.scalar,
                 f"share of {train} rows whose feature values are not unique within {train}",
+            ),
+            ctx.store.put(
+                FEATURE_OVERLAP_BOUND,
+                max(ctx.thresholds[OVERLAP_THRESHOLD], DUPLICATE_MULTIPLE * duplicates),
+                ArtifactKind.scalar,
+                (
+                    f"L2: the bound the feature-overlap rule applied, the larger of "
+                    f"{OVERLAP_THRESHOLD} and {DUPLICATE_MULTIPLE:g} x leakage.duplicates.train"
+                ),
             ),
         ]
         return Overlaps(ids=ids, features=features, duplicates=duplicates, artifacts=artifacts)

@@ -29,12 +29,15 @@ __all__ = ["RunModelTool"]
 _RUN_ARTIFACTS = ("run.stdout", "run.stderr", "run.duration_s", "run.status")
 """What the sandbox stores before it raises, and therefore what an ``R0`` can cite."""
 
-MAX_SECONDS_NAME = "threshold.package.max_seconds"
+MAX_SECONDS_NAME = "runtime.max_seconds"
 """Where the package's own wall-clock cap is stored, so an ``R0`` can cite the rule it broke.
 
-In the ``threshold.package.*`` family, but without the ``.<split>.<min|max>`` tail the metric
-thresholds carry: ``runtime.max_seconds`` is a ceiling by its own name, is stated on no split, and
-naming it ``threshold.package.max_seconds.max`` would put the word twice.
+Deliberately **outside** the ``threshold.*`` family (DECISIONS D-092). It was
+``threshold.package.max_seconds``, and on the third live run section 4 read the family by prefix
+and printed the subject's wall-clock cap as a row of the developer-declared performance-threshold
+table -- next to AUC and Brier, marked "not evaluated here". A cap on how long the subject may run
+is not a statement about the model's performance and does not belong in a table of them; it is a
+runtime declaration, and ``runtime.max_seconds`` is the name ``package.yaml`` gives it.
 """
 
 

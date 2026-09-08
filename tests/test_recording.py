@@ -36,9 +36,18 @@ SMALL = 600
 """Rows enough for every check to have something to read, small enough to run twice in a test."""
 
 _VARIABLE = re.compile(
-    r"^(generated: .*|\| wall-clock \(s\) \| .*|\| subject run \(s\) \| .*)$", re.MULTILINE
+    r"^(generated: .*|run_id: .*|\| run id \| .*|\| wall-clock \(s\) \| .*"
+    r"|\| subject run \(s\) \| .*)$",
+    re.MULTILINE,
 )
-"""The three lines of a report that are a property of the machine rather than of the model."""
+"""The five lines of a report that are a property of the occasion rather than of the model.
+
+The two ``run_id`` lines joined this list in the Phase 9 follow-up 3: a run id now carries the
+second it started at (D-093), so two runs never share one and the replay cannot be expected to
+reproduce the recording's. What the identifier stands for is still asserted -- both lines are
+present, and every event of each run carries its own run's id -- and what the round trip is for,
+that every claim, hash and grounding figure comes back the same, is unchanged.
+"""
 
 
 def quaestor(*argv: str) -> subprocess.CompletedProcess[str]:
@@ -237,7 +246,18 @@ def test_a_replayed_run_writes_the_report_the_recorded_run_wrote(
     first = stable((recorded / "report.md").read_text(encoding="utf-8"))
     second = stable((replayed / "report.md").read_text(encoding="utf-8"))
     assert first == second
-    assert "run_id:" in first
+    assert "run_id:" in (recorded / "report.md").read_text(encoding="utf-8")
+    assert _run_ids(recorded) != _run_ids(replayed), (
+        "two runs shared a run id; D-093 stamps the second the run started into it"
+    )
+
+
+def _run_ids(out: Path) -> str:
+    """The run id every file of one run carries, read off its trace."""
+    events = TraceReader(out / "trace.jsonl").events()
+    ids = {event.run_id for event in events}
+    assert len(ids) == 1, f"{out} wrote more than one run id: {sorted(ids)}"
+    return ids.pop()
 
 
 def test_the_replayed_run_writes_the_same_claims_and_findings(
@@ -247,7 +267,12 @@ def test_the_replayed_run_writes_the_same_claims_and_findings(
     for name in ("claims.json", "findings.json"):
         first = json.loads((recorded / name).read_text(encoding="utf-8"))
         second = json.loads((replayed / name).read_text(encoding="utf-8"))
-        assert first == second, name
+        assert _without_run_id(first) == _without_run_id(second), name
+
+
+def _without_run_id(document: dict[str, object]) -> dict[str, object]:
+    """One document without its ``run_id``, which is now a property of the occasion (D-093)."""
+    return {key: value for key, value in document.items() if key != "run_id"}
 
 
 def test_every_model_call_of_the_recorded_run_is_on_tape(

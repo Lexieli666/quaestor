@@ -346,6 +346,31 @@ def test_a_payload_without_usage_reports_no_tokens(monkeypatch: pytest.MonkeyPat
     assert completion.tokens_out is None
 
 
+def test_the_cached_input_tokens_are_counted_as_input_tokens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """D-093: `input_tokens` alone is what the cache neither wrote nor read, and is not the bill."""
+    usage = dict(
+        PAYLOAD["usage"],
+        input_tokens=2,
+        cache_creation_input_tokens=6_643,
+        cache_read_input_tokens=600,
+    )
+    fake_run(monkeypatch, payload=dict(PAYLOAD, usage=usage))
+    assert ClaudeCLILLM().complete("p").tokens_in == 7_245
+
+
+def test_a_usage_object_that_reports_no_input_field_reports_no_tokens_in(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A provider that says nothing about its tokens must not be recorded as having used zero."""
+    usage = {"output_tokens": 14}
+    fake_run(monkeypatch, payload=dict(PAYLOAD, usage=usage))
+    completion = ClaudeCLILLM().complete("p")
+    assert completion.tokens_in is None
+    assert completion.tokens_out == 14
+
+
 def test_a_payload_without_a_duration_falls_back_to_measured_latency(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

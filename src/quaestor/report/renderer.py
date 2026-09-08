@@ -48,10 +48,11 @@ from .schema import (
     check_structure,
     front_matter_of,
 )
-from .sections import section_heading
+from .sections import OPEN_ITEMS_HEADING, four_significant_figures, section_heading
 
 __all__ = [
     "APPENDICES",
+    "NO_OPEN_ITEMS",
     "TEXT_WIDTH",
     "NotChecked",
     "ReportInputs",
@@ -75,6 +76,14 @@ APPENDICES: Final = (
     "## Appendix D — Not checked",
 )
 """The four appendix headings, in order, exactly as ``REPORT_SCHEMA.json`` requires them."""
+
+NO_OPEN_ITEMS: Final = "No open item was recorded for this validation."
+"""What ``### Open items`` says when the drafter wrote nothing under it.
+
+The heading is the renderer's, on the same argument as a finding's heading (D-071): the drafter is
+asked to write the subsection and the renderer supplies what the drafter left out, so that the
+report's shape is a property of the pipeline rather than of one model call.
+"""
 
 _BLOCK_BEGIN_SCOPE: Final = "<!-- quaestor:renderer:begin scope -->"
 _BLOCK_END: Final = "<!-- quaestor:renderer:end -->"
@@ -101,7 +110,11 @@ class ReportInputs:
     Attributes:
         package: The loaded package.
         configuration: Which configuration ran.
-        model: The provider's name, as the front matter records it.
+        model: The **adapter's** name -- ``claude-cli``, ``anthropic``, ``fake`` -- which is what
+            Appendix C records, because it is what a reader would have to re-run.
+        model_id: The model that actually answered, read off the completions the run received;
+            empty where nothing answered, in which case the front matter falls back to the
+            adapter's name (D-093).
         run_id: Joins the report to ``trace.jsonl``.
         data_mode: ``synthetic`` or ``real``.
         synthetic_n: How many rows were generated, in synthetic mode.
@@ -127,6 +140,7 @@ class ReportInputs:
     store: ArtifactStore
     events: Sequence[TraceEvent] = ()
     not_checked: Sequence[NotChecked] = ()
+    model_id: str = ""
     quaestor_version: str = ""
     generated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
@@ -172,7 +186,7 @@ def front_matter(inputs: ReportInputs) -> dict[str, Any]:
         "version": spec.version,
         "model_type": spec.model_type.value,
         "configuration": inputs.configuration.value,
-        "model": inputs.model,
+        "model": inputs.model_id or inputs.model,
         "run_id": inputs.run_id,
         "data_mode": inputs.data_mode,
     }
@@ -238,7 +252,7 @@ def scope_block(inputs: ReportInputs) -> str:
             "findings (high / medium / low / info) |",
             "|---|---|---|---|---|---|",
             f"| `{spec.name}` v{spec.version} | `{inputs.configuration.value}` | "
-            f"{_cell(inputs.model)} | {_cell(data)} | "
+            f"{_cell(inputs.model_id or inputs.model)} | {_cell(data)} | "
             f"{inputs.claims.precision_pre:.4f} → {inputs.claims.precision_post:.4f} | "
             f"{findings} |",
             _BLOCK_END,
@@ -289,10 +303,58 @@ def _table_block(name: str, store: ArtifactStore) -> str:
         "|" + "---|" * len(columns),
     ]
     body += [
-        "| " + " | ".join(_cell(str(row[column])) for column in columns) + " |" for row in rows
+        "| " + " | ".join(_table_cell(row[column]) for column in columns) + " |" for row in rows
     ]
     body.append(_BLOCK_END)
     return "\n".join(body)
+
+
+def _table_cell(value: Any) -> str:
+    """Render one cell of an expanded table: a count as a count, a measure at four figures.
+
+    The drafter sees every artifact at four significant figures (spec section 3.11) and writes what
+    it sees, so a renderer block that printed ``0.6855555556`` beside prose saying ``0.6856`` was
+    showing the reader two spellings of one number and inviting the arithmetic to be checked
+    against the wrong one. Integral values -- a decile's index, a bin's count -- are printed as
+    integers, because ``900`` is not a measurement to four figures (DECISIONS D-094).
+
+    Args:
+        value: The cell as the table artifact holds it.
+
+    Returns:
+        The cell as the report prints it.
+    """
+    number = _as_number(value)
+    if number is None:
+        return _cell(str(value))
+    if number == int(number) and abs(number) < 1e15:
+        return str(int(number))
+    return _cell(f"{four_significant_figures(number):g}")
+
+
+def _as_number(value: Any) -> float | None:
+    """Return a cell as a number, or ``None`` when it is not one.
+
+    A table artifact's payload is canonical text -- ``store.put`` renders every cell through
+    ``%.10g`` -- so the cells come back as strings and the type has to be recovered rather than
+    read off. A period label such as ``2024-01`` is not a number and is printed as it stands.
+
+    Args:
+        value: The cell as the artifact holds it.
+
+    Returns:
+        The number, or ``None``.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if not isinstance(value, str):
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
 
 
 def _findings_section(markdown: str, inputs: ReportInputs) -> str:
@@ -303,6 +365,7 @@ def _findings_section(markdown: str, inputs: ReportInputs) -> str:
     (DECISIONS D-071).
     """
     bodies = _split_by_heading(markdown)
+    open_items = bodies.pop(OPEN_ITEMS_HEADING, "").strip()
     parts = [bodies.pop("", "").strip()]
     for finding in inputs.findings.findings:
         heading = finding_heading(finding)
@@ -332,6 +395,7 @@ def _findings_section(markdown: str, inputs: ReportInputs) -> str:
             )
             + "."
         )
+    parts += [OPEN_ITEMS_HEADING, open_items or NO_OPEN_ITEMS]
     return "\n\n".join(part for part in parts if part)
 
 
@@ -361,14 +425,16 @@ def _appendix_a(inputs: ReportInputs) -> str:
         for status, count in pre.status_counts.items()
         if status != ClaimStatus.verified.value and count
     )
-    rounds = len({(repair.section, repair.claim_id) for repair in claims.repairs})
+    rewritten = len({(repair.section, repair.claim_id) for repair in claims.repairs})
+    removed = _numbers_removed(inputs.events)
     lines = [
         APPENDIX_A_HEADING,
         "",
         f"Grounding precision {pre.precision:.4f} before repair "
         f"({pre.status_counts[ClaimStatus.verified.value]} of {pre.n_claims} claims verified"
         + (f"; {failures}" if failures else "")
-        + f") and {post.precision:.4f} after {rounds} repaired claim(s). "
+        + f") and {post.precision:.4f} after {rewritten} claim(s) rewritten and "
+        + f"{removed} number(s) removed from the prose. "
         + "Per section (post-repair): "
         + "; ".join(
             f"{name} {row.verified}/{row.n_claims}" for name, row in post.per_section.items()
@@ -400,6 +466,30 @@ def _appendix_a(inputs: ReportInputs) -> str:
     for number, claim in enumerate(claims.post_repair, start=1):
         lines.append(_claim_row(number, claim))
     return "\n".join(lines)
+
+
+def _numbers_removed(events: Sequence[TraceEvent]) -> int:
+    """Count the numbers the repair loop's drafts dropped rather than cited, from the trace.
+
+    A repair has two outcomes and ``claims.json`` records only one of them. A claim that was
+    rewritten -- corrected, or given the citation it was missing -- is paired with what replaced it
+    and becomes a ``repairs`` row; a number the drafter removed instead has no ``after`` side to
+    pair with and is recorded on the ``repair`` trace event's ``removed`` field alone (D-073). So
+    the appendix reporting "after N repaired claim(s)" printed N = 0 for the third live run, whose
+    two repair rounds removed three numbers and rewrote none, which reads as a repair loop that did
+    nothing. This is the other half of the sentence, read off the events (DECISIONS D-097).
+
+    Args:
+        events: The run's trace events.
+
+    Returns:
+        How many numbers the repair rounds removed.
+    """
+    return sum(
+        len(event.payload.get("removed") or ())
+        for event in events
+        if event.type is EventType.repair
+    )
 
 
 def _claim_row(number: int, claim: VerifiedClaim) -> str:
@@ -518,7 +608,8 @@ def _appendix_c(inputs: ReportInputs) -> str:
         ("wall-clock (s)", f"{wall:.2f}"),
         ("subject run (s)", subject),
         ("memory cap", f"{memory_cap}" + (f" (RLIMIT_AS {memory_mb} MB)" if memory_mb else "")),
-        ("model", inputs.model),
+        ("provider adapter", inputs.model),
+        ("model", inputs.model_id or "none: no model answered"),
         ("run id", inputs.run_id),
     ]
     return "\n".join(

@@ -481,3 +481,130 @@ def test_drafted_body_drops_the_front_matter_the_appendices_and_every_renderer_b
     assert "Appendix" not in prose
     assert "quaestor:renderer:begin" not in prose
     assert "The AUC is 0.7412" in prose
+
+
+# --- what the report says about itself (D-093, D-094, D-096, D-097) -----------------------------
+
+
+@pytest.fixture
+def inputs(store: ArtifactStore, tmp_path: Path) -> ReportInputs:
+    """The renderer's inputs over the fixture store, ready to be varied one field at a time."""
+    return inputs_for(store, tmp_path)
+
+
+def test_the_front_matter_names_the_model_and_appendix_c_names_the_adapter(
+    inputs: ReportInputs,
+) -> None:
+    """`claude-cli` is a subprocess; the front matter says which model wrote the report (D-093)."""
+    inputs.model_id = "claude-opus-5[1m]"
+    assert front_matter(inputs)["model"] == "claude-opus-5[1m]"
+    assert "claude-opus-5[1m]" in scope_block(inputs)
+    report = render_report(inputs)
+    assert "| provider adapter | fake |" in report
+    assert "| model | claude-opus-5[1m] |" in report
+
+
+def test_with_no_model_id_the_front_matter_falls_back_and_appendix_c_says_so(
+    inputs: ReportInputs,
+) -> None:
+    """`rules_only` answers with no model at all, which is not "the adapter was called fake"."""
+    assert inputs.model_id == ""
+    assert front_matter(inputs)["model"] == "fake"
+    report = render_report(inputs)
+    assert "| model | none: no model answered |" in report
+
+
+@pytest.mark.parametrize(
+    ("cell", "printed"),
+    [
+        ("0.6855555556", "0.6856"),
+        ("3.098945254", "3.099"),
+        ("900", "900"),
+        (0.08332970973, "0.08333"),
+        (-1.0, "-1"),
+        ("2024-01", "2024-01"),
+        ("", ""),
+        (True, "True"),
+        (None, "None"),
+    ],
+)
+def test_a_table_cell_prints_a_measure_at_four_figures_and_a_count_as_a_count(
+    cell: object, printed: str
+) -> None:
+    """D-094: one number, one spelling, and a period label is not a number."""
+    from quaestor.report.renderer import _table_cell
+
+    assert _table_cell(cell) == printed
+
+
+def test_an_expanded_table_is_rendered_at_four_significant_figures(
+    store: ArtifactStore,
+) -> None:
+    """The renderer block beside prose that wrote four figures now writes four as well."""
+    store.put(
+        "calibration.test",
+        [{"bin": 1, "count": 900, "observed": 0.6855555556, "lift": 3.098945254}],
+        ArtifactKind.table,
+        "calibration by decile on test",
+    )
+    expanded = expand_tables("[[table:calibration.test]]", store)
+    assert "| 1 | 900 | 0.6856 | 3.099 |" in expanded
+
+
+def test_section_six_always_carries_open_items_even_with_nothing_under_it(
+    inputs: ReportInputs,
+) -> None:
+    """D-096: the renderer supplies the heading the drafter omitted, as it does a finding's."""
+    from quaestor.report.renderer import NO_OPEN_ITEMS
+
+    inputs.sections = {**inputs.sections, ReportSection.findings: "Nothing was raised."}
+    report = render_report(inputs)
+    assert "### Open items" in report
+    assert NO_OPEN_ITEMS in report
+    assert check_report(report, inputs.configuration, inputs.claims.post_repair) == []
+
+
+def test_what_the_drafter_wrote_under_open_items_is_kept_and_placed_last(
+    inputs: ReportInputs,
+) -> None:
+    """The drafter is asked for the subsection; the renderer decides where it goes."""
+    inputs.sections = {
+        **inputs.sections,
+        ReportSection.findings: (
+            "Nothing was raised.\n\n### Open items\n\nThe sign on utilisation is unexplained; "
+            "owner: model developer."
+        ),
+    }
+    section = render_report(inputs).split("## 6. Findings")[1].split("## 7.")[0]
+    assert "The sign on utilisation is unexplained" in section
+    assert section.index("Candidates raised and not promoted") < section.index("### Open items")
+
+
+def test_the_repair_sentence_counts_rewrites_and_removals_apart(
+    tmp_path: Path, inputs: ReportInputs
+) -> None:
+    """D-097: a loop that removed three numbers and rewrote none did not do nothing."""
+    trace = TraceWriter(tmp_path / "removed.jsonl", run_id="run-0001")
+    trace.emit(
+        "repair",
+        section="data_integrity",
+        round=1,
+        flagged=["a", "b"],
+        instructions=[],
+        repaired=[],
+        removed=[9.982, 6.0],
+        still_failing=[],
+    )
+    trace.emit(
+        "repair",
+        section="outcomes",
+        round=1,
+        flagged=["c"],
+        instructions=[],
+        repaired=[],
+        removed=[50.0],
+        still_failing=[],
+    )
+    inputs.events = list(TraceReader(trace.path))
+    report = render_report(inputs)
+    assert "after 0 claim(s) rewritten and 3 number(s) removed from the prose" in report

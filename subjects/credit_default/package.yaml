@@ -11,6 +11,7 @@
 name: credit_default
 version: "1.0"
 model_type: binary_classification
+use: ranking
 entrypoint: "python -m code.run"
 
 data:

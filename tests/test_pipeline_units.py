@@ -9,7 +9,9 @@ real run will differ from the tests, so each is asserted on its own.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -22,15 +24,18 @@ from quaestor.pipeline import (
     PlainFinding,
     PlainReport,
     _checks_without_candidates,
+    _model_id,
     _not_checked,
     _plain_findings,
     _profile_for_baseline,
     _promote,
     _quaestor_version,
+    _run_id,
     _split_sections,
     _title_and_narrative,
 )
 from quaestor.report.sections import ordered_briefs
+from quaestor.trace import TraceReader, TraceWriter
 from quaestor.vocab import Configuration, ReportSection
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -221,3 +226,61 @@ def test_appendix_d_says_which_configuration_left_a_check_out() -> None:
         load_package(CREDIT), config_for(Configuration.rules_only), ["run_model"], None
     )
     assert any("calls no model" in row.reason for row in template)
+
+
+# --- what a run is called, and what wrote it (D-093) --------------------------------------------
+
+
+def _args() -> tuple[Any, ...]:
+    """The five inputs a run id hashes, for the credit package under `full_agent`."""
+    return (load_package(CREDIT), config_for(Configuration.full_agent), "real", None, None)
+
+
+def test_two_runs_of_one_set_of_inputs_no_longer_share_an_identifier() -> None:
+    """Attempts 1 and 3 both carried `credit_default-full_agent-d03b07c6` (D-093)."""
+    early = _run_id(*_args(), datetime(2026, 9, 8, 3, 40, 14, tzinfo=UTC))
+    late = _run_id(*_args(), datetime(2026, 9, 8, 6, 39, 34, tzinfo=UTC))
+    assert early != late
+    assert early.split("-")[-1] == late.split("-")[-1], "the input hash still says they agree"
+    assert late.split("-")[-2] == "20260908T063934Z"
+
+
+def test_the_stamp_is_utc_whatever_the_caller_s_timezone_is() -> None:
+    """A run id is a joining key and must not depend on where the operator sat."""
+    moment = datetime(2026, 9, 8, 6, 39, 34, tzinfo=UTC)
+    shifted = moment.astimezone(timezone(timedelta(hours=-7)))
+    assert _run_id(*_args(), moment) == _run_id(*_args(), shifted)
+
+
+def test_the_input_hash_still_separates_two_different_runs() -> None:
+    """Different inputs, same second: the hash is what it always was."""
+    moment = datetime(2026, 9, 8, 6, 39, 34, tzinfo=UTC)
+    package, config, mode, _, seed = _args()
+    real = _run_id(package, config, mode, None, seed, moment)
+    synthetic = _run_id(package, config, "synthetic", 5000, seed, moment)
+    assert real.split("-")[-1] != synthetic.split("-")[-1]
+    assert real.split("-")[-2] == synthetic.split("-")[-2]
+
+
+def test_the_model_id_is_read_off_the_run_s_own_completions(tmp_path: Path) -> None:
+    """The adapter is what you re-run; the id is what a published study compares (D-093)."""
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="r1")
+    trace.llm_call(purpose="plan", model="claude-opus-5[1m]", tokens_in=2, tokens_out=525)
+    trace.llm_call(purpose="draft", model="claude-opus-5[1m]", tokens_in=2, tokens_out=4989)
+    assert _model_id(list(TraceReader(trace.path))) == "claude-opus-5[1m]"
+
+
+def test_a_run_that_met_two_models_names_both(tmp_path: Path) -> None:
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="r1")
+    trace.llm_call(purpose="plan", model="claude-opus-5[1m]")
+    trace.llm_call(purpose="draft", model="claude-haiku-4-5-20251001")
+    assert _model_id(list(TraceReader(trace.path))) == (
+        "claude-opus-5[1m], claude-haiku-4-5-20251001"
+    )
+
+
+def test_a_run_no_model_answered_names_none(tmp_path: Path) -> None:
+    """`rules_only` calls nothing, which is a different fact from "the adapter was called fake"."""
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="r1")
+    trace.emit("tool_call", tool="run_model", args_hash="a", duration_s=1.0, artifacts=[], ok=True)
+    assert _model_id(list(TraceReader(trace.path))) == ""

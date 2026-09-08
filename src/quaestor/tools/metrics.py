@@ -42,7 +42,25 @@ from .frames import feature_frame, predictions, require_split, scored_frame
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
 from .thresholds import package_threshold_names
 
-__all__ = ["ComputeMetricsTool", "Subpopulation", "metric_artifact_name"]
+__all__ = [
+    "THRESHOLD_TABLE",
+    "ComputeMetricsTool",
+    "Subpopulation",
+    "metric_artifact_name",
+]
+
+THRESHOLD_TABLE: Final = "thresholds.evaluation"
+"""The table artifact that answers "did the model clear what the developer declared?" in one place.
+
+One row per bound ``package.yaml`` states, with the metric, the split it is stated on, the bound,
+the recomputed value and ``pass`` / ``fail`` / ``not evaluated``. It exists because on the third
+live run section 4 was asked to *assemble* that table from the loose ``threshold.package.*``
+scalars it had been shown, and assembled it wrongly: it wrote that PSI was "not recomputed in the
+artifacts available to this section" while sections 1 and 3 both cited ``psi.max``, and it printed
+the subject's wall-clock cap as a performance threshold. A table the tool computes and the drafter
+only points at cannot disagree with the rest of the report, which is D-013's argument applied to
+the one table a validation report is most often read for (DECISIONS D-092).
+"""
 
 SCALAR_METRICS: Final = (
     "n",
@@ -408,10 +426,12 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
         artifacts: list[Artifact] = []
         candidates: list[FindingCandidate] = []
         unevaluated: list[str] = []
+        rows: list[dict[str, Any]] = []
         for rule in ctx.package.spec.thresholds:
             name = metric_artifact_name(rule.metric, rule.split)
             if name is None or name not in ctx.store:
                 unevaluated.append(f"{rule.metric}{f' on {rule.split}' if rule.split else ''}")
+                rows += _unevaluated_rows(rule, name)
                 continue
             value = ctx.store.value(name)
             bounds = package_threshold_names(rule)
@@ -427,6 +447,15 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
             artifacts += list(stored.values())
             for logical, bound in bounds.items():
                 breached = value < bound if logical.endswith(".min") else value > bound
+                rows.append(
+                    {
+                        "metric": rule.metric,
+                        "split": rule.split or "",
+                        "bound": _bound_text(logical, bound),
+                        "value": value,
+                        "result": "fail" if breached else "pass",
+                    }
+                )
                 if not breached:
                     continue
                 candidates.append(
@@ -438,6 +467,15 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                         tool=self.name,
                     )
                 )
+        artifacts.append(
+            ctx.store.put(
+                THRESHOLD_TABLE,
+                rows,
+                ArtifactKind.table,
+                "every threshold package.yaml declares, with its bound, the recomputed value and "
+                "the outcome",
+            )
+        )
         return artifacts, candidates, unevaluated
 
     @staticmethod
@@ -576,3 +614,40 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                 )
             )
         return artifacts, candidates
+
+
+def _bound_text(logical: str, bound: float) -> str:
+    """Render one bound as ``minimum 0.7`` or ``maximum 0.2``, from the name it is stored under."""
+    direction = "minimum" if logical.endswith(".min") else "maximum"
+    return f"{direction} {bound:.6g}"
+
+
+def _unevaluated_rows(rule: ThresholdSpec, name: str | None) -> list[dict[str, Any]]:
+    """Render the rows of a declared rule this pipeline computed no artifact for.
+
+    A declaration nobody checked must not read as a declaration that held (spec section 3.7), so
+    the row is written with the bound the developer stated and ``not evaluated`` in place of a
+    value, and the reason is the metric's own name.
+
+    Args:
+        rule: The declared rule.
+        name: The logical name that would have answered it, or ``None`` when none exists.
+
+    Returns:
+        One row per bound the rule states.
+    """
+    why = (
+        f"no artifact of this run answers {rule.metric!r}"
+        if name is None
+        else f"{name} is not in the store"
+    )
+    return [
+        {
+            "metric": rule.metric,
+            "split": rule.split or "",
+            "bound": _bound_text(logical, bound),
+            "value": f"not evaluated: {why}",
+            "result": "not evaluated",
+        }
+        for logical, bound in package_threshold_names(rule).items()
+    ]

@@ -174,6 +174,43 @@ run that was not committed.
   file kept outside the repository (D-087) — the dated `docs/EVALUATION.md` §1 entry for it, and
   `tests/test_live_credit_attempt2.py`, which re-derives every figure that entry quotes from the
   trace and replays the run's one recorded answer through `ReplayLLM`.
+- `eval/results/first-live/credit-attempt3/`, the third live attempt and the **first that
+  rendered** — its trace, its 19 cassettes, its 124-name artifact store, `run/*.json`,
+  `report.md`, `claims.json` and `findings.json`, with every row-level file kept outside the
+  repository (D-087) — the dated `docs/EVALUATION.md` §1 entry for it, and
+  `tests/test_live_credit_attempt3.py`, which re-derives every figure that entry quotes and
+  asserts, for each of the eight defects, both what the attempt's own store lacked and what a run
+  of the same plan on this build now holds.
+- `package.yaml` gains an optional, nullable `use: ranking | probability | both`, exported as
+  `quaestor.package.Use`. `credit_default` declares `ranking`; `msr_prepayment` declares
+  `probability`. Section 4 leads with calibration when the declared use is `probability` or
+  `both`, whatever the event rate is (D-098).
+- `quaestor.report.sections.section_four_order`, `SectionOrder` and `OrderReason`: what ordered
+  section 4 and on which of the two grounds, with `outcomes_brief(brief, order)` selecting the
+  brief and the selector that ground justifies. `ordered_briefs` and
+  `calibration_before_discrimination` take the package spec (D-098).
+- `threshold.L2.overlap.features_effective`: the bound the feature-overlap arm of `L2` actually
+  applied, which D-086 derives from the data. `quaestor.tools.thresholds.effective_name(base,
+  rule)` and `EFFECTIVE_SUFFIX` are the one spelling of the pattern, and
+  `quaestor.tools.leakage` exports `OVERLAP_THRESHOLD` and `FEATURE_OVERLAP_BOUND` (D-091).
+- `thresholds.evaluation`: a table artifact written by `compute_metrics`, one row per bound
+  `package.yaml` declares with the metric, the split, the bound, the recomputed value and
+  `pass`/`fail`/`not evaluated`, exported as `quaestor.tools.metrics.THRESHOLD_TABLE`. Section 4
+  places it with `[[table:thresholds.evaluation]]` instead of assembling a table (D-092).
+- `sign_check.<feature>.{coef_sign,univariate_direction,agrees}` and
+  `sign_check.n_disagreements` from `check_collinearity`, with `quaestor.tools.collinearity.
+  sign_of`; and `ablation.<feature>.delta_auc` against `ablation.baseline_auc` from
+  `challenger_compare`, with `MAX_ABLATION_FEATURES` and the `ablation.skipped` note above it.
+  Neither family raises a candidate; both are evidence for section 2's prose (D-095).
+- `### Open items`, a required level-3 subsection of section 6:
+  `quaestor.report.schema.OPEN_ITEMS_HEADING`, `check_structure`'s new refusal, and
+  `quaestor.report.renderer.NO_OPEN_ITEMS` for the report that has none (D-096).
+- `ReportInputs.model_id` and `pipeline._model_id`, and a `provider adapter` row in Appendix C
+  beside the `model` row (D-093).
+- `quaestor.pipeline.RUN_STAMP_FORMAT`, the UTC stamp a run id now carries (D-093).
+- `quaestor.llm.offline.OfflineLLM.choose_scalars`, the hook that lets a fake built to produce one
+  defect reach the artifact its defect is about.
+
 
 ### Changed
 
@@ -265,6 +302,39 @@ run that was not committed.
   not listed in `findings.json`'s `checks_without_candidates` as having screened for anything
   (D-088).
 
+- **The front matter's `model` is the model that answered, not the adapter that ran it (D-093).**
+  It is read off the run's own `llm_call` events — `claude-opus-5[1m]` where the third live run
+  recorded `claude-cli` — and the scope block prints the same. Appendix C carries the adapter on a
+  `provider adapter` row and `none: no model answered` on the `model` row where nothing did.
+- **A `run_id` carries the UTC second the run began (D-093)**, before the input hash it always
+  carried: `credit_default-full_agent-20260908T063934Z-d03b07c6`. The first and third live
+  attempts had shared one identifier. Where `validate(generated=...)` is pinned, the id is pinned
+  with it.
+- **The subject's wall-clock cap is stored as `runtime.max_seconds`, not
+  `threshold.package.max_seconds` (D-092)**: a cap on how long a subject may run is a runtime
+  declaration and not a performance threshold, and section 4 had printed it as one. Section 1's
+  selector gains `runtime.` so the cap stays citable where it belongs.
+- **Section 4's selector takes every `threshold.*` and every `psi.*` scalar (D-092)**, and its
+  tables gain `thresholds.evaluation`. Its brief tells the drafter to place the table directive
+  and not to compose the table.
+- **Section 2's selector takes `sign_check.` and `ablation.` (D-095)**, and its brief asks that a
+  coefficient whose sign disagrees with its univariate direction be reported with that feature's
+  ablation delta as the materiality measure.
+- **Section 3's brief names the bound each overlap arm is read against (D-091)** and forbids
+  comparing a feature-vector overlap with the declared threshold.
+- **The drafting prompt states the section's candidate list explicitly (D-091)**: `candidates
+  raised for this section: none -- describe nothing as a finding` when nothing fired, the
+  numbered list and "those are the only findings this section may describe" when something did,
+  and a standing rule that a finding is something on that list.
+- **Renderer tables print measures at four significant figures and integral cells as integers
+  (D-094)**, which is the precision the drafter is shown and writes; the artifacts keep every
+  digit.
+- **Appendix A's repair sentence counts claims rewritten and numbers removed apart (D-097)**,
+  reading the removals off the `repair` trace events where D-073 records them.
+- `ClaudeCLILLM` reports `tokens_in` as `input_tokens + cache_creation_input_tokens +
+  cache_read_input_tokens`. The third live run recorded 38 input tokens for 19 calls against the
+  176,851 its cassettes hold (D-093).
+
 ### Removed
 
 - `quaestor.verifier.masked_prose`, whose optional `package_version` argument was the defect
@@ -274,6 +344,13 @@ run that was not committed.
 
 ### Fixed
 
+- **The first live report that rendered carried two false sentences, both the tool's fault
+  (D-091, D-092).** Section 3 called a 1.256% feature-vector overlap an exceedance "recorded as a
+  finding" while section 6 correctly said none was raised: the bound the rule applied under D-086
+  is 0.02324 on that panel and was not an artifact, so the drafter compared the overlap with the
+  declared 0.005 — correct arithmetic on the only two numbers it had. And section 4.4 reported PSI
+  as "not recomputed in the artifacts available to this section" while two other sections cited
+  `psi.max`, and listed the subject's wall-clock cap among the performance thresholds.
 - **The first live validation refused to render a report in which all 140 claims verified
   (D-084).** The renderer's uncovered-number check and the extraction pre-pass disagreed about
   whether the `1.0` of "the champion in credit_default 1.0" is a claim: the pre-pass is given the

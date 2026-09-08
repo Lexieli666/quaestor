@@ -58,6 +58,18 @@ class SectionFake(OfflineLLM):
         self.drop_citation_for = list(drop_citation_for)
         self.wrong_value_for = dict(wrong_value_for or {})
 
+    def choose_scalars(self, items: Sequence[Mapping[str, Any]]) -> Sequence[Mapping[str, Any]]:
+        """Write about the artifacts this fake was built to be wrong about, first.
+
+        A section's scalar list is alphabetical and longer than `max_scalars`, so a fake that took
+        the first six would silently never mention `challenger.brier` and the defect it exists to
+        produce would not appear in any draft.
+        """
+        wanted = set(self.drop_citation_for) | set(self.wrong_value_for)
+        targeted = [item for item in items if str(item["name"]) in wanted]
+        rest = [item for item in items if str(item["name"]) not in wanted]
+        return targeted + rest[: max(self.max_scalars - len(targeted), 0)]
+
     def scalar_sentence(self, item: Mapping[str, Any], *, repair: bool) -> str:
         """Write the sentence, or the defect this fake was built to write instead."""
         name, value = str(item["name"]), float(item["value"])

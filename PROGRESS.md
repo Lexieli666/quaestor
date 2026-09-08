@@ -69,8 +69,13 @@ are named in brackets.
     asked for `check_stability` on a package with no `regime.column`, the tool raised and
     `validate()` exited 1 — so `eval/results/first-live/credit-attempt2/` is committed on D-087's
     terms and its three defects are fixed in the second Phase 9 follow-up below; the
-    `msr_prepayment` run and a `credit_default` attempt that reaches a report are still
-    outstanding
+    **third `credit_default` attempt of 2026-09-08 rendered** — 19 model calls, 159 claims,
+    0.9816 → 1.0000, zero findings, exit 0 — and is committed as
+    `eval/results/first-live/credit-attempt3/` on D-087's terms; two of its sentences are false,
+    both because the drafter was handed an incomplete set of artifacts, and the eight defects that
+    reading found are fixed in the third Phase 9 follow-up below. Attempt 3 is **kept as the
+    record**; the README excerpt will come from the run after these fixes. The `msr_prepayment`
+    run and a `credit_default` attempt on a build carrying D-091 to D-098 are still outstanding
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
 - [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
@@ -584,3 +589,86 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   live model, downloads data, trains on real data or reads an API key; the committed cassette is
   read as JSON and the only provider built from it is `ReplayLLM` over the committed directory.
   No push.
+- 2026-09-08 — **Phase 9 follow-up 3** — the eight defects the *third* live validation found, the
+  first that rendered a report, decided in Cowork 2026-09-08 and fixed here. Gate green on **all
+  five** conditions that apply: `pytest -q` 1215 passed, 0 failed, 0 skipped, 0 xfailed (76 new);
+  coverage of `src/quaestor` **100%** (`coverage run -m pytest`, 5740 statements) against the 85%
+  floor; `ruff check` and `ruff format --check` clean on `src tests eval subjects` (130 files);
+  `mypy --strict src/quaestor` clean (60 source files). Gate condition **5a** passes —
+  `tests/test_golden_spec.py` (13 checks) still pins `examples/golden_report/`, which this
+  follow-up **did not touch**: no byte of the directory changed and no new D-011 row was needed,
+  which is what keeping the `### Open items` rule in `report/schema.py` rather than in
+  `REPORT_SCHEMA.json`'s heading list is for. Gate condition **5b** passes: both
+  `quaestor validate ... --synthetic --llm fake --out DIR` lines run through the installed console
+  script in `tests/test_cli.py` and again from a shell here — **`credit_default` grounding
+  precision 1.0000 pre- and post-repair over 49 claims, 168 artifacts, one finding (`E1 low`,
+  D-017), 3.97 s; `msr_prepayment` 1.0000 and 1.0000 over 45 claims, 271 artifacts, no finding
+  (D-047), 6.11 s** — the same claims and the same findings as the second follow-up over 44 and 41
+  more artifacts, which are the ones the sign check, the ablation, the threshold table and the
+  effective bound now store. **Gate condition 6 belongs to Phase 11** (D-007).
+  **The run this follow-up is about.** `eval/results/first-live/credit-attempt3/` is committed on
+  D-087's terms: **282 trace events, 19 model calls** (1 plan, 9 draft, 9 extract, no re-ask, every
+  one of them `claude-opus-5[1m]` through `ClaudeCLILLM`), **13 tool calls in 2.89 s over 124
+  artifacts raising no candidate at all**, **247 claim checks — 244 verified, 2 unattributed, 1
+  unsupported**, **two repair rounds** (section 3 removing `9.982` and `6`, section 4 removing
+  `50`; nothing rewritten), **159 post-repair claims all verified, grounding precision 0.9816 →
+  1.0000**, **zero findings**, **104,675 output tokens** (525 plan, 34,003 draft, 70,147 extract)
+  against **176,851 input tokens the cassettes record and 38 the trace did**, longest single call
+  16,192 tokens and 180.6 s, **notional cost $4.3822** of which $2.4414 extraction, **wall-clock
+  20:18** (1,217.79 s) — **and a report, the first one**. Every figure is re-derived from that
+  trace by `tests/test_live_credit_attempt3.py`, which also asserts, for each defect, both what
+  that run's store lacked and what a run of the same plan on this build now holds; the row CSVs
+  were already outside the repository and `find eval/results/first-live/credit-attempt3 -size
+  +20k -name '*.csv'` returns nothing, the largest committed CSV being an 826-byte aggregate
+  table.
+  **Two false sentences, both the tool's fault.** Section 3 wrote that a 1.256% feature-vector
+  overlap "is recorded as a finding" while section 6 correctly said none was raised — the bound
+  D-086's rule actually applied is `max(0.005, 2 × 0.011619) = 0.02324` and was **not an
+  artifact**, so the drafter compared 0.01256 with the declared 0.005 and was arithmetically
+  right. Section 4.4 wrote that PSI was "not recomputed in the artifacts available to this
+  section" while sections 1 and 3 both cited `psi.max`, and listed the subject's wall-clock cap
+  among the performance thresholds — both because it was asked to *assemble* that table from
+  whatever `threshold.package.` matched.
+  **Eight fixes, each with its own tests.** (a) A derived bound is an artifact (D-091):
+  `effective_name(base, rule)` in `tools/thresholds.py`, `threshold.L2.overlap.features_effective`
+  from `check_leakage`, both `L2` candidates citing it, section 3's brief naming which arm is read
+  against which bound, and the section prompt stating the candidate list explicitly — the literal
+  `candidates raised for this section: none -- describe nothing as a finding`, the numbered list
+  where there are candidates, and a standing `DRAFT_INSTRUCTION` rule that a finding is something
+  on that list. (b) The tool writes the threshold table (D-092): `compute_metrics` stores
+  `thresholds.evaluation` from the same loop that raises `T1`, the drafter writes
+  `[[table:thresholds.evaluation]]`, `threshold.package.max_seconds` becomes
+  **`runtime.max_seconds`**, and section 4's selector takes every `threshold.*` and `psi.*`
+  scalar while section 1's gains `runtime.`. (c) The record describes the run (D-093):
+  `ReportInputs.model_id` from the trace's own `llm_call` events on the front matter and the scope
+  block with a `provider adapter` row beside it in Appendix C; `_run_id` carrying the UTC second
+  the run began, because attempts 1 and 3 both read `credit_default-full_agent-d03b07c6`; and
+  `ClaudeCLILLM` summing `input_tokens`, `cache_creation_input_tokens` and
+  `cache_read_input_tokens`. (d) Renderer tables at four significant figures with integral cells
+  as integers (D-094). (e) The sign check and the ablation (D-095): `check_collinearity` stores
+  `sign_check.<feature>.{coef_sign,univariate_direction,agrees}` and `sign_check.n_disagreements`,
+  `challenger_compare` stores `ablation.<feature>.delta_auc` against `ablation.baseline_auc` with
+  `MAX_ABLATION_FEATURES = 25` and an `ablation.skipped` note above it; neither raises a
+  candidate, and section 2's brief asks for the ablation delta as the materiality measure of any
+  sign disagreement. **Measured on the clean synthetic panel at seed 20260901: three of ten
+  retained coefficients disagree with their univariate direction, and dropping `delinq_last`
+  costs 0.0759 of test AUC against an all-feature refit of 0.7480.** (f) `### Open items` under
+  section 6 (D-096), asked of the drafter, placed and supplied by the renderer, required by
+  `check_structure`. (g) Appendix A counting claims rewritten and numbers removed apart, the
+  removals read off the trace (D-097). (h) `package.yaml` gains an optional, nullable
+  **`use: ranking | probability | both`** (D-098, the one `package.yaml` change of this follow-up,
+  decided in Cowork): section 4 leads with calibration when the declared use is `probability` or
+  `both`, otherwise by the event rate, states which rule applied, and cites
+  `rule.calibration_first_event_rate` only where that rule was the reason — where the use decided,
+  the scalar leaves section 4's selector, so it cannot be cited. `credit_default` declares
+  `ranking` and `msr_prepayment` `probability`; `docs/REPORT_SCHEMA.md` §3 and §10 carry it.
+  **What D-085 saved, measured on the run it promised to measure on.** Extraction output rose from
+  63,865 tokens over 8 calls to 70,147 over 9, and the answer half — which is the half D-085
+  changed — fell from **168 to 91 tokens per claim check** (30,032 over 179 against 22,597 over
+  247). The bill did not fall because thinking grew from 53% to **68%** of everything extraction
+  generates, which is where the next cost decision has to look. Also shipped: the dated
+  `docs/EVALUATION.md` §1 entry for `credit-attempt3`, DECISIONS D-091 to D-098, the Phase 9
+  follow-up 3 section of `docs/DESIGN.md` and the `CHANGELOG.md` entries. No test calls a live
+  model, downloads data, trains on real data or reads an API key; the committed cassettes are read
+  as JSON, and the only provider built from them is `ClaudeCLILLM`'s payload mapping driven over
+  the recorded `usage` objects. No push.

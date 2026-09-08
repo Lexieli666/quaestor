@@ -308,12 +308,42 @@ class ClaudeCLILLM:
         return Completion(
             text=result,
             model=model or _model_of(payload),
-            tokens_in=_int_or_none(usage.get("input_tokens")),
+            tokens_in=_input_tokens(usage),
             tokens_out=_int_or_none(usage.get("output_tokens")),
             cost_usd=_float_or_none(payload.get("total_cost_usd")),
             latency_ms=_float_or_none(payload.get("duration_api_ms")) or elapsed_ms,
             raw=raw,
         )
+
+
+_INPUT_TOKEN_FIELDS: Final = (
+    "input_tokens",
+    "cache_creation_input_tokens",
+    "cache_read_input_tokens",
+)
+"""Every field of the CLI's ``usage`` object that counts as a token the request sent.
+
+``input_tokens`` alone is what was neither written to nor read from the prompt cache, which for a
+CLI run that caches the system prompt is a handful of tokens: the third live validation recorded
+**38 tokens in for 19 calls** while its cassettes show 176,851 across the three fields. A cost
+table built on that number says a report was drafted from nothing (DECISIONS D-093).
+"""
+
+
+def _input_tokens(usage: dict[str, Any]) -> int | None:
+    """Return every input token the request was billed for, cached ones included.
+
+    Args:
+        usage: The CLI payload's ``usage`` object.
+
+    Returns:
+        The sum of the three input-token fields, or ``None`` when the payload reports none of
+        them -- a provider that says nothing about its tokens must not be recorded as having used
+        zero.
+    """
+    counts = [_int_or_none(usage.get(field)) for field in _INPUT_TOKEN_FIELDS]
+    present = [count for count in counts if count is not None]
+    return sum(present) if present else None
 
 
 def _model_of(payload: dict[str, Any]) -> str:

@@ -23,7 +23,11 @@ from quaestor import ArtifactStore, load_package
 from quaestor.errors import ToolError
 from quaestor.findings import DefectClass, Severity
 from quaestor.tools import Thresholds, ToolContext, ToolResult, default_registry
-from quaestor.tools.leakage import duplicate_share
+from quaestor.tools.collinearity import sign_of
+from quaestor.tools.leakage import DUPLICATE_MULTIPLE, FEATURE_OVERLAP_BOUND, duplicate_share
+from quaestor.tools.metrics import THRESHOLD_TABLE
+from quaestor.tools.run import MAX_SECONDS_NAME
+from quaestor.tools.thresholds import EFFECTIVE_SUFFIX, effective_name
 from toolsupport import context, read_json, variant_package, write_csv, write_json
 
 CREDIT = Path(__file__).resolve().parent.parent / "subjects" / "credit_default"
@@ -734,7 +738,7 @@ def test_r0_fires_when_the_subject_exits_non_zero(tmp_path: Path) -> None:
     assert candidate.suggested_severity is Severity.high
     assert "did not complete a run" in candidate.detail
     assert ctx.store.artifact("run.stdout").hash in candidate.evidence
-    assert ctx.store.artifact("threshold.package.max_seconds").hash in candidate.evidence
+    assert ctx.store.artifact(MAX_SECONDS_NAME).hash in candidate.evidence
     assert "about to fail" in ctx.store.load("run.stdout")
 
 
@@ -890,3 +894,240 @@ def test_a_sub_population_that_selects_nothing_or_no_column_says_so(
                 "subpopulation": {"column": "limit_bal", "rule": "equals:not-a-limit"},
             },
         )
+
+
+# --- D-091: the bound the feature-overlap rule applied is an artifact ---------------------------
+
+
+def test_the_feature_overlap_rule_stores_the_bound_it_applied(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """A rule that derives its bound from the data stores it, or no report can cite it."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    run("check_leakage", ctx)
+    declared = ctx.store.value("threshold.L2.overlap")
+    duplicates = ctx.store.value("leakage.duplicates.train")
+    assert ctx.store.value(FEATURE_OVERLAP_BOUND) == pytest.approx(
+        max(declared, DUPLICATE_MULTIPLE * duplicates)
+    )
+    assert "the larger of" in ctx.store.entry(FEATURE_OVERLAP_BOUND).summary
+
+
+def test_a_discrete_panel_stores_a_bound_above_the_declared_one(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """The attempt's own shape: the applied bound is the number the report has to compare with."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    _coarsen(ctx)
+    run("check_leakage", ctx)
+    assert ctx.store.value("leakage.duplicates.train") > 0.0
+    assert ctx.store.value(FEATURE_OVERLAP_BOUND) > ctx.store.value("threshold.L2.overlap")
+
+
+def _coarsen(ctx: ToolContext) -> None:
+    """Split every feature at its own median, so distinct clients collide as the real sample's do.
+
+    The synthetic generator draws continuous features, whose vectors are unique by construction --
+    which is exactly why the clean control could not have caught D-086's false alarm. Twelve
+    binary columns give 4,096 cells for 3,500 training rows, which is what a panel of delinquency
+    counts and rounded bills looks like.
+    """
+    for split in ("train", "test"):
+        frame = pd.read_csv(ctx.out_dir / f"data_{split}.csv")
+        for column in frame.columns:
+            if column in ("client_id", "default_next_month"):
+                continue
+            values = pd.to_numeric(frame[column], errors="coerce")
+            frame[column] = (values >= values.median()).astype(int)
+        write_csv(ctx.out_dir / f"data_{split}.csv", frame)
+
+
+def test_the_medium_candidate_cites_the_bound_it_was_read_against(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """D-091: the number in the detail sentence is a number the reader can resolve."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    contaminate(ctx, rekey=True)
+    result = run("check_leakage", ctx)
+    assert classes(result) == ["L2"]
+    assert ctx.store.artifact(FEATURE_OVERLAP_BOUND).hash in result.candidates[0].evidence
+
+
+def test_the_high_candidate_cites_the_bound_when_the_feature_arm_fires_too(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    contaminate(ctx, rekey=False)
+    result = run("check_leakage", ctx)
+    assert result.candidates[0].suggested_severity is Severity.high
+    assert ctx.store.artifact(FEATURE_OVERLAP_BOUND).hash in result.candidates[0].evidence
+
+
+def test_effective_name_is_the_one_spelling_of_a_derived_bound() -> None:
+    assert effective_name("threshold.L2.overlap", "features") == FEATURE_OVERLAP_BOUND
+    assert FEATURE_OVERLAP_BOUND.endswith(EFFECTIVE_SUFFIX)
+
+
+# --- D-092: the developer-threshold table the tool computes --------------------------------------
+
+
+def test_compute_metrics_writes_one_row_per_declared_bound(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """The table section 4 points at, so the table and the `T1` rule cannot disagree."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    run("profile_data", ctx)
+    result = run("compute_metrics", ctx)
+    assert classes(result) == []
+    rows = ctx.store.load(THRESHOLD_TABLE)
+    assert [(row["metric"], row["split"], row["result"]) for row in rows] == [
+        ("auc", "test", "pass"),
+        ("brier", "test", "pass"),
+        ("calibration_slope", "test", "pass"),
+        ("calibration_slope", "test", "pass"),
+        ("psi", "", "pass"),
+    ]
+    assert rows[0]["bound"] == "minimum 0.7"
+    assert rows[1]["bound"] == "maximum 0.2"
+    assert float(rows[4]["value"]) == pytest.approx(ctx.store.value("psi.max"))
+
+
+def test_the_psi_row_says_pass_only_because_profile_data_ran(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """Without `psi.max` the row is `not evaluated` and says why -- never a silent pass (D-092)."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    run("compute_metrics", ctx)
+    rows = ctx.store.load(THRESHOLD_TABLE)
+    psi = [row for row in rows if row["metric"] == "psi"]
+    assert [row["result"] for row in psi] == ["not evaluated"]
+    assert "psi.max is not in the store" in psi[0]["value"]
+    assert psi[0]["bound"] == "maximum 0.25"
+
+
+def test_a_declared_metric_this_pipeline_computes_nothing_for_says_so(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """A rule no artifact answers is `not evaluated` with the metric named, not omitted."""
+
+    def add_rule(spec: dict[str, object]) -> None:
+        rules = spec["thresholds"]
+        assert isinstance(rules, list)
+        rules.append({"metric": "lift_at_10", "split": "test", "min": 2.0})
+
+    package = variant_package(tmp_path, CREDIT, add_rule)
+    ctx = context(tmp_path, package, credit_run_dir)
+    result = run("compute_metrics", ctx)
+    assert "not evaluated" in result.summary
+    rows = ctx.store.load(THRESHOLD_TABLE)
+    odd = [row for row in rows if row["metric"] == "lift_at_10"]
+    assert [row["result"] for row in odd] == ["not evaluated"]
+    assert "no artifact of this run answers 'lift_at_10'" in odd[0]["value"]
+
+
+def test_the_runtime_cap_is_stored_outside_the_threshold_family(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """D-092: a wall-clock cap is not a performance threshold and must not be listed as one."""
+    ctx = bare_context(tmp_path, CREDIT)
+    run("run_model", ctx, {"synthetic": 600})
+    assert MAX_SECONDS_NAME == "runtime.max_seconds"
+    assert MAX_SECONDS_NAME in ctx.store
+    assert "threshold.package.max_seconds" not in ctx.store
+    assert ctx.store.value(MAX_SECONDS_NAME) == 300.0
+
+
+# --- D-095: the sign check and the ablation, neither of which raises anything --------------------
+
+
+def test_the_sign_check_compares_each_coefficient_with_its_univariate_direction(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """Three artifacts per retained feature plus the count, and no candidate from any of them."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    result = run("check_collinearity", ctx)
+    assert classes(result) == []
+    features = [
+        name.split(".")[1]
+        for name in ctx.store.names()
+        if name.startswith("sign_check.") and name.endswith(".agrees")
+    ]
+    assert features, "no feature was sign-checked"
+    for name in features:
+        assert ctx.store.value(f"sign_check.{name}.coef_sign") in (-1.0, 0.0, 1.0)
+        assert ctx.store.value(f"sign_check.{name}.univariate_direction") in (-1.0, 0.0, 1.0)
+        agrees = ctx.store.value(f"sign_check.{name}.agrees")
+        assert agrees in (0.0, 1.0)
+        assert (agrees == 1.0) == (
+            ctx.store.value(f"sign_check.{name}.coef_sign")
+            == ctx.store.value(f"sign_check.{name}.univariate_direction")
+        )
+    disagreements = sum(
+        1 for name in features if ctx.store.value(f"sign_check.{name}.agrees") == 0.0
+    )
+    assert ctx.store.value("sign_check.n_disagreements") == disagreements
+    assert "disagree with the univariate direction" in result.summary
+
+
+def test_a_feature_the_model_summary_has_no_coefficient_for_is_not_sign_checked(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """An expanded spline column or a screened-out term has no fitted sign to compare."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    summary = read_json(ctx.out_dir / "model_summary.json")
+    dropped = str(summary["coefficients"].pop(0)["feature"])
+    write_json(ctx.out_dir / "model_summary.json", summary)
+    run("check_collinearity", ctx)
+    assert f"vif.{dropped}" in ctx.store
+    assert f"sign_check.{dropped}.agrees" not in ctx.store
+
+
+def test_sign_of_reports_zero_as_zero() -> None:
+    """A coefficient of zero has no direction, and calling it positive would invent one."""
+    assert (sign_of(0.3), sign_of(-0.3), sign_of(0.0)) == (1, -1, 0)
+
+
+def test_the_ablation_refits_the_champion_s_form_without_each_feature(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """One delta per retained feature, measured from the refit on all of them (D-095)."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    result = run("challenger_compare", ctx)
+    assert classes(result) == ["E1"]
+    deltas = [name for name in ctx.store.names() if name.startswith("ablation.")]
+    assert "ablation.baseline_auc" in deltas
+    assert len(deltas) == 11, deltas
+    baseline = ctx.store.value("ablation.baseline_auc")
+    assert 0.5 < baseline < 1.0
+    # Dropping the strongest driver costs discrimination; the sign says which way (D-095).
+    assert ctx.store.value("ablation.delinq_last.delta_auc") < -0.01
+    assert "ablation.skipped" not in ctx.store
+
+
+def test_the_ablation_is_skipped_and_says_so_above_the_feature_cap(
+    tmp_path: Path, credit_run_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A measurement not made must not look like one that came back empty (D-095)."""
+    monkeypatch.setattr("quaestor.tools.challenger.MAX_ABLATION_FEATURES", 3)
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    run("challenger_compare", ctx)
+    assert "ablation.baseline_auc" not in ctx.store
+    note = ctx.store.load("ablation.skipped")
+    assert note["max_features"] == 3
+    assert note["n_features"] > 3
+    assert "not run" in ctx.store.entry("ablation.skipped").summary
+
+
+def test_a_split_whose_outcome_is_constant_is_sign_checked_against_nothing(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """No direction exists to compare a coefficient with, so nothing is claimed about one."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    frame = pd.read_csv(ctx.out_dir / "predictions_train.csv")
+    frame["y_true"] = 1
+    write_csv(ctx.out_dir / "predictions_train.csv", frame)
+    result = run("check_collinearity", ctx)
+    assert classes(result) == []
+    assert ctx.store.value("sign_check.n_disagreements") == 0
+    assert not [name for name in ctx.store.names() if name.endswith(".agrees")]
+    assert "vif.max" in ctx.store, "the collinearity statistics are unaffected"

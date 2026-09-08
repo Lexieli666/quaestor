@@ -19,6 +19,7 @@ from quaestor.findings import DefectClass, Finding, FindingCandidate, Severity
 from quaestor.llm import FakeLLM
 from quaestor.report.drafter import (
     DRAFT_PURPOSE,
+    NO_CANDIDATES,
     DraftedSection,
     Drafter,
     GuidanceSpan,
@@ -87,7 +88,8 @@ def test_the_prompt_says_what_to_do_when_a_section_has_nothing_to_cite() -> None
     prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.monitoring))
     assert "this section cites no artifact" in prompt
     assert "none retrieved" in prompt
-    assert "every check that ran on this section's material raised nothing" in prompt
+    assert NO_CANDIDATES in prompt
+    assert "candidates raised for this section: none -- describe nothing as a finding" in prompt
 
 
 def test_the_findings_section_is_given_the_heading_to_copy(store: ArtifactStore) -> None:
@@ -228,3 +230,41 @@ def test_the_template_says_so_when_nothing_bears_on_a_section() -> None:
     assert claims == []
     empty, _ = template_section(brief_for(ReportSection.findings))
     assert "No finding was raised" in empty
+
+
+def test_a_section_with_candidates_is_told_they_are_the_only_findings_it_may_describe(
+    store: ArtifactStore,
+) -> None:
+    """D-091: the prompt states the section's candidate list, and what the list means."""
+    candidate = FindingCandidate(
+        defect_class=DefectClass.L2,
+        evidence=[store.artifact("metrics.test.auc").hash],
+        detail="1.2667% of test rows repeat a training feature vector",
+        suggested_severity=Severity.medium,
+        tool="check_leakage",
+    )
+    prompt = drafter(FakeLLM()).prompt(
+        brief_for(ReportSection.data_integrity), candidates=[candidate]
+    )
+    assert "candidates raised for this section: 1" in prompt
+    assert "L2 (contamination, suggested severity medium, from check_leakage)" in prompt
+    assert "Those are the only findings this section may describe." in prompt
+    assert NO_CANDIDATES not in prompt
+
+
+def test_every_section_prompt_carries_the_rule_that_a_finding_is_on_the_list() -> None:
+    """The rule the two contradictory sentences of the third live run broke (D-091)."""
+    for section in ReportSection:
+        prompt = drafter(FakeLLM()).prompt(brief_for(section))
+        assert "Call something a finding only if it is in the candidate list" in prompt
+
+
+def test_a_section_six_prompt_with_no_finding_still_asks_for_the_open_items(
+    store: ArtifactStore,
+) -> None:
+    """D-096: "no findings" must not be able to mean "no questions"."""
+    del store
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.findings))
+    assert "No finding was raised." in prompt
+    assert "'### Open items'" in prompt
+    assert "still owes the developer the observations it made" in prompt

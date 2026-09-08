@@ -23,6 +23,7 @@ from .spec import (
     SplitRule,
     SplitsSpec,
     ThresholdSpec,
+    Use,
 )
 
 __all__ = [
@@ -42,5 +43,6 @@ __all__ = [
     "SplitRule",
     "SplitsSpec",
     "ThresholdSpec",
+    "Use",
     "load_package",
 ]

@@ -64,7 +64,7 @@ def test_a_section_writes_one_cited_sentence_per_scalar_and_a_directive_per_tabl
         )
         + "\n\nGuidance spans retrieved for this section:\n"
         + json.dumps([{"citation": "[[reg:SR26-2:V.1.b]]"}])
-        + "\n\nFinding candidates for this section: none\n"
+        + "\n\nFindings raised for this section: none\n"
     )
     markdown = draft(prompt)
     assert markdown.splitlines() == [
