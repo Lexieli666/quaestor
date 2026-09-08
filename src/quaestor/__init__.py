@@ -11,7 +11,8 @@ What this module exports grows with the phases that implement it. Spec section 9
 eventual public surface; Phase 2 ships everything on that list that now exists -- the package
 loader, the artifact store, the LLM layer, the defect vocabulary, the errors and
 :func:`~quaestor.hashing.stable_hash`; Phase 3 adds :func:`~quaestor.sandbox.run_model`.
-Phase 7 adds ``Finding`` and the claim verifier; ``validate`` arrives in Phase 8.
+Phase 7 adds ``Finding`` and the claim verifier; Phase 8 adds :func:`~quaestor.pipeline.validate`,
+the pipeline entry of spec section 9, and the three configurations it runs under.
 
 ``__version__`` is the single source of truth for the distribution version, which
 ``pyproject.toml`` reads through hatchling. The distribution is named ``quaestor-mrm`` because the
@@ -22,6 +23,7 @@ PyPI name ``quaestor`` belongs to an unrelated project; the import name is ``qua
 from __future__ import annotations
 
 from .artifacts import Artifact, ArtifactStore
+from .configs import CONFIGURATIONS, ConfigSpec
 from .errors import (
     ArtifactError,
     LLMOutputError,
@@ -37,6 +39,7 @@ from .findings import DefectClass, Finding, FindingCandidate, FindingsDocument, 
 from .hashing import stable_hash
 from .llm import LLM, Completion, FakeLLM
 from .package import ModelPackage, load_package
+from .pipeline import ValidationRun, validate
 from .sandbox import MemoryCap, RunResult, run_model
 from .trace import EventType, TraceEvent, TraceReader, TraceWriter
 from .verifier import Claim, ClaimsDocument, ClaimStatus, VerifiedClaim
@@ -52,7 +55,9 @@ __all__ = [
     "Claim",
     "ClaimStatus",
     "ClaimsDocument",
+    "CONFIGURATIONS",
     "Completion",
+    "ConfigSpec",
     "Configuration",
     "DefectClass",
     "EventType",
@@ -75,10 +80,12 @@ __all__ = [
     "TraceEvent",
     "TraceReader",
     "TraceWriter",
+    "ValidationRun",
     "VerificationError",
     "VerifiedClaim",
     "__version__",
     "load_package",
     "run_model",
     "stable_hash",
+    "validate",
 ]

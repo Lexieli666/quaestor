@@ -611,3 +611,82 @@ is *supposed* to verify. Those items are reported as **tolerance boundaries**, w
 that produced them, and never as errors — a component eval that scored its own tolerance as a
 mistake would push the tolerance down until real reports started failing. Two of the ten items
 land there at seed 20260901, and the run log says which.
+
+## Phase 8 — The drafter, the repair loop, the renderer, the planner and `validate()`
+
+**The tolerance is the precision the prose used, not a constant (D-069, amending D-014).** Phase 1
+gave every claim a flat tolerance from its unit — 0.005 for a ratio in the unit interval, 0.5 for a
+percentage on a 0–100 scale, 1% relative otherwise — and that rule verifies `0.021` against an
+artifact of `0.0175` and `22.0%` against `0.2212`. Neither sentence is true at the precision it
+chose to write, and grounding precision is the number this project asks to be judged on, so the
+rule now reads: a claim verifies when the artifact **rounds to the value as written, at the
+decimals the prose actually used**, with spec §0's default for the unit as the ceiling the
+tolerance never exceeds and `rounding` an explicit override that can only narrow. The precision is
+read from the claim's own sentence rather than from its float, because `22.0` and `22` are one
+float and two statements. Trailing zeros before the point run the same rule backwards: `-1130000`
+claims nothing below ten thousand, so its precision is `10^4` — which is what lets a currency
+amount written to four significant figures verify against the figure it was rounded from, and what
+the ceiling stops from ever becoming loose. The rejected alternative was keeping the flat rule and
+asking the drafter to declare `rounding` on every number, which puts the honesty of the headline in
+the hands of the component being measured. Measured consequence: the golden report's 92 claims all
+still verify and its pre-repair `0.0136` still mismatches, 60 of the 92 record a narrower tolerance
+than the Phase 1 file, and the two tolerance boundaries of the Phase 7 component eval are now
+caught as the mismatches they are.
+
+**A drafter can only cite what it was given.** The rule in the prompt is "write no number that is
+not in the JSON", and `report/sections.py` is what builds that JSON: per section, a selector over
+logical names, the tables the section may direct the renderer to expand, and the JSON artifacts
+whose numeric paths it may address. The selectors select **scalars** — a table matched by
+`calibration.` would hand the outcomes section every calibration table the run produced — and JSON
+artifacts are flattened into the dotted paths a citation can name, so `run.model_summary` can be
+cited as `#coefficients.utilisation.value` without the drafter guessing the payload's shape.
+Values arrive at four significant figures, which the tolerance rule above makes safe: a number
+copied out of the JSON verifies against the artifact it came from, and a number rounded further
+verifies too.
+
+**The renderer owns the report's structure and the drafter owns its prose (D-071).** Section 6 has
+a fixed shape — one `### F-NNN · <class> <name> · severity **<severity>**` heading per finding, in
+severity order, with the ids the findings document assigned. Asking a model to reproduce that
+exactly is asking it for something a renderer already knows, so the drafter is *given* each heading
+and asked to write beneath it, and the renderer then re-composes the section from what came back:
+the text before the first `###` is the section's opening, each finding is emitted under the
+canonical heading with the drafter's body under it, and a finding the drafter ignored keeps the
+narrative its candidates gave it. Nothing the drafter wrote is discarded, which is the failure mode
+of the obvious alternative. The rejected alternative was one `structured()` call per finding, which
+would make section 6 a different prompt shape from every other section and the study's per-section
+token counts incomparable.
+
+**The wrapper is the other end of the pre-pass's argument.** A pipeline that deleted a number it
+could not verify would report a better grounding precision the worse its drafter was, because the
+denominator would shrink with the numerator. So a claim that survives two repair rounds stays in
+the prose, wrapped `⟦unverified: 0.68⟧`, and `REPORT_SCHEMA.json`'s third refusal rule makes it
+compulsory: under `full_agent` an uncovered number that is not wrapped is a report the renderer
+will not write. Wrapping runs over the *masked* prose — the same masking the pre-pass uses — so a
+claim of `6` can never turn `[[art:6bff3109:…]]` into something that is not a citation.
+
+**Nothing the renderer or the template writes carries an uncited number (D-076).** `rules_only` is
+the study's control and spec §3.13 calls its claims "trivially verified"; if its precision is not
+1.0 then the figure reported for the other two arms is not a property of the models that wrote
+them. So the template writes `The value of \`<logical_name>\` is <n> <citation>.` — the name in
+inline code, the value cited — and never the artifact's caption, since a caption like "change in
+servicing value at -300 bp" carries a number no citation follows. The renderer's own section-6
+lines name classes and tools in inline code and nothing else. The rejected alternative was wrapping
+renderer-written lines in renderer blocks, which the schema's block pattern does not allow and
+which would make the exclusion list unauditable.
+
+**The planner's refusals are traced, not raised.** The rule-based plan is a function of
+`package.yaml`; the bounded loop is four steps at most, and an action it takes may be refused for
+three reasons — an unknown tool, arguments the tool's own closed `Args` model rejects (which is
+where an invented `entrypoint` is caught), or a path that leaves the package and the run's own
+directories. A refusal is a `plan_step` event with its reason and the loop continues, because a
+model that mistypes a tool name has not asked to stop. The loop is shown the tools' generated JSON
+schemas rather than a prose description of them, which is the same "one source, three consumers"
+the registry was built for.
+
+**`validate()` lives in `pipeline.py`, the configurations in `configs.py` (D-070).** The three arms
+of the study differ only in a table of data — which plan runs, who writes the narrative, whether
+the repair loop runs — because a difference between two runs has to be a difference a reader can
+point at, not a difference in what some branch happened to do. The pipeline reads the table and
+runs one pipeline. The module is outside `CLAUDE.md`'s layout, like `vocab.py` before it, and for
+the same reason: `configs.py` is imported by the layers `validate()` orchestrates, so a module that
+was both would be a cycle waiting for the first import in the wrong direction.

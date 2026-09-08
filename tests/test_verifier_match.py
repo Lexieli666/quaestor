@@ -98,11 +98,15 @@ def test_three_cited_correct_one_mismatched_and_one_uncited_yields_0_6(
 
 
 def test_a_percent_verifies_against_a_unit_interval_artifact(store: ArtifactStore) -> None:
-    """`22.0%` against 0.22 verifies, after percent-to-ratio normalisation (D-014)."""
+    """`22.0%` against 0.22 verifies, after percent-to-ratio normalisation (D-014).
+
+    The tolerance is a tenth of a per cent, not half of one: the sentence wrote one decimal, so
+    that is the precision it is held to, carried into the artifact's units (D-069).
+    """
     match = match_claim(claim(store, 22.0, "metrics.test.event_rate", unit=Unit.percent), store)
     assert match.status is ClaimStatus.verified
     assert match.claim.artifact_value == 0.22
-    assert match.claim.tolerance == 0.005
+    assert match.claim.tolerance == pytest.approx(0.0005)
 
 
 def test_a_rounded_percent_verifies_and_a_wrong_one_does_not(store: ArtifactStore) -> None:

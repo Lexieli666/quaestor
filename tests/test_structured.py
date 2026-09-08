@@ -182,3 +182,21 @@ def test_adapter_provenance_reaches_the_llm_call_event(tmp_path: Path) -> None:
     (event,) = TraceReader(tmp_path / "trace.jsonl").events(EventType.llm_call)
     assert event.payload["quaestor_bare"] is False
     assert "session_id" not in event.payload
+
+
+def test_trace_fields_reach_the_event_and_not_the_provider(tmp_path: Path) -> None:
+    """A drafter records which section it was drafting; a provider is never handed a `section`."""
+    llm = FakeLLM(default=GOOD)
+    trace = writer(tmp_path)
+    structured(
+        llm,
+        "one section please",
+        Section,
+        trace=trace,
+        purpose="draft",
+        trace_fields={"section": "outcomes", "repair": False},
+    )
+    event = TraceReader(trace.path).events("llm_call")[0]
+    assert event.payload["section"] == "outcomes"
+    assert event.payload["repair"] is False
+    assert llm.calls[0].params == {}

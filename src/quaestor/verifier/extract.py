@@ -47,6 +47,8 @@ __all__ = [
     "Extraction",
     "drafted_prose",
     "extract",
+    "extraction_from",
+    "masked_prose",
     "merge_exclusions",
     "numeric_tokens",
     "token_value",
@@ -274,6 +276,26 @@ def drafted_prose(markdown: str) -> str:
     return _RENDERER_BLOCK_RE.sub("\n", markdown)
 
 
+def masked_prose(markdown: str, package_version: str | None = None) -> str:
+    """Return a section's prose with every excluded region blanked out, offsets preserved.
+
+    The six classes of D-015 -- renderer blocks and table directives, citations, inline code,
+    finding ids, section numbering and the package version -- are replaced by spaces of the same
+    length, so a caller can find the numeric tokens that are *claims* and know where each one is
+    in the original text. The pre-pass uses it to build the denominator; the repair loop uses it
+    to decide which token to wrap; the renderer uses it to decide which numbers are uncovered.
+
+    Args:
+        markdown: The section as written.
+        package_version: The package's version string, when the caller knows it.
+
+    Returns:
+        The masked text, the same length as the input.
+    """
+    masked, _ = _masked(markdown, package_version)
+    return masked
+
+
 def numeric_tokens(text: str) -> list[tuple[int, str]]:
     """Return every numeric token of a piece of text with its offset.
 
@@ -477,6 +499,45 @@ def _prepass(
         ordered.extend(pool)
     ordered.extend(stray)
     return ordered, unattributed, _exclusions(excluded), len(excluded)
+
+
+def extraction_from(
+    section: ReportSection | str,
+    markdown: str,
+    claims: Sequence[Claim],
+    *,
+    package_version: str | None = None,
+) -> Extraction:
+    """Run the pre-pass over a section whose claims are already known, with no model call.
+
+    This is the half of :func:`extract` that follows the model call, exposed on its own for the
+    ``rules_only`` configuration of spec section 3.13, whose template writes its own claims as it
+    writes its prose and so has nothing to ask a model for. The pre-pass still runs, and still
+    owns the denominator: a number the template wrote and did not declare becomes an
+    ``unattributed`` claim exactly as a drafter's would.
+
+    Args:
+        section: Which of the seven sections this is.
+        markdown: The section as written.
+        claims: The claims whose author already knows what they are.
+        package_version: The package's version string, so that "version 1.0" is excluded.
+
+    Returns:
+        The extraction, with ``n_from_model`` counting the claims that were handed in.
+    """
+    section = ReportSection(section)
+    given = list(claims)
+    ordered, unattributed, exclusions, n_excluded = _prepass(
+        section, markdown, given, package_version
+    )
+    return Extraction(
+        section=section,
+        claims=ordered,
+        unattributed=unattributed,
+        exclusions=exclusions,
+        n_excluded_tokens=n_excluded,
+        n_from_model=len(given),
+    )
 
 
 def extract(

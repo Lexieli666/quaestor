@@ -41,6 +41,7 @@ dev = [
   "mypy",
   "coverage",
   "types-PyYAML",
+  "types-jsonschema",
   "pandas-stubs",
   "build",
   "twine",

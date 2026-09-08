@@ -64,7 +64,26 @@ def test_the_rebuilt_artifact_values_agree_with_the_golden_s_own(store: Artifact
     for raw in CLAIMS["post_repair"]:
         match = match_claims([rebound(raw, store)], store)[0]
         assert match.claim.artifact_value == pytest.approx(raw["artifact_value"]), raw["text"]
-        assert match.claim.tolerance == pytest.approx(raw["tolerance"]), raw["text"]
+
+
+def test_every_tolerance_narrows_or_stands_under_the_rounding_amendment(
+    store: ArtifactStore,
+) -> None:
+    """D-069 can only tighten what D-014 allowed, and it tightens 60 of the golden's 92 claims.
+
+    The golden `claims.json` was written in Phase 1 under D-014, whose tolerance is the flat
+    default for the claim's unit; D-069 holds a number to the precision its own sentence wrote and
+    keeps that default as a ceiling, so the applied tolerance can only fall. It falls for 60 of
+    the 92 -- every four-decimal metric from 0.005 to 0.00005, `22.0%` from 0.005 to 0.0005, and
+    each of the six claims that declared a `rounding`, which under D-014 *widened* the default and
+    now narrows it -- and every one of the 92 still verifies, which is the assertion above.
+    """
+    narrowed = 0
+    for raw in CLAIMS["post_repair"]:
+        applied = match_claims([rebound(raw, store)], store)[0].claim.tolerance
+        assert applied <= raw["tolerance"] + 1e-12, raw["text"]
+        narrowed += applied < raw["tolerance"] - 1e-12
+    assert narrowed == 60
 
 
 def test_the_pre_repair_figures_reproduce_from_the_golden_s_own_claim_list() -> None:

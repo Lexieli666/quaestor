@@ -1540,3 +1540,198 @@ here and recorded.
   `tests/test_verifier_match.py` and, from Phase 8, the pipeline itself. Rejected alternative:
   editing the golden report's hashes so that they resolve, which is a sanctioned-edit request under
   D-011 for a directory whose whole purpose is to be a fixed specification.
+
+## D-069. A claim is held to the precision its own sentence used (amends D-014)
+
+- **Date:** 2026-09-07 (Phase 8, decided in Cowork)
+- **Q:** D-014 gives every claim a flat tolerance from its unit: 0.005 for a ratio or a per cent in
+  the unit interval, 0.5 for a percentage on a 0–100 scale, 1% relative otherwise, and a declared
+  `rounding` may widen it. That verifies `0.021` against an artifact of `0.0175`, and `22.0%`
+  against `0.2212`. Is a number that the artifact does not round to a verified claim?
+- **A:** No. A claim verifies when the artifact value **rounds to the value as written, at the
+  precision the prose used**: `0.74` verifies against `0.7412`, `0.021` does not verify against
+  `0.0175`, `22.0%` does not verify against `0.2212`. The applied tolerance is
+  `min(0.5·10^-decimals_written · scale, default_for_unit, 0.5·10^-rounding · scale)`, where
+  `decimals_written` is read from the claim's own `text` — the first numeric token in it whose
+  value is the claim's value, so `22.0%` declares one decimal and `22%` declares none although both
+  parse to the same float — and `scale` carries a tolerance stated in the units the prose wrote
+  into the units the artifact is held in (`0.01` for a per cent against a unit-interval artifact,
+  `0.0001` for basis points against a rate). Spec §0's three defaults survive **as the ceiling the
+  tolerance never exceeds**, which is what keeps a fifteen-decimal drafter from being held to
+  floating-point noise. Counts stay exact. The `rounding` field stays, as an explicit override that
+  can only narrow; under D-014 it could only widen, and that is the one direction it may no longer
+  go. Implemented in `verifier/match.py` (`written_decimals`, `normalisation_scale`,
+  `default_tolerance`, `tolerance_for`); `docs/REPORT_SCHEMA.md` §6 carries the formula.
+- **Why:** Grounding precision is the number this project asks to be judged on, and under D-014 it
+  counted as grounded a sentence whose number the cited artifact does not produce at the precision
+  the sentence itself chose. `22.0%` is a claim about tenths of a per cent; verifying it against
+  22.12% measures the tolerance rather than the model. The direction of the `rounding` field
+  reverses for the same reason: a drafter that writes fewer decimals has already been given the
+  wider tolerance by the rule itself, so the only honest thing left for an explicit declaration to
+  do is to promise *more* precision than the token shows. Reading the precision off the sentence
+  rather than off the float is what makes trailing zeros mean what they say; the float `22.0` is
+  the float `22`, and only the prose distinguishes them. Measured consequences, all of them
+  recorded rather than assumed: **the golden report's 92 post-repair claims all still verify and
+  its pre-repair `0.0136` still mismatches**, while 60 of the 92 record a narrower `tolerance` than
+  the Phase 1 `claims.json` does (every four-decimal metric from 0.005 to 0.00005, `22.0%` from
+  0.005 to 0.0005, and each of the six claims that declared a `rounding`), so
+  `tests/test_verifier_golden.py` now asserts the statuses exactly and the tolerances as an
+  inequality with the narrowing count pinned; and **the two tolerance boundaries the Phase 7
+  component eval reported, `vq04` and `vq10`, are gone** — both perturbed sentences write four
+  decimals and are now caught as the mismatches they are, so `tolerance_boundaries` is empty and
+  status accuracy stays 1.0 on all three classes. `examples/golden_report/claims.json` is not
+  edited: it is the Phase 1 specification of the file's *shape*, its numbers are illustrative, and
+  D-011's procedure exists for changes to the shape rather than for a re-measurement of a
+  tolerance. Rejected alternative: keeping D-014 and asking the drafter to declare `rounding` on
+  every number, which puts the honesty of the headline figure in the hands of the component being
+  measured.
+
+## D-070. `pipeline.py` holds `validate()`; `configs.py` holds the three configurations
+
+- **Date:** 2026-09-07 (Phase 8)
+- **Q:** `CLAUDE.md`'s layout gives Phase 8 four homes — `report/`, `agent/`, `configs.py` and
+  `cli.py` — and spec §9 puts `validate()` on the public surface without saying which module it
+  lives in. Where does the pipeline entry go?
+- **A:** A new module, `src/quaestor/pipeline.py`, holding `validate()` and the objects it returns.
+  `configs.py` keeps what the layout says it keeps: the three configurations, as data — which plan
+  runs, who writes the narrative, whether the repair loop runs — plus the class list each tool
+  screens for, which `findings.json`'s `checks_without_candidates` is built from.
+- **Why:** `validate()` imports the planner, the tool registry, the drafter, the verifier, the
+  renderer and the findings layer; `configs.py` is imported *by* several of those, and a module
+  that is both the vocabulary and the orchestrator is a cycle waiting for the first import to be
+  added in the wrong direction. It is the second module outside `CLAUDE.md`'s layout, after
+  `vocab.py` (D-060), and is recorded for the same reason: the layout is the contract. Rejected
+  alternative: putting the pipeline in `cli.py`, which would make every caller of the library go
+  through the command-line module and would leave Phase 9 unable to add a parser without touching
+  the pipeline.
+
+## D-071. The renderer owns section 6's structure and the drafter owns its prose
+
+- **Date:** 2026-09-07 (Phase 8)
+- **Q:** Section 6 has a fixed shape: one `### F-NNN · <class> <name> · severity **<severity>**`
+  heading per finding, in severity order, with the ids the findings document assigned. The drafter
+  writes one `structured()` call per section returning `{"markdown": str}` (spec §3.11). If the
+  model writes those headings, the report's structure depends on it copying twelve characters
+  correctly; if the renderer writes them, where does the finding's prose come from?
+- **A:** Both, in that order. The drafter is given the exact heading line for each finding and asked
+  to write the section with them; the renderer then **re-composes** the section from what came
+  back: the text before the first `###` is kept as the section's opening, each finding is emitted
+  under the canonical heading with the body the drafter wrote beneath it, and a finding the drafter
+  did not write about keeps the narrative its candidates gave it. The drafted body also becomes the
+  finding's `title` and `narrative` in `findings.json`, the title being the leading `**bold**` run
+  when there is one.
+- **Why:** The structural half of a report is not a thing to ask a language model for twice. Every
+  finding is guaranteed to appear, exactly once, under the id the findings document assigned and in
+  severity order, whatever the drafter did — and nothing the drafter wrote is discarded, which is
+  the failure mode of the alternative. Rejected alternative: one `structured()` call per finding,
+  which would give the renderer the narrative directly and is a different prompt shape from every
+  other section, so the study's per-section token counts would stop being comparable.
+
+## D-072. An unevidenced `plain_llm` finding is recorded against a stored record of itself
+
+- **Date:** 2026-09-07 (Phase 8)
+- **Q:** Spec §3.13: a `plain_llm` finding "naming no existing artifact is recorded as
+  `unevidenced` and scored as a false alarm". `findings.json` is closed by
+  `FINDINGS_SCHEMA.json`, whose only home for a rejected candidate is `candidates_not_promoted`,
+  and whose `evidence` there must be at least one eight-character hex hash. A finding whose
+  evidence does not resolve has, by definition, no such hash to give. Where is it written?
+- **A:** In `candidates_not_promoted`, with a `reason` that begins with the literal token
+  `unevidenced:` and with the evidence pointing at `unevidenced_record.<i>` — a JSON artifact this
+  configuration writes, holding what the model claimed, the evidence strings it named, and the fact
+  that none of them resolves. The record exists in the store, so the entry satisfies both the
+  schema and the evidence rule, and the study reads the token rather than the prose.
+- **Why:** It is D-067's move applied to the baseline: the only comparison with nothing behind it
+  gets a stored record of the disagreement, so the thing being pointed at is the false alarm
+  itself rather than an artifact chosen to stand in for it. It also keeps the report schema
+  untouched, which after Phase 1 is a stop-and-ask. Rejected alternative: dropping unevidenced
+  findings entirely, which would flatter the baseline exactly where the study means to measure it —
+  a model that names an artifact that does not exist would be scored as having said nothing.
+
+## D-073. How a claim before a repair round is paired with the claim after it
+
+- **Date:** 2026-09-07 (Phase 8)
+- **Q:** `claims.json` `repairs` is a list of `{section, claim_id, before, after, instruction}`
+  (D-012), so every round has to say which claim after it replaced which claim before it. A claim's
+  id is `stable_hash([section, text, value])`, and a re-draft rewrites the sentence, so the ids do
+  not generally survive a round. What is the pairing rule?
+- **A:** Three cases, in order. **By id**, which covers the commonest repair exactly: a number the
+  drafter wrote correctly and forgot to cite keeps its id when the citation is added, because the
+  id hashes the section, the text and the value and the citation is none of the three — the text
+  changes, so this holds only when the drafter re-drafts the sentence identically, and it is tried
+  first because when it matches it is certain. Then **by nearest unpaired verified value** within
+  ten per cent of the claimed value, which is the drafter correcting a number it got wrong (0.0136
+  for 0.0126). Otherwise the number is **gone**: "cite or remove" allows removing, and a claim that
+  no longer exists has no `after` side to record, so the round writes it on the `repair` trace
+  event's `removed` field and no row in the repairs table.
+- **Why:** The repairs table is read by a human asking "what did the loop change?", and a wrong row
+  in it is worse than a missing one: it would attribute a number to a repair that did not produce
+  it. The ten per cent window is the smallest thing that distinguishes a correction from a
+  different statement — a claim that moved further than that is not the same claim repaired, it is
+  a new sentence. Recording a removal on the trace rather than in `claims.json` keeps the schema
+  closed (a `removed` status would be a sixth `ClaimStatus` and a change to `CLAIMS_SCHEMA.json`,
+  which is a stop-and-ask after Phase 1) while keeping the fact recoverable, since `eval/score.py`
+  reads the trace. Rejected alternative: pairing by position in the section's claim list, which is
+  wrong the moment a re-draft adds or drops a sentence — exactly what a repair round does.
+
+## D-074. The report schema is shipped inside the package, pinned to the golden by a test
+
+- **Date:** 2026-09-07 (Phase 8)
+- **Q:** The renderer enforces `examples/golden_report/REPORT_SCHEMA.json` at runtime: the front
+  matter's JSON Schema, the eleven required headings, the renderer-block pattern, the citation
+  forms and the forbidden patterns. `examples/` is not inside the wheel. Where does the installed
+  renderer read those rules from?
+- **A:** From `src/quaestor/report/report_schema.json`, a copy of the golden file that ships with
+  the package, exactly as the regulatory corpus ships as `src/quaestor/corpus/*.jsonl`.
+  `tests/test_report_schema.py` compares the two **byte for byte**, so a sanctioned edit to the
+  golden schema under D-011 that forgot the copy is a failing test rather than a renderer quietly
+  enforcing last month's rules. Also decided here: `types-jsonschema` joins the dev dependencies,
+  because `jsonschema` is now imported by `src/` and `mypy --strict` has no stubs for it;
+  `CLAUDE.md`'s dev list already names "type stubs", and no runtime dependency changes.
+- **Why:** A schema the code cannot read at runtime is documentation, and the four refusals of spec
+  §3.11 are the difference between a report format and a report. Copying the file rather than
+  restating it as a Python literal keeps the diff between the two copies readable and the pin
+  exact. Rejected alternatives: reading the golden file by relative path from the installed package
+  (it is not there), and moving the golden schema into `src/` (the golden directory is the Phase 1
+  specification and `MANIFEST.json` pins its contents).
+
+## D-075. `structured()` gains `trace_fields`, which go on the event and not to the provider
+
+- **Date:** 2026-09-07 (Phase 8)
+- **Q:** A `draft` event should say which section it drafted and whether it was a repair round; a
+  `plan` event should say which step of the bounded loop it was. `structured(...)`'s `**params` is
+  forwarded to the provider, so passing `section="outcomes"` through it would hand a real adapter
+  an argument it has never heard of. Where do per-call trace fields go?
+- **A:** A new keyword-only `trace_fields: Mapping[str, Any] | None` on
+  :func:`quaestor.llm.structured.structured`, merged into every `llm_call` event of that call and
+  never passed to the provider. Two callers use it today: the drafter (`section`, `repair`) and the
+  planner (`step`).
+- **Why:** Without it the study cannot say which section cost what, and with it hidden inside
+  `**params` the first live run would fail on the first draft. Keeping the two channels separate is
+  the same distinction `Completion.raw`'s `quaestor_` prefix already makes in the other direction
+  (D-025): what the adapter knows goes onto the trace, what the provider needs goes to the
+  provider. Rejected alternative: emitting a second, per-section event beside the `llm_call`, which
+  would double the event count the study divides by.
+
+## D-076. Nothing the renderer or the template writes carries an uncited number
+
+- **Date:** 2026-09-07 (Phase 8)
+- **Q:** Grounding precision is computed over the drafted prose, and the pre-pass counts every
+  numeric token it finds there. The renderer adds prose of its own to section 6 ("candidates raised
+  and not promoted", "checks that ran and raised no candidate") and the `rules_only` template
+  writes the whole report. A number in either would be counted against a model that did not write
+  it. What may they write?
+- **A:** No bare numeric token. The renderer's section-6 lines name defect classes and tools, both
+  in inline code, and nothing else; the template writes `The value of \`<logical_name>\` is <n>
+  <citation>.` — the logical name in inline code (excluded, D-015) and the value cited — and never
+  the artifact's caption, because a caption like "change in servicing value at -300 bp" carries a
+  number that no citation follows. Section 6's template statement names the class, the tool and the
+  severity and leaves the check's own sentence, which is full of numbers, in `findings.json`.
+  `tests/test_pipeline.py` asserts `rules_only`'s post-repair precision is 1.0 on a real subject,
+  which is what catches the next such leak.
+- **Why:** `rules_only` is the arm spec §3.13 describes as "trivially verified", and it is the
+  study's control: if its precision is not 1.0, the number the study reports for the other two arms
+  cannot be read as a property of the model that wrote them. The renderer's own prose is the same
+  argument from the other side — the report's structure must not be able to lower the score of the
+  prose. Rejected alternative: excluding renderer-written lines from extraction by wrapping them in
+  renderer blocks, which `REPORT_SCHEMA.json`'s block pattern does not allow (`scope` and
+  `table <name>` are the two kinds) and which would make the exclusion list unauditable.

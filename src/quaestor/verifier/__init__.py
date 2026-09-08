@@ -37,12 +37,23 @@ from .extract import (
     Extraction,
     drafted_prose,
     extract,
+    extraction_from,
+    masked_prose,
     merge_exclusions,
     numeric_tokens,
     token_value,
 )
 from .grounding import GroundingFigure, SectionGrounding, grounding, precision_of
-from .match import Match, match_claim, match_claims, normalise, tolerance_for
+from .match import (
+    Match,
+    default_tolerance,
+    match_claim,
+    match_claims,
+    normalisation_scale,
+    normalise,
+    tolerance_for,
+    written_decimals,
+)
 
 __all__ = [
     "ABS_TOL_COUNT",
@@ -70,16 +81,21 @@ __all__ = [
     "Unit",
     "VerifiedClaim",
     "claim_id",
+    "default_tolerance",
     "drafted_prose",
     "extract",
+    "extraction_from",
     "grounding",
     "match_claim",
     "match_claims",
+    "masked_prose",
     "merge_exclusions",
+    "normalisation_scale",
     "normalise",
     "numeric_tokens",
     "precision_of",
     "token_value",
     "tolerance_for",
     "verify_developer_claims",
+    "written_decimals",
 ]

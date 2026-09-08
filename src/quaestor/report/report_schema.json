@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Lexieli666/quaestor/examples/golden_report/REPORT_SCHEMA.json",
+  "title": "Quaestor validation report — front matter and structure",
+  "description": "Validates the YAML front matter of report.md as a JSON object. The x-quaestor-* keys are read by tests/test_golden_spec.py and by the renderer for the structural checks JSON Schema cannot express over Markdown: required headings in order, required renderer blocks, and forbidden patterns.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "quaestor_version", "package", "version", "model_type", "configuration",
+    "model", "run_id", "data_mode", "grounding_precision_pre", "grounding_precision_post",
+    "n_claims", "n_findings_by_severity", "generated", "illustrative"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "quaestor_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(\\.dev\\d+)?$"},
+    "package": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+    "version": {"type": "string", "minLength": 1},
+    "model_type": {"enum": ["binary_classification", "discrete_time_hazard"]},
+    "configuration": {"enum": ["full_agent", "rules_only", "plain_llm"]},
+    "model": {"type": "string", "minLength": 1, "description": "Provider model id, 'fake' under FakeLLM, 'illustrative' in the golden report."},
+    "run_id": {"type": "string", "minLength": 1},
+    "data_mode": {"enum": ["real", "synthetic"]},
+    "synthetic_n": {"type": "integer", "minimum": 1, "description": "Required when data_mode is synthetic."},
+    "grounding_precision_pre": {"type": "number", "minimum": 0, "maximum": 1},
+    "grounding_precision_post": {"type": "number", "minimum": 0, "maximum": 1},
+    "n_claims": {"type": "integer", "minimum": 0},
+    "n_findings_by_severity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["high", "medium", "low", "info"],
+      "properties": {
+        "high": {"type": "integer", "minimum": 0},
+        "medium": {"type": "integer", "minimum": 0},
+        "low": {"type": "integer", "minimum": 0},
+        "info": {"type": "integer", "minimum": 0}
+      }
+    },
+    "generated": {"type": "string", "format": "date-time"},
+    "illustrative": {"type": "boolean", "description": "true only in examples/golden_report/; the renderer always writes false."}
+  },
+  "allOf": [
+    {"if": {"properties": {"data_mode": {"const": "synthetic"}}}, "then": {"required": ["synthetic_n"]}}
+  ],
+  "x-quaestor-required-headings": [
+    "## 1. Summary and scope",
+    "## 2. Conceptual soundness",
+    "## 3. Data integrity and drift",
+    "## 4. Outcomes analysis",
+    "## 5. Sensitivity and scenario analysis",
+    "## 6. Findings and recommendations",
+    "## 7. Ongoing monitoring recommendations",
+    "## Appendix A — Claims",
+    "## Appendix B — Artifact index",
+    "## Appendix C — Run trace summary",
+    "## Appendix D — Not checked"
+  ],
+  "x-quaestor-heading-rule": "Exactly these level-2 headings, in this order, and no other level-2 heading. The level-1 title is '# Validation report — `<package>` v<version>'. Findings are level-3 headings under section 6 of the form '### F-NNN · <class> <name> · severity **<severity>**'.",
+  "x-quaestor-required-renderer-blocks": [
+    {"name": "scope", "where": "immediately after the section 1 heading", "begin": "<!-- quaestor:renderer:begin scope -->", "end": "<!-- quaestor:renderer:end -->"}
+  ],
+  "x-quaestor-renderer-block-pattern": "<!-- quaestor:renderer:begin (scope|table [a-z0-9_.]+) -->[\\s\\S]*?<!-- quaestor:renderer:end -->",
+  "x-quaestor-citation-patterns": {
+    "artifact": "\\[\\[art:[0-9a-f]{8}:[a-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_-]+)*(#[A-Za-z0-9_.-]+)?\\]\\]",
+    "regulatory": "\\[\\[reg:(SR11-7|SR26-2):[IVX]+(\\.[0-9]+)?(\\.[a-z])?\\]\\]",
+    "table_directive_in_drafter_output": "^\\[\\[table:[a-z0-9_]+(\\.[a-z0-9_-]+)*\\]\\]$",
+    "unverified_wrapper": "⟦unverified: [^⟧]+⟧"
+  },
+  "x-quaestor-forbidden-patterns": [
+    {"pattern": "\\b(compliant|certified|SR 11-7 compliance)\\b", "why": "CLAUDE.md: SR 11-7-shaped, never compliant or certified", "scope": "whole report"},
+    {"pattern": "\\[\\[art:[0-9a-f]{8}:[^\\]]+\\]\\]", "why": "appendices are renderer output; a citation there is a drafter leak", "scope": "Appendix C and Appendix D only"}
+  ],
+  "x-quaestor-refusal-rules": [
+    "The renderer refuses to write a report whose front matter fails this schema.",
+    "The renderer refuses to write a report without '## Appendix A — Claims' or without both grounding_precision_pre and grounding_precision_post.",
+    "Under full_agent, a number in sections 1–7 that is outside a renderer block, outside inline code and not covered by a claim with status verified must be wrapped ⟦unverified: <number>⟧; the renderer counts wrappers and the count must equal n_claims minus the post-repair verified count."
+  ]
+}

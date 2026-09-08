@@ -45,12 +45,15 @@ are named in brackets.
     precision 1.0 over nothing (D-064)
   - the evidence rule binds **construction**; reading a written `findings.json` back waives it
     deliberately and by name, because `eval/score.py` scores a run from the file alone (D-061)
-- [ ] **Phase 8** — Drafter, repair, renderer, planner, configs; end-to-end on synthetic with
+- [x] **Phase 8** — Drafter, repair, renderer, planner, configs; end-to-end on synthetic with
   `FakeLLM` (spec §3.11–3.13)
   - clean synthetic `credit_default` must yield exactly {E1 low} (D-017)
   - clean synthetic `msr_prepayment` must yield exactly {} at pipeline level (D-047), which
     depends on D-046 (the `psi` threshold and `S1` are read train-against-test; the out-of-time
     and vintage comparisons are reported, not tested) and, for `R1`, on seed 20260901
+  - the tolerance rule is amended before the drafter is built: a claim verifies when the artifact
+    **rounds to the value as written at the precision the prose used**, with spec §0's defaults as
+    a ceiling and `rounding` narrowing only (D-069, amending D-014)
 - [ ] **Phase 9** — CLI; first live validations of both real subjects (Claude CLI); reports
   committed (spec §3.14)
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
@@ -337,3 +340,59 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   seed. The ten fixture tables were written for this repository; no FinQA or TAT-QA row is in it,
   and the live half of the component eval is Phase 13. No test calls a live model, downloads data,
   trains on real data or reads an API key. No push.
+- 2026-09-07 — **Phase 8** — gate green on the four conditions that apply plus 5a, and **5b's
+  substance now runs through `validate()`**: `pytest -q` 1036 passed, 0 failed, 0 skipped, 0
+  xfailed (165 new); coverage of `src/quaestor` **100%** (`coverage run -m pytest`, 5021
+  statements) against the 85% floor; `ruff check` and `ruff format --check` clean on
+  `src tests eval subjects` (120 files); `mypy --strict src/quaestor` clean (57 source files).
+  Gate condition **5a applies and passes** — `tests/test_golden_spec.py` (13 checks) still pins
+  `examples/golden_report/`, which this phase **did not touch**: no byte of the directory changed
+  and no new D-011 row was needed. **5b: the `quaestor validate` command line is Phase 9 and the
+  CLI is still the Phase 0 version stub, so that line of `CLAUDE.md`'s command list was again not
+  run — but what the command will do is `validate()`, and `tests/test_pipeline.py` runs it on both
+  synthetic subjects under `FakeLLM` and validates the report it writes by the same checks
+  `tests/test_golden_spec.py` applies to the golden.** So the substance of 5b holds today and the
+  line itself is Phase 9's. **Gate condition 6 belongs to Phase 11**, where `tests/probatio/`
+  arrives (D-007). Shipped `src/quaestor/report/{sections,drafter,repair,renderer,schema}.py` and
+  the packaged `report_schema.json`, `src/quaestor/agent/planner.py`, `src/quaestor/configs.py`,
+  `src/quaestor/pipeline.py` with `validate()`, the amended `verifier/match.py`, `extraction_from`
+  and `masked_prose` in `verifier/extract.py`, `trace_fields` on `structured()`,
+  `tests/reportsupport.py` and ten test modules (`test_verifier_rounding`, `test_report_schema`,
+  `test_report_sections`, `test_drafter`, `test_repair`, `test_renderer`, `test_planner`,
+  `test_configs`, `test_pipeline`, `test_pipeline_units`), DECISIONS D-069 to D-076, the Phase 8
+  section of `docs/DESIGN.md` and the amended §6 of `docs/REPORT_SCHEMA.md`. `pyproject.toml` gains
+  `types-jsonschema` (dev only, D-074); the public API gains `validate`, `ValidationRun`,
+  `ConfigSpec` and `CONFIGURATIONS`, completing spec §9's surface, and `tests/test_scaffold.py`'s
+  "validate is absent" assertion turns over into "validate is exported".
+  **The amendment first (D-069):** a claim verifies when the artifact rounds to the written value
+  at the precision the prose used — `0.74` against `0.7412` yes, `0.021` against `0.0175` no,
+  `22.0%` against `0.2212` no — with spec §0's 0.005 / 0.5 / 1% as a ceiling, counts exact, and
+  `rounding` narrowing only. **Measured: all 92 of the golden report's post-repair claims still
+  verify and its pre-repair `0.0136` still mismatches; 60 of the 92 record a narrower `tolerance`
+  than the Phase 1 `claims.json`** (every four-decimal metric 0.005 → 0.00005, `22.0%`
+  0.005 → 0.0005, and each of the six claims that declared a `rounding`, whose field reverses
+  direction), so `tests/test_verifier_golden.py` asserts the statuses exactly and the tolerances as
+  an inequality with the narrowing count pinned. `examples/golden_report/claims.json` is **not**
+  edited: it specifies the file's shape and its numbers are illustrative. The two tolerance
+  boundaries Phase 7 measured, `vq04` and `vq10`, are gone — both perturbed sentences write four
+  decimals and are now caught as the mismatches they are — so `eval/verifier_eval.py` reports
+  `tolerance_boundaries == []` with status accuracy still 1.0 on all three classes.
+  **Measured end to end at seed 20260901 on this machine (Python 3.12.14), `full_agent` under
+  `FakeLLM`: `credit_default --synthetic 5000` — grounding precision 1.0000 pre-repair and 1.0000
+  post-repair over 49 claims, 121 artifacts, exactly one finding, `F-001 E1` at severity `low`
+  (D-017), 3.1 s wall-clock. `msr_prepayment --synthetic 2000` — 1.0000 and 1.0000 over 45 claims,
+  227 artifacts, exactly no finding (D-047), 4.8 s, with the scenario table and the CPR table
+  expanded inside renderer blocks.** Both figures are 1.0 because the offline fake is a competent
+  drafter: it copies the values and the citations out of the JSON it is given, which is the rule the
+  prompt states. The repair loop is exercised by fakes that break that rule on purpose:
+  **an uncited number costs exactly one round (0.9804 → 1.0000 over 51 claims), and a number the
+  drafter refuses to correct survives two rounds and is wrapped `⟦unverified: 0.9⟧`, leaving the
+  post-repair figure at 0.9804 and the front matter saying so.** `rules_only` on the same subject
+  emits **zero `llm_call` events** and scores 1.0000 over 139 claims; `plain_llm` records a finding
+  whose evidence resolves as an ordinary finding and one whose evidence does not as an
+  `unevidenced:` entry in `candidates_not_promoted`, pointing at the `unevidenced_record.<i>` JSON
+  artifact that holds what the model claimed (D-072). The bounded loop runs exactly one follow-up
+  for a scripted fake and refuses an unknown tool, a closed-`Args` violation (which is where an
+  invented `entrypoint` is caught) and a path outside the package, each traced as a `plan_step`
+  with its reason and never executed. No test calls a live model, downloads data, trains on real
+  data or reads an API key. No push.

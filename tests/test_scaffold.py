@@ -117,7 +117,9 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
     # own commit: Phase 2 added errors, hashing, trace, findings, package/, artifacts/ and llm/;
     # Phase 3 added sandbox/contract.py and sandbox/runner.py; Phase 5 added the eight tool
     # modules of tools/ plus its registry, thresholds, frames and hand-written statistics; Phase 6
-    # added corpus/bm25.py, corpus/documents.py, corpus/ingest.py and tools/guidance.py.
+    # added corpus/bm25.py, corpus/documents.py, corpus/ingest.py and tools/guidance.py; Phase 7
+    # added vocab.py and the six modules of verifier/; Phase 8 added agent/planner.py, configs.py,
+    # pipeline.py and the five modules of report/.
     modules = sorted(
         p.relative_to(REPO_ROOT / "src" / "quaestor").as_posix()
         for p in (REPO_ROOT / "src" / "quaestor").rglob("*.py")
@@ -125,10 +127,12 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
     assert modules == [
         "__init__.py",
         "agent/__init__.py",
+        "agent/planner.py",
         "artifacts/__init__.py",
         "artifacts/citations.py",
         "artifacts/store.py",
         "cli.py",
+        "configs.py",
         "corpus/__init__.py",
         "corpus/bm25.py",
         "corpus/documents.py",
@@ -145,7 +149,13 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "package/__init__.py",
         "package/loader.py",
         "package/spec.py",
+        "pipeline.py",
         "report/__init__.py",
+        "report/drafter.py",
+        "report/renderer.py",
+        "report/repair.py",
+        "report/schema.py",
+        "report/sections.py",
         "sandbox/__init__.py",
         "sandbox/contract.py",
         "sandbox/runner.py",
@@ -175,8 +185,9 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
     ]
 
 
-# The public surface of spec section 9, as far as Phase 7 implements it. `validate` arrives in
-# Phase 8 and is asserted absent so that a half-built one cannot be mistaken for the real thing.
+# The public surface of spec section 9, complete as of Phase 8, which adds `validate` -- the
+# pipeline entry section 9 names -- with `ValidationRun`, `ConfigSpec` and `CONFIGURATIONS` beside
+# it, because a caller that cannot name a configuration cannot ask for one.
 # `run_model` is on the list from Phase 3 because `CLAUDE.md` makes subprocess execution of a
 # subject a hard constraint, so it is part of the surface a reader of the package has to be able
 # to find; `Finding`, the claim grammar and the two persisted documents joined it in Phase 7,
@@ -189,7 +200,9 @@ PUBLIC_API = [
     "Claim",
     "ClaimStatus",
     "ClaimsDocument",
+    "CONFIGURATIONS",
     "Completion",
+    "ConfigSpec",
     "Configuration",
     "DefectClass",
     "EventType",
@@ -212,16 +225,18 @@ PUBLIC_API = [
     "TraceEvent",
     "TraceReader",
     "TraceWriter",
+    "ValidationRun",
     "VerificationError",
     "VerifiedClaim",
     "__version__",
     "load_package",
     "run_model",
     "stable_hash",
+    "validate",
 ]
 
 
-def test_the_public_api_is_exactly_what_phase_7_ships() -> None:
+def test_the_public_api_is_exactly_what_phase_8_ships() -> None:
     assert quaestor.__all__ == PUBLIC_API
 
 
@@ -232,6 +247,8 @@ def test_every_public_symbol_is_importable_and_documented(symbol: str) -> None:
         assert value.__doc__, f"quaestor.{symbol} has no docstring"
 
 
-@pytest.mark.parametrize("symbol", ["validate"])
-def test_the_symbols_of_a_later_phase_are_not_exported_yet(symbol: str) -> None:
-    assert not hasattr(quaestor, symbol)
+def test_the_pipeline_entry_of_spec_section_9_is_now_exported() -> None:
+    # Phases 2 to 7 asserted `validate` absent, so that a half-built one could not be mistaken for
+    # the real thing. Phase 8 builds it; the assertion turns over rather than being deleted.
+    assert callable(quaestor.validate)
+    assert quaestor.validate.__doc__

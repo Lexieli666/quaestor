@@ -18,11 +18,19 @@ The message is not a field of :class:`~quaestor.verifier.claim.VerifiedClaim`. `
 the study's scoring input and its schema is closed; a per-claim sentence belongs to the repair
 loop and to ``trace.jsonl``, so :class:`Match` carries the claim and the message together and only
 the claim is persisted (DECISIONS D-065).
+
+**The tolerance is the precision the prose chose.** A claim verifies when the artifact value
+rounds to the number as written, at the number of decimals the prose actually wrote: 0.74 verifies
+against 0.7412, 0.021 does not verify against 0.0175, and 22.0% does not verify against 0.2212.
+Spec section 0's three defaults are the *ceiling* that tolerance never exceeds, not the tolerance
+itself, and ``rounding`` remains an explicit override that can only narrow further (DECISIONS
+D-069, amending D-014). Counts stay exact.
 """
 
 from __future__ import annotations
 
 from collections.abc import Container, Iterable, Sequence
+from decimal import Decimal, InvalidOperation
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict
@@ -41,13 +49,17 @@ from .claim import (
     Unit,
     VerifiedClaim,
 )
+from .extract import numeric_tokens, token_value
 
 __all__ = [
     "Match",
     "match_claim",
     "match_claims",
+    "default_tolerance",
     "normalise",
+    "normalisation_scale",
     "tolerance_for",
+    "written_decimals",
 ]
 
 PERCENT_PER_UNIT: Final = 100.0
@@ -77,39 +89,148 @@ class Match(BaseModel):
         return self.claim.status
 
 
+def _decimals_of_token(token: str) -> int:
+    """Return the place value of a numeric token's last significant digit, as a decimal count.
+
+    Positive for a token with a fractional part -- ``22.0`` writes one decimal and claims tenths.
+    **Negative** for an integer written with trailing zeros: ``-1130000`` claims nothing below ten
+    thousand, so its precision is ``10^4`` and its decimal count is ``-4``. That is the same
+    sentence read in the other direction, and it is what lets a currency amount written to four
+    significant figures verify against the figure it was rounded from. It cannot make a tolerance
+    loose on its own: spec section 0's default for the unit is still the ceiling, so ``10`` cited
+    to a threshold of 10 is held to 1% of 10 and not to five.
+    """
+    body = token.rstrip("%").lstrip("-").replace(",", "")
+    whole, dot, fraction = body.partition(".")
+    if dot:
+        return len(fraction)
+    stripped = whole.rstrip("0")
+    return -(len(whole) - len(stripped))
+
+
+def _decimals_of_number(value: float) -> int:
+    """Return how many decimals a number's shortest decimal form carries.
+
+    The fallback for a claim whose ``text`` does not contain the token -- a developer claim
+    reconstructed from ``package.yaml``, a claim built by a test. It cannot see a trailing zero,
+    which is exactly why the token in the prose is preferred: ``22.0`` and ``22`` are the same
+    float and are not the same statement about precision. The sign convention is the token's:
+    ``1500.0`` normalises to ``15E+2`` and so claims nothing below a hundred, giving ``-2``.
+    """
+    try:
+        exponent = Decimal(repr(float(value))).normalize().as_tuple().exponent
+    except (InvalidOperation, ValueError, OverflowError):  # pragma: no cover - non-finite value
+        return 0
+    return -int(exponent) if isinstance(exponent, int) else 0
+
+
+def written_decimals(value: float, text: str | None = None) -> int:
+    """Return the number of decimals the prose used when it wrote this number.
+
+    The claim's own sentence is the authority: the first numeric token in it whose value is the
+    claimed value is the token the drafter wrote, so ``22.0%`` declares one decimal and ``22%``
+    declares none, though both parse to the same float. Only when the sentence holds no such
+    token -- which happens for a developer claim rebuilt from ``package.yaml`` -- is the float's
+    own shortest form used.
+
+    Args:
+        value: The claimed value, as parsed.
+        text: The sentence the number was written in, or ``None``.
+
+    Returns:
+        The decimal count, in the units the number was written in.
+    """
+    if text:
+        for _, token in numeric_tokens(text):
+            if token_value(token) == value:
+                return _decimals_of_token(token)
+    return _decimals_of_number(value)
+
+
+def normalisation_scale(unit: Unit, artifact_value: float) -> float:
+    """Return the factor :func:`normalise` divides a written value by, as a multiplier.
+
+    A tolerance stated in the units the prose wrote has to be carried into the units the artifact
+    is held in, exactly as the value is: half a tenth of a per cent is ``0.0005`` against a rate.
+
+    Args:
+        unit: The claim's unit.
+        artifact_value: What the claim is compared to.
+
+    Returns:
+        ``0.01`` for a per cent against a unit-interval artifact, ``0.0001`` for basis points
+        against a rate, ``1.0`` otherwise.
+    """
+    if unit is Unit.percent and abs(artifact_value) <= 1.0:
+        return 1.0 / PERCENT_PER_UNIT
+    if unit is Unit.bp and abs(artifact_value) <= 1.0:
+        return 1.0 / BP_PER_UNIT
+    return 1.0
+
+
+def default_tolerance(
+    unit: Unit,
+    artifact_value: float,
+    tolerances: Tolerances = DEFAULT_TOLERANCES,
+) -> float:
+    """Return spec section 0's default for one unit, which is the ceiling tolerance never exceeds.
+
+    D-014's mapping, unchanged: a count matches to half a unit; a ratio or a per cent whose
+    artifact lies in the unit interval matches to 0.005 after normalisation; a per cent compared
+    on a 0-100 scale matches to 0.5; everything else matches to 1% of the artifact value.
+
+    Args:
+        unit: The claim's unit.
+        artifact_value: The artifact value, in the units the comparison is made in.
+        tolerances: The three defaults, overridable per run.
+
+    Returns:
+        The ceiling.
+    """
+    if unit is Unit.count:
+        return ABS_TOL_COUNT
+    if unit in (Unit.ratio, Unit.percent, Unit.bp) and abs(artifact_value) <= 1.0:
+        return tolerances.abs_tol_unit_interval
+    if unit is Unit.percent:
+        return tolerances.abs_tol_percent_0_100
+    return tolerances.rel_tol_other * abs(artifact_value)
+
+
 def tolerance_for(
     unit: Unit,
     artifact_value: float,
     rounding: int | None = None,
     tolerances: Tolerances = DEFAULT_TOLERANCES,
+    *,
+    decimals: int | None = None,
 ) -> float:
     """Return the absolute tolerance that applies, in the units the comparison is made in.
 
-    D-014, which makes spec section 0's three defaults precise per unit: a count matches to half
-    a unit; a ratio or a percent whose artifact lies in the unit interval matches to 0.005 after
-    normalisation; a percent compared on a 0-100 scale matches to 0.5; everything else matches to
-    1% of the artifact value. A declared ``rounding`` widens the result and never narrows it.
+    D-069, amending D-014: a claim verifies when the artifact rounds to the number as written, at
+    the precision the prose used, so the tolerance is half a unit in the last decimal the prose
+    wrote -- carried into the artifact's units by :func:`normalisation_scale` -- and spec section
+    0's default for the unit is the ceiling it never exceeds. A count is exact whatever it was
+    written to. A declared ``rounding`` narrows further and can never widen.
 
     Args:
         unit: The claim's unit.
         artifact_value: The artifact value, already normalised to the comparison's units.
         rounding: The decimals the prose declared, or ``None``.
         tolerances: The three defaults, overridable per run.
+        decimals: The decimals the prose actually wrote, from :func:`written_decimals`, or
+            ``None`` when the caller has no sentence to read them from.
 
     Returns:
         The absolute tolerance.
     """
+    applied = default_tolerance(unit, artifact_value, tolerances)
     if unit is Unit.count:
-        base = ABS_TOL_COUNT
-    elif unit in (Unit.ratio, Unit.percent, Unit.bp) and abs(artifact_value) <= 1.0:
-        base = tolerances.abs_tol_unit_interval
-    elif unit is Unit.percent:
-        base = tolerances.abs_tol_percent_0_100
-    else:
-        base = tolerances.rel_tol_other * abs(artifact_value)
-    if rounding is not None:
-        base = max(base, 0.5 * 10.0**-rounding)
-    return base
+        return applied
+    scale = normalisation_scale(unit, artifact_value)
+    for declared in (decimals, rounding):
+        if declared is not None:
+            applied = min(applied, 0.5 * 10.0**-declared * scale)
+    return applied
 
 
 def normalise(unit: Unit, value: float, artifact_value: float) -> float:
@@ -164,7 +285,7 @@ def _art_citations(claim: Claim) -> tuple[list[Citation], str | None]:
     if not art:
         return [], (
             f"you wrote {claim.value:g} with the citation {text!r}, which names no artifact; "
-            "a number is cited as [[art:<hash8>:<logical_name>]]"
+            "a number is cited by an artifact citation carrying the hash and the logical name"
         )
     wanted = 2 if claim.comparison is not Comparison.eq else 1
     if len(art) != wanted:
@@ -230,11 +351,14 @@ def _match(
     tolerances: Tolerances,
 ) -> Match:
     """Decide one claim's status, without touching the trace."""
+    decimals = written_decimals(claim.value, claim.text)
     if unattributed:
         return _verdict(
             claim,
             ClaimStatus.unattributed,
-            tolerance=tolerance_for(claim.unit, claim.value, claim.rounding, tolerances),
+            tolerance=tolerance_for(
+                claim.unit, claim.value, claim.rounding, tolerances, decimals=decimals
+            ),
             message=(
                 f"the number {claim.value:g} appears in the prose but the extractor did not "
                 "return it; it is counted against the report"
@@ -244,10 +368,12 @@ def _match(
         return _verdict(
             claim,
             ClaimStatus.unsupported,
-            tolerance=tolerance_for(claim.unit, claim.value, claim.rounding, tolerances),
+            tolerance=tolerance_for(
+                claim.unit, claim.value, claim.rounding, tolerances, decimals=decimals
+            ),
             message=(
-                f"you wrote {claim.value:g} with no citation; cite the artifact it comes from as "
-                "[[art:<hash8>:<logical_name>]] or remove the number"
+                f"you wrote {claim.value:g} with no citation; cite the artifact it comes from, "
+                "with its hash and its logical name, or remove the number"
             ),
         )
     citations, problem = _art_citations(claim)
@@ -279,7 +405,9 @@ def _match(
     artifact_value, problem = _combine(claim, citations, numbers)
     if artifact_value is None:
         return _verdict(claim, ClaimStatus.dangling, message=problem)
-    tolerance = tolerance_for(claim.unit, artifact_value, claim.rounding, tolerances)
+    tolerance = tolerance_for(
+        claim.unit, artifact_value, claim.rounding, tolerances, decimals=decimals
+    )
     written = normalise(claim.unit, claim.value, artifact_value)
     if abs(written - artifact_value) <= tolerance:
         return _verdict(

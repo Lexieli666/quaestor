@@ -105,7 +105,7 @@ citations inline so that `claims.json` and the report are checkable with `grep`.
 | `split` | str \| null | `train`, `test`, `out_of_time`, `vintage_holdout`, or null |
 | `comparison` | `eq` \| `delta` \| `ratio` | `eq`: value ≈ artifact. `delta`: value ≈ second − first. `ratio`: value ≈ second ÷ first. The two artifacts are the two adjacent citations, in order |
 | `citation` | str \| null | the citation text carried by the number: one `[[art:…]]`, or two adjacent for `delta`/`ratio`; null when the sentence has none |
-| `rounding` | int \| null | decimals the prose used when it exceeds the default tolerance (a lift written `2.24`); the matcher widens tolerance to `max(default, 0.5·10^-rounding)`. Spec §0: "a claim may declare its own rounding" |
+| `rounding` | int \| null | an explicit precision override, in decimals; the matcher narrows the tolerance to `0.5·10^-rounding` and can never widen past the applied tolerance below. Spec §0: "a claim may declare its own rounding" |
 | `section` | enum (§3) | where the sentence lives |
 | `id` | str | `stable_hash([section, text, value])`, so the repair loop and the trace can name a claim |
 | `source` | `report` \| `developer` | report prose, or a `claims:` entry from `package.yaml` |
@@ -118,10 +118,32 @@ citations inline so that `claims.json` and the report are checkable with `grep`.
 | `artifact_value` | float \| null | the resolved scalar (or computed delta/ratio); null unless the citation resolved |
 | `tolerance` | float | the absolute tolerance actually applied, so a reader can see why a 0.74 verified against 0.7412 |
 
-Tolerances (§0, made precise): `count` → 0.5 (integers match exactly; stricter than the spec's
-1% default, because "3,500 rows" is either right or wrong); `ratio`/`percent` with |artifact| ≤ 1 →
-abs 0.005 after percent→ratio normalisation; `percent` on a 0–100 scale → abs 0.5; everything
-else → rel 1%. `rounding` can only widen a tolerance, never narrow it.
+**Tolerance (§0, made precise; DECISIONS D-069 amends D-014).** A claim verifies when the
+artifact value rounds to the value as written, at the precision the prose used: `0.74` verifies
+against `0.7412`, `0.021` does not verify against `0.0175`, and `22.0%` does not verify against
+`0.2212`. The applied tolerance is therefore
+
+```
+tolerance = min(0.5 · 10^-decimals_written · scale,          the precision the prose chose
+                default_for_unit,                            spec §0, the ceiling
+                0.5 · 10^-rounding · scale)                   the explicit override, if declared
+```
+
+where `decimals_written` is read from the claim's own sentence — the first numeric token in `text`
+whose value is `value`, so `22.0%` declares one decimal and `22%` declares none though both parse
+to the same float — and `scale` is the factor that carries a tolerance stated in the units the
+prose wrote into the units the artifact is held in (`0.01` for a `percent` against a unit-interval
+artifact, `0.0001` for `bp` against a rate, `1` otherwise). When the sentence holds no matching
+token, the float's own shortest decimal form is used instead.
+
+`default_for_unit` is D-014's mapping, unchanged, and is now a **ceiling** rather than the
+tolerance itself: `count` → 0.5 (integers match exactly, and a count stays exact however it was
+written; stricter than the spec's 1% default, because "3,500 rows" is either right or wrong);
+`ratio`/`percent` with |artifact| ≤ 1 → abs 0.005 after percent→ratio normalisation; `percent` on a
+0–100 scale → abs 0.5; everything else → rel 1%. `rounding` can only narrow, never widen.
+
+The golden report's 92 post-repair claims all still verify under this rule and its pre-repair
+`0.0136` still mismatches; 60 of the 92 record a narrower `tolerance` than the Phase 1 file does.
 
 ## 7. `claims.json`
 
@@ -203,5 +225,6 @@ makes a spec tolerance precise enough to implement.
 | `Finding.suggested_severity`, `.severity_reason`, `.tool`, `.candidates_merged` | §8 | spec §3.9 permits the agent to re-severitise and to merge candidates; the record of what it did needs fields | D-012 |
 | renderer blocks and the `[[table:…]]` directive; table cells and the scope block excluded from extraction | §4 | grounding precision must measure the drafter's prose, not its transcription of ten-row tables | D-013 |
 | tolerances made precise per unit | §6 | spec §0 gives three defaults and leaves the mapping from `unit` to default unstated | D-014 |
+| tolerance is the precision the prose used, with §0's default as a ceiling and `rounding` narrowing only | §6 | a flat 0.005 verifies `0.021` against `0.0175` and `22.0%` against `0.2212`, which is not what either sentence claims | D-069 (amends D-014) |
 | the exclusion list, its appearance in `claims.json` and its count in Appendix A | §7 | spec §3.10 requires the exclusions to be auditable; inline code is the loophole that needs naming | D-015 |
 | developer claims not evaluated under `--synthetic`, listed in Appendix D | §7 | a synthetic AUC cannot verify a declared real one, and a schema branch would be worse than a status | D-016 |

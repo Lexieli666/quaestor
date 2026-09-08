@@ -107,9 +107,48 @@ run that was not committed.
   ships the offline half of the `04` section 6 component eval over ten committed fixtures written
   for this repository, reporting a perturbation that lands inside tolerance as a tolerance boundary
   rather than as an error.
+- Phase 8 the drafter, the repair loop, the renderer, the planner and `validate()`:
+  `quaestor.report` — `sections.py` (one brief per report section, the artifact selectors that
+  decide what a drafter may cite, the JSON-path flattening that lets `run.model_summary` be cited
+  by path, and spec §3.11's rare-event rule that puts calibration before discrimination),
+  `drafter.py` (one `structured()` call per section returning `{"markdown": …}`, the rules the
+  prompt states and the verifier enforces, and the `rules_only` template that writes the same shape
+  with no model call), `repair.py` (at most two re-drafts of a section with the flagged claims
+  listed in the verifier's own words, then `⟦unverified: …⟧` around whatever still does not
+  verify), `renderer.py` (front matter, the scope block, `[[table:…]]` expansion, section 6's
+  recomposition, Appendices A to D and the four refusals) and `schema.py` (the report schema,
+  shipped inside the package and pinned byte-for-byte to `examples/golden_report/` by a test,
+  D-074); `quaestor.agent.planner` (the rule-based plan of spec §3.12 and the bounded four-step
+  follow-up loop, whose refusals — an unknown tool, arguments a closed `Args` rejects, a path
+  outside the package — are traced and never executed); `quaestor.configs` (spec §3.13's three
+  configurations as data, and the class list each check screens for); and `quaestor.pipeline`
+  with **`validate()`**, the pipeline entry of spec §9, which writes `report.md`, `claims.json`,
+  `findings.json`, `trace.jsonl` and `artifacts/` (D-070). `validate`, `ValidationRun`,
+  `ConfigSpec` and `CONFIGURATIONS` join the public API, completing the surface spec §9 names.
 
 ### Changed
 
+- **The tolerance a claim is held to is the precision its own prose used** (D-069, amending
+  D-014): a claim verifies when the artifact rounds to the value as written, at the decimals the
+  sentence wrote, with spec §0's per-unit default as the ceiling the tolerance never exceeds and
+  `rounding` an override that can only narrow. `0.74` still verifies against `0.7412`; `0.021` no
+  longer verifies against `0.0175` and `22.0%` no longer verifies against `0.2212`. Counts stay
+  exact, and trailing zeros before the point run the rule backwards, so `-1130000` is held to ten
+  thousand rather than to the unit. `verifier/match.py` gains `written_decimals`,
+  `normalisation_scale` and `default_tolerance`; `docs/REPORT_SCHEMA.md` §6 carries the formula.
+  The golden report's 92 post-repair claims all still verify and its pre-repair `0.0136` still
+  mismatches, while 60 of the 92 record a narrower tolerance than the Phase 1 file; the two
+  tolerance boundaries the Phase 7 component eval reported are now caught as the mismatches they
+  are, and `eval/verifier_eval.py` reports none.
+- `structured()` gains `trace_fields`, merged into every `llm_call` event and never passed to the
+  provider, so a draft event can say which section it drafted without handing an adapter an
+  argument it has never heard of (D-075).
+- `verifier/extract.py` gains `extraction_from` (the pre-pass on its own, for the arm that writes
+  its own claims) and `masked_prose` (the exclusion masking, which the repair loop and the renderer
+  now share with the pre-pass).
+- `pyproject.toml`: `types-jsonschema` joins the dev dependencies, because `jsonschema` is now
+  imported by `src/quaestor/report/schema.py` and `mypy --strict` has no stubs for it. No runtime
+  dependency changes (D-074).
 - `[[reg:DOC:SECTION]]` citations resolve. `CitationStatus.deferred` is gone: a regulatory citation
   now resolves against the committed corpus, carrying the section's heading, or dangles with a
   message naming the citation — `[[reg:SR11-7:V.3]]` lists the sections SR 11-7 has, and

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from typing import Any, Final, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -90,6 +91,7 @@ def structured(
     max_attempts: int = 2,
     trace: TraceWriter | None = None,
     purpose: str = "structured",
+    trace_fields: Mapping[str, Any] | None = None,
     **params: Any,
 ) -> ModelT:
     """Ask a model for a JSON object of one shape and return it validated.
@@ -105,6 +107,10 @@ def structured(
             ``purpose`` :data:`REASK_PURPOSE`.
         purpose: The ``llm_call`` purpose recorded for the first attempt -- ``"draft"``,
             ``"extract"``, ``"plan"``.
+        trace_fields: Extra fields written onto every ``llm_call`` event of this call -- which
+            section a draft was for, which step of the planning loop this was. They go on the
+            trace and **not** to the provider, which is the distinction ``**params`` cannot make:
+            a provider handed a ``section`` argument it has never heard of would fail the call.
         **params: Passed to the provider, such as ``model``.
 
     Returns:
@@ -133,6 +139,7 @@ def structured(
                 latency_ms=completion.latency_ms,
                 schema=schema.__name__,
                 attempt=attempt,
+                **dict(trace_fields or {}),
                 **_provenance(completion),
             )
         parsed, problem = _validate(completion.text, schema)

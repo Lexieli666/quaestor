@@ -100,18 +100,24 @@ def test_the_three_sentences_come_out_verified_mismatch_unsupported(tmp_path: Pa
     assert report.extraction_recall == 1.0
 
 
-def test_the_tolerance_boundaries_are_the_items_whose_perturbation_is_inside_0_005(
-    tmp_path: Path,
-) -> None:
-    """A boundary is reported as one, with the tolerance that produced it (04 section 6)."""
+def test_no_perturbation_now_lands_inside_tolerance(tmp_path: Path) -> None:
+    """Under D-069 there is no boundary left: all thirty sentences come out as `04` expects.
+
+    Phase 7 measured two of the ten items -- `vq04`, whose 0.035 was perturbed to 0.03255, and
+    `vq10`, whose 0.0725 was perturbed to 0.076125 -- as tolerance boundaries: both moves were
+    inside the flat 0.005 D-014 allowed a unit-interval ratio, so the perturbed sentence verified
+    and was reported as a boundary rather than as an error. The amendment holds a number to the
+    precision its prose wrote, and both sentences write four decimals, so both are now caught as
+    the mismatches they are. The boundary machinery stays, because the live half of the component
+    eval (Phase 13) will meet coarser prose.
+    """
     report = verifier_eval.run_offline(verifier_eval.fake_extractor(), tmp_path)
-    assert report.tolerance_boundaries == ["vq04", "vq10"]
+    assert report.tolerance_boundaries == []
     for result in report.results:
-        if result.item_id not in report.tolerance_boundaries:
-            continue
         perturbed = result.sentences[1]
+        assert perturbed.status is ClaimStatus.mismatch, result.item_id
         assert perturbed.artifact_value is not None
-        assert abs(perturbed.value - perturbed.artifact_value) <= perturbed.tolerance
+        assert abs(perturbed.value - perturbed.artifact_value) > perturbed.tolerance
 
 
 def test_an_extractor_that_omits_a_number_is_caught_by_the_pre_pass(tmp_path: Path) -> None:
