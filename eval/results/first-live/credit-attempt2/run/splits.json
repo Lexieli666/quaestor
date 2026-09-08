@@ -1,0 +1,12 @@
+{
+  "test": {
+    "event_rate": 0.2212222222222222,
+    "n": 9000,
+    "rows_hash": "f2528c31dc278f12601bdd6a2a0d972e4555d7d80a56e3de046da63cfed68a54"
+  },
+  "train": {
+    "event_rate": 0.2211904761904762,
+    "n": 21000,
+    "rows_hash": "56e64f76cde7aaa16de1870b437fe72a5d7f6503dc9fe0838ed44488249f5957"
+  }
+}

@@ -806,3 +806,63 @@ be the explanation. The threshold did not move; what changed is that the questio
 comparison in it. This is the shape of every honest fix to a false alarm: the rejected alternative
 was raising `threshold.L2.overlap` until the real sample passed, which is choosing the number that
 makes the run green and would hide a real 3% contamination on a coarser panel.
+
+## Phase 9 follow-up 2 — What the second live validation changed
+
+The second `credit_default` attempt (`eval/results/first-live/credit-attempt2/`) is a shorter
+story than the first and a sharper one. The plan ran clean in 2.69 seconds — thirteen calls, no
+candidate at all, D-086's `L2` false alarm gone — and the bounded loop spent the run's one model
+call asking for `check_stability` on a package that declares no `regime.column`. The tool raised,
+and the exception walked out of `validate()`: fourteen tool calls, 693 output tokens, $0.10,
+fifteen seconds, exit 1, no report. Three things were wrong at once, and they are three decisions.
+
+**A tool that raises is the step's failure, not the run's (D-088).** `follow_up_plan` catches
+`ToolError` from a loop-requested call. The step is traced with `accepted: true`, `executed:
+false` and the tool's message; the message is quoted back to the model on the next step; the step
+counts against the maximum of four; the pipeline goes on to draft. `PlanStep` and the `plan_step`
+event both gain `executed` and `error`, which is what lets a reader — and `eval/score.py` — tell a
+step the planner refused from a step the planner accepted and the tool could not answer. The
+asymmetry is deliberate and is the point: a `ToolError` from the **rule-based** plan is still the
+run's failure, because that plan is what a validation of this package must check and a report
+missing one of its own checks is not a report. The loop is the model's extra question, and being
+told no is one of the answers it was always allowed to get. The rejected alternative was recording
+the failure as a refusal, which would make the planner's record disagree with the registry's own
+`tool_call` event and its `ok: false`.
+
+**The menu is filtered by what the package supports (D-089).** The request was answerable before
+it was made: the same `regime.column` that decides whether the rule-based plan calls
+`check_stability` decides whether the tool can say anything at all. `inapplicable_reason` is now
+the single definition — `check_stability` needs a regime column, `run_scenarios` needs a hazard
+subject with a `scenarios` block, `run_model` is never applicable, which is spec §3.12's own rule
+read as an applicability question — and `loop_prompt` filters the catalogue by it while
+`validate_action` refuses a request for a filtered tool with `not applicable to this package: …`.
+Filtering is the fix and refusing is the second line of defence, because a model may name a tool
+that is not on its list. The new rule is applied **last** of the four, after the tool exists, its
+`Args` take the arguments and no path leaves the package: `run_model` is the only tool carrying a
+path argument, so an applicability-first order would make the path rule unreachable through
+`validate_action` and would answer two precise questions with one vague message. The rejected
+alternative was leaving the menu whole and relying on D-088's catch, which is a model call and a
+tool call spent learning a fact `package.yaml` states.
+
+**The loop is shown what ran, not only what was found (D-090).** The attempt's stated reason was
+"the plan only compared regimes on the fitting split" — a sentence about a call the plan never
+made. The Phase 8 prompt said the plan "has already run" and then showed only the candidates, and
+a planner told only what was found cannot tell a check that did not run from a check that ran and
+found nothing. Those are exactly the two cases a follow-up is chosen between. The prompt now
+carries one line per completed call — tool, arguments, and the defect classes it raised or `no
+candidate` — built by `completed_calls(plan, results)` from the two lists `pipeline.py` already
+holds, and one line per earlier step of the loop, saying whether it was refused and why, accepted
+and failed and with what message, or accepted and run. The instruction that the loop is for a
+follow-up on what the candidates show, and not for repeating the plan, stays. The prompt became
+`loop_prompt`, a function, so that a test can send the loop the bytes a recorded run was sent; the
+rejected alternative was pasting each call's `ToolResult` summary, which would scale the loop's
+cost with the store rather than with the plan.
+
+**How the attempt is replayed.** `tests/test_live_credit_attempt2.py` reads the trace for every
+figure `docs/EVALUATION.md` quotes, then puts the live model's own answer back through the
+pipeline: `ReplayLLM` serves the run's single cassette under the key it was recorded with — the
+recorded prompt, read back out of the cassette — and the offline fake answers every call the
+attempt never made. The tape is not re-keyed onto today's prompt, because D-089 and D-090 changed
+that prompt on purpose and a cassette's key is a hash of the request; what is replayed is the
+answer, byte for byte, and the assertion is that it is now refused with a reason and the run
+renders a report.

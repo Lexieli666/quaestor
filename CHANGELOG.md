@@ -161,6 +161,19 @@ run that was not committed.
   `DUPLICATE_MULTIPLE` (D-086).
 - `quaestor.verifier.numbered_prose` and `numbered_lines`: the numbered form the extraction prompt
   shows and its inverse (D-085).
+- `quaestor.agent.loop_prompt`: the bounded loop's prompt as a function, so that a caller and a
+  test can build the bytes one step is sent (D-090). With it, `CompletedCall` and
+  `completed_calls(plan, results)` for the block listing what the rule-based plan called and what
+  each call raised, and `inapplicable_reason(tool, package)` and `applicable_tools(registry,
+  package)` for the applicability filter (D-089). `STABILITY_TOOL` and `SCENARIOS_TOOL` join
+  `RUN_TOOL` and `GUIDANCE_TOOL` as the named tools the planner's rules are about.
+- `PlanStep.executed` and `PlanStep.error`, and the same two fields on the `plan_step` trace
+  event: whether an accepted call ran, and the `ToolError` message when it did not (D-088).
+- `eval/results/first-live/credit-attempt2/`, the second live attempt's committed record — its
+  trace, its single cassette, its 124-name artifact store and `run/*.json`, with every row-level
+  file kept outside the repository (D-087) — the dated `docs/EVALUATION.md` §1 entry for it, and
+  `tests/test_live_credit_attempt2.py`, which re-derives every figure that entry quotes from the
+  trace and replays the run's one recorded answer through `ReplayLLM`.
 
 ### Changed
 
@@ -237,6 +250,20 @@ run that was not committed.
   citation keeps resolving.
 - `uncovered_numbers`, `check_report` and `wrap_unverified` take `package_version`, which
   `render_report` and `validate()` fill from the loaded package (D-084).
+- **The bounded follow-up loop is offered only the tools that apply to the package (D-089).**
+  `check_stability` only when `regime.column` is set, `run_scenarios` only for a
+  `discrete_time_hazard` subject with a `scenarios` block, and `run_model` never (spec §3.12). A
+  request for a tool that is registered but filtered out is refused before execution with
+  `not applicable to this package: <why>`, traced `accepted: false`, and the reason is fed back on
+  the next step. The rule is applied last of the four, so spec §3.12's three refusals keep their
+  own messages.
+- **The loop's prompt lists what the rule-based plan called and what earlier steps of the loop did
+  (D-090)**, beside the candidates, the artifact prefixes and the schemas it already showed. The
+  instruction that the loop is for a follow-up on what the candidates show, and not for repeating
+  the plan, is unchanged.
+- `pipeline.py`'s `tools_run` counts a loop step only when it executed, so a check that raised is
+  not listed in `findings.json`'s `checks_without_candidates` as having screened for anything
+  (D-088).
 
 ### Removed
 
@@ -252,6 +279,13 @@ run that was not committed.
   whether the `1.0` of "the champion in credit_default 1.0" is a claim: the pre-pass is given the
   package version and excludes it, the renderer called the masking helper without it. The repair
   loop's wrapper had the same defect. All three now go through one function.
+- **The second live validation exited 1 over a tool call the loop was free to be refused
+  (D-088).** The bounded loop asked for `check_stability` on a package with no `regime.column`,
+  the tool raised `ToolError`, and the exception left `validate()` — discarding a clean plan of 13
+  calls and 124 artifacts. A `ToolError` from a loop-requested call is now caught, traced
+  `accepted: true` / `executed: false` with its message, counted against the maximum of four, and
+  quoted back to the model on the next step; the pipeline goes on to draft. A `ToolError` from the
+  rule-based plan is still the run's failure.
 - **A false `L2` at severity high on the real credit sample (D-086).** 1.2556% of the test rows
   repeated a feature vector of train, on a panel of coarse integers whose identifiers are disjoint
   by construction; the same rate holds inside the training split, where contamination cannot be

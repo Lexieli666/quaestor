@@ -6,8 +6,13 @@ with a regime column gets two checks a binary classifier does not.
 
 The loop's refusals are the other half. An action naming an unknown tool, an action whose arguments
 the tool's own `Args` model rejects -- which is where an invented `entrypoint` is caught, because
-every `Args` is closed -- and an action pointing a path outside the package are refused *before*
-anything runs, and each refusal is a `plan_step` event a reader can find in the trace.
+every `Args` is closed -- an action pointing a path outside the package, and an action naming a
+tool that exists but does not apply to this package are refused *before* anything runs, and each
+refusal is a `plan_step` event a reader can find in the trace.
+
+The Phase 9 follow-up adds the fourth refusal (D-089), the menu it is the second line of defence
+for, a tool that raises rather than refuses (D-088), and the two blocks the prompt now carries
+(D-090).
 """
 
 from __future__ import annotations
@@ -20,17 +25,24 @@ import pytest
 from quaestor.agent import (
     MAX_FOLLOW_UP_STEPS,
     PLAN_PURPOSE,
+    CompletedCall,
     FollowUpAction,
     PlannedCall,
+    PlanStep,
+    applicable_tools,
+    completed_calls,
     follow_up_plan,
     guidance_queries,
+    inapplicable_reason,
+    loop_prompt,
     rule_based_plan,
     validate_action,
 )
+from quaestor.errors import ToolError
 from quaestor.findings import DefectClass, FindingCandidate, Severity
 from quaestor.llm import FakeLLM, ScriptedLLM
 from quaestor.package import load_package
-from quaestor.tools import default_registry
+from quaestor.tools import ToolResult, default_registry
 from quaestor.trace import TraceReader, TraceWriter
 from quaestor.vocab import SECTION_ORDER
 
@@ -130,7 +142,12 @@ def test_a_run_model_with_a_different_entrypoint_is_refused_by_the_closed_args_m
 
 
 def test_a_path_outside_the_package_is_refused(tmp_path: Path) -> None:
-    """Spec 3.12: "cannot pass paths outside the package"."""
+    """Spec 3.12: "cannot pass paths outside the package".
+
+    The second half is the ordering of D-089: a path *inside* the package passes the path rule and
+    is then refused by the applicability rule, because `run_model` is never an offer the loop may
+    make. Both refusals are reachable, and each names its own problem.
+    """
     call, reason = validate_action(
         action(tool="run_model", args={"data_dir": "/etc"}),
         default_registry(),
@@ -138,15 +155,16 @@ def test_a_path_outside_the_package_is_refused(tmp_path: Path) -> None:
     )
     assert call is None
     assert "points outside the package" in reason
-    inside, ok = validate_action(
+    inside, why = validate_action(
         action(tool="run_model", args={"data_dir": str(tmp_path / "data")}),
         default_registry(),
         load_package(CREDIT),
         roots=[tmp_path],
     )
-    assert ok == ""
-    assert isinstance(inside, PlannedCall)
-    assert inside.source == "loop"
+    assert inside is None
+    assert "points outside the package" not in why
+    assert why.startswith("not applicable to this package:")
+    assert "may not run the subject" in why
 
 
 def test_an_argument_of_the_wrong_shape_is_refused_by_the_tool_itself() -> None:
@@ -286,3 +304,228 @@ def test_an_action_that_is_not_the_schema_is_re_asked_and_then_raises(bad: objec
     llm = FakeLLM(default=json.dumps(bad))
     with pytest.raises(LLMOutputError):
         follow_up_plan(llm, default_registry(), load_package(CREDIT))
+
+
+# --- the applicability filter (D-089) ---------------------------------------------------------
+
+
+def test_the_menu_offers_only_the_tools_the_package_supports() -> None:
+    """`run_model` never, `check_stability` and `run_scenarios` only where they can answer."""
+    registry = default_registry()
+    credit = applicable_tools(registry, load_package(CREDIT))
+    msr = applicable_tools(registry, load_package(MSR))
+
+    assert "run_model" not in credit
+    assert "run_model" not in msr
+    assert "check_stability" not in credit
+    assert "run_scenarios" not in credit
+    assert "check_stability" in msr
+    assert "run_scenarios" in msr
+    assert set(msr) - set(credit) == {"check_stability", "run_scenarios"}
+    assert set(credit) < set(registry.names())
+
+
+def test_the_prompt_lists_the_applicable_schemas_and_no_others() -> None:
+    registry = default_registry()
+    credit = loop_prompt(registry, load_package(CREDIT), remaining=4)
+    msr = loop_prompt(registry, load_package(MSR), remaining=4)
+
+    assert '"tool": "run_model"' not in credit
+    assert '"tool": "run_model"' not in msr
+    assert '"tool": "check_stability"' not in credit
+    assert '"tool": "run_scenarios"' not in credit
+    assert '"tool": "check_stability"' in msr
+    assert '"tool": "run_scenarios"' in msr
+    assert "Only the tools that apply to" in credit
+
+
+def test_a_tool_that_exists_but_does_not_apply_is_refused_before_it_runs() -> None:
+    """The second live attempt's action, decided by the rule that would have refused it."""
+    registry = default_registry()
+    call, reason = validate_action(
+        action(tool="check_stability", args={"split": "test"}, why="regimes out of sample"),
+        registry,
+        load_package(CREDIT),
+    )
+    assert call is None
+    assert reason.startswith("not applicable to this package:")
+    assert "declares no `regime.column`" in reason
+
+    scenarios, why = validate_action(
+        action(tool="run_scenarios", args={}), registry, load_package(CREDIT)
+    )
+    assert scenarios is None
+    assert why.startswith("not applicable to this package:")
+    assert "no projection to shock" in why
+
+    allowed, ok = validate_action(
+        action(tool="check_stability", args={"split": "test"}), registry, load_package(MSR)
+    )
+    assert ok == ""
+    assert isinstance(allowed, PlannedCall)
+
+
+def test_an_applicable_tool_has_no_reason_and_an_unknown_name_is_not_this_rule_s_business() -> None:
+    package = load_package(CREDIT)
+    assert inapplicable_reason("profile_data", package) == ""
+    assert inapplicable_reason("check_everything", package) == ""
+
+
+def test_the_inapplicable_refusal_is_traced_and_fed_back_to_the_next_step(tmp_path: Path) -> None:
+    """D-089 plus D-090: refused, recorded, and quoted in the prompt of the step after it."""
+    executed: list[PlannedCall] = []
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="inapplicable")
+    llm = scripted(
+        {"tool": "check_stability", "args": {"split": "test"}, "why": "regimes"},
+        {"stop": True},
+    )
+    steps = follow_up_plan(
+        llm,
+        default_registry(),
+        load_package(CREDIT),
+        trace=trace,
+        execute=executed.append,
+    )
+    assert [step.accepted for step in steps] == [False, False]
+    assert [step.executed for step in steps] == [False, False]
+    assert executed == []
+    assert steps[0].reason.startswith("not applicable to this package:")
+
+    events = TraceReader(trace.path).events("plan_step")
+    assert events[0].payload["accepted"] is False
+    assert events[0].payload["executed"] is False
+    assert "not applicable to this package:" in events[0].payload["reason"]
+    assert events[0].payload["error"] == ""
+
+    second = llm.calls[1].prompt
+    assert "What earlier steps of this loop did:" in second
+    assert 'step 1: check_stability({"split": "test"}) was refused: not applicable' in second
+
+
+# --- a tool that raises (D-088) ---------------------------------------------------------------
+
+
+def test_an_accepted_call_whose_tool_raises_is_recorded_and_does_not_end_the_run(
+    tmp_path: Path,
+) -> None:
+    """The defect of the second live attempt: the loop asked, the tool raised, the run died."""
+    asked: list[str] = []
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="raised")
+
+    def explode(call: PlannedCall) -> ToolResult:
+        asked.append(call.tool)
+        raise ToolError("the regime column 'month' is not in data_test.csv")
+
+    llm = scripted(
+        {"tool": "profile_data", "args": {"splits": ["test"]}, "why": "look again"},
+        {"stop": True},
+    )
+    steps = follow_up_plan(
+        llm, default_registry(), load_package(CREDIT), trace=trace, execute=explode
+    )
+
+    assert asked == ["profile_data"]
+    assert steps[0].accepted is True
+    assert steps[0].executed is False
+    assert steps[0].error == "the regime column 'month' is not in data_test.csv"
+    assert steps[0].reason == ""
+    assert steps[0].call is not None
+    assert [step.accepted for step in steps] == [True, False]
+
+    events = TraceReader(trace.path).events("plan_step")
+    assert events[0].payload["accepted"] is True
+    assert events[0].payload["executed"] is False
+    assert events[0].payload["error"] == "the regime column 'month' is not in data_test.csv"
+
+    second = llm.calls[1].prompt
+    assert "was accepted and the tool failed: the regime column" in second
+
+
+def test_a_call_that_raises_still_counts_against_the_bound() -> None:
+    """Four failures are four steps: a tool that raises does not buy the loop another turn."""
+
+    def explode(call: PlannedCall) -> ToolResult:
+        raise ToolError("nothing to profile")
+
+    llm = FakeLLM(default=json.dumps({"tool": "profile_data", "args": {}, "why": "again"}))
+    steps = follow_up_plan(llm, default_registry(), load_package(CREDIT), execute=explode)
+    assert len(steps) == MAX_FOLLOW_UP_STEPS
+    assert all(step.accepted and not step.executed and step.error for step in steps)
+
+
+def test_a_step_the_loop_only_planned_is_accepted_and_not_executed() -> None:
+    """With no executor nothing runs, so `executed` is false and no error is invented."""
+    steps = follow_up_plan(
+        scripted({"tool": "profile_data", "args": {}, "why": "one"}, {"stop": True}),
+        default_registry(),
+        load_package(CREDIT),
+    )
+    assert steps[0].accepted is True
+    assert steps[0].executed is False
+    assert steps[0].error == ""
+
+
+# --- what the plan already did (D-090) --------------------------------------------------------
+
+
+def test_the_prompt_lists_the_rule_based_plan_s_calls_and_what_they_raised() -> None:
+    prompt = loop_prompt(
+        default_registry(),
+        load_package(CREDIT),
+        remaining=4,
+        completed=[
+            CompletedCall("run_model", {"synthetic": 600}, ()),
+            CompletedCall("check_leakage", {}, ["L2"]),
+        ],
+    )
+    assert "Calls the rule-based plan has already made" in prompt
+    assert '- run_model({"synthetic": 600}) -> no candidate' in prompt
+    assert "- check_leakage({}) -> L2" in prompt
+    assert "not for repeating the plan" in prompt
+
+
+def test_a_configuration_that_ran_no_check_says_so_rather_than_showing_an_empty_list() -> None:
+    prompt = loop_prompt(default_registry(), load_package(CREDIT), remaining=1)
+    assert "(none: this configuration ran no rule-based check)" in prompt
+
+
+def test_completed_calls_pairs_the_plan_with_its_results() -> None:
+    plan = rule_based_plan(load_package(CREDIT), synthetic=600)[:2]
+    results = [ToolResult(tool="run_model"), ToolResult(tool="profile_data")]
+    paired = completed_calls(plan, results)
+    assert [call.tool for call in paired] == ["run_model", "profile_data"]
+    assert paired[0].args == {"synthetic": 600}
+    assert paired[0].classes == []
+    short = completed_calls(plan, results[:1])
+    assert short == [CompletedCall("run_model", {"synthetic": 600}, [])]
+
+
+def test_the_loop_is_sent_exactly_what_loop_prompt_builds() -> None:
+    """The prompt is one function, so a test can reproduce a recorded call's bytes."""
+    llm = ScriptedLLM([json.dumps({"stop": True})])
+    package = load_package(CREDIT)
+    completed = [CompletedCall("run_model", {"synthetic": 600}, ())]
+    follow_up_plan(
+        llm,
+        default_registry(),
+        package,
+        completed=completed,
+        artifact_names=["psi.max"],
+    )
+    assert llm.calls[0].prompt.startswith(
+        loop_prompt(
+            default_registry(),
+            package,
+            remaining=MAX_FOLLOW_UP_STEPS,
+            completed=completed,
+            artifact_names=["psi.max"],
+        )
+    )
+
+
+def test_a_step_that_named_no_tool_contributes_no_history_line() -> None:
+    """The stop step ends the loop, so it is never fed back as something that was asked for."""
+    stopped = PlanStep(1, action(stop=True), False, "the planner stopped")
+    prompt = loop_prompt(default_registry(), load_package(CREDIT), remaining=4, history=[stopped])
+    assert "What earlier steps of this loop did:" not in prompt
+    assert "step 1" not in prompt

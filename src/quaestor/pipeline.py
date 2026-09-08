@@ -37,6 +37,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from .agent.planner import (
     PlannedCall,
     PlanStep,
+    completed_calls,
     follow_up_plan,
     guidance_queries,
     rule_based_plan,
@@ -606,6 +607,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
             registry,
             loaded,
             candidates=candidates,
+            completed=completed_calls(plan, results),
             artifact_names=store.names(),
             roots=[out_dir] + ([Path(data_dir)] if data_dir is not None else []),
             max_steps=spec_config.max_follow_ups,
@@ -628,7 +630,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
 
     findings, declined = _promote(candidates, store, trace)
     tools_run = [call.tool for call in plan] + [
-        step.call.tool for step in steps if step.call is not None
+        step.call.tool for step in steps if step.call is not None and step.executed
     ]
     document = FindingsDocument.build(
         package=loaded.spec.name,

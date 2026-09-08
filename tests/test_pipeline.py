@@ -326,3 +326,102 @@ def _front(report: str) -> dict[str, object]:
     loaded = yaml.safe_load(report.split("---\n")[1])
     assert isinstance(loaded, dict)
     return loaded
+
+
+# --- the Phase 9 follow-up: an inapplicable request, and a tool that raises ----------------------
+
+
+def test_an_inapplicable_tool_is_refused_and_the_run_still_drafts(tmp_path: Path) -> None:
+    """The second live attempt's action on the subject it was made against (D-089).
+
+    `credit_default` declares no `regime.column`, so `check_stability` is not on the menu and a
+    request for it is refused before anything runs. The run then does what the attempt did not: it
+    drafts, verifies, repairs and renders.
+    """
+    llm = SectionFake(
+        plan_actions=[
+            {
+                "tool": "check_stability",
+                "args": {"split": "test"},
+                "why": "regime-dependent degradation out of sample is still untested",
+            },
+            {"stop": True},
+        ]
+    )
+    run = run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
+
+    assert [step.accepted for step in run.steps] == [False, False]
+    assert [step.executed for step in run.steps] == [False, False]
+    assert run.steps[0].reason.startswith("not applicable to this package:")
+    assert "declares no `regime.column`" in run.steps[0].reason
+
+    steps = TraceReader(run.out_dir / "trace.jsonl").events("plan_step")
+    assert steps[0].payload["tool"] == "check_stability"
+    assert steps[0].payload["accepted"] is False
+    assert steps[0].payload["executed"] is False
+    calls = TraceReader(run.out_dir / "trace.jsonl").events("tool_call")
+    assert all(event.payload["tool"] != "check_stability" for event in calls)
+
+    assert (
+        check_report(
+            run.report,
+            run.configuration,
+            run.claims.post_repair,
+            package_version=run.package.spec.version,
+        )
+        == []
+    )
+    assert run.precision_post == 1.0
+    assert "E1" in [finding.defect_class.value for finding in run.findings.findings]
+    assert "`check_stability` (R1)" in run.report
+
+
+def test_a_follow_up_that_raises_inside_the_tool_still_produces_a_report(tmp_path: Path) -> None:
+    """D-088: accepted, executed false, the message on the step -- and a finished report.
+
+    `check_collinearity` applies to this package and its `Args` take any split name, so a split
+    the package does not declare is refused by the tool and not by the planner. That is the shape
+    the second live attempt died in, and this asserts that it no longer ends the run.
+    """
+    llm = SectionFake(
+        plan_actions=[
+            {
+                "tool": "check_collinearity",
+                "args": {"split": "out_of_time"},
+                "why": "collinearity may differ out of time",
+            },
+            {"stop": True},
+        ]
+    )
+    run = run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
+
+    assert [step.accepted for step in run.steps] == [True, False]
+    assert run.steps[0].executed is False
+    assert "does not declare a split named 'out_of_time'" in run.steps[0].error
+    assert run.steps[0].reason == ""
+    assert run.steps[0].call is not None
+
+    events = TraceReader(run.out_dir / "trace.jsonl")
+    steps = events.events("plan_step")
+    assert steps[0].payload["accepted"] is True
+    assert steps[0].payload["executed"] is False
+    assert "out_of_time" in steps[0].payload["error"]
+    collinearity = [
+        event
+        for event in events.events("tool_call")
+        if event.payload["tool"] == "check_collinearity"
+    ]
+    assert [event.payload["ok"] for event in collinearity] == [True, False]
+
+    assert run.report_path.is_file()
+    assert (
+        check_report(
+            run.report,
+            run.configuration,
+            run.claims.post_repair,
+            package_version=run.package.spec.version,
+        )
+        == []
+    )
+    assert run.precision_post == 1.0
+    assert "E1" in [finding.defect_class.value for finding in run.findings.findings]

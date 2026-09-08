@@ -65,7 +65,12 @@ are named in brackets.
     `eval/results/first-live/credit-attempt1/` is committed (trace, cassettes, artifact store and
     `run/*.json`; no row-level file, D-087) and **no report is**. The three defects it found are
     fixed in the Phase 9 follow-up below and written up in `docs/EVALUATION.md` §1; the
-    `msr_prepayment` run and a second `credit_default` attempt are still outstanding
+    **second `credit_default` attempt of 2026-09-08 also produced no report** — the bounded loop
+    asked for `check_stability` on a package with no `regime.column`, the tool raised and
+    `validate()` exited 1 — so `eval/results/first-live/credit-attempt2/` is committed on D-087's
+    terms and its three defects are fixed in the second Phase 9 follow-up below; the
+    `msr_prepayment` run and a `credit_default` attempt that reaches a report are still
+    outstanding
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
 - [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
@@ -515,4 +520,67 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   DECISIONS D-084 to D-087, the Phase 9 follow-up section of `docs/DESIGN.md` and the
   `CHANGELOG.md` entries. No test calls a live model, downloads data, trains on real data or reads
   an API key; the committed cassettes are read as text and no provider is constructed from them.
+  No push.
+- 2026-09-08 — **Phase 9 follow-up 2** — the three defects the *second* live validation found,
+  decided in Cowork 2026-09-08 and fixed here. Gate green on **all five** conditions that apply:
+  `pytest -q` 1139 passed, 0 failed, 0 skipped, 0 xfailed (19 new); coverage of `src/quaestor`
+  **100%** (`coverage run -m pytest`, 5565 statements) against the 85% floor; `ruff check` and
+  `ruff format --check` clean on `src tests eval subjects` (128 files); `mypy --strict
+  src/quaestor` clean (60 source files). Gate condition **5a** passes —
+  `tests/test_golden_spec.py` (13 checks) still pins `examples/golden_report/`, which this
+  follow-up **did not touch**: no byte of the directory changed and no new D-011 row was needed.
+  Gate condition **5b** passes: both `quaestor validate ... --synthetic --llm fake --out DIR`
+  lines run through the installed console script in `tests/test_cli.py` and again from a shell
+  here — **`credit_default` grounding precision 1.0000 pre- and post-repair over 49 claims, 124
+  artifacts, one finding (`E1 low`, D-017), 7.85 s; `msr_prepayment` 1.0000 and 1.0000 over 45
+  claims, 230 artifacts, no finding (D-047), 6.70 s** — unchanged from the first follow-up, which
+  is what a change confined to the bounded loop was supposed to leave alone. **Gate condition 6
+  belongs to Phase 11** (D-007).
+  **The run this follow-up is about.** `eval/results/first-live/credit-attempt2/` is committed on
+  D-087's terms: **16 trace events, 14 tool calls in 2.69 s over 124 artifacts, one model call**
+  (the loop's first plan step: 693 output tokens of which 628 thinking, on 2 input tokens,
+  **$0.10093**, 13.0 s), **no candidate raised by any of the 13 rule-based calls** — including no
+  `L2`, which is D-086's fix measured on the panel that provoked it — **wall-clock 15.09 s** from
+  the first traced event to the last, **and no report, because the loop asked for
+  `check_stability({"split": "test"})` on a package with no `regime.column`, the tool raised
+  `ToolError` and `validate()` exited 1**. Every one of those figures is re-derived from that
+  trace by `tests/test_live_credit_attempt2.py`, which also asserts the run's single cassette is
+  the `claude-cli` tape it claims to be and that the four row-level artifacts are listed in
+  `index.json` with no payload in the repository (D-087); the row CSVs had already been moved out,
+  and `find eval/results/first-live/credit-attempt2 -name '*.csv' -size +20k` returns nothing —
+  the 13 CSVs that remain are aggregate tables of 203 to 826 bytes.
+  **Three fixes, each with its own tests.** (a) A loop-requested tool that raises is the step's
+  failure, not the run's (D-088): `follow_up_plan` catches `ToolError`, the step is traced
+  `accepted: true` / `executed: false` with the tool's message on a new `error` field, the message
+  reaches the next step's prompt, the step still counts against the maximum of four, and the
+  pipeline drafts with what it has. `PlanStep` and the `plan_step` event gain `executed` and
+  `error`; `pipeline.py`'s `tools_run` counts only steps that executed. **A `ToolError` from the
+  rule-based plan is still the run's failure and still exits 1** — the asymmetry is the decision.
+  (b) The menu is filtered by applicability (D-089): `inapplicable_reason(tool, package)` is the
+  one definition — `check_stability` needs a `regime.column`, `run_scenarios` a
+  `discrete_time_hazard` subject with a `scenarios` block, and `run_model` is never offered (spec
+  §3.12) — `loop_prompt` filters the catalogue by it, and a request for a filtered tool is refused
+  before execution with `not applicable to this package: <why>`, traced `accepted: false`, fed
+  back on the next step. The rule is applied **last** of the four, so spec §3.12's three refusals
+  keep their own messages: `run_model` with an invented `entrypoint` is still caught by the closed
+  `Args` that names the field, and a path at `/etc` by the rule that says so. Measured: the loop's
+  menu is 6 tools on `credit_default` and 8 on `msr_prepayment`, out of the registry's 9. (c) The
+  prompt lists what ran (D-090): one line per completed rule-based call with its arguments and the
+  classes it raised or `no candidate`, built by `completed_calls(plan, results)`, plus one line
+  per earlier loop step saying whether it was refused and why, accepted and failed and with what
+  message, or accepted and run; the instruction that the loop is for a follow-up on what the
+  candidates show and not for repeating the plan is unchanged. The prompt became `loop_prompt`, a
+  function, which is what lets a test send the loop the bytes a recorded run was sent.
+  **The replay.** `tests/test_live_credit_attempt2.py` puts the attempt's own answer back through
+  `validate()` on the synthetic subject: `ReplayLLM` serves the run's single cassette under the key
+  it was recorded with — the recorded prompt, read back out of the cassette — and the offline fake
+  answers every call the attempt never made. The tape is **not** re-keyed onto today's prompt,
+  because (b) and (c) changed that prompt deliberately and a cassette's key is a hash of the
+  request; what is replayed is the model's answer, byte for byte. On this build that answer is
+  refused with the applicability reason, the loop stops, and the pipeline renders a report whose
+  post-repair grounding precision is 1.0000 — the attempt's exit 1 becomes a report. Also shipped:
+  the dated `docs/EVALUATION.md` §1 entry for `credit-attempt2`, DECISIONS D-088 to D-090, the
+  Phase 9 follow-up 2 section of `docs/DESIGN.md` and the `CHANGELOG.md` entries. No test calls a
+  live model, downloads data, trains on real data or reads an API key; the committed cassette is
+  read as JSON and the only provider built from it is `ReplayLLM` over the committed directory.
   No push.

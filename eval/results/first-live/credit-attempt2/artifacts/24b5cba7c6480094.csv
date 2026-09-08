@@ -1,0 +1,11 @@
+feature,n_missing,missing_fraction
+limit_bal,0,0
+age,0,0
+utilisation,0,0
+pay_ratio_last,0,0
+pay_ratio_mean_6m,0,0
+delinq_last,0,0
+delinq_count_6m,0,0
+delinq_max_6m,0,0
+bill_mean_6m,0,0
+bill_trend_6m,0,0

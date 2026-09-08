@@ -1,0 +1,1 @@
+"credit_default: data /private/tmp/credit_data, seed 20260901; 10 of 12 features retained, removed ['bill_last', 'utilisation_mean_6m']; train n=21000, test n=9000; test auc=0.7550 brier=0.1385\n"

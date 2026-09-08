@@ -1,9 +1,10 @@
 # Evaluation: what Quaestor has been measured on, and what it got wrong
 
 Every number in this file comes from a run committed in this repository, and the run is named
-where the number is used. `tests/test_live_credit_attempt1.py` re-derives each figure of section 1
-from the trace it claims to come from, so a number that drifts from its run fails the suite rather
-than sitting in a document. Where a figure was computed from a file the repository deliberately
+where the number is used. `tests/test_live_credit_attempt1.py` and
+`tests/test_live_credit_attempt2.py` re-derive each figure of section 1 from the trace it claims
+to come from, so a number that drifts from its run fails the suite rather than sitting in a
+document. Where a figure was computed from a file the repository deliberately
 does *not* hold — a real sample's rows — it says so at the point of use.
 
 This document is not yet the evaluation the project is for. The seeded-defect study of
@@ -107,3 +108,67 @@ a differently-shaped offline fixture would have caught. What the live run suppli
 *shape*: prose that mentions a version, a bill that makes a redundant field visible, and a sample
 whose features are discrete. That is the argument for running the operator's half of Phase 9
 before the study rather than after it.
+
+### 2026-09-08 — `credit_default`, `full_agent`, Claude CLI — second attempt
+
+The record is `eval/results/first-live/credit-attempt2/`.
+
+**The run.** The same command as the first attempt, on a build carrying D-084 to D-086. The plan
+was clean and the run still produced no report: the bounded loop asked for `check_stability` on a
+package that declares no `regime.column`, the tool raised, and the exception left `validate()`.
+
+| quantity | value |
+|---|---|
+| model calls | **1** — the loop's first plan step, and the only one the run reached |
+| tool calls | **14** — 13 of the rule-based plan, every one clean, plus the loop's `check_stability`, which raised — 2.69 s in total |
+| artifacts stored | 124 across the 13 clean calls |
+| candidates raised | **none** — including no `L2`, which is D-086's fix on the panel that provoked it |
+| output tokens | **693** (628 of them thinking), on 2 input tokens |
+| notional cost | **$0.10093** as the trace records it |
+| wall-clock | **15.09 s** from the first traced event to the last, of which the plan call was 13.0 s |
+| plan step | `check_stability({"split": "test"})`, **accepted**, then the tool raised |
+| report written | **none** — `validate()` exited 1 |
+
+The plan step is the whole of the run's agency and it is worth quoting. The model's stated reason
+was "the plan only compared regimes on the fitting split, so regime-dependent degradation out of
+sample is still untested" — a follow-up on a call the plan had never made, because on this package
+it cannot: `check_stability` is in the rule-based plan only when `regime.column` is set, and
+`credit_default`'s is not.
+
+| # | what the live run exposed | kind | fixed in |
+|---|---|---|---|
+| DECISIONS D-088 | A `ToolError` from a loop-requested tool ended the run. Fourteen tool calls, 124 artifacts and a clean plan were discarded over the model's optional fifth question. The error is now caught: the step is traced `accepted: true`, `executed: false` with the tool's message, the message reaches the next step's prompt, and the pipeline drafts with what it has. A failing rule-based call is still the run's failure. | defect | `fix(planner): a bounded loop that survives a tool it may not call` |
+| DECISIONS D-089 | The loop was offered all nine tool schemas, including three that cannot run on this package. The menu is now filtered by applicability — `check_stability` needs a `regime.column`, `run_scenarios` a hazard subject with `scenarios`, and `run_model` is never offered (spec §3.12) — and a request for a filtered tool is refused before execution with `not applicable to this package: …`. | defect | same commit |
+| DECISIONS D-090 | The prompt said the plan "has already run" and then showed only the candidates it raised, so a planner could not tell a check that did not run from a check that ran and found nothing. The prompt now lists every completed call with its arguments and the classes it raised, and every earlier step of the loop with its refusal reason or its tool's error. | cost | same commit |
+
+All three ship in one commit, which cannot cite its own hash; the commit's subject is above and the
+run-log line under Phase 9 in `PROGRESS.md` is written in the same commit.
+
+**Why this attempt is worth its own entry.** The first attempt's three defects were all in code
+that had been exercised offline against prose no fixture wrote. This one is different: every
+condition involved — a package without a regime column, a tool that raises, a loop bounded at four
+steps — is in the offline suite, and `tests/test_planner.py` had a case for each of the loop's
+three refusals. What no test had was the *combination*: an action that passes every rule the
+planner applies and then fails inside the tool. The offline fake stops the loop at once (D-080),
+and every scripted loop test asked for a tool that runs. So the fifth outcome had no test because
+no fake had ever produced it, and the shape of the miss is the same as the first attempt's: not a
+rule that was wrong, but a case that sat between two features which each had their own tests.
+
+**What the fix does not do.** It does not let the model reach anything new, and it does not soften
+the run's failure modes. `run_model` moves from "callable with the plan's arguments only" to "not
+callable", the three refusals of spec §3.12 keep their own messages, and a `ToolError` from the
+rule-based plan still exits 1. The only behaviour that became more permissive is the one the
+attempt argues for: the loop's own extra question may now be answered "no" without taking the
+report with it.
+
+**Replayed, not re-enacted.** `tests/test_live_credit_attempt2.py` puts the recorded answer back
+through `validate()`: `ReplayLLM` serves the run's single cassette under the key it was recorded
+with, and the offline fake answers every call the attempt never made. On this build the same
+action is refused — "not applicable to this package: package 'credit_default' declares no
+`regime.column`, so there are no regimes to compare …" — the loop stops, and the pipeline renders
+a report whose post-repair grounding precision is 1.0000. The cassette is **not** re-keyed onto today's prompt: D-089 and D-090 changed
+that prompt deliberately and a cassette's key is a hash of the request, so what the test replays
+is the live model's answer and not the question.
+
+**Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, and a `credit_default`
+attempt that reaches a report. Both are the operator's, and neither has happened.

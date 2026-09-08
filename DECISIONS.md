@@ -2082,3 +2082,97 @@ here and recorded.
   dataset is public, which puts 30,000 rows of client data in a repository whose constitution says
   no rows and invites the same argument for the next dataset; and dropping `artifacts/` entirely,
   which would leave the trace's artifact hashes citing nothing.
+
+## D-088. A tool the bounded loop asked for and that raised is the step's failure, not the run's
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 2)
+- **Q:** The second live validation (`eval/results/first-live/credit-attempt2/`) ran the plan
+  clean, spent its one model call, and the loop asked for `check_stability` on `credit_default`,
+  which declares no `regime.column`. The tool raised `ToolError`, the exception left
+  `validate()`, and the command exited 1 after 14 tool calls with no report — where the pipeline
+  had every artifact it needed to draft one. Does a `ToolError` from a loop-requested call fail
+  the run?
+- **A:** No. `follow_up_plan` catches it: the step is recorded and traced with `accepted: true`,
+  `executed: false` and the tool's message on a new `error` field, the message is quoted back to
+  the model in the next step's prompt, the step counts against the maximum of four, and the
+  pipeline goes on to promote, draft, verify, repair and render with what it has. `PlanStep` gains
+  `executed` and `error`, and `plan_step` gains the same two fields on the trace, so a reader and
+  `eval/score.py` can tell a step the loop refused from a step the loop accepted and the tool
+  could not answer. `pipeline.py`'s `tools_run` counts only the steps that executed, so a check
+  that raised is not listed in `checks_without_candidates` as having screened for anything.
+  **Nothing about the rule-based plan changes**: a `ToolError` from one of its calls is still the
+  run's failure and still exits 1, because the rule-based plan is what a validation of this
+  package must check, and a validation missing one of its own checks is not a report to render.
+- **Why:** The asymmetry is the whole decision. The rule-based plan is derived from
+  `package.yaml`; if `compute_metrics` cannot run, the report would have no metrics section worth
+  reading, and failing loudly is right. The loop is the model's own extra question, bounded at
+  four steps and refusable on four grounds already — a fifth outcome, "the tool tried and could
+  not", belongs in the same place as the other four: on the trace, in the prompt of the next step,
+  and not in the exit code. The alternative the attempt demonstrated is the worst of both: 17
+  minutes of a live run in the first attempt and a full plan in the second, discarded over a
+  question the model was free to ask and free to be told no about. Rejected alternatives:
+  converting the `ToolError` into a refusal with `accepted: false`, which would lose the
+  distinction between a call the planner would not make and a call the tool could not answer —
+  the registry already wrote a `tool_call` event with `ok: false` for the second and none for the
+  first, and the two records should agree; and catching the error inside `pipeline.py`'s
+  `_execute`, which would leave `follow_up_plan`'s own `execute=` callers — the tests, and Phase
+  12's study harness — with the defect still in them.
+
+## D-089. The loop is offered only the tools that apply to the package, and refused the others
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 2)
+- **Q:** D-088 stops a tool that raises from killing the run, but the attempt's request was
+  answerable before it was made: `check_stability` cannot say anything about a package with no
+  regime column, and the plan already knows that, because the same condition decides whether the
+  rule-based plan calls it. The loop was shown all nine schemas. What is it offered?
+- **A:** Only the applicable ones. `inapplicable_reason(tool, package)` is the one definition:
+  `check_stability` needs a `regime.column`; `run_scenarios` needs a `discrete_time_hazard`
+  subject with a `scenarios` block; and `run_model` is never applicable, which is spec §3.12's
+  own rule read as an applicability question rather than an argument question. `loop_prompt`
+  filters the catalogue by it, and `validate_action` applies it as a fourth refusal —
+  `"not applicable to this package: <why>"`, traced `accepted: false`, fed back to the next step.
+  The order of the four rules is fixed and the new one is **last**: the tool exists, its `Args`
+  take the arguments, no path leaves the package, and only then does it apply. So spec §3.12's
+  three named refusals keep their own messages — `run_model` with an invented `entrypoint` is
+  still caught by the closed `Args` that names the field, and a path pointing at `/etc` is still
+  caught by the rule that says so.
+- **Why:** A menu that offers a tool which cannot run is a prompt that invites the mistake and
+  then charges a model call for it; the attempt paid 693 output tokens and $0.10 to be told
+  something `package.yaml` already said. Filtering the menu is the fix and refusing the request is
+  the second line of defence, because a model is free to name a tool that is not on its list and
+  the refusal has to be legible when it does. Keeping the applicability rule last, rather than
+  first where it would be cheapest, is deliberate: `run_model` is the only tool with a path
+  argument, so an applicability-first order would make the path rule unreachable through
+  `validate_action` and would replace two precise messages with one vague one. Rejected
+  alternatives: leaving the menu whole and relying on D-088's catch, which spends a model call and
+  a tool call to learn a static fact; and deriving applicability from whether the rule-based plan
+  called the tool, which would refuse every follow-up that was worth making — the loop exists to
+  call `compute_metrics` a second time.
+
+## D-090. The loop is shown what the plan already ran, not only what it raised
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 2)
+- **Q:** The attempt's `why` was "the plan only compared regimes on the fitting split, so
+  regime-dependent degradation out of sample is still untested" — a sentence about a call the plan
+  never made, on a package that has no regimes. The Phase 8 prompt showed the candidate findings,
+  the artifact prefixes and the tool schemas, and said the plan "has already run" without saying
+  what it ran. What should the model reason from?
+- **A:** The run. `loop_prompt` gains two blocks. **What the plan called**: one line per call,
+  `- <tool>(<args as JSON>) -> <defect classes raised, or "no candidate">`, built by
+  `completed_calls(plan, results)` from the same two lists `pipeline.py` already has. **What
+  earlier steps of this loop did**: one line per step, saying whether it was refused and why,
+  accepted and failed and with what message, or accepted and run — which is where D-088's error
+  and D-089's reason reach the model. The instruction that the loop is for a follow-up question
+  about what the candidates show, and not for repeating the plan, stays and is stated in the same
+  paragraph. The prompt itself becomes a function rather than a `format` call at the call site, so
+  a test can send the loop exactly the bytes a recorded run was sent.
+- **Why:** A planner told only what was *found* cannot tell a check that was not run from a check
+  that ran and found nothing, and those are the two cases a follow-up should be chosen between. It
+  is the same argument D-063 makes about the extractor from the other side: do not ask a model for
+  something the caller already has — here the caller has the plan and its results and was
+  withholding them. The history block is the cheaper half of the same idea: four steps with no
+  memory of the first three is four chances to make one mistake. Rejected alternatives: passing
+  the full `ToolResult` summaries, which would put every number the plan computed into the prompt
+  and make the loop's cost scale with the store rather than with the plan; and re-sending the
+  whole conversation as turns, which the `LLM` protocol does not have — `complete(prompt, ...)` is
+  one turn by construction, and the history block is how a bounded loop keeps state inside it.
