@@ -1735,3 +1735,166 @@ here and recorded.
   prose. Rejected alternative: excluding renderer-written lines from extraction by wrapping them in
   renderer blocks, which `REPORT_SCHEMA.json`'s block pattern does not allow (`scope` and
   `table <name>` are the two kinds) and which would make the exclusion list unauditable.
+
+## D-077. The pre-pass defines the eligible numbers; a claim for an excluded token is dropped
+
+- **Date:** 2026-09-07 (Phase 9)
+- **Q:** D-064 made the regex pre-pass the floor under the denominator: a number the extractor
+  omits is added back as `unattributed`, so an extractor cannot improve grounding precision by
+  working less. The other direction was left open. What happens to a claim the model returns for a
+  number the pre-pass had *excluded* — the digits inside a citation's hash or logical name, a
+  feature name in inline code, a section number in a heading, a cell of a renderer block?
+- **A:** It is dropped, and recorded in `claims.json`'s exclusion list under the pattern
+  `extractor_returned_excluded_token`, with the number as the model's own sentence wrote it. The
+  pre-pass owns the eligible set in both directions and the model only classifies it: a returned
+  claim is kept when, and only when, it can be matched to an eligible token — first by value inside
+  the line it quotes, then, for what is left over, by value against any unfilled token of the
+  section. That second pass is why a model that paraphrases the sentence, or attributes a number to
+  the wrong line, still has its citation used rather than thrown away; only a number that is
+  nowhere in the eligible prose is dropped. `n_from_model` still counts what the model returned,
+  including what was dropped, so extraction recall is measured against what it actually said.
+- **Why:** Grounding precision is `verified / (verified + mismatch + unsupported + dangling +
+  unattributed)`, and D-064 protected the denominator only from below. An extractor that returned
+  `[[art:a3f2b1c9:...]]`'s digits as a verified claim would raise the numerator with a number no
+  reader would call a claim — the mirror image of the omission D-064 forbids, and the easier one to
+  produce accidentally, since the drafting prompt tells the model to list numbers "including those
+  inside a citation's logical name" (that instruction exists so the model does not silently skip
+  the sentence; the pre-pass, not the model, decides what survives it). The exclusion is published
+  rather than silent for the same reason every other exclusion class is: a list of what was left
+  out is auditable, and a number that vanished is not. Two Phase 7 tests asserted the old
+  behaviour and are rewritten here, one into its mirror image and one into the paraphrase case the
+  second pass now covers. Rejected alternative: keeping the claim and matching it, which is what
+  Phase 7 did — the claim then resolves as `unsupported` or `dangling` and *lowers* precision for a
+  number the report never claimed, which is the same corruption of the measure in the other
+  direction.
+
+## D-078. A prompt over 64 KiB goes to the Claude CLI on stdin, not in the argument vector
+
+- **Date:** 2026-09-07 (Phase 9)
+- **Q:** `ClaudeCLILLM` passes the prompt as the positional argument after `-p`. A `plain_llm`
+  prompt carries `metrics.json`, `model_summary.json`, `features.json`, `splits.json` and a raw
+  data profile in one call, and a `full_agent` extraction prompt carries a whole rendered section.
+  How large may that argument be?
+- **A:** Not this large. macOS caps a *single* argument well below the `ARG_MAX` it allows in
+  total, so a long enough prompt fails with `OSError: [Errno 7] Argument list too long` before the
+  CLI runs at all. Above `STDIN_THRESHOLD_BYTES = 64 * 1024` UTF-8 bytes the adapter emits `-p`
+  with **no** positional prompt and writes the prompt to the subprocess's stdin, which is how
+  `claude -p` reads a prompt when it is given none. The threshold is a constructor argument, the
+  length is counted in encoded bytes rather than characters, and both paths are asserted with the
+  monkeypatched `subprocess.run` — the short one carries the prompt in `argv` and nothing on
+  stdin, the long one the other way round.
+- **Why:** 64 KiB is a conservative fraction of the smallest single-argument limit either supported
+  platform imposes (macOS's is the binding one; Linux's per-argument limit is larger), chosen so
+  that the switch happens long before the failure rather than at the edge of it. It is not a tuned
+  number and nothing measures it: the point is that a live run must not die on a prompt that is
+  merely long, and a run that switched at 200 KiB would still be one growing artifact away from the
+  same crash. Rejected alternatives: always using stdin, which would make the argument vector the
+  tests assert on differ from what a human debugging a call would paste into a shell; and writing
+  the prompt to a temporary file and passing its path, which is a third thing to clean up and does
+  not match any documented flag of the CLI.
+
+## D-079. Quaestor's cassettes and Probatio's cassettes are different stores with different jobs
+
+- **Date:** 2026-09-07 (Phase 9)
+- **Q:** `quaestor validate --record-cassettes DIR` writes one JSON file per model call, and Phase
+  11 records Probatio cassettes for the test layer. Two recording formats in one repository invites
+  the question of which one is *the* cassette format. Are they the same thing?
+- **A:** No, and neither reads the other's files. `llm/recording.py` is **the record of a
+  validation run**: it is written beside that run's report, under whatever directory the operator
+  named, it holds the request and the `Completion` for every call the run made, and it exists so
+  that a published report can be re-examined and re-rendered (`--llm replay --cassettes DIR`).
+  Phase 11's cassettes are **a test suite's tapes**: they are recorded through Probatio's own
+  provider fixture, committed under `tests/probatio/cassettes/`, and replayed by `pytest` in CI as
+  gate condition 6. A file of one kind in the other's directory is meaningless.
+- **Why:** They differ in what they are keyed by, in who owns them and in what breaks when they go
+  stale. A run's record is keyed by request — `stable_hash(system, prompt, params)` — because the
+  question a replay asks is "what did the model answer *this*"; two consequences follow and are
+  accepted rather than engineered away: re-running a validation over the same artifacts hits the
+  same tapes, and a run that asks one identical question twice keeps one tape for both, with the
+  number of times it was asked recorded on the file (`calls`) and a non-deterministic provider's
+  last answer overwriting the first. A test suite's tapes are keyed by case and are pinned to the
+  assertions written against them; a stale one there is a failing test, while a missing one here is
+  a failed replay that names the hash. Rejected alternative: making Quaestor's runs record through
+  Probatio, which would put a dev-only dependency inside the live `validate` path — `CLAUDE.md`
+  puts `probatio-llm` in the dev list, and a live validation that imports the test framework is a
+  live validation that cannot be installed from the wheel.
+
+## D-080. The provider behind `--llm fake` ships inside the package
+
+- **Date:** 2026-09-07 (Phase 9)
+- **Q:** `CLAUDE.md`'s command list, the README's quick start and gate condition 5b are all one
+  line: `quaestor validate subjects/credit_default --synthetic --llm fake --out /tmp/r`. A bare
+  `FakeLLM` answers a drafting prompt with `FAKE(<hash>)`, which `structured()` rejects, so that
+  line needs a fake that can actually draft. Phase 8's lives in `tests/reportsupport.py`. Where
+  does the shipped one live?
+- **A:** In `src/quaestor/llm/offline.py`, as `OfflineLLM`, which is what `--llm fake` builds. It
+  is the Phase 8 `SectionFake` minus its defects: it dispatches on which of the four prompts it was
+  sent, drafts one cited sentence per artifact from the JSON the prompt carries, extracts every
+  numeric token outside an exclusion, stops the bounded loop and writes the baseline's seven
+  headings. `tests/reportsupport.py` now subclasses it, overriding three hooks
+  (`scalar_sentence`, `plan_action`, `plain_findings`) to forget a citation, to script a follow-up
+  or to name an artifact that does not exist — so the repair loop's tests still have a model that
+  breaks the rules, and the behaviour under test is the same code the shipped command line runs.
+- **Why:** A command line in the project's own constitution that only works if the test tree is
+  installed is not a command line. Shipping the fake also makes the demo and the quick start
+  reproducible by a reader who has the wheel and no key, which is what an open evaluation needs; it
+  is named `fake` in the flag, in `Completion.model` and in the report's front matter, so no report
+  it writes can be mistaken for a model's work. Rejected alternatives: making `--llm fake` a bare
+  `FakeLLM` and letting the quick start fail (the line is in `CLAUDE.md`); and importing the test
+  helper from `cli.py`, which would put `tests/` on the runtime import path.
+
+## D-081. Bare `--synthetic` reads a table in `configs.py`, and refuses an unknown package
+
+- **Date:** 2026-09-07 (Phase 9)
+- **Q:** Spec 3.14 writes `--synthetic N`; `CLAUDE.md` writes `--synthetic` with no number. The two
+  subjects document different sizes — 5,000 rows for `credit_default` (spec 4.1), 2,000 loans for
+  `msr_prepayment` (spec 4.2). Where does a bare `--synthetic` get its number, and what happens for
+  a package that is neither?
+- **A:** From `SYNTHETIC_DEFAULT_N` in `configs.py`, keyed by package name; a package the table
+  does not know makes bare `--synthetic` a usage error (exit 2) whose message names the flag with a
+  number in it. `--synthetic 0` and a negative count are the same error. A `synthetic_default_n`
+  field in `package.yaml` would replace the lookup without touching the parser, and is not added
+  now because a change to `package.yaml` after Phase 1 is a stop-and-ask.
+- **Why:** The size of a generated panel decides every figure computed from it, so a program that
+  invents one is a program whose numbers cannot be compared with `PROGRESS.md`'s. The table lives
+  in `configs.py` rather than in `cli.py` because it is a property of the subjects, and because the
+  study and the MCP server will want the same defaults without going through a parser. Rejected
+  alternative: one default for every package, which would silently run the credit subject at the
+  hazard subject's size and quietly move every number this repository has measured.
+
+## D-082. `cli.py` has parsers for three commands and refuses the other five as unknown
+
+- **Date:** 2026-09-07 (Phase 9)
+- **Q:** Spec 3.14 tabulates eight commands. `study build`, `study run`, `study score`,
+  `verifier-eval` and `mcp` belong to Phases 10, 12, 13 and 15. Should the parser accept them now
+  and report that they are not implemented?
+- **A:** No. `quaestor study run` is an argparse "invalid choice" error, exit 2, exactly as a
+  misspelling would be, and `--help` lists `validate`, `tool` and `corpus`. Each later phase adds
+  its own subcommand in its own commit, beside the code that makes it work.
+- **Why:** It is the Phase 0 rule about half-built flag surfaces, applied to the program's front
+  door: a `--help` that lists what the program is going to do cannot be read to find out what it
+  does, and a command that parses and apologises has already cost the user the time it takes to
+  type. Also recorded here, because they are the interface a script sees: **exit 0** for a command
+  that did what it was asked, **1** for a command that ran and did not produce what it was asked
+  for (a report the renderer refused, a check whose run directory holds no contract files, an
+  ingest whose outline does not match its document), and **2** for a request that was wrong before
+  anything ran (a bad flag, a package that does not load, a PDF that is not there). Every message
+  on standard error names a fixing command, which is spec 3.1's rule about errors applied to the
+  command line. Rejected alternative: a single `quaestor` command with a `--command` flag, which
+  would make `--help` one wall of flags belonging to six different jobs.
+
+## D-083. `--timeout` overrides the subject's wall-clock cap, not the provider's
+
+- **Date:** 2026-09-07 (Phase 9)
+- **Q:** Spec 3.14 lists `--timeout S` on `validate` without saying what it caps. There are two
+  candidates: the subject's subprocess (`runtime.max_seconds` in `package.yaml`, enforced by the
+  sandbox) and the provider's own call timeout (`ClaudeCLILLM.timeout_s`).
+- **A:** The subject's. `--timeout S` replaces `runtime.max_seconds` on the loaded package for that
+  run; the provider's timeout keeps its default and has no flag this phase.
+- **Why:** The subject's cap is the one an operator actually hits — it is declared per package,
+  five minutes by convention, and a real-sample run on a slower machine is exactly the case the
+  runbook's Phase 9 puts in front of a human. The provider's timeout is a hung-process ceiling that
+  no run should approach, and a flag for it would be a flag nobody has yet needed. Rejected
+  alternative: making `--timeout` a total budget for the whole validation, which would need a clock
+  threaded through the planner, the tools and the drafter, and would kill a run half-way with a
+  report the renderer would then refuse — a failure mode strictly worse than the tool's own caps.

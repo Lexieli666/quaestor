@@ -690,3 +690,60 @@ point at, not a difference in what some branch happened to do. The pipeline read
 runs one pipeline. The module is outside `CLAUDE.md`'s layout, like `vocab.py` before it, and for
 the same reason: `configs.py` is imported by the layers `validate()` orchestrates, so a module that
 was both would be a cycle waiting for the first import in the wrong direction.
+
+## Phase 9 — The command line and the record of a run
+
+**The pre-pass owns the eligible set in both directions (D-077).** Phase 7 made the regex pre-pass
+the floor under the denominator of grounding precision: a number the extractor omits is added back
+as `unattributed`, so the headline cannot be improved by an extractor that works less. That left
+the ceiling open. A model asked to list "every number, including those inside a citation's logical
+name" will sooner or later return the digits of `[[art:a3f2b1c9:scenario.value_change.-300]]`, and
+Phase 7 would have counted them — as a claim, resolving as `unsupported`, *lowering* precision for
+a number no reader would call a claim. So a returned claim now survives only if it can be matched
+to a token the pre-pass left eligible, and one that cannot is dropped and published under
+`extractor_returned_excluded_token`. The matching is two passes, both by value: within the line the
+claim quotes, then, for what is left over, against any unfilled token of the section. The second
+pass is what keeps a paraphrasing extractor from losing its citations, and it is the rejected
+alternative's answer — the alternative being to match by the sentence alone and throw away any
+claim whose text does not appear verbatim, which punishes a model for rewording rather than for
+being wrong.
+
+**A prompt too long for one argument goes on stdin (D-078).** `ClaudeCLILLM` passes the prompt as
+the positional argument after `-p`, which is what a human debugging a call would paste into a
+shell. Above 64 KiB of UTF-8 it does not: macOS caps a single argument well below the total it
+allows, and the failure is an `OSError` raised before the CLI runs, so the adapter emits `-p` with
+no prompt after it and writes the prompt to the subprocess's stdin instead. The rejected
+alternative was always using stdin, which would have made the argument vector the tests assert on
+differ from the command a human can run by hand — and the first thing anyone does with a failing
+live call is run it by hand.
+
+**Two cassette stores, deliberately (D-079).** `llm/recording.py` writes one JSON file per model
+call beside the run's own report, keyed by `stable_hash(system, prompt, params)`, so that a
+published validation can be replayed (`--llm replay`) and re-read rather than taken on trust.
+Phase 11's Probatio cassettes are a different thing with a different job: a test suite's tapes,
+recorded through Probatio's provider fixture, committed under `tests/probatio/`, replayed by CI as
+gate condition 6. Keying by request is what makes a replay reproduce a run over the same artifacts;
+its cost is that one identical question asked twice keeps one tape, which the file records as
+`calls` rather than hiding. The rejected alternative was recording through Probatio, which would
+put a development dependency inside the live `validate` path.
+
+**The fake that `--llm fake` builds ships in the wheel (D-080).** `CLAUDE.md`'s own command list
+ends with `--llm fake`, and a bare `FakeLLM` answers a drafting prompt with a string
+`structured()` rejects. So the competent offline drafter is `quaestor.llm.OfflineLLM`, in `src/`,
+and `tests/reportsupport.py` subclasses it to build the drafters that forget a citation or refuse
+to correct a number. The behaviour the quick start runs is therefore the behaviour the repair-loop
+tests are written against, and a reader with the wheel and no API key can reproduce the demo. The
+rejected alternative — importing the test helper from `cli.py` — would put `tests/` on the runtime
+import path.
+
+**Three commands, and the other five are unknown (D-082).** `--help` lists `validate`, `tool` and
+`corpus`; `quaestor study run` is an "invalid choice" error, exactly as a misspelling is. It is the
+Phase 0 argument about half-built flag surfaces applied to the front door: a `--help` that lists
+what the program will do one day cannot be read to find out what it does today. The exit codes are
+the other half of that interface — `0` did it, `1` ran and produced nothing (a report the renderer
+refused, a check whose run directory is empty), `2` the request was wrong before anything ran — and
+every message on standard error names a fixing command, which is spec §3.1's rule about errors
+applied to the command line. `--timeout` caps the subject rather than the provider (D-083), because
+the subject's cap is the one a real-sample run on a slow machine actually hits; and bare
+`--synthetic` reads each subject's documented size from a table in `configs.py` (D-081) rather than
+inventing one, because the size of a generated panel decides every figure computed from it.

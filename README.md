@@ -12,4 +12,28 @@ worth reading rather than another wrapper is the open evaluation: defects are se
 author's own rebuilt models, and detection precision and recall, the false-alarm rate and
 per-report grounding precision are published, misses included.
 
-Scaffolding only at this commit; nothing runs yet. `PROGRESS.md` is the build order.
+## Quick start
+
+Offline, with no API key, no network and no data to download: both shipped subjects generate a
+small panel from a known process, and `--llm fake` is a deterministic offline provider that ships
+with the package.
+
+```bash
+pip install -e .
+quaestor validate subjects/credit_default --synthetic --llm fake --out /tmp/quaestor-demo
+head -20 /tmp/quaestor-demo/report.md
+```
+
+That writes `report.md`, `claims.json`, `findings.json`, `trace.jsonl` and the content-addressed
+artifact store under `--out`. The report's front matter carries its grounding precision before and
+after repair; Appendix A lists every numeric claim with its citation, its status and the artifact
+value it was checked against; Appendix B is the artifact index every citation resolves into.
+
+`quaestor validate --help` names the rest: `--data DIR` instead of `--synthetic` for a real
+sample, `--llm anthropic` or `--llm claude-cli` for a live run, `--config rules_only|plain_llm` for
+the two comparison arms of the study, and `--record-cassettes DIR` to keep every model call a live
+run made so it can be replayed with `--llm replay`. `quaestor tool NAME --pkg PKG --run-dir DIR`
+runs one check on its own.
+
+No number from a run is quoted in this file yet: the study that produces them is Phase 12, and
+`PROGRESS.md` is the build order.

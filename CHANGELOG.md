@@ -125,6 +125,25 @@ run that was not committed.
   with **`validate()`**, the pipeline entry of spec §9, which writes `report.md`, `claims.json`,
   `findings.json`, `trace.jsonl` and `artifacts/` (D-070). `validate`, `ValidationRun`,
   `ConfigSpec` and `CONFIGURATIONS` join the public API, completing the surface spec §9 names.
+- Phase 9 the command line and the recording layer: `quaestor.cli` — `quaestor validate PKG
+  [--data DIR | --synthetic [N]] --llm {fake,anthropic,claude-cli,replay} [--model M] [--config C]
+  --out DIR [--timeout S] [--record-cassettes DIR] [--cassettes DIR]`, which runs the pipeline and
+  writes the four files and the store; `quaestor tool NAME --pkg PKG --run-dir DIR --args-json
+  '{…}'`, which runs one registered check over a run directory and prints its summary, its
+  candidates and every artifact it stored; and `quaestor corpus ingest --sr117 PDF --sr262 PDF`.
+  Exit codes are `0` for a command that did what it was asked, `1` for one that ran and produced
+  nothing, `2` for a request that was wrong before anything ran, and every message on standard
+  error names a fixing command (D-082). Bare `--synthetic` takes the subject's documented size
+  from `configs.SYNTHETIC_DEFAULT_N` — 5,000 rows for `credit_default`, 2,000 loans for
+  `msr_prepayment` — and refuses a package the table does not know (D-081); `--timeout` overrides
+  the subject's wall-clock cap rather than the provider's (D-083). `quaestor.llm.OfflineLLM` is
+  the provider behind `--llm fake`: the competent offline drafter, extractor, planner and baseline
+  that `CLAUDE.md`'s own command line needs, now shipped in the package with the defective
+  variants left in `tests/reportsupport.py` as subclasses (D-080). `quaestor.llm.recording` adds
+  `RecordingLLM` and `ReplayLLM`, one JSON file per model call named by `stable_hash(system,
+  prompt, params)`, so that a live run's calls survive beside its report and can be replayed; a
+  call that is not on tape raises and names the missing hash (D-079). `quaestor.corpus.ingest`,
+  `quaestor.tools` and the pipeline are unchanged behind them.
 
 ### Changed
 
@@ -146,6 +165,21 @@ run that was not committed.
 - `verifier/extract.py` gains `extraction_from` (the pre-pass on its own, for the arm that writes
   its own claims) and `masked_prose` (the exclusion masking, which the repair loop and the renderer
   now share with the pre-pass).
+- **The regex pre-pass now defines the eligible numbers in both directions** (D-077). A claim the
+  extractor returns for a token the pre-pass excluded — the digits inside a citation's hash or
+  logical name, a feature name in inline code, a section number in a heading, a cell of a renderer
+  block — is dropped rather than counted, and published in `claims.json` under the exclusion
+  pattern `extractor_returned_excluded_token`. Claims are matched to tokens by value, first within
+  the line the claim quotes and then, for what is left over, against any unfilled token of the
+  section, so a paraphrasing extractor keeps its citations and only a number that is nowhere in the
+  eligible prose is dropped. `n_from_model` still counts everything the model returned.
+- `ClaudeCLILLM` passes a prompt larger than 64 KiB of UTF-8 on the subprocess's **stdin**, with no
+  positional argument after `-p`, because a single argument that long is refused by the operating
+  system before the CLI runs (D-078). The threshold is a constructor argument and both paths are
+  asserted with the monkeypatched `subprocess.run`.
+- `quaestor` with no arguments is now a usage error naming `quaestor --help`, and the version is
+  printed by `quaestor --version`: the Phase 0 stub that printed the version and exited zero is
+  gone.
 - `pyproject.toml`: `types-jsonschema` joins the dev dependencies, because `jsonschema` is now
   imported by `src/quaestor/report/schema.py` and `mypy --strict` has no stubs for it. No runtime
   dependency changes (D-074).

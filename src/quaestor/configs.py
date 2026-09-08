@@ -29,10 +29,12 @@ from .vocab import Configuration
 __all__ = [
     "CONFIGURATIONS",
     "SCREENED_CLASSES",
+    "SYNTHETIC_DEFAULT_N",
     "ConfigSpec",
     "Narrative",
     "PlanMode",
     "config_for",
+    "synthetic_default_n",
 ]
 
 
@@ -169,3 +171,31 @@ def config_for(name: Configuration | str) -> ConfigSpec:
         Its :class:`ConfigSpec`.
     """
     return CONFIGURATIONS[Configuration(name)]
+
+
+SYNTHETIC_DEFAULT_N: Final[Mapping[str, int]] = {
+    "credit_default": 5000,
+    "msr_prepayment": 2000,
+}
+"""How many rows each shipped subject generates when ``--synthetic`` is given no number.
+
+``CLAUDE.md``'s command list writes ``--synthetic`` bare, and the two subjects document different
+sizes: 5,000 rows for ``credit_default`` (spec 4.1) and 2,000 loans for ``msr_prepayment``
+(spec 4.2), which is what every measurement in ``PROGRESS.md`` was taken at. The table lives here
+rather than in ``cli.py`` because it is a property of the subjects, and a package that declares its
+own ``synthetic_default_n`` later replaces the lookup without touching the parser (D-081).
+"""
+
+
+def synthetic_default_n(package: str) -> int | None:
+    """Return the documented synthetic size of one subject.
+
+    Args:
+        package: The package name, as ``package.yaml`` declares it.
+
+    Returns:
+        The row count ``--synthetic`` uses when given no number, or ``None`` for a package this
+        table does not know -- for which the caller must ask the human for a number rather than
+        invent one, since the size of a generated panel decides every figure computed from it.
+    """
+    return SYNTHETIC_DEFAULT_N.get(package)

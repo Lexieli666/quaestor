@@ -54,8 +54,16 @@ are named in brackets.
   - the tolerance rule is amended before the drafter is built: a claim verifies when the artifact
     **rounds to the value as written at the precision the prose used**, with spec §0's defaults as
     a ceiling and `rounding` narrowing only (D-069, amending D-014)
-- [ ] **Phase 9** — CLI; first live validations of both real subjects (Claude CLI); reports
+- [x] **Phase 9** — CLI; first live validations of both real subjects (Claude CLI); reports
   committed (spec §3.14)
+  - the **CLI half is done**: `validate`, `tool` and `corpus ingest` exist, `study`,
+    `verifier-eval` and `mcp` are refused as unknown commands until their own phases (D-082), and
+    `CLAUDE.md`'s `quaestor validate ... --synthetic --llm fake` line runs on both subjects, which
+    is gate condition **5b**, applicable for the first time since Phase 1
+  - the **live half is the operator's**, and is outstanding: the two `--llm claude-cli` runs of
+    `03-RUNBOOK.md` §3 need real data and a live model, which `CLAUDE.md` forbids this session from
+    reaching, so `eval/results/first-live/` does not exist and no report is committed. The
+    recording layer those runs need is here and tested (`--record-cassettes`, `--llm replay`)
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
 - [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
@@ -396,3 +404,48 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   invented `entrypoint` is caught) and a path outside the package, each traced as a `plan_step`
   with its reason and never executed. No test calls a live model, downloads data, trains on real
   data or reads an API key. No push.
+- 2026-09-07 — **Phase 9** — gate green on **all five** conditions that apply, 5b included for the
+  first time: `pytest -q` 1110 passed, 0 failed, 0 skipped, 0 xfailed (74 new); coverage of
+  `src/quaestor` **100%** (`coverage run -m pytest`, 5423 statements) against the 85% floor;
+  `ruff check` and `ruff format --check` clean on `src tests eval subjects` (125 files);
+  `mypy --strict src/quaestor` clean (59 source files). Gate condition **5a** passes —
+  `tests/test_golden_spec.py` (13 checks) still pins `examples/golden_report/`, which this phase
+  **did not touch**: no byte of the directory changed and no new D-011 row was needed. Gate
+  condition **5b applies and passes**: `quaestor validate subjects/credit_default --synthetic
+  --llm fake --out DIR` and the same line on `subjects/msr_prepayment` are run **through the
+  installed console script, as subprocesses**, in `tests/test_cli.py`, and each report is put
+  through the renderer's own `check_report`. Measured from a shell on this machine (Python
+  3.12.14): **`credit_default` bare `--synthetic` (5,000 rows) — 3.7 s, grounding precision 1.0000
+  pre- and post-repair over 49 claims, 121 artifacts, one finding; `msr_prepayment` bare
+  `--synthetic` (2,000 loans) — grounding precision 1.0000 and 1.0000 over 45 claims, 227
+  artifacts, no finding** — the same figures Phase 8 measured through `validate()`, which is what
+  the command line was supposed to leave unchanged. **Gate condition 6 belongs to Phase 11**
+  (D-007). Shipped `src/quaestor/cli.py` (the parser: `validate`, `tool`, `corpus ingest`, the
+  three exit codes and a fixing command on every error), `src/quaestor/llm/offline.py`
+  (`OfflineLLM`, the provider `--llm fake` builds, moved out of `tests/reportsupport.py`, which now
+  subclasses it), `src/quaestor/llm/recording.py` (`RecordingLLM`, `ReplayLLM`, `cassette_key`),
+  `SYNTHETIC_DEFAULT_N` and `synthetic_default_n` in `configs.py`, `tests/{test_cli,test_recording,
+  test_offline_llm}.py`, DECISIONS D-077 to D-083, the Phase 9 section of `docs/DESIGN.md`, the
+  README's quick start (no number from a run in it) and the `CHANGELOG.md` entries. `CLAUDE.md`
+  is unchanged: every flag in its command list is correct as written. **Two fixes, each with its
+  own tests.** (a) The pre-pass now defines the eligible numbers in *both* directions (D-077): a
+  claim the extractor returns for a token that was excluded — a citation's hash or logical name,
+  inline code, a heading, a renderer block — is dropped and recorded under
+  `extractor_returned_excluded_token`, where Phase 7 would have kept it and let it *lower* the
+  precision of a number the report never claimed. Claims are matched to tokens by value, within
+  the quoted line first and then against any unfilled token of the section, so a paraphrasing
+  extractor keeps its citations; two Phase 7 tests asserted the old behaviour and are rewritten,
+  one into its mirror image and one into the paraphrase case. Every other verifier and pipeline
+  test is unchanged and still passes, including the golden report's 92 claims. (b) `ClaudeCLILLM`
+  passes a prompt over **64 KiB** on the subprocess's stdin with no positional argument, because a
+  single argument that long is refused by macOS before the CLI runs (D-078); both paths are
+  asserted with the monkeypatched `subprocess.run`. **The recording round trip is measured**: a
+  `credit_default` run at 600 rows recorded 15 cassettes, and replaying them wrote a `report.md`
+  **byte-identical** to the recorded run's apart from `generated` and Appendix C's two wall-clock
+  rows — `run_id`, every claim, every artifact hash and both grounding figures are the same file
+  twice — with `claims.json` and `findings.json` equal as JSON; deleting one cassette makes the
+  replay exit 1 naming the missing hash rather than answering from anywhere else. The Phase 0 CLI
+  stub is gone: bare `quaestor` is now a usage error and `quaestor --version` prints the version,
+  so four `tests/test_scaffold.py` cases were rewritten. No test calls a live model, downloads
+  data, trains on real data or reads an API key; `--llm anthropic` is covered by the error the
+  missing extra raises, and no PDF is read anywhere. No push.

@@ -9,9 +9,12 @@ denominator of grounding precision, and a headline that improves when the extrac
 worthless.
 
 So the model does not own the denominator. A deterministic pre-pass tokenises the same prose,
-after masking the six classes of excluded token D-015 fixed, and every numeric token the model did
-not return becomes a claim with status ``unattributed``. The pre-pass can only ever *add* claims;
-it is the floor under the denominator, and the exclusion list -- with the tokens it actually
+after masking the six classes of excluded token D-015 fixed, and **that pre-pass defines the set of
+eligible numbers**; the model only classifies them. A numeric token the model did not return
+becomes a claim with status ``unattributed``, so the denominator cannot be lowered by omission; a
+claim the model returned for a token the pre-pass excluded is dropped and recorded under
+``extractor_returned_excluded_token``, so the denominator cannot be *raised* by an extractor that
+claims the digits of a hash either (D-077). The exclusion list -- with the tokens actually
 excluded -- is written into ``claims.json`` so that a reader can audit what was left out.
 
 The unit the pre-pass works in is a **line**: the report format writes one sentence, or one table
@@ -39,6 +42,7 @@ from .claim import Claim, ClaimSource, Comparison, SplitName, Unit
 __all__ = [
     "EXTRACTION_INSTRUCTION",
     "EXTRACT_PURPOSE",
+    "EXTRACTOR_RETURNED_EXCLUDED",
     "NUMERIC_TOKEN_RE",
     "ExcludedToken",
     "Exclusion",
@@ -56,6 +60,14 @@ __all__ = [
 
 EXTRACT_PURPOSE: Final = "extract"
 """The ``llm_call`` purpose recorded for an extraction, so the study can count them."""
+
+EXTRACTOR_RETURNED_EXCLUDED: Final = "extractor_returned_excluded_token"
+"""The exclusion class for a claim the model returned that the pre-pass had already excluded.
+
+The pre-pass defines which numbers are eligible; the model only classifies them. A claim it
+returns for a token inside inline code, a citation's hash, a heading or a renderer block is
+therefore dropped rather than counted, and the number it wrote is published here so that the
+dropping is auditable rather than silent (DECISIONS D-077)."""
 
 EXTRACTION_INSTRUCTION: Final = """\
 You are extracting the numeric claims of one section of a model-validation report, so that each
@@ -241,8 +253,10 @@ class Extraction(BaseModel):
         unattributed: The ids of the claims the pre-pass added.
         exclusions: The classes of numeric token that were excluded, with examples.
         n_excluded_tokens: How many numeric tokens were excluded in total, which Appendix A
-            prints so that the size of the exclusion is visible next to the precision.
-        n_from_model: How many claims the model returned, so extraction recall is measurable.
+            prints so that the size of the exclusion is visible next to the precision. Every
+            claim the pre-pass dropped as ineligible is counted here too, for the same reason.
+        n_from_model: How many claims the model returned, including any that were dropped, so
+            extraction recall is measurable against what the model actually said.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -397,6 +411,7 @@ _PATTERN_ORDER: Final = (
     "regulatory_section_id",
     "finding_id",
     "package_version",
+    EXTRACTOR_RETURNED_EXCLUDED,
 )
 """The order the exclusion list is written in, so two runs of one report produce one file."""
 
@@ -464,40 +479,90 @@ def _infer_unit(token: str) -> Unit:
     return Unit.count if "." not in token else Unit.ratio
 
 
+def _as_written(claim: Claim) -> str:
+    """Return the number of a dropped claim as its own sentence wrote it.
+
+    Args:
+        claim: The claim the pre-pass is dropping.
+
+    Returns:
+        The first numeric token of the claim's text whose value is the claim's value, so that the
+        exclusion list quotes the report rather than a re-formatted float; ``repr`` of the value
+        when the model quoted a sentence the number is not in.
+    """
+    for _, token in numeric_tokens(claim.text):
+        if token_value(token) == claim.value:
+            return token
+    return repr(claim.value)
+
+
 def _prepass(
     section: ReportSection,
     markdown: str,
     model_claims: Sequence[Claim],
     package_version: str | None,
 ) -> tuple[list[Claim], list[str], list[Exclusion], int]:
-    """Tokenise the prose and add a claim for every number the model did not return."""
+    """Tokenise the prose, add what the model missed and drop what it should not have returned.
+
+    The pre-pass defines the set of eligible numbers; the model only classifies them. So the two
+    directions are not symmetric. A numeric token of the masked prose that no returned claim
+    accounts for becomes an ``unattributed`` claim -- the denominator cannot be lowered by
+    omission. A claim the model returned that no eligible token accounts for is **dropped**, and
+    recorded under :data:`EXTRACTOR_RETURNED_EXCLUDED`: it is a number from inside inline code, a
+    citation's hash, a heading or a renderer block, all of which D-015 excluded, or a number that
+    is not in the section at all (DECISIONS D-077).
+
+    A claim is matched to a token in two passes, both by value. The first is within the line the
+    claim quotes, which is what attaches the right citation to the right number in a sentence that
+    writes two. The second offers what is left over to any unfilled token anywhere in the section,
+    so that an extractor that paraphrased the sentence, or quoted the wrong one, still has its
+    citation used rather than thrown away.
+    """
     masked, excluded = _masked(markdown, package_version)
     spans = _line_spans(masked)
     lines = [markdown[start:end].strip() for start, end in spans]
     assigned, stray = _assign_to_lines(model_claims, lines)
 
+    slots = [
+        (index, token)
+        for index, (start, end) in enumerate(spans)
+        for _, token in numeric_tokens(masked[start:end])
+    ]
+    pools = {index: list(claims) for index, claims in assigned.items()}
+    filled: dict[int, Claim] = {}
+    for position, (index, token) in enumerate(slots):
+        pool = pools.get(index, [])
+        match = next((claim for claim in pool if claim.value == token_value(token)), None)
+        if match is not None:
+            pool.remove(match)
+            filled[position] = match
+    leftover = [claim for _, pool in sorted(pools.items()) for claim in pool] + list(stray)
+    for position, (_, token) in enumerate(slots):
+        if position in filled:
+            continue
+        match = next((claim for claim in leftover if claim.value == token_value(token)), None)
+        if match is not None:
+            leftover.remove(match)
+            filled[position] = match
+
     ordered: list[Claim] = []
     unattributed: list[str] = []
-    for index, (start, end) in enumerate(spans):
-        pool = list(assigned.get(index, []))
-        for _, token in numeric_tokens(masked[start:end]):
-            value = token_value(token)
-            match = next((claim for claim in pool if claim.value == value), None)
-            if match is not None:
-                pool.remove(match)
-                ordered.append(match)
-                continue
-            added = Claim(
+    for position, (index, token) in enumerate(slots):
+        claim = filled.get(position)
+        if claim is None:
+            claim = Claim(
                 text=lines[index],
-                value=value,
+                value=token_value(token),
                 unit=_infer_unit(token),
                 section=section,
                 source=ClaimSource.report,
             )
-            ordered.append(added)
-            unattributed.append(added.id)
-        ordered.extend(pool)
-    ordered.extend(stray)
+            unattributed.append(claim.id)
+        ordered.append(claim)
+    excluded = list(excluded) + [
+        ExcludedToken(pattern=EXTRACTOR_RETURNED_EXCLUDED, text=_as_written(claim))
+        for claim in leftover
+    ]
     return ordered, unattributed, _exclusions(excluded), len(excluded)
 
 
@@ -553,8 +618,10 @@ def extract(
 
     One :func:`~quaestor.llm.structured.structured` call asks the model for the claims; the
     deterministic pre-pass then adds every numeric token the model did not return, as an
-    ``unattributed`` claim. The pre-pass is the denominator of grounding precision, which is why
-    it runs whatever the model answered and can only add.
+    ``unattributed`` claim, and drops every claim the model returned that no eligible token
+    accounts for. The pre-pass owns the denominator of grounding precision, which is why it runs
+    whatever the model answered and why the model's list is a classification of its tokens rather
+    than a proposal of its own.
 
     Args:
         section: Which of the seven sections this is.

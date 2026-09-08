@@ -20,7 +20,7 @@ import pytest
 from quaestor.errors import LLMProviderError
 from quaestor.llm import AnthropicLLM, ClaudeCLILLM, Completion, FakeLLM, ScriptedLLM
 from quaestor.llm.base import LLM
-from quaestor.llm.claude_cli import UNKNOWN_MODEL
+from quaestor.llm.claude_cli import STDIN_THRESHOLD_BYTES, UNKNOWN_MODEL
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 PAYLOAD = json.loads((FIXTURES / "claude_cli_payload.json").read_text(encoding="utf-8"))
@@ -269,6 +269,54 @@ def test_the_prompt_reaches_the_subprocess(monkeypatch: pytest.MonkeyPatch) -> N
     seen = fake_run(monkeypatch)
     ClaudeCLILLM().complete("draft section 4")
     assert seen[0][2] == "draft section 4"
+
+
+def calls_of(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
+    """Replace `subprocess.run` with one that records the whole call, kwargs included."""
+    calls: list[dict[str, Any]] = []
+
+    def run(argv: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        calls.append({"argv": list(argv), **kwargs})
+        return subprocess.CompletedProcess(argv, 0, json.dumps(PAYLOAD), "")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    return calls
+
+
+def test_a_short_prompt_is_the_positional_argument_and_nothing_is_written_to_stdin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = calls_of(monkeypatch)
+    llm = ClaudeCLILLM()
+    prompt = "x" * (STDIN_THRESHOLD_BYTES - 1)
+    assert llm.on_stdin(prompt) is False
+    llm.complete(prompt)
+    assert calls[0]["argv"][:3] == ["claude", "-p", prompt]
+    assert calls[0]["input"] is None
+
+
+def test_a_prompt_over_the_threshold_goes_on_stdin_with_no_positional_argument(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A single argument this long is refused by the operating system before the CLI is reached,
+    # so `-p` is passed with no prompt after it and the CLI reads the prompt from stdin (D-078).
+    calls = calls_of(monkeypatch)
+    llm = ClaudeCLILLM()
+    prompt = "y" * (STDIN_THRESHOLD_BYTES + 1)
+    assert llm.on_stdin(prompt) is True
+    completion = llm.complete(prompt, system="s")
+    assert completion.text == "PAYLOAD_CHECK"
+    argv = calls[0]["argv"]
+    assert argv[:3] == ["claude", "-p", "--output-format"]
+    assert prompt not in argv
+    assert calls[0]["input"] == prompt
+
+
+def test_the_threshold_is_counted_in_utf8_bytes_not_in_characters() -> None:
+    # A prompt of half as many multi-byte characters is the same number of bytes on the wire.
+    llm = ClaudeCLILLM()
+    assert llm.on_stdin("€" * (STDIN_THRESHOLD_BYTES // 3 + 1)) is True
+    assert llm.on_stdin("€" * (STDIN_THRESHOLD_BYTES // 3 - 1)) is False
 
 
 def test_a_payload_reporting_an_error_raises(monkeypatch: pytest.MonkeyPatch) -> None:

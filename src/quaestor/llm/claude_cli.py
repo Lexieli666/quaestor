@@ -21,6 +21,12 @@ operator who does have a key may opt in with ``bare_flag="--bare"``; what it add
 ``docs/DESIGN.md``, Phase 2. Whether it was passed is recorded on every ``llm_call`` trace event as
 ``quaestor_bare``, so a published run says which of the two it was.
 
+**Long prompts.** The prompt is the positional argument after ``-p`` until it exceeds
+:data:`STDIN_THRESHOLD_BYTES`, at which point it is written to the subprocess's stdin instead and
+no positional argument is emitted -- which is how ``claude -p`` reads a prompt when it is given
+none. The operating system caps the length of a single argument well below the total it allows,
+so a large prompt otherwise fails before the CLI runs at all (DECISIONS D-078).
+
 **Cost caveat.** ``total_cost_usd`` in the payload is the *notional* API price of the turn as the
 CLI computes it. A developer running this on a Claude subscription is not billed that money. It is
 reported because it is the only cost signal available and it makes ``--max-cost`` enforceable, not
@@ -44,7 +50,7 @@ from typing import Any, Final
 from ..errors import LLMProviderError
 from .base import Completion
 
-__all__ = ["DEFAULT_TIMEOUT_S", "UNKNOWN_MODEL", "ClaudeCLILLM"]
+__all__ = ["DEFAULT_TIMEOUT_S", "STDIN_THRESHOLD_BYTES", "UNKNOWN_MODEL", "ClaudeCLILLM"]
 
 DEFAULT_TIMEOUT_S: Final = 300.0
 """A section draft with no tools is quick; five minutes is a hung-process ceiling, not a budget."""
@@ -54,6 +60,16 @@ UNKNOWN_MODEL: Final = "claude-cli"
 
 _STDERR_LIMIT: Final = 2000
 """How much of the CLI's stderr an error message quotes before truncating it."""
+
+STDIN_THRESHOLD_BYTES: Final = 64 * 1024
+"""Above this many UTF-8 bytes the prompt is written to the CLI's stdin instead of to ``argv``.
+
+A single argument on macOS is capped well below the total ``ARG_MAX``, so a long enough positional
+prompt fails with ``OSError: [Errno 7] Argument list too long`` before the CLI is even reached --
+and a ``plain_llm`` prompt, which carries four contract files at once, is the call that reaches
+that size first. Under ``-p`` with no positional prompt the CLI reads the prompt from stdin, so
+the same call is made the other way round. 64 KiB is a conservative fraction of the smallest limit
+either supported platform imposes; it is not a tuned number (DECISIONS D-078)."""
 
 
 class ClaudeCLILLM:
@@ -82,6 +98,7 @@ class ClaudeCLILLM:
         tools_flag: str = "--tools",
         tools: str = "",
         extra_args: Sequence[str] = (),
+        stdin_threshold_bytes: int = STDIN_THRESHOLD_BYTES,
     ) -> None:
         """Configure the executable, the timeout and every flag name used to invoke it.
 
@@ -106,6 +123,9 @@ class ClaudeCLILLM:
             tools: The empty string disables all tools. With no tools the CLI cannot take a second
                 turn, which is how "one turn" is obtained on a version with no ``--max-turns``.
             extra_args: Further arguments, inserted before the tools flag.
+            stdin_threshold_bytes: Prompts larger than this many UTF-8 bytes are written to the
+                subprocess's stdin instead of being passed as the positional argument, because a
+                single argument that long is refused by the operating system (D-078).
         """
         self.model = model
         self.executable = executable
@@ -121,6 +141,20 @@ class ClaudeCLILLM:
         self.tools_flag = tools_flag
         self.tools = tools
         self.extra_args = list(extra_args)
+        self.stdin_threshold_bytes = stdin_threshold_bytes
+
+    def on_stdin(self, prompt: str) -> bool:
+        """Say whether this prompt goes on stdin rather than into the argument vector.
+
+        Args:
+            prompt: The user-turn text.
+
+        Returns:
+            ``True`` when the prompt is larger than :data:`STDIN_THRESHOLD_BYTES` encoded as
+            UTF-8. A single argument that long is refused by the operating system before the CLI
+            runs, and ``-p`` with no positional prompt reads it from stdin instead (D-078).
+        """
+        return len(prompt.encode("utf-8")) > self.stdin_threshold_bytes
 
     def argv(
         self, prompt: str, *, system: str | None = None, model: str | None = None
@@ -131,14 +165,18 @@ class ClaudeCLILLM:
         would be read as another tool name rather than as the next flag.
 
         Args:
-            prompt: The user-turn text, passed as the positional prompt argument.
+            prompt: The user-turn text, passed as the positional prompt argument -- unless
+                :meth:`on_stdin` says it is too long, in which case no positional argument is
+                emitted at all and the caller writes the prompt to the subprocess's stdin.
             system: The system prompt, when the caller has one.
             model: The model to pass through, when one is configured.
 
         Returns:
             The full argument vector, executable first.
         """
-        argv = [self.executable, self.print_flag, prompt]
+        argv = [self.executable, self.print_flag]
+        if not self.on_stdin(prompt):
+            argv.append(prompt)
         if self.bare_flag:
             argv.append(self.bare_flag)
         argv += [self.output_format_flag, self.output_format, self.session_persistence_flag]
@@ -172,18 +210,32 @@ class ClaudeCLILLM:
         model = ignored.pop("model", None) or self.model
         argv = self.argv(prompt, system=system, model=model)
         started = time.perf_counter()
-        completed = self._run(argv)
+        completed = self._run(argv, prompt if self.on_stdin(prompt) else None)
         elapsed_ms = (time.perf_counter() - started) * 1000.0
         payload = self._payload(argv, completed)
         return self._completion(payload, model=model, elapsed_ms=elapsed_ms, ignored=ignored)
 
-    def _run(self, argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
-        """Run the CLI in an empty temporary directory, so no project context is discovered."""
+    def _run(
+        self, argv: Sequence[str], stdin: str | None = None
+    ) -> subprocess.CompletedProcess[str]:
+        """Run the CLI in an empty temporary directory, so no project context is discovered.
+
+        Args:
+            argv: The argument vector, which carries the prompt unless it was too long for one.
+            stdin: The prompt, when it goes that way instead; ``None`` otherwise.
+
+        Returns:
+            The completed process.
+
+        Raises:
+            LLMProviderError: The executable is missing or the call timed out.
+        """
         with tempfile.TemporaryDirectory(prefix="quaestor-claude-cli-") as empty:
             try:
                 return subprocess.run(
                     list(argv),
                     cwd=empty,
+                    input=stdin,
                     capture_output=True,
                     text=True,
                     timeout=self.timeout_s,

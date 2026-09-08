@@ -25,7 +25,14 @@ from quaestor.verifier import (
     match_claims,
     merge_exclusions,
 )
-from quaestor.verifier.extract import EXTRACTION_INSTRUCTION, numeric_tokens, token_value
+from quaestor.verifier.extract import (
+    EXTRACTION_INSTRUCTION,
+    numeric_tokens,
+    token_value,
+)
+from quaestor.verifier.extract import (
+    EXTRACTOR_RETURNED_EXCLUDED as RETURNED_EXCLUDED,
+)
 from quaestor.vocab import ReportSection
 from verifiersupport import golden_report
 
@@ -133,22 +140,94 @@ def test_tokens_are_matched_to_claims_by_value_and_order_within_the_line(
     assert first.citation is not None and "metrics.test.auc" in first.citation
 
 
-def test_a_number_the_model_invents_is_kept_and_matched(store: ArtifactStore) -> None:
-    """A claim whose number is not in the prose is still checked, not silently dropped."""
+def test_a_number_the_model_invents_is_dropped_and_recorded(store: ArtifactStore) -> None:
+    """The pre-pass owns the eligible set: a number that is not in the prose is not a claim.
+
+    The mirror of the omission test above. The extractor cannot lower the denominator by leaving
+    a number out, and it cannot raise it by returning one the prose does not carry either -- which
+    is what would happen if a model answered with the digits of a citation hash and the pre-pass
+    took its word for it (D-077).
+    """
     markdown = section(store)
     llm = llm_returning(
         {"text": markdown.splitlines()[0], "value": 0.99, "unit": "ratio"},
     )
     extraction = extract(SECTION, markdown, llm)
-    assert 0.99 in [claim.value for claim in extraction.claims]
-    assert len(extraction.claims) == 5
+    assert [claim.value for claim in extraction.claims] == [0.7412, 0.7, 3500, 1500]
+    assert extraction.n_from_model == 1
+    dropped = [item for item in extraction.exclusions if item.pattern == RETURNED_EXCLUDED]
+    assert [item.examples for item in dropped] == [["0.99"]]
 
 
-def test_a_claim_whose_text_matches_no_line_is_still_kept(store: ArtifactStore) -> None:
-    """An extractor that paraphrases the sentence does not get its claim thrown away."""
-    llm = llm_returning({"text": "a sentence that is not in the section", "value": 0.5})
-    extraction = extract(SECTION, section(store), llm)
-    assert 0.5 in [claim.value for claim in extraction.claims]
+@pytest.mark.parametrize(
+    ("prose", "value", "written"),
+    [
+        ("The `bill_mean_6m` feature is retained.", 6, "6.0"),
+        ("## 4. Outcomes analysis", 4, "4"),
+        (
+            "<!-- quaestor:renderer:begin table deciles.test -->\n"
+            "| 1 | 2.2409 |\n"
+            "<!-- quaestor:renderer:end -->",
+            2.2409,
+            "2.2409",
+        ),
+    ],
+    ids=["inline_code", "heading", "renderer_block"],
+)
+def test_a_claim_for_an_excluded_token_is_dropped_whatever_excluded_it(
+    prose: str, value: float, written: str
+) -> None:
+    """Each of D-015's exclusion classes survives an extractor that claims what is inside it."""
+    llm = llm_returning({"text": prose.splitlines()[0], "value": value, "unit": "ratio"})
+    extraction = extract(SECTION, prose, llm)
+    assert extraction.claims == []
+    dropped = [item for item in extraction.exclusions if item.pattern == RETURNED_EXCLUDED]
+    assert [item.examples for item in dropped] == [[written]]
+
+
+def test_a_claim_for_a_number_inside_a_citation_is_dropped(store: ArtifactStore) -> None:
+    """The commonest way an extractor would inflate the numerator: claiming a citation's digits.
+
+    A logical name carries numbers of its own -- ``scenario.value_change.-300`` names a shock, it
+    does not claim minus three hundred -- and so does the eight-character hash beside it. Both are
+    excluded by construction (D-015), so a claim for either is dropped.
+    """
+    store.put("scenario.value_change.-300", -1297986.0, ArtifactKind.scalar)
+    citation = store.artifact("scenario.value_change.-300").citation()
+    line = f"Servicing value falls by 1,297,986 {citation} at the largest downward shock."
+    llm = llm_returning(
+        {"text": line, "value": 1297986, "unit": "currency", "citation": citation},
+        {"text": line, "value": -300, "unit": "bp", "citation": citation},
+    )
+    extraction = extract(SECTION, line, llm)
+    assert [claim.value for claim in extraction.claims] == [1297986]
+    dropped = [item for item in extraction.exclusions if item.pattern == RETURNED_EXCLUDED]
+    assert [item.examples for item in dropped] == [["-300.0"]]
+
+
+def test_a_claim_whose_text_matches_no_line_keeps_its_citation(store: ArtifactStore) -> None:
+    """An extractor that paraphrases the sentence does not get its claim thrown away.
+
+    The second pass offers a claim no line accounted for to any unfilled token of the section, by
+    value, so paraphrasing costs the report nothing. Only a number that is nowhere in the prose is
+    dropped.
+    """
+    markdown = section(store)
+    llm = llm_returning(
+        {
+            "text": "a paraphrase of the sentence about discrimination",
+            "value": 0.7412,
+            "citation": store.artifact("metrics.test.auc").citation(),
+        },
+        {"text": "a sentence that is not in the section at all", "value": 0.5},
+    )
+    extraction = extract(SECTION, markdown, llm)
+    assert [claim.value for claim in extraction.claims] == [0.7412, 0.7, 3500, 1500]
+    first = extraction.claims[0]
+    assert first.citation is not None and "metrics.test.auc" in first.citation
+    assert first.id not in extraction.unattributed_ids
+    dropped = [item for item in extraction.exclusions if item.pattern == RETURNED_EXCLUDED]
+    assert [item.examples for item in dropped] == [["0.5"]]
 
 
 def test_renderer_blocks_are_excluded_from_the_prompt_and_from_the_denominator() -> None:

@@ -74,21 +74,26 @@ def test_py_typed_marker_is_shipped() -> None:
 
 
 def test_main_prints_the_version(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main() == 0
+    # Phase 9 turned the version stub into a parser, so the version is a flag rather than the
+    # program's whole behaviour; `--version` is argparse's action, which exits rather than returns.
+    with pytest.raises(SystemExit) as raised:
+        main(["--version"])
+    assert raised.value.code == 0
     assert capsys.readouterr().out.strip() == f"quaestor {EXPECTED_VERSION}"
 
 
-def test_main_ignores_arguments(capsys: pytest.CaptureFixture[str]) -> None:
-    # The stub accepts an explicit argv so that Phase 9 can add a parser without changing callers.
-    assert main(["--not-a-flag-yet"]) == 0
-    assert capsys.readouterr().out.strip() == f"quaestor {EXPECTED_VERSION}"
+def test_main_with_no_command_is_a_usage_error(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as raised:
+        main([])
+    assert raised.value.code == 2
+    assert "fix: quaestor --help" in capsys.readouterr().err
 
 
-def test_cli_stub_runs_as_a_subprocess() -> None:
+def test_the_console_script_runs_as_a_subprocess() -> None:
     executable = shutil.which("quaestor")
     assert executable is not None, "the `quaestor` console script is not on PATH; pip install -e ."
     completed = subprocess.run(
-        [executable],
+        [executable, "--version"],
         capture_output=True,
         text=True,
         timeout=60,
@@ -98,10 +103,10 @@ def test_cli_stub_runs_as_a_subprocess() -> None:
     assert completed.stdout.strip() == f"quaestor {EXPECTED_VERSION}"
 
 
-def test_module_invocation_exits_zero() -> None:
+def test_module_invocation_reaches_the_same_parser() -> None:
     # The same code path reached the way a developer reaches it before the script is installed.
     completed = subprocess.run(
-        [sys.executable, "-c", "import sys; from quaestor.cli import main; sys.exit(main())"],
+        [sys.executable, "-m", "quaestor.cli", "--version"],
         capture_output=True,
         text=True,
         timeout=60,
@@ -119,7 +124,8 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
     # modules of tools/ plus its registry, thresholds, frames and hand-written statistics; Phase 6
     # added corpus/bm25.py, corpus/documents.py, corpus/ingest.py and tools/guidance.py; Phase 7
     # added vocab.py and the six modules of verifier/; Phase 8 added agent/planner.py, configs.py,
-    # pipeline.py and the five modules of report/.
+    # pipeline.py and the five modules of report/; Phase 9 added llm/offline.py (the provider
+    # behind `--llm fake`) and llm/recording.py, and turned cli.py from a stub into a parser.
     modules = sorted(
         p.relative_to(REPO_ROOT / "src" / "quaestor").as_posix()
         for p in (REPO_ROOT / "src" / "quaestor").rglob("*.py")
@@ -145,6 +151,8 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "llm/base.py",
         "llm/claude_cli.py",
         "llm/fake.py",
+        "llm/offline.py",
+        "llm/recording.py",
         "llm/structured.py",
         "package/__init__.py",
         "package/loader.py",
