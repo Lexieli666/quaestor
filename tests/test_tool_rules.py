@@ -23,6 +23,7 @@ from quaestor import ArtifactStore, load_package
 from quaestor.errors import ToolError
 from quaestor.findings import DefectClass, Severity
 from quaestor.tools import Thresholds, ToolContext, ToolResult, default_registry
+from quaestor.tools.leakage import duplicate_share
 from toolsupport import context, read_json, variant_package, write_csv, write_json
 
 CREDIT = Path(__file__).resolve().parent.parent / "subjects" / "credit_default"
@@ -111,36 +112,163 @@ def test_the_single_feature_screen_orients_a_negatively_related_feature(
 
 
 # --- L2: duplicated rows across the split boundary ------------------------------------------------
+#
+# The seeded `L2` shape of `04-SEEDED-DEFECT-STUDY.md` section 2 is "copy 3% of the test rows into
+# train", and it has two variants: the copy keeps the identifiers it came with, or it is re-keyed.
+# Both are contamination and both must fire; they fire at different severities and on different
+# evidence, because a shared identifier is contamination on its face while a shared feature vector
+# is only contamination once it is more than coincidence in this dataset (D-086).
 
 
-def test_l2_fires_when_test_rows_are_duplicated_into_train(
+def contaminate(ctx: ToolContext, fraction: float = 0.03, *, rekey: bool) -> int:
+    """Copy the head of the test split into train, with or without new identifiers.
+
+    Args:
+        ctx: The context whose run directory is perturbed.
+        fraction: What share of the test split to copy.
+        rekey: Whether the copies are given identifiers of their own, which is what a
+            contamination that went through a de-duplication step looks like.
+
+    Returns:
+        How many rows were copied.
+    """
+    train = pd.read_csv(ctx.out_dir / "data_train.csv")
+    test = pd.read_csv(ctx.out_dir / "data_test.csv")
+    id_column = ctx.package.spec.data.id_column
+    copied = test.head(int(fraction * len(test))).copy()
+    train_predictions = pd.read_csv(ctx.out_dir / "predictions_train.csv")
+    test_predictions = pd.read_csv(ctx.out_dir / "predictions_test.csv")
+    copied_predictions = test_predictions.head(len(copied)).copy()
+    if rekey:
+        fresh = range(
+            int(train[id_column].max()) + 1, int(train[id_column].max()) + 1 + len(copied)
+        )
+        copied[id_column] = list(fresh)
+        copied_predictions[id_column] = list(fresh)
+    write_csv(ctx.out_dir / "data_train.csv", pd.concat([train, copied], ignore_index=True))
+    # A subject that trained on the contaminated split would have scored those rows too.
+    write_csv(
+        ctx.out_dir / "predictions_train.csv",
+        pd.concat([train_predictions, copied_predictions], ignore_index=True),
+    )
+    return len(copied)
+
+
+def test_l2_fires_high_when_the_copied_test_rows_keep_their_identifiers(
     tmp_path: Path, credit_run_dir: Path
 ) -> None:
     ctx = context(tmp_path, CREDIT, credit_run_dir)
-    train = pd.read_csv(ctx.out_dir / "data_train.csv")
-    test = pd.read_csv(ctx.out_dir / "data_test.csv")
-    duplicated = int(0.03 * len(test))
-    write_csv(
-        ctx.out_dir / "data_train.csv",
-        pd.concat([train, test.head(duplicated)], ignore_index=True),
-    )
-    # A subject that trained on the contaminated split would have scored those rows too.
-    train_predictions = pd.read_csv(ctx.out_dir / "predictions_train.csv")
-    test_predictions = pd.read_csv(ctx.out_dir / "predictions_test.csv")
-    write_csv(
-        ctx.out_dir / "predictions_train.csv",
-        pd.concat([train_predictions, test_predictions.head(duplicated)], ignore_index=True),
-    )
+    contaminate(ctx, rekey=False)
     result = run("check_leakage", ctx)
     assert classes(result) == ["L2"]
-    assert ctx.store.value("leakage.overlap") == pytest.approx(0.03, abs=0.005)
     assert result.candidates[0].suggested_severity is Severity.high
+    assert ctx.store.value("leakage.overlap.ids") == pytest.approx(0.03, abs=0.005)
+    assert ctx.store.value("leakage.overlap.features") == pytest.approx(0.03, abs=0.005)
+    assert "identifier" in result.candidates[0].detail
+    # The identifier artifact is the evidence the high severity rests on.
+    assert ctx.store.artifact("leakage.overlap.ids").hash in result.candidates[0].evidence
+
+
+def test_l2_fires_medium_when_the_copied_test_rows_are_re_keyed(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    contaminate(ctx, rekey=True)
+    result = run("check_leakage", ctx)
+    assert classes(result) == ["L2"]
+    assert result.candidates[0].suggested_severity is Severity.medium
+    # No identifier is shared, so the high rule is silent and the feature-vector rule carries it.
+    assert ctx.store.value("leakage.overlap.ids") == 0.0
+    assert ctx.store.value("leakage.overlap.features") == pytest.approx(0.03, abs=0.005)
+    assert "re-keyed" in result.candidates[0].detail
+    assert ctx.store.artifact("leakage.duplicates.train").hash in result.candidates[0].evidence
 
 
 def test_l2_does_not_fire_on_a_clean_split(tmp_path: Path, credit_run_dir: Path) -> None:
     ctx = context(tmp_path, CREDIT, credit_run_dir)
-    run("check_leakage", ctx)
-    assert ctx.store.value("leakage.overlap") == 0.0
+    result = run("check_leakage", ctx)
+    assert classes(result) == []
+    assert ctx.store.value("leakage.overlap.ids") == 0.0
+    assert ctx.store.value("leakage.overlap.features") == 0.0
+    assert ctx.store.value("leakage.duplicates.train") == 0.0
+    # The Phase 1 golden report cites `leakage.overlap`; it stays, as an alias of the feature
+    # overlap, so that a committed citation keeps resolving (D-086).
+    assert ctx.store.value("leakage.overlap") == ctx.store.value("leakage.overlap.features")
+
+
+def test_the_within_train_duplicate_share_of_an_empty_split_is_zero() -> None:
+    """The baseline of a split with no rows is zero, not a division by zero."""
+    assert duplicate_share([]) == 0.0
+    assert duplicate_share(["a", "b", "c"]) == 0.0
+    assert duplicate_share(["a", "a", "b", "c"]) == 0.5
+
+
+def test_l2_refuses_two_splits_with_no_identifier_column_in_common(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """Without a shared identifier no row of one split can be recognised in the other.
+
+    The screen says so rather than hashing an empty key, which would make every row of the test
+    split look like every row of the training split and report 100% contamination.
+    """
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    id_column = ctx.package.spec.data.id_column
+    frame = pd.read_csv(ctx.out_dir / "data_test.csv")
+    write_csv(ctx.out_dir / "data_test.csv", frame.rename(columns={id_column: "id"}))
+    with pytest.raises(ToolError, match="share no identifier column"):
+        run("check_leakage", ctx)
+
+
+def discretise(ctx: ToolContext, share: float = 0.013, *, modes: int = 3) -> None:
+    """Give a share of both splits one of a few identical feature vectors, keeping every id.
+
+    This is the shape of the first live credit run, in which 1.2556% of the test rows repeated a
+    feature vector of train and 1.1619% of the train rows repeated one of each other: a panel of
+    coarse integer features has coincidental collisions, and they are as common inside one split
+    as across two. Every identifier stays distinct, so nothing here is contamination.
+
+    Args:
+        ctx: The context whose run directory is perturbed.
+        share: What share of each split's rows to place on a modal vector.
+        modes: How many distinct modal vectors to spread them over.
+    """
+    declared = [feature.name for feature in ctx.package.spec.features]
+    train = pd.read_csv(ctx.out_dir / "data_train.csv")
+    columns = [name for name in declared if name in train.columns]
+    # The modal vectors are the same in both splits, which is what makes the collisions
+    # coincidental rather than a copy across the boundary: a modal row is as likely to be matched
+    # inside its own split as in the other one.
+    modal = [list(train.loc[index, columns]) for index in range(modes)]
+    for split in ("train", "test"):
+        frame = train if split == "train" else pd.read_csv(ctx.out_dir / "data_test.csv")
+        marked = int(share * len(frame))
+        for position in range(marked):
+            frame.loc[frame.index[position], columns] = modal[position % modes]
+        write_csv(ctx.out_dir / f"data_{split}.csv", frame)
+
+
+def test_l2_does_not_fire_on_coincidental_duplicates_in_a_discrete_panel(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """The first live run's false alarm, as a test: the same rate inside train and across splits.
+
+    Under the Phase 5 rule -- any feature-vector overlap above 0.5% -- this panel raises `L2` at
+    severity high and the run reports contamination that is not there. Under D-086's rule the
+    cross-split share has to beat twice the within-train share, and here the two are the same
+    number, so nothing fires and all three quantities are reported.
+    """
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    discretise(ctx)
+    result = run("check_leakage", ctx)
+    features = ctx.store.value("leakage.overlap.features")
+    duplicates = ctx.store.value("leakage.duplicates.train")
+    overlap_threshold = ctx.thresholds["threshold.L2.overlap"]
+
+    assert features > overlap_threshold, "the panel must break the Phase 5 rule to be the case"
+    assert features == pytest.approx(0.013, abs=0.004)
+    assert duplicates == pytest.approx(features, rel=0.10)
+    assert ctx.store.value("leakage.overlap.ids") == 0.0
+    assert classes(result) == []
 
 
 # --- S1: a shifted test split ---------------------------------------------------------------------

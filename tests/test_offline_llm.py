@@ -15,6 +15,7 @@ import json
 
 from quaestor.llm import OfflineLLM
 from quaestor.llm.offline import citation_of, masked_line, prompt_kind, written
+from quaestor.verifier.extract import numbered_prose
 
 
 def draft(prompt: str) -> str:
@@ -84,16 +85,20 @@ def test_a_section_six_prompt_writes_the_heading_it_was_given() -> None:
 
 
 def test_the_extractor_returns_every_token_outside_an_exclusion() -> None:
+    prose = numbered_prose(
+        "## 4. Outcomes\n"
+        "The value of `metrics.test.auc` is 0.7412 [[art:a1b2c3d4:metrics.test.auc]]."
+    )
     prompt = (
         "You are extracting the numeric claims of one section.\n"
-        "Prose:\n"
-        "## 4. Outcomes\n"
-        "The value of `metrics.test.auc` is 0.7412 [[art:a1b2c3d4:metrics.test.auc]].\n"
+        f"Prose:\n{prose}\n"
         "\n"
         "Answer with one JSON object"
     )
     claims = json.loads(OfflineLLM().complete(prompt).text)["claims"]
     assert [claim["value"] for claim in claims] == [0.7412]
+    # The line the fake names is the second of the two it was shown, not the heading (D-085).
+    assert claims[0]["line"] == 2
     assert claims[0]["citation"] == "[[art:a1b2c3d4:metrics.test.auc]]"
     assert claims[0]["unit"] == "ratio"
 

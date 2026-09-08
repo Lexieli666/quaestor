@@ -31,8 +31,9 @@ from ..findings import Finding, FindingCandidate
 from ..trace import EventType, TraceWriter
 from ..verifier.claim import ClaimStatus, VerifiedClaim
 from ..verifier.claims_doc import Repair, RepairSide
-from ..verifier.extract import Extraction, masked_prose, numeric_tokens, token_value
+from ..verifier.extract import Extraction
 from ..verifier.match import Match
+from ..verifier.tokens import eligible_numbers, numeric_tokens, token_value
 from ..vocab import ReportSection
 from .drafter import Drafter, GuidanceSpan
 from .sections import ArtifactBrief, SectionBrief
@@ -280,26 +281,35 @@ def is_wrapped(markdown: str, start: int) -> bool:
     return closed < opened
 
 
-def wrap_unverified(markdown: str, claims: Sequence[VerifiedClaim]) -> str:
+def wrap_unverified(
+    markdown: str,
+    claims: Sequence[VerifiedClaim],
+    *,
+    package_version: str | None = None,
+) -> str:
     """Wrap every number of a section that did not verify, in place, and leave the rest alone.
 
     Args:
         markdown: The section's prose, as drafted.
         claims: The section's claims, verified and not.
+        package_version: The package's version string, so that the wrapper and the pre-pass agree
+            about which tokens exist (D-084).
 
     Returns:
         The prose with each unverified number wrapped ``⟦unverified: <number>⟧``. The token is
         wrapped as the drafter wrote it, thousands separators and per cent sign included, so the
         report still reads as a sentence.
 
-    Only tokens the pre-pass would have counted are candidates. A claim whose value happens to
-    match digits inside a citation's hash must not turn ``[[art:6bff3109:...]]`` into
+    Only tokens the pre-pass would have counted are candidates -- the candidates are literally
+    :func:`~quaestor.verifier.tokens.eligible_numbers`' own. A claim whose value happens to match
+    digits inside a citation's hash must not turn ``[[art:6bff3109:...]]`` into
     ``[[art:⟦unverified: 6⟧bff3109:...]]``, which is not a citation at all.
     """
     failed = [claim for claim in claims if claim.status is not ClaimStatus.verified]
     if not failed:
         return markdown
-    spans = numeric_tokens(masked_prose(markdown))
+    eligible = eligible_numbers(markdown, package_version=package_version)
+    spans = [(token.offset, token.text) for token in eligible.tokens]
     used: set[int] = set()
     chosen: list[tuple[int, str]] = []
     for claim in failed:

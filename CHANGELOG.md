@@ -145,6 +145,23 @@ run that was not committed.
   call that is not on tape raises and names the missing hash (D-079). `quaestor.corpus.ingest`,
   `quaestor.tools` and the pipeline are unchanged behind them.
 
+- `docs/EVALUATION.md`, whose section 1 "Defects found in live runs" records the first live
+  validation of `credit_default` (2026-09-08) with the run's numbers and the three defects it
+  found; `eval/results/first-live/credit-attempt1/`, that run's committed record — its trace, its
+  17 cassettes, its 121-name artifact store and `run/*.json`, with every row-level file kept
+  outside the repository (D-087); and `tests/test_live_credit_attempt1.py`, which re-derives every
+  figure the document quotes from that trace.
+- `src/quaestor/verifier/tokens.py`: the eligible-number tokenizer and D-015's exclusion rules in
+  one module, with `eligible_numbers(markdown, *, package_version=None)` as the single definition
+  the extraction pre-pass, the repair loop's wrapper and the renderer's uncovered-number check all
+  read (D-084). Exported from `quaestor.verifier` with `EligibleNumbers`, `EligibleToken`,
+  `eligible_numbers`, `exclusions_of` and `line_spans`.
+- `check_leakage` stores `leakage.overlap.ids`, `leakage.overlap.features` and
+  `leakage.duplicates.train`; `quaestor.tools.leakage` exports `Overlaps`, `duplicate_share` and
+  `DUPLICATE_MULTIPLE` (D-086).
+- `quaestor.verifier.numbered_prose` and `numbered_lines`: the numbered form the extraction prompt
+  shows and its inverse (D-085).
+
 ### Changed
 
 - **The tolerance a claim is held to is the precision its own prose used** (D-069, amending
@@ -207,9 +224,41 @@ run that was not committed.
   case. Spec §4.2 requires a declared servicing fee and §3.7's `X1` requires a declared convexity
   expectation; the addition was decided in Cowork on 2026-09-07 before Phase 4 (D-037).
   `tests/fixtures/hazard_package/package.yaml` declares the three new fields.
+- **The extractor returns `line`, not `text` (D-085).** `ExtractedClaim.text` is replaced by
+  `ExtractedClaim.line`, a 1-based index into the prose the extraction prompt shows; the prompt
+  numbers that prose and `extract` fills `Claim.text` from the line the index names. `claims.json`,
+  `CLAIMS_SCHEMA.json`, `Claim`, `VerifiedClaim` and the claim id are unchanged. On the first live
+  run extraction was 8 of 17 model calls and 63,865 of 92,196 output tokens.
+- **`L2` is two overlaps read against a within-train baseline (D-086).** Severity high when the
+  identifier overlap exceeds `threshold.L2.overlap`; severity medium when the feature-vector
+  overlap exceeds `max(threshold.L2.overlap, 2 × leakage.duplicates.train)`; otherwise no
+  candidate and the three values are reported. `threshold.L2.overlap` keeps its value, and
+  `leakage.overlap` stays as an alias of `leakage.overlap.features` so the golden report's
+  citation keeps resolving.
+- `uncovered_numbers`, `check_report` and `wrap_unverified` take `package_version`, which
+  `render_report` and `validate()` fill from the loaded package (D-084).
+
+### Removed
+
+- `quaestor.verifier.masked_prose`, whose optional `package_version` argument was the defect
+  D-084 fixes: it had no caller left after the tokenizer was extracted, and a public function
+  whose short spelling is the wrong one is a trap. Callers use
+  `eligible_numbers(...).masked` instead.
 
 ### Fixed
 
+- **The first live validation refused to render a report in which all 140 claims verified
+  (D-084).** The renderer's uncovered-number check and the extraction pre-pass disagreed about
+  whether the `1.0` of "the champion in credit_default 1.0" is a claim: the pre-pass is given the
+  package version and excludes it, the renderer called the masking helper without it. The repair
+  loop's wrapper had the same defect. All three now go through one function.
+- **A false `L2` at severity high on the real credit sample (D-086).** 1.2556% of the test rows
+  repeated a feature vector of train, on a panel of coarse integers whose identifiers are disjoint
+  by construction; the same rate holds inside the training split, where contamination cannot be
+  the explanation.
+- The package-version exclusion's trailing guard is `(?!\w|\.\d)` rather than `(?![\w.])`, so
+  version `1.0` at the end of a sentence — written `1.0.` — is excluded too; `1.0.3` and `1.0x`
+  are still not the version (D-084).
 - `tests/test_package.py::test_a_data_dir_without_a_manifest_verifies_nothing` asserted on
   `credit_default`, which gained a `data.manifest` when its real sample was committed, so the test
   had been failing on `main`; it now uses the hazard fixture, which is the package that declares

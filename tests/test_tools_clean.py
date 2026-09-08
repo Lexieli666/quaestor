@@ -198,6 +198,9 @@ def test_the_numbers_behind_the_credit_subjects_clean_run(
     assert store.value("leakage.target_corr.max_single_feature_auc") == pytest.approx(
         0.6831, abs=0.002
     )
+    assert store.value("leakage.overlap.ids") == 0.0
+    assert store.value("leakage.overlap.features") == 0.0
+    assert store.value("leakage.duplicates.train") == 0.0
     assert store.value("leakage.overlap") == 0.0
     assert store.value("leakage.name_screen.n_matched") == 0
     # Collinearity: no M1, the screen having removed the pair (D-035, D-036).
@@ -263,6 +266,9 @@ def test_the_numbers_behind_the_hazard_subjects_clean_run(
     assert store.value("leakage.target_corr.max_single_feature_auc") == pytest.approx(
         0.7239, abs=0.002
     )
+    assert store.value("leakage.overlap.ids") == 0.0
+    assert store.value("leakage.overlap.features") == 0.0
+    assert store.value("leakage.duplicates.train") == 0.0
     assert store.value("leakage.overlap") == 0.0
     assert store.value("vif.max") == pytest.approx(4.976, abs=0.01)
     assert store.value("condition_number") == pytest.approx(4.943, abs=0.01)

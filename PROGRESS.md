@@ -60,10 +60,12 @@ are named in brackets.
     `verifier-eval` and `mcp` are refused as unknown commands until their own phases (D-082), and
     `CLAUDE.md`'s `quaestor validate ... --synthetic --llm fake` line runs on both subjects, which
     is gate condition **5b**, applicable for the first time since Phase 1
-  - the **live half is the operator's**, and is outstanding: the two `--llm claude-cli` runs of
-    `03-RUNBOOK.md` §3 need real data and a live model, which `CLAUDE.md` forbids this session from
-    reaching, so `eval/results/first-live/` does not exist and no report is committed. The
-    recording layer those runs need is here and tested (`--record-cassettes`, `--llm replay`)
+  - the **live half is the operator's**: the first of the two `--llm claude-cli` runs of
+    `03-RUNBOOK.md` §3 was made on 2026-09-08 and **refused to render**, so
+    `eval/results/first-live/credit-attempt1/` is committed (trace, cassettes, artifact store and
+    `run/*.json`; no row-level file, D-087) and **no report is**. The three defects it found are
+    fixed in the Phase 9 follow-up below and written up in `docs/EVALUATION.md` §1; the
+    `msr_prepayment` run and a second `credit_default` attempt are still outstanding
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
 - [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
@@ -449,3 +451,68 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   so four `tests/test_scaffold.py` cases were rewritten. No test calls a live model, downloads
   data, trains on real data or reads an API key; `--llm anthropic` is covered by the error the
   missing extra raises, and no PDF is read anywhere. No push.
+- 2026-09-08 — **Phase 9 follow-up** — the three defects the first live validation found, decided
+  in Cowork 2026-09-08 and fixed here. Gate green on **all five** conditions that apply:
+  `pytest -q` 1120 passed, 0 failed, 0 skipped, 0 xfailed (10 new); coverage of `src/quaestor`
+  **100%** (`coverage run -m pytest`, 5507 statements) against the 85% floor; `ruff check` and
+  `ruff format --check` clean on `src tests eval subjects` (127 files); `mypy --strict
+  src/quaestor` clean (60 source files). Gate condition **5a** passes — `tests/test_golden_spec.py`
+  (13 checks) still pins `examples/golden_report/`, which this follow-up **did not touch**: no byte
+  of the directory changed and no new D-011 row was needed, which is what keeping
+  `leakage.overlap` as an alias is for. Gate condition **5b** passes: both
+  `quaestor validate ... --synthetic --llm fake --out DIR` lines run through the installed console
+  script in `tests/test_cli.py` and again from a shell here — **`credit_default` grounding
+  precision 1.0000 pre- and post-repair over 49 claims, 124 artifacts, one finding (`E1 low`,
+  D-017); `msr_prepayment` 1.0000 and 1.0000 over 45 claims, 230 artifacts, no finding (D-047)** —
+  the Phase 9 figures with three more artifacts each, which are the three the leakage screen now
+  stores. **Gate condition 6 belongs to Phase 11** (D-007).
+  **The run this follow-up is about.** `eval/results/first-live/credit-attempt1/` is committed:
+  **17 model calls** (1 plan, 8 draft, 8 extract, no re-ask), 13 tool calls in 2.66 s, **179 claim
+  checks — 176 verified, 2 unattributed, 1 unsupported**, **1 repair round** on section 3 after
+  which all 140 post-repair claims verified, one finding (`L2` at severity high, evidence
+  `leakage.overlap` and `threshold.L2.overlap`), **92,196 output tokens of which 63,865 (69.3%)
+  were the eight extractions**, longest single call 20,257 tokens and 197 s, **notional cost $3.82**
+  of which $2.18 was extraction, **wall-clock 16:59** from the first traced event to the last
+  (1,019 s; the operator's shell read 17:02 for the whole command, which the trace does not cover)
+  — **and no report, because the renderer refused**: `['1.0']` in section 2's "the champion in
+  credit_default 1.0" was covered by no verified claim. Every one of those figures is re-derived
+  from that trace by `tests/test_live_credit_attempt1.py`. The row-level files — `run/*.csv` and
+  the four `run.data_*` / `run.predictions_*` artifacts, which are the same rows under a content
+  address — are **not** committed and were moved to `~/code/data-raw/` (D-087); the artifact
+  index still lists all 121 names, so the four are visible as entries whose payload the
+  repository does not hold.
+  **Three fixes, each with its own tests.** (a) One tokenizer (D-084):
+  `src/quaestor/verifier/tokens.py` holds the eligible-number tokenizer and D-015's exclusion
+  rules, and `eligible_numbers(markdown, *, package_version=None)` is the single definition the
+  pre-pass, the repair loop's wrapper and the renderer's uncovered-number check all read;
+  `uncovered_numbers`, `check_report` and `wrap_unverified` take `package_version` and
+  `render_report` and `validate()` fill it, and **`masked_prose` is deleted** because its
+  defaulted argument was the defect. `tests/test_live_credit_attempt1.py` reconstructs sections 2
+  and 3 of the attempt from its recorded extraction prompts and asserts the pre-pass and the
+  renderer return the same token set, and that every section checked against its own post-repair
+  verdicts now has nothing uncovered while section 2 checked *without* the version still reports
+  `['1.0']`. The version guard's trailing lookahead also becomes `(?!\w|\.\d)`, so `1.0.` at the
+  end of a sentence is excluded too. (b) A cheaper extractor (D-085): `ExtractedClaim.line`
+  replaces `ExtractedClaim.text`, the prompt prints the prose one numbered line per line
+  (`numbered_prose` / `numbered_lines`), and the deterministic side fills `Claim.text` from the
+  line the index names, so `claims.json` and `CLAIMS_SCHEMA.json` are unchanged and a line number
+  that is not in the prose is dropped exactly as an ineligible token's claim is; the offline fake
+  and `eval/verifier_eval.py`'s fake extractor read the numbers back out of the prompt they were
+  sent. (c) `L2` on discrete data (D-086): `check_leakage` stores `leakage.overlap.ids`,
+  `leakage.overlap.features` (with `leakage.overlap` as its alias, for the golden) and
+  `leakage.duplicates.train`, and the candidate is severity **high** on an identifier overlap
+  above `threshold.L2.overlap` and severity **medium** on a feature overlap above
+  `max(threshold.L2.overlap, 2 × leakage.duplicates.train)`, otherwise absent. **Measured on this
+  machine (Python 3.12.14):** the seeded shape in both variants — 3% of test rows copied into
+  train with ids kept gives identifier overlap 3.0% and a high candidate; re-keyed gives
+  identifier overlap 0.0%, feature overlap 3.0% and a medium candidate; the clean synthetic
+  control gives 0.0 / 0.0 / 0.0 and no candidate; and the attempt's case as a discrete panel gives
+  **feature overlap 1.2667% against a within-train duplicate share of 1.2857%, identifiers
+  disjoint, and no candidate** — where the Phase 5 rule raises `L2` high. On the live panel itself
+  the two shares were 1.2556% (committed as `leakage.overlap`) and 1.1619% (recomputed from that
+  run's `data_train.csv`, which is not committed): a ratio of 1.08 where the rule asks for more
+  than 2. Also shipped: `docs/EVALUATION.md` with section 1 "Defects found in live runs",
+  DECISIONS D-084 to D-087, the Phase 9 follow-up section of `docs/DESIGN.md` and the
+  `CHANGELOG.md` entries. No test calls a live model, downloads data, trains on real data or reads
+  an API key; the committed cassettes are read as text and no provider is constructed from them.
+  No push.

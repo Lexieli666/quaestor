@@ -1,0 +1,852 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "calibration.mean_rel_gap.test": {
+      "hash": "bae28fd6a7308678",
+      "kind": "scalar",
+      "value": 0.0029435734203817924,
+      "summary": "mean predicted against observed on test, relative",
+      "file": "bae28fd6a7308678.json"
+    },
+    "calibration.mean_rel_gap.train": {
+      "hash": "a03ea01402b3852a",
+      "kind": "scalar",
+      "value": 0.0001554936591539893,
+      "summary": "mean predicted against observed on train, relative",
+      "file": "a03ea01402b3852a.json"
+    },
+    "calibration.test": {
+      "hash": "d19b8ac30c61aa17",
+      "kind": "table",
+      "value": null,
+      "summary": "calibration by decile of predicted probability on test",
+      "file": "d19b8ac30c61aa17.csv"
+    },
+    "calibration.train": {
+      "hash": "57fac2ad556ba2b5",
+      "kind": "table",
+      "value": null,
+      "summary": "calibration by decile of predicted probability on train",
+      "file": "57fac2ad556ba2b5.csv"
+    },
+    "calibration_intercept.test": {
+      "hash": "2ee976d3ba997b5b",
+      "kind": "scalar",
+      "value": -0.008632158166919576,
+      "summary": "logistic regression of the outcome on logit(p) on test: the intercept",
+      "file": "2ee976d3ba997b5b.json"
+    },
+    "calibration_intercept.train": {
+      "hash": "2ce8cd09e114c041",
+      "kind": "scalar",
+      "value": 0.0003779479546526731,
+      "summary": "logistic regression of the outcome on logit(p) on train: the intercept",
+      "file": "2ce8cd09e114c041.json"
+    },
+    "calibration_slope.test": {
+      "hash": "e06564c76408a5f5",
+      "kind": "scalar",
+      "value": 0.9885680157641455,
+      "summary": "logistic regression of the outcome on logit(p) on test: the slope",
+      "file": "e06564c76408a5f5.json"
+    },
+    "calibration_slope.train": {
+      "hash": "854612452f86249a",
+      "kind": "scalar",
+      "value": 1.0005392373718454,
+      "summary": "logistic regression of the outcome on logit(p) on train: the slope",
+      "file": "854612452f86249a.json"
+    },
+    "challenger.auc": {
+      "hash": "5646e7f3980a3883",
+      "kind": "scalar",
+      "value": 0.778929888450087,
+      "summary": "the challenger's AUC on test",
+      "file": "5646e7f3980a3883.json"
+    },
+    "challenger.brier": {
+      "hash": "2031a1544152f101",
+      "kind": "scalar",
+      "value": 0.13495233921455768,
+      "summary": "the challenger's Brier score on test",
+      "file": "2031a1544152f101.json"
+    },
+    "challenger.delta_auc": {
+      "hash": "3877bdd03c4bd066",
+      "kind": "scalar",
+      "value": 0.0239059431301607,
+      "summary": "the challenger's AUC on test minus the champion's",
+      "file": "3877bdd03c4bd066.json"
+    },
+    "challenger.name": {
+      "hash": "6941a0166a40ba18",
+      "kind": "json",
+      "value": null,
+      "summary": "the challenger model, at its library defaults",
+      "file": "6941a0166a40ba18.json"
+    },
+    "condition_number": {
+      "hash": "ba0d9cc48defa663",
+      "kind": "scalar",
+      "value": 4.279282985233684,
+      "summary": "Belsley's condition number of the column-standardised design (D-035)",
+      "file": "ba0d9cc48defa663.json"
+    },
+    "csi.age": {
+      "hash": "25b88f374674d34e",
+      "kind": "scalar",
+      "value": 0.0012032640271228468,
+      "summary": "CSI of age: its contribution to the shift in the linear predictor",
+      "file": "25b88f374674d34e.json"
+    },
+    "csi.bill_mean_6m": {
+      "hash": "0c34001dd34a1c33",
+      "kind": "scalar",
+      "value": 9.982086887188549e-06,
+      "summary": "CSI of bill_mean_6m: its contribution to the shift in the linear predictor",
+      "file": "0c34001dd34a1c33.json"
+    },
+    "csi.bill_trend_6m": {
+      "hash": "9e5a9b688eed7778",
+      "kind": "scalar",
+      "value": 0.00036745277827378065,
+      "summary": "CSI of bill_trend_6m: its contribution to the shift in the linear predictor",
+      "file": "9e5a9b688eed7778.json"
+    },
+    "csi.delinq_count_6m": {
+      "hash": "f0438233ff605b79",
+      "kind": "scalar",
+      "value": 0.0008781439663456255,
+      "summary": "CSI of delinq_count_6m: its contribution to the shift in the linear predictor",
+      "file": "f0438233ff605b79.json"
+    },
+    "csi.delinq_last": {
+      "hash": "e755cf0a576420d5",
+      "kind": "scalar",
+      "value": 0.0016976037307104386,
+      "summary": "CSI of delinq_last: its contribution to the shift in the linear predictor",
+      "file": "e755cf0a576420d5.json"
+    },
+    "csi.delinq_max_6m": {
+      "hash": "35990a3949b6765c",
+      "kind": "scalar",
+      "value": 0.004737109650283635,
+      "summary": "CSI of delinq_max_6m: its contribution to the shift in the linear predictor",
+      "file": "35990a3949b6765c.json"
+    },
+    "csi.limit_bal": {
+      "hash": "c91a2a4b59f88183",
+      "kind": "scalar",
+      "value": 0.0013840999281603081,
+      "summary": "CSI of limit_bal: its contribution to the shift in the linear predictor",
+      "file": "c91a2a4b59f88183.json"
+    },
+    "csi.max": {
+      "hash": "ce1257d87779af23",
+      "kind": "scalar",
+      "value": 0.004737109650283635,
+      "summary": "the largest characteristic stability index",
+      "file": "ce1257d87779af23.json"
+    },
+    "csi.pay_ratio_last": {
+      "hash": "5898a9c53090cab5",
+      "kind": "scalar",
+      "value": 0.00011318312656587103,
+      "summary": "CSI of pay_ratio_last: its contribution to the shift in the linear predictor",
+      "file": "5898a9c53090cab5.json"
+    },
+    "csi.pay_ratio_mean_6m": {
+      "hash": "5e53c153ce013e6c",
+      "kind": "scalar",
+      "value": 0.002042601165248019,
+      "summary": "CSI of pay_ratio_mean_6m: its contribution to the shift in the linear predictor",
+      "file": "5e53c153ce013e6c.json"
+    },
+    "csi.utilisation": {
+      "hash": "6ed37e426c6699b0",
+      "kind": "scalar",
+      "value": 0.00021359224046920607,
+      "summary": "CSI of utilisation: its contribution to the shift in the linear predictor",
+      "file": "6ed37e426c6699b0.json"
+    },
+    "deciles.test": {
+      "hash": "4396db6fc8665231",
+      "kind": "table",
+      "value": null,
+      "summary": "decile separation on test; decile 1 holds the highest probabilities",
+      "file": "4396db6fc8665231.csv"
+    },
+    "deciles.test.top2_capture": {
+      "hash": "e2c0ad9f8f46aff2",
+      "kind": "scalar",
+      "value": 0.49522852837769965,
+      "summary": "share of test events in the top two deciles",
+      "file": "e2c0ad9f8f46aff2.json"
+    },
+    "deciles.train": {
+      "hash": "5c7dee80215ed000",
+      "kind": "table",
+      "value": null,
+      "summary": "decile separation on train; decile 1 holds the highest probabilities",
+      "file": "5c7dee80215ed000.csv"
+    },
+    "deciles.train.top2_capture": {
+      "hash": "5131afa7bef65136",
+      "kind": "scalar",
+      "value": 0.5031216361679225,
+      "summary": "share of train events in the top two deciles",
+      "file": "5131afa7bef65136.json"
+    },
+    "guidance.0a0c83585dcb95ba": {
+      "hash": "2ce5582efe00453e",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'evaluation of conceptual soundness model design and variables': [[reg:SR11-7:V.1.a]], [[reg:SR11-7:V.1]], [[reg:SR26-2:V.1.a]]",
+      "file": "2ce5582efe00453e.json"
+    },
+    "guidance.273fd684d5a7c123": {
+      "hash": "1bbba27e8b4e6fe1",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'data quality accuracy completeness and representativeness': [[reg:SR11-7:VI.4]], [[reg:SR11-7:III]], [[reg:SR11-7:V.1.c]]",
+      "file": "1bbba27e8b4e6fe1.json"
+    },
+    "guidance.688eead9b5ac7dfb": {
+      "hash": "3e40fbb7a37d7aad",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'ongoing monitoring model performance over time': [[reg:SR11-7:V.1.b]], [[reg:SR26-2:V.2]], [[reg:SR26-2:V]]",
+      "file": "3e40fbb7a37d7aad.json"
+    },
+    "guidance.70baba588b0eb25b": {
+      "hash": "30a94a341ed76991",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'outcomes analysis comparing model output to actual outcomes': [[reg:SR11-7:V.1.c]], [[reg:SR26-2:V.1.b]], [[reg:SR26-2:IV.1]]",
+      "file": "30a94a341ed76991.json"
+    },
+    "guidance.78ef53a49ee86008": {
+      "hash": "a0d55e2e21b12065",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'model validation elements scope and purpose': [[reg:SR11-7:II]], [[reg:SR11-7:V.1]], [[reg:SR26-2:V.1.b]]",
+      "file": "a0d55e2e21b12065.json"
+    },
+    "guidance.c8664af1d12442aa": {
+      "hash": "e9e12d4302d60219",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'model validation findings deficiencies and remediation': [[reg:SR11-7:VI.4]], [[reg:SR26-2:VI.3]], [[reg:SR11-7:V]]",
+      "file": "e9e12d4302d60219.json"
+    },
+    "guidance.cbe598ebd328c64f": {
+      "hash": "27f9a7b1b6522b2c",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'sensitivity analysis stability benchmarking alternative models': [[reg:SR11-7:V.1.b]], [[reg:SR11-7:V.1.a]], [[reg:SR11-7:V.2]]",
+      "file": "27f9a7b1b6522b2c.json"
+    },
+    "leakage.name_screen": {
+      "hash": "cfca7a4a6b1f701a",
+      "kind": "table",
+      "value": null,
+      "summary": "feature names against the target-adjacent lexicon and the declared target",
+      "file": "cfca7a4a6b1f701a.csv"
+    },
+    "leakage.name_screen.n_matched": {
+      "hash": "407e62befaf64dd0",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "feature names matching the target-adjacent lexicon",
+      "file": "407e62befaf64dd0.json"
+    },
+    "leakage.overlap": {
+      "hash": "ebd7ff301f51c330",
+      "kind": "scalar",
+      "value": 0.012555555555555556,
+      "summary": "share of test rows whose feature values also appear in train",
+      "file": "ebd7ff301f51c330.json"
+    },
+    "leakage.target_corr": {
+      "hash": "14173a6294ff7a46",
+      "kind": "table",
+      "value": null,
+      "summary": "each feature against the outcome on train, on its own",
+      "file": "14173a6294ff7a46.csv"
+    },
+    "leakage.target_corr.max_single_feature_auc": {
+      "hash": "2e212f3a7e70e2fa",
+      "kind": "scalar",
+      "value": 0.7279795600769919,
+      "summary": "the AUC of the strongest single feature",
+      "file": "2e212f3a7e70e2fa.json"
+    },
+    "leakage.timing": {
+      "hash": "6dadd51252102b2e",
+      "kind": "table",
+      "value": null,
+      "summary": "each feature's declared timing; flagged means during or after the outcome",
+      "file": "6dadd51252102b2e.csv"
+    },
+    "leakage.timing.n_flagged": {
+      "hash": "742bcd2472e5774a",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "features declared during_period or after_outcome",
+      "file": "742bcd2472e5774a.json"
+    },
+    "metrics.test.auc": {
+      "hash": "365b70348d5e094c",
+      "kind": "scalar",
+      "value": 0.7550239453199263,
+      "summary": "auc on test, recomputed by quaestor",
+      "file": "365b70348d5e094c.json"
+    },
+    "metrics.test.brier": {
+      "hash": "86e93c8f16eb5a21",
+      "kind": "scalar",
+      "value": 0.13851624110185512,
+      "summary": "brier on test, recomputed by quaestor",
+      "file": "86e93c8f16eb5a21.json"
+    },
+    "metrics.test.event_rate": {
+      "hash": "f60ae2a7f2f505d0",
+      "kind": "scalar",
+      "value": 0.2212222222222222,
+      "summary": "event_rate on test, recomputed by quaestor",
+      "file": "f60ae2a7f2f505d0.json"
+    },
+    "metrics.test.gini": {
+      "hash": "296bfeeb26235e05",
+      "kind": "scalar",
+      "value": 0.5100478906398527,
+      "summary": "gini on test, recomputed by quaestor",
+      "file": "296bfeeb26235e05.json"
+    },
+    "metrics.test.ks": {
+      "hash": "d3c4ed617c25ec1d",
+      "kind": "scalar",
+      "value": 0.4066831201241656,
+      "summary": "ks on test, recomputed by quaestor",
+      "file": "d3c4ed617c25ec1d.json"
+    },
+    "metrics.test.logloss": {
+      "hash": "2de58c1b9031cecf",
+      "kind": "scalar",
+      "value": 0.4441654047054746,
+      "summary": "logloss on test, recomputed by quaestor",
+      "file": "2de58c1b9031cecf.json"
+    },
+    "metrics.test.mean_predicted": {
+      "hash": "89d241ea7073a6e1",
+      "kind": "scalar",
+      "value": 0.22057103836889108,
+      "summary": "mean_predicted on test, recomputed by quaestor",
+      "file": "89d241ea7073a6e1.json"
+    },
+    "metrics.test.n": {
+      "hash": "5367a59fc72e90ce",
+      "kind": "scalar",
+      "value": 9000.0,
+      "summary": "n on test, recomputed by quaestor",
+      "file": "5367a59fc72e90ce.json"
+    },
+    "metrics.train.auc": {
+      "hash": "01cf81787a2a83dd",
+      "kind": "scalar",
+      "value": 0.7545552575903518,
+      "summary": "auc on train, recomputed by quaestor",
+      "file": "01cf81787a2a83dd.json"
+    },
+    "metrics.train.brier": {
+      "hash": "c95106e956fce265",
+      "kind": "scalar",
+      "value": 0.13837627732887925,
+      "summary": "brier on train, recomputed by quaestor",
+      "file": "c95106e956fce265.json"
+    },
+    "metrics.train.event_rate": {
+      "hash": "657aa7fc325c3891",
+      "kind": "scalar",
+      "value": 0.2211904761904762,
+      "summary": "event_rate on train, recomputed by quaestor",
+      "file": "657aa7fc325c3891.json"
+    },
+    "metrics.train.gini": {
+      "hash": "eaaf0f7921875d48",
+      "kind": "scalar",
+      "value": 0.5091105151807036,
+      "summary": "gini on train, recomputed by quaestor",
+      "file": "eaaf0f7921875d48.json"
+    },
+    "metrics.train.ks": {
+      "hash": "18df22bde2d4d04b",
+      "kind": "scalar",
+      "value": 0.4144375384819921,
+      "summary": "ks on train, recomputed by quaestor",
+      "file": "18df22bde2d4d04b.json"
+    },
+    "metrics.train.logloss": {
+      "hash": "b816b08363628386",
+      "kind": "scalar",
+      "value": 0.44394011169909503,
+      "summary": "logloss on train, recomputed by quaestor",
+      "file": "b816b08363628386.json"
+    },
+    "metrics.train.mean_predicted": {
+      "hash": "935d2cb7f1115b0d",
+      "kind": "scalar",
+      "value": 0.22122486990698906,
+      "summary": "mean_predicted on train, recomputed by quaestor",
+      "file": "935d2cb7f1115b0d.json"
+    },
+    "metrics.train.n": {
+      "hash": "1721ceaed2742d05",
+      "kind": "scalar",
+      "value": 21000.0,
+      "summary": "n on train, recomputed by quaestor",
+      "file": "1721ceaed2742d05.json"
+    },
+    "profile.test.describe": {
+      "hash": "9682471c7f444860",
+      "kind": "table",
+      "value": null,
+      "summary": "descriptive statistics of test",
+      "file": "9682471c7f444860.csv"
+    },
+    "profile.test.missing": {
+      "hash": "24b5cba7c6480094",
+      "kind": "table",
+      "value": null,
+      "summary": "missingness per feature in test",
+      "file": "24b5cba7c6480094.csv"
+    },
+    "profile.test.missing.max": {
+      "hash": "f813848de2595eef",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "the largest missing fraction in test",
+      "file": "f813848de2595eef.json"
+    },
+    "profile.test.n": {
+      "hash": "abbe1a271f511cfd",
+      "kind": "scalar",
+      "value": 9000.0,
+      "summary": "rows in test",
+      "file": "abbe1a271f511cfd.json"
+    },
+    "profile.test.schema": {
+      "hash": "985fafe9a515d6e3",
+      "kind": "table",
+      "value": null,
+      "summary": "the columns of data_test.csv the model used",
+      "file": "985fafe9a515d6e3.csv"
+    },
+    "profile.train.describe": {
+      "hash": "54934e38a02ccab7",
+      "kind": "table",
+      "value": null,
+      "summary": "descriptive statistics of train",
+      "file": "54934e38a02ccab7.csv"
+    },
+    "profile.train.missing": {
+      "hash": "0c6f5686e47c94e3",
+      "kind": "table",
+      "value": null,
+      "summary": "missingness per feature in train",
+      "file": "0c6f5686e47c94e3.csv"
+    },
+    "profile.train.missing.max": {
+      "hash": "050a3099cebe7bdb",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "the largest missing fraction in train",
+      "file": "050a3099cebe7bdb.json"
+    },
+    "profile.train.n": {
+      "hash": "a359de9d09919e7f",
+      "kind": "scalar",
+      "value": 21000.0,
+      "summary": "rows in train",
+      "file": "a359de9d09919e7f.json"
+    },
+    "profile.train.schema": {
+      "hash": "3a838f886fee4a01",
+      "kind": "table",
+      "value": null,
+      "summary": "the columns of data_train.csv the model used",
+      "file": "3a838f886fee4a01.csv"
+    },
+    "psi.age": {
+      "hash": "06c22a639aaff0ea",
+      "kind": "scalar",
+      "value": 0.00308251645959634,
+      "summary": "PSI of age between train and test",
+      "file": "06c22a639aaff0ea.json"
+    },
+    "psi.bill_mean_6m": {
+      "hash": "127cdf829dca6657",
+      "kind": "scalar",
+      "value": 0.0014882313864352907,
+      "summary": "PSI of bill_mean_6m between train and test",
+      "file": "127cdf829dca6657.json"
+    },
+    "psi.bill_trend_6m": {
+      "hash": "78be70d28390a1b4",
+      "kind": "scalar",
+      "value": 0.0007484247754344492,
+      "summary": "PSI of bill_trend_6m between train and test",
+      "file": "78be70d28390a1b4.json"
+    },
+    "psi.delinq_count_6m": {
+      "hash": "d77ddb1d5278f566",
+      "kind": "scalar",
+      "value": 0.0018556227100575353,
+      "summary": "PSI of delinq_count_6m between train and test",
+      "file": "d77ddb1d5278f566.json"
+    },
+    "psi.delinq_last": {
+      "hash": "cbc9de3683819107",
+      "kind": "scalar",
+      "value": 0.00023465928493953932,
+      "summary": "PSI of delinq_last between train and test",
+      "file": "cbc9de3683819107.json"
+    },
+    "psi.delinq_max_6m": {
+      "hash": "4b0a94ab23b88c1e",
+      "kind": "scalar",
+      "value": 0.0010268069920357672,
+      "summary": "PSI of delinq_max_6m between train and test",
+      "file": "4b0a94ab23b88c1e.json"
+    },
+    "psi.limit_bal": {
+      "hash": "b019584781dc8001",
+      "kind": "scalar",
+      "value": 0.001272099805044595,
+      "summary": "PSI of limit_bal between train and test",
+      "file": "b019584781dc8001.json"
+    },
+    "psi.max": {
+      "hash": "e1d82330f3419ae9",
+      "kind": "scalar",
+      "value": 0.00308251645959634,
+      "summary": "the largest train-to-test PSI, score included",
+      "file": "e1d82330f3419ae9.json"
+    },
+    "psi.pay_ratio_last": {
+      "hash": "82c97112e1fca8ee",
+      "kind": "scalar",
+      "value": 0.002264336400253838,
+      "summary": "PSI of pay_ratio_last between train and test",
+      "file": "82c97112e1fca8ee.json"
+    },
+    "psi.pay_ratio_mean_6m": {
+      "hash": "62e0e0f8e4a5d373",
+      "kind": "scalar",
+      "value": 0.0010275376616547536,
+      "summary": "PSI of pay_ratio_mean_6m between train and test",
+      "file": "62e0e0f8e4a5d373.json"
+    },
+    "psi.utilisation": {
+      "hash": "f094559bd7da0af8",
+      "kind": "scalar",
+      "value": 0.0006522718782299943,
+      "summary": "PSI of utilisation between train and test",
+      "file": "f094559bd7da0af8.json"
+    },
+    "psi.y_score": {
+      "hash": "ec2b8d1b82bfc184",
+      "kind": "scalar",
+      "value": 0.0013676539621795022,
+      "summary": "PSI of the score between train and test",
+      "file": "ec2b8d1b82bfc184.json"
+    },
+    "rule.calibration_first_event_rate": {
+      "hash": "42f1351e20d02d39",
+      "kind": "scalar",
+      "value": 0.05,
+      "summary": "the event rate below which the report puts calibration before discrimination",
+      "file": "42f1351e20d02d39.json"
+    },
+    "run.data_test": {
+      "hash": "79ca24a93b131900",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's data_test.csv",
+      "file": "79ca24a93b131900.csv"
+    },
+    "run.data_train": {
+      "hash": "959c684fd6eb5da1",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's data_train.csv",
+      "file": "959c684fd6eb5da1.csv"
+    },
+    "run.duration_s": {
+      "hash": "36fa48342ad24ce3",
+      "kind": "scalar",
+      "value": 1.2995329997502267,
+      "summary": "subject wall-clock seconds",
+      "file": "36fa48342ad24ce3.json"
+    },
+    "run.features": {
+      "hash": "792cb79cd5cf8f5a",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's features.json",
+      "file": "792cb79cd5cf8f5a.json"
+    },
+    "run.metrics": {
+      "hash": "38b4e4ef5fd1e024",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's metrics.json",
+      "file": "38b4e4ef5fd1e024.json"
+    },
+    "run.model_summary": {
+      "hash": "ca1c764c96ffb6a7",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's model_summary.json",
+      "file": "ca1c764c96ffb6a7.json"
+    },
+    "run.predictions_test": {
+      "hash": "11f3dbd4dde435e9",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's predictions_test.csv",
+      "file": "11f3dbd4dde435e9.csv"
+    },
+    "run.predictions_train": {
+      "hash": "4df7a5d1c3ed8607",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's predictions_train.csv",
+      "file": "4df7a5d1c3ed8607.csv"
+    },
+    "run.splits": {
+      "hash": "94d5dcb9ef9202d2",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's splits.json",
+      "file": "94d5dcb9ef9202d2.json"
+    },
+    "run.status": {
+      "hash": "d309b36a9185a907",
+      "kind": "json",
+      "value": null,
+      "summary": "how the subject's subprocess ended",
+      "file": "d309b36a9185a907.json"
+    },
+    "run.stderr": {
+      "hash": "41728c386f27afcd",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's stderr",
+      "file": "41728c386f27afcd.json"
+    },
+    "run.stdout": {
+      "hash": "73c8e1c3e295bb81",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's stdout",
+      "file": "73c8e1c3e295bb81.json"
+    },
+    "threshold.C1.calibration_slope.max": {
+      "hash": "b6672579891a8332",
+      "kind": "scalar",
+      "value": 1.2,
+      "summary": "C1: the top of the calibration slope band",
+      "file": "b6672579891a8332.json"
+    },
+    "threshold.C1.calibration_slope.min": {
+      "hash": "749634ae1b5bfbfc",
+      "kind": "scalar",
+      "value": 0.8,
+      "summary": "C1: the bottom of the calibration slope band",
+      "file": "749634ae1b5bfbfc.json"
+    },
+    "threshold.C1.mean_ratio_rel": {
+      "hash": "20e93a8c41cd506f",
+      "kind": "scalar",
+      "value": 0.25,
+      "summary": "C1: mean predicted against observed, relative",
+      "file": "20e93a8c41cd506f.json"
+    },
+    "threshold.D1.missing_gap": {
+      "hash": "9cce25eac4eae11e",
+      "kind": "scalar",
+      "value": 0.1,
+      "summary": "D1: the missingness gap between splits, as a fraction",
+      "file": "9cce25eac4eae11e.json"
+    },
+    "threshold.E1.delta_auc": {
+      "hash": "e042774c838f7426",
+      "kind": "scalar",
+      "value": 0.03,
+      "summary": "E1: the challenger's AUC lead over the champion",
+      "file": "e042774c838f7426.json"
+    },
+    "threshold.L1.single_feature_auc": {
+      "hash": "c29e7a341a5d8ca0",
+      "kind": "scalar",
+      "value": 0.9,
+      "summary": "L1: the AUC one feature may reach on its own",
+      "file": "c29e7a341a5d8ca0.json"
+    },
+    "threshold.L2.overlap": {
+      "hash": "9f336eaf53e881b5",
+      "kind": "scalar",
+      "value": 0.005,
+      "summary": "L2: the fraction of test rows that may also be in train",
+      "file": "9f336eaf53e881b5.json"
+    },
+    "threshold.M1.condition_number": {
+      "hash": "7e52fd7a23e31f0e",
+      "kind": "scalar",
+      "value": 30.0,
+      "summary": "M1: Belsley's condition number of the design (D-035)",
+      "file": "7e52fd7a23e31f0e.json"
+    },
+    "threshold.M1.vif": {
+      "hash": "aeb4f33cd4d7bc1a",
+      "kind": "scalar",
+      "value": 10.0,
+      "summary": "M1: the variance inflation factor of any retained feature",
+      "file": "aeb4f33cd4d7bc1a.json"
+    },
+    "threshold.O1.auc_gap": {
+      "hash": "630f28f4d9765b36",
+      "kind": "scalar",
+      "value": 0.08,
+      "summary": "O1: the train-to-test AUC gap (D-050)",
+      "file": "630f28f4d9765b36.json"
+    },
+    "threshold.S1.psi": {
+      "hash": "278b9016aaffa93c",
+      "kind": "scalar",
+      "value": 0.25,
+      "summary": "S1: the population stability index, train against test (D-046)",
+      "file": "278b9016aaffa93c.json"
+    },
+    "threshold.package.auc.test.min": {
+      "hash": "8bfd02ccfd3dc1a1",
+      "kind": "scalar",
+      "value": 0.7,
+      "summary": "package.yaml declares auc min 0.7",
+      "file": "8bfd02ccfd3dc1a1.json"
+    },
+    "threshold.package.brier.test.max": {
+      "hash": "d0f98b9c227a50b1",
+      "kind": "scalar",
+      "value": 0.2,
+      "summary": "package.yaml declares brier max 0.2",
+      "file": "d0f98b9c227a50b1.json"
+    },
+    "threshold.package.calibration_slope.test.max": {
+      "hash": "0adb7a890bfedfba",
+      "kind": "scalar",
+      "value": 1.2,
+      "summary": "package.yaml declares calibration_slope max 1.2",
+      "file": "0adb7a890bfedfba.json"
+    },
+    "threshold.package.calibration_slope.test.min": {
+      "hash": "95fdb84829b73336",
+      "kind": "scalar",
+      "value": 0.8,
+      "summary": "package.yaml declares calibration_slope min 0.8",
+      "file": "95fdb84829b73336.json"
+    },
+    "threshold.package.max_seconds": {
+      "hash": "3f4c6e97552a6a7d",
+      "kind": "scalar",
+      "value": 300.0,
+      "summary": "the wall-clock cap package.yaml declares for the subject",
+      "file": "3f4c6e97552a6a7d.json"
+    },
+    "threshold.package.psi.max": {
+      "hash": "fbb5a9d16ddccacb",
+      "kind": "scalar",
+      "value": 0.25,
+      "summary": "package.yaml declares psi max 0.25",
+      "file": "fbb5a9d16ddccacb.json"
+    },
+    "vif.age": {
+      "hash": "692cd6e9c6fddd04",
+      "kind": "scalar",
+      "value": 1.0248994028320775,
+      "summary": "variance inflation factor of age on train",
+      "file": "692cd6e9c6fddd04.json"
+    },
+    "vif.bill_mean_6m": {
+      "hash": "87cb4e5485473523",
+      "kind": "scalar",
+      "value": 2.2646656813244532,
+      "summary": "variance inflation factor of bill_mean_6m on train",
+      "file": "87cb4e5485473523.json"
+    },
+    "vif.bill_trend_6m": {
+      "hash": "6d3f01ce1622c6d7",
+      "kind": "scalar",
+      "value": 1.3304770045205692,
+      "summary": "variance inflation factor of bill_trend_6m on train",
+      "file": "6d3f01ce1622c6d7.json"
+    },
+    "vif.delinq_count_6m": {
+      "hash": "7273e0be1995f67a",
+      "kind": "scalar",
+      "value": 3.5435744896249637,
+      "summary": "variance inflation factor of delinq_count_6m on train",
+      "file": "7273e0be1995f67a.json"
+    },
+    "vif.delinq_last": {
+      "hash": "59461811eacc4683",
+      "kind": "scalar",
+      "value": 2.3206947490731205,
+      "summary": "variance inflation factor of delinq_last on train",
+      "file": "59461811eacc4683.json"
+    },
+    "vif.delinq_max_6m": {
+      "hash": "e7b701a1b118930b",
+      "kind": "scalar",
+      "value": 3.4835144137463527,
+      "summary": "variance inflation factor of delinq_max_6m on train",
+      "file": "e7b701a1b118930b.json"
+    },
+    "vif.limit_bal": {
+      "hash": "0c6efb3f7df0b761",
+      "kind": "scalar",
+      "value": 2.0968171726408005,
+      "summary": "variance inflation factor of limit_bal on train",
+      "file": "0c6efb3f7df0b761.json"
+    },
+    "vif.max": {
+      "hash": "d3785ba99f76b1cb",
+      "kind": "scalar",
+      "value": 3.5435744896249637,
+      "summary": "the largest variance inflation factor",
+      "file": "d3785ba99f76b1cb.json"
+    },
+    "vif.pay_ratio_last": {
+      "hash": "b68613a64952510d",
+      "kind": "scalar",
+      "value": 2.7135772735517634,
+      "summary": "variance inflation factor of pay_ratio_last on train",
+      "file": "b68613a64952510d.json"
+    },
+    "vif.pay_ratio_mean_6m": {
+      "hash": "2cda5cfccf223afe",
+      "kind": "scalar",
+      "value": 3.026650796784834,
+      "summary": "variance inflation factor of pay_ratio_mean_6m on train",
+      "file": "2cda5cfccf223afe.json"
+    },
+    "vif.utilisation": {
+      "hash": "6ce4c1028f984e64",
+      "kind": "scalar",
+      "value": 2.829009901119953,
+      "summary": "variance inflation factor of utilisation on train",
+      "file": "6ce4c1028f984e64.json"
+    }
+  }
+}

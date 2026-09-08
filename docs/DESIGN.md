@@ -747,3 +747,62 @@ applied to the command line. `--timeout` caps the subject rather than the provid
 the subject's cap is the one a real-sample run on a slow machine actually hits; and bare
 `--synthetic` reads each subject's documented size from a table in `configs.py` (D-081) rather than
 inventing one, because the size of a generated panel decides every figure computed from it.
+
+## Phase 9 follow-up — What the first live validation changed
+
+The operator's half of Phase 9 ran on 2026-09-08 and refused to render. It found three things nine
+phases of offline tests had not, and `docs/EVALUATION.md` §1 writes the run up with its numbers.
+Two of the three are decisions about structure and belong here.
+
+**One tokenizer, and the wrong call no longer exists (D-084).** Four rules in this pipeline are
+statements about one set — the numbers of a section's prose that count as claims. The pre-pass owns
+the denominator (D-064); a claim for a token outside the set is dropped (D-077); a claim that did
+not verify is wrapped in the prose and never deleted (D-073); and a report carrying an unwrapped
+number outside every verified claim is not written. Phase 7 to Phase 9 computed that set in three
+places, all of them calling one masking helper whose `package_version` argument defaulted to
+`None`. The pre-pass passed it; the renderer and the repair loop did not, and neither had ever met
+prose that mentions the package's version, because the offline drafter writes one sentence per
+artifact. The first live drafter mentioned it in its first paragraph of section 2. The fix is
+`src/quaestor/verifier/tokens.py` and the single function `eligible_numbers(markdown, *,
+package_version=None)`, which returns the masked text, the section's lines, the eligible tokens
+with their offsets and line indices, and the excluded tokens with their classes — everything all
+three callers want, so that none of them has a reason to compute a part of it. `masked_prose` is
+deleted rather than given a required argument: the trap was that the short call was the wrong one,
+and a public function whose easy spelling is wrong is a defect waiting for its second author. The
+rejected alternative was reading the version out of the report's own front matter inside
+`uncovered_numbers`, which makes a checker parse the artifact it is checking and does nothing for
+`wrap_unverified`, which has no report to parse.
+
+**The extractor names a line instead of quoting it (D-085).** `ExtractedClaim` asked for the whole
+line each number sits on, copied exactly. On the live run that made extraction 8 of 17 model calls
+and 63,865 of 92,196 output tokens, with the longest call at 20,257 tokens and 197 seconds, because
+a sentence carrying four numbers is re-typed four times with its citations. The field is now
+`line`, a 1-based index into the prose the prompt showed — `numbered_prose` prints it, one numbered
+line per line, and `numbered_lines` reads it back — and the deterministic side resolves the index
+against the prose it sent before the pre-pass runs, so `Claim`, `claims.json`, `CLAIMS_SCHEMA.json`
+and the claim id (which hashes `[section, text, value]`) are all unchanged. An index out of range
+is treated as D-077 treats an ineligible token's claim: dropped, counted in `n_from_model`, and
+published in the exclusion list. D-077's second matching pass now covers the misnamed line as well
+as the paraphrase it was written for. The argument is D-063's, one field further on — a value the
+caller can compute is a value it should not ask for — and the reason it took a live run to notice
+is that no offline test pays for an output token. The rejected alternatives were a character offset
+inside the sentence, which the drafter's own thousands separators make unreliable, and a truncated
+prefix of the text, which keeps the failure mode and makes the claim id depend on how the model
+truncated.
+
+**`L2` needed a null, and the synthetic control could not supply one (D-086).** The contamination
+screen hashed each row's feature values and fired above 0.5%. That is exact on both synthetic
+subjects, whose generators draw continuous features, and it is a false-alarm generator on a real
+credit panel of coarse integers, where 1.2556% of the test rows repeat a feature vector of train
+because two different clients wrote the same row. The screen now measures three things and reports
+all of them: the identifier overlap (`leakage.overlap.ids`, using the row's identity — the declared
+`id_column`, and the period as well for a hazard panel), the feature-vector overlap
+(`leakage.overlap.features`, the Phase 5 quantity, with `leakage.overlap` kept as an alias because
+the Phase 1 golden cites it), and `leakage.duplicates.train`, the share of train rows whose feature
+vector is not unique within train. A shared identifier is severity high at the unchanged threshold.
+A shared feature vector is severity medium, and only above twice the within-train share — the rate
+at which coincidence happens in this dataset, measured on the one split where contamination cannot
+be the explanation. The threshold did not move; what changed is that the question now has a
+comparison in it. This is the shape of every honest fix to a false alarm: the rejected alternative
+was raising `threshold.L2.overlap` until the real sample passed, which is choosing the number that
+makes the run green and would hide a real 3% contamination on a coarser panel.

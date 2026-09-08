@@ -10,10 +10,16 @@ other three read the data:
   feature against the outcome, oriented so that a feature which predicts the outcome *downwards*
   scores as high as one that predicts it upwards -- a leak does not become less of a leak for
   carrying a minus sign.
-* **overlap** hashes each row's feature values and asks what share of the test split's hashes are
-  also in the training split's. Hashing the values rather than the identifier is deliberate: the
-  contamination recipe of the study duplicates rows, and a duplicate arrives with an identifier of
-  its own.
+* **overlap** is two quantities and a baseline, because on discrete data the feature-vector
+  screen alone is a false-alarm generator. ``leakage.overlap.ids`` is the share of test rows whose
+  *identifier* -- the declared id column, and the period as well for a hazard panel -- also
+  appears in train: two splits that share a row identity is contamination on its face.
+  ``leakage.overlap.features`` is the share of test rows whose *feature vector* appears in train,
+  which catches the study's contamination recipe when it re-keys what it copies but which also
+  fires on any panel whose features have small discrete support. So it is read against
+  ``leakage.duplicates.train``, the share of train rows whose feature vector is not unique inside
+  train: that is what coincidence looks like in this dataset, measured on the split that cannot be
+  contaminated by itself (DECISIONS D-086).
 * **name screen** matches each feature name against a small lexicon of target-adjacent words and
   against the package's own declared target column, which is the one word that is certainly wrong
   to have inside a feature name.
@@ -22,7 +28,9 @@ other three read the data:
 from __future__ import annotations
 
 import hashlib
-from typing import Any, Final
+from collections import Counter
+from collections.abc import Sequence
+from typing import Any, Final, NamedTuple
 
 import numpy as np
 import pandas as pd
@@ -32,10 +40,23 @@ from ..errors import ToolError
 from ..findings import DefectClass, FindingCandidate, Severity
 from ..package import FeatureTiming
 from . import stats
-from .frames import declared_features, feature_frame, require_split, scored_frame
+from .frames import (
+    declared_features,
+    feature_frame,
+    key_columns,
+    require_split,
+    scored_frame,
+)
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
 
-__all__ = ["NAME_LEXICON", "CheckLeakageTool", "row_hashes"]
+__all__ = [
+    "DUPLICATE_MULTIPLE",
+    "NAME_LEXICON",
+    "CheckLeakageTool",
+    "Overlaps",
+    "duplicate_share",
+    "row_hashes",
+]
 
 NAME_LEXICON: Final = (
     "target",
@@ -74,6 +95,63 @@ target column is added to this list at run time, which is the match that matters
 _FLAGGED_TIMINGS: Final = (FeatureTiming.during_period, FeatureTiming.after_outcome)
 """What the timing screen reports; ``L1`` fires on the second of them only."""
 
+_OVERLAP_FIX: Final = (
+    "check that both splits write the package's declared id_column, which spec 3.3 requires of "
+    "every data_<split>.csv"
+)
+"""What to do about two splits with no identifier column in common."""
+
+DUPLICATE_MULTIPLE: Final = 2.0
+"""How far above the within-train duplicate share the test-in-train share must sit to be a defect.
+
+The feature-vector overlap of two splits drawn from one discrete population is not zero and is not
+a defect: it is the chance that two different clients wrote the same row. The rate at which that
+happens in *this* dataset is measured on the training split alone, where a repeat cannot be
+contamination, and the screen fires when the cross-split rate is more than twice it. The factor is
+a factor and not a test: it is deliberately blunt, because the quantity it guards is a false-alarm
+rate rather than a p-value, and a doubling is far outside what re-drawing the split moves. On the
+first live credit run the cross-split share was 1.2556% (``leakage.overlap``, committed under
+``eval/results/first-live/credit-attempt1/artifacts/``) against a within-train share of 1.1619%
+recomputed from that run's own ``data_train.csv``, which is not committed (D-087) -- a ratio of
+1.08 where this constant asks for more than 2, and the false alarm it exists to refuse (D-086).
+"""
+
+
+class Overlaps(NamedTuple):
+    """What the contamination screen measured, and the artifacts it stored for each part.
+
+    Attributes:
+        ids: The share of test rows whose identifier also appears in train.
+        features: The share of test rows whose feature vector also appears in train.
+        duplicates: The share of train rows whose feature vector is not unique within train.
+        artifacts: The four artifacts -- the alias, the two overlaps and the duplicate share.
+    """
+
+    ids: float
+    features: float
+    duplicates: float
+    artifacts: list[Artifact]
+
+
+def duplicate_share(digests: Sequence[str]) -> float:
+    """Return the share of rows whose hash occurs more than once in the same split.
+
+    This is the leave-one-out chance that a row of this split is matched by another row of it,
+    which is the baseline the cross-split share is read against: a row's own presence is excluded
+    by asking whether the hash occurs *more than once*, so a split of entirely unique rows scores
+    zero rather than one.
+
+    Args:
+        digests: One hash per row.
+
+    Returns:
+        The share, in ``[0, 1]``; zero for an empty split.
+    """
+    if not digests:
+        return 0.0
+    counts = Counter(digests)
+    return float(sum(count for count in counts.values() if count > 1) / len(digests))
+
 
 def row_hashes(frame: pd.DataFrame, columns: list[str]) -> list[str]:
     """Return one hash per row of the named columns, rendered canonically.
@@ -100,8 +178,9 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
     name = "check_leakage"
     description = (
         "Screen for leakage: declared feature timings, each feature's own AUC against the "
-        "outcome, the share of test rows that also appear in train, and target-adjacent feature "
-        "names."
+        "outcome, the share of test rows that also appear in train by identifier and by feature "
+        "vector, the within-train duplicate share those are read against, and target-adjacent "
+        "feature names."
     )
 
     class Args(ToolArgs):
@@ -140,8 +219,8 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
         strongest, target_artifacts = self._target_power(ctx, train)
         artifacts += target_artifacts
 
-        overlap, overlap_artifact = self._overlap(ctx, train, test)
-        artifacts.append(overlap_artifact)
+        overlaps = self._overlap(ctx, train, test)
+        artifacts += overlaps.artifacts
 
         matched, name_artifacts = self._name_screen(ctx)
         artifacts += name_artifacts
@@ -184,21 +263,9 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
                 )
             )
 
-        overlap_limit = ctx.thresholds["threshold.L2.overlap"]
-        if overlap > overlap_limit:
-            candidates.append(
-                FindingCandidate(
-                    defect_class=DefectClass.L2,
-                    evidence=[overlap_artifact.hash, overlap_threshold.hash],
-                    detail=(
-                        f"{overlap:.4%} of the rows of {test!r} also appear in {train!r}, against "
-                        f"a contamination threshold of {overlap_limit:.2%}; the held-out split is "
-                        "not held out"
-                    ),
-                    suggested_severity=Severity.high,
-                    tool=self.name,
-                )
-            )
+        candidate = self._contamination(ctx, overlaps, train, test, overlap_threshold)
+        if candidate is not None:
+            candidates.append(candidate)
 
         return ToolResult(
             tool=self.name,
@@ -206,10 +273,87 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
             candidates=candidates,
             summary=(
                 f"{len(offenders)} feature(s) declared after_outcome; strongest single feature "
-                f"{strongest[0]!r} at AUC {strongest[1]:.4f}; overlap {overlap:.4%}; "
-                f"{len(matched)} name(s) matched the lexicon"
+                f"{strongest[0]!r} at AUC {strongest[1]:.4f}; identifier overlap "
+                f"{overlaps.ids:.4%}; feature overlap {overlaps.features:.4%} against a "
+                f"within-train duplicate share of {overlaps.duplicates:.4%}; {len(matched)} "
+                "name(s) matched the lexicon"
             ),
         )
+
+    def _contamination(
+        self,
+        ctx: ToolContext,
+        overlaps: Overlaps,
+        train: str,
+        test: str,
+        threshold: Artifact,
+    ) -> FindingCandidate | None:
+        """Return the ``L2`` candidate the two overlaps justify, or ``None``.
+
+        Two rules, in severity order (DECISIONS D-086):
+
+        * a shared **identifier** is contamination on its face -- the same row is in both splits
+          under the same name -- so an identifier overlap above ``threshold.L2.overlap`` is a
+          candidate at severity **high**;
+        * a shared **feature vector** with distinct identifiers may be contamination whose keys
+          were rewritten, or it may be two different subjects with the same values, so it is a
+          candidate at severity **medium** and only when the cross-split share exceeds both
+          ``threshold.L2.overlap`` and :data:`DUPLICATE_MULTIPLE` times the share of train rows
+          that repeat a feature vector inside train.
+
+        Neither rule firing is not silence: all three quantities are stored and the report writes
+        them, which is what "the values are reported" means.
+
+        Args:
+            ctx: The run's context, for the artifacts the evidence names.
+            overlaps: What the screen measured.
+            train: The training split's name.
+            test: The held-out split's name.
+            threshold: The stored ``threshold.L2.overlap`` artifact.
+
+        Returns:
+            The candidate, or ``None`` when neither rule fires.
+        """
+        limit = ctx.thresholds["threshold.L2.overlap"]
+        baseline = max(limit, DUPLICATE_MULTIPLE * overlaps.duplicates)
+        ids_artifact = ctx.store.artifact("leakage.overlap.ids")
+        features_artifact = ctx.store.artifact("leakage.overlap.features")
+        duplicates_artifact = ctx.store.artifact("leakage.duplicates.train")
+        if overlaps.ids > limit:
+            evidence = [ids_artifact.hash, threshold.hash]
+            detail = (
+                f"{overlaps.ids:.4%} of the rows of {test!r} carry an identifier that also "
+                f"identifies a row of {train!r}, against a contamination threshold of "
+                f"{limit:.2%}; the held-out split is not held out"
+            )
+            if overlaps.features > baseline:
+                evidence += [features_artifact.hash, duplicates_artifact.hash]
+                detail += (
+                    f", and {overlaps.features:.4%} of them repeat a feature vector of {train!r} "
+                    f"against a within-train duplicate share of {overlaps.duplicates:.4%}"
+                )
+            return FindingCandidate(
+                defect_class=DefectClass.L2,
+                evidence=sorted(set(evidence)),
+                detail=detail,
+                suggested_severity=Severity.high,
+                tool=self.name,
+            )
+        if overlaps.features > baseline:
+            return FindingCandidate(
+                defect_class=DefectClass.L2,
+                evidence=sorted({features_artifact.hash, duplicates_artifact.hash, threshold.hash}),
+                detail=(
+                    f"{overlaps.features:.4%} of the rows of {test!r} repeat a feature vector of "
+                    f"{train!r} while carrying identifiers of their own, against "
+                    f"{baseline:.4%} -- the larger of the {limit:.2%} contamination threshold "
+                    f"and twice the {overlaps.duplicates:.4%} of {train!r} rows that repeat a "
+                    f"feature vector inside {train!r}; the copy may have been re-keyed"
+                ),
+                suggested_severity=Severity.medium,
+                tool=self.name,
+            )
+        return None
 
     def _timing(self, ctx: ToolContext) -> tuple[list[Artifact], list[str]]:
         """Store the declared timings and return the ``after_outcome`` offenders."""
@@ -294,22 +438,71 @@ class CheckLeakageTool(Tool["CheckLeakageTool.Args"]):
         ]
         return (str(strongest["feature"]), float(strongest["single_feature_auc"])), artifacts
 
-    def _overlap(self, ctx: ToolContext, train: str, test: str) -> tuple[float, Artifact]:
-        """Store the share of test rows whose feature values also appear in train."""
+    def _overlap(self, ctx: ToolContext, train: str, test: str) -> Overlaps:
+        """Store both contamination overlaps and the within-train duplicate share.
+
+        Args:
+            ctx: The run's context.
+            train: The split the test rows are looked for in.
+            test: The split whose rows are looked up.
+
+        Returns:
+            The three shares and the four artifacts they are stored as. ``leakage.overlap`` is
+            kept as an alias of ``leakage.overlap.features``, because it is the name the Phase 1
+            golden report cites and a logical name that stops resolving is a citation that
+            dangles (D-086).
+        """
         train_frame = feature_frame(ctx, train)
         test_frame = feature_frame(ctx, test)
         columns = [
             name for name in declared_features(ctx, test_frame) if name in train_frame.columns
         ]
-        seen = set(row_hashes(train_frame, columns))
-        digests = row_hashes(test_frame, columns)
-        share = float(sum(digest in seen for digest in digests) / len(digests))
-        return share, ctx.store.put(
-            "leakage.overlap",
-            share,
-            ArtifactKind.scalar,
-            f"share of {test} rows whose feature values also appear in {train}",
-        )
+        train_digests = row_hashes(train_frame, columns)
+        test_digests = row_hashes(test_frame, columns)
+        seen = set(train_digests)
+        features = float(sum(digest in seen for digest in test_digests) / len(test_digests))
+        duplicates = duplicate_share(train_digests)
+
+        keys = [
+            name for name in key_columns(ctx, test_frame) if name in key_columns(ctx, train_frame)
+        ]
+        if not keys:
+            raise ToolError(
+                f"data_{train}.csv and data_{test}.csv of package {ctx.package.name!r} share no "
+                "identifier column, so no row of one can be recognised in the other",
+                fix=_OVERLAP_FIX,
+            )
+        train_keys = set(row_hashes(train_frame, keys))
+        test_keys = row_hashes(test_frame, keys)
+        ids = float(sum(digest in train_keys for digest in test_keys) / len(test_keys))
+
+        artifacts = [
+            ctx.store.put(
+                "leakage.overlap.ids",
+                ids,
+                ArtifactKind.scalar,
+                f"share of {test} rows whose {keys} also identify a row of {train}",
+            ),
+            ctx.store.put(
+                "leakage.overlap.features",
+                features,
+                ArtifactKind.scalar,
+                f"share of {test} rows whose feature values also appear in {train}",
+            ),
+            ctx.store.put(
+                "leakage.overlap",
+                features,
+                ArtifactKind.scalar,
+                f"share of {test} rows whose feature values also appear in {train}",
+            ),
+            ctx.store.put(
+                "leakage.duplicates.train",
+                duplicates,
+                ArtifactKind.scalar,
+                f"share of {train} rows whose feature values are not unique within {train}",
+            ),
+        ]
+        return Overlaps(ids=ids, features=features, duplicates=duplicates, artifacts=artifacts)
 
     def _name_screen(self, ctx: ToolContext) -> tuple[list[str], list[Artifact]]:
         """Store which feature names match the target-adjacent lexicon."""

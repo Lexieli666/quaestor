@@ -16,8 +16,9 @@ real one has (DECISIONS D-080).
   one per JSON path, and a ``[[table:...]]`` directive per table, opening with the first guidance
   span it was given. It writes only numbers the JSON carries, which is the rule the prompt states,
   so a report it drafts verifies.
-* **extract** -- reads the prose back out of the prompt and returns every numeric token outside a
-  citation, an inline-code span or a finding id, with the citation that follows it.
+* **extract** -- reads the numbered prose back out of the prompt and returns every numeric token
+  outside a citation, an inline-code span or a finding id, with the citation that follows it and
+  the line number the prompt printed beside it (D-085).
 * **plan** -- stops at once, so the bounded loop adds nothing.
 * **plain_llm** -- writes the seven headings with one cited sentence each and no findings.
 
@@ -285,10 +286,18 @@ class OfflineLLM(FakeLLM):
 
     @staticmethod
     def _extract(prompt: str) -> str:
-        """Return every numeric token of the prose, with the citation that follows it."""
+        """Return every numeric token of the prose, with its line number and its citation.
+
+        The import of :func:`~quaestor.verifier.extract.numbered_lines` is local because
+        ``quaestor.verifier`` imports the ``LLM`` protocol out of this package: a module-level
+        import here would make the cycle depend on which of the two packages a caller imported
+        first, which is a cycle that works until it does not.
+        """
+        from ..verifier.extract import numbered_lines
+
         prose = _between(prompt, "Prose:\n", "\n\nAnswer with one JSON object")
         claims: list[dict[str, Any]] = []
-        for line in prose.splitlines():
+        for number, line in sorted(numbered_lines(prose).items()):
             if not line.strip() or line.lstrip().startswith("#"):
                 continue
             masked = masked_line(line)
@@ -296,7 +305,7 @@ class OfflineLLM(FakeLLM):
                 token = match.group(0)
                 claims.append(
                     {
-                        "text": line.strip(),
+                        "line": number,
                         "value": float(token.replace(",", "").rstrip("%")),
                         "unit": "percent" if token.endswith("%") else "ratio",
                         "citation": citation_of(line, match.end()),

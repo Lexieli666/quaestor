@@ -738,7 +738,9 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     sections: dict[ReportSection, str] = {}
     post_repair: list[VerifiedClaim] = []
     for draft in drafts:
-        sections[draft.section] = wrap_unverified(draft.markdown, draft.claims)
+        sections[draft.section] = wrap_unverified(
+            draft.markdown, draft.claims, package_version=loaded.spec.version
+        )
         post_repair += draft.claims
 
     claims_document = ClaimsDocument.build(

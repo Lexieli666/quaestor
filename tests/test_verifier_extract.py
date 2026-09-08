@@ -27,6 +27,9 @@ from quaestor.verifier import (
 )
 from quaestor.verifier.extract import (
     EXTRACTION_INSTRUCTION,
+    ExtractedClaims,
+    numbered_lines,
+    numbered_prose,
     numeric_tokens,
     token_value,
 )
@@ -69,12 +72,11 @@ def llm_returning(*claims: dict[str, Any]) -> FakeLLM:
 def test_the_extractor_returns_the_claims_the_model_gave(store: ArtifactStore) -> None:
     """The happy path: four numbers, four claims, none added by the pre-pass."""
     markdown = section(store)
-    lines = markdown.splitlines()
     llm = llm_returning(
-        {"text": lines[0], "value": 0.7412, "unit": "ratio", "metric": "auc", "split": "test"},
-        {"text": lines[0], "value": 0.7, "unit": "ratio", "metric": "auc"},
-        {"text": lines[1], "value": 3500, "unit": "count"},
-        {"text": lines[1], "value": 1500, "unit": "count"},
+        {"line": 1, "value": 0.7412, "unit": "ratio", "metric": "auc", "split": "test"},
+        {"line": 1, "value": 0.7, "unit": "ratio", "metric": "auc"},
+        {"line": 2, "value": 3500, "unit": "count"},
+        {"line": 2, "value": 1500, "unit": "count"},
     )
     extraction = extract(SECTION, markdown, llm)
     assert [claim.value for claim in extraction.claims] == [0.7412, 0.7, 3500, 1500]
@@ -87,16 +89,15 @@ def test_a_fake_extractor_that_omits_two_numbers_shows_both_as_unattributed(
 ) -> None:
     """The pre-pass is the denominator: the extractor cannot lower it by omission."""
     markdown = section(store)
-    lines = markdown.splitlines()
     llm = llm_returning(
         {
-            "text": lines[0],
+            "line": 1,
             "value": 0.7412,
             "unit": "ratio",
             "citation": store.artifact("metrics.test.auc").citation(),
         },
         {
-            "text": lines[1],
+            "line": 2,
             "value": 3500,
             "unit": "count",
             "citation": store.artifact("profile.train.n").citation(),
@@ -119,16 +120,15 @@ def test_tokens_are_matched_to_claims_by_value_and_order_within_the_line(
 ) -> None:
     """The citation that ends up on a claim is the one the drafter wrote beside that number."""
     markdown = section(store)
-    lines = markdown.splitlines()
     llm = llm_returning(
         {
-            "text": lines[0],
+            "line": 1,
             "value": 0.7,
             "unit": "ratio",
             "citation": store.artifact("threshold.package.auc.test.min").citation(),
         },
         {
-            "text": lines[0],
+            "line": 1,
             "value": 0.7412,
             "unit": "ratio",
             "citation": store.artifact("metrics.test.auc").citation(),
@@ -150,7 +150,7 @@ def test_a_number_the_model_invents_is_dropped_and_recorded(store: ArtifactStore
     """
     markdown = section(store)
     llm = llm_returning(
-        {"text": markdown.splitlines()[0], "value": 0.99, "unit": "ratio"},
+        {"line": 1, "value": 0.99, "unit": "ratio"},
     )
     extraction = extract(SECTION, markdown, llm)
     assert [claim.value for claim in extraction.claims] == [0.7412, 0.7, 3500, 1500]
@@ -178,7 +178,7 @@ def test_a_claim_for_an_excluded_token_is_dropped_whatever_excluded_it(
     prose: str, value: float, written: str
 ) -> None:
     """Each of D-015's exclusion classes survives an extractor that claims what is inside it."""
-    llm = llm_returning({"text": prose.splitlines()[0], "value": value, "unit": "ratio"})
+    llm = llm_returning({"line": 1, "value": value, "unit": "ratio"})
     extraction = extract(SECTION, prose, llm)
     assert extraction.claims == []
     dropped = [item for item in extraction.exclusions if item.pattern == RETURNED_EXCLUDED]
@@ -196,8 +196,8 @@ def test_a_claim_for_a_number_inside_a_citation_is_dropped(store: ArtifactStore)
     citation = store.artifact("scenario.value_change.-300").citation()
     line = f"Servicing value falls by 1,297,986 {citation} at the largest downward shock."
     llm = llm_returning(
-        {"text": line, "value": 1297986, "unit": "currency", "citation": citation},
-        {"text": line, "value": -300, "unit": "bp", "citation": citation},
+        {"line": 1, "value": 1297986, "unit": "currency", "citation": citation},
+        {"line": 1, "value": -300, "unit": "bp", "citation": citation},
     )
     extraction = extract(SECTION, line, llm)
     assert [claim.value for claim in extraction.claims] == [1297986]
@@ -205,27 +205,29 @@ def test_a_claim_for_a_number_inside_a_citation_is_dropped(store: ArtifactStore)
     assert [item.examples for item in dropped] == [["-300.0"]]
 
 
-def test_a_claim_whose_text_matches_no_line_keeps_its_citation(store: ArtifactStore) -> None:
-    """An extractor that paraphrases the sentence does not get its claim thrown away.
+def test_a_claim_that_names_the_wrong_line_keeps_its_citation(store: ArtifactStore) -> None:
+    """An extractor that names the wrong line does not get its claim thrown away.
 
-    The second pass offers a claim no line accounted for to any unfilled token of the section, by
-    value, so paraphrasing costs the report nothing. Only a number that is nowhere in the prose is
-    dropped.
+    The second pass offers a claim no token of its own line accounted for to any unfilled token of
+    the section, by value, so a misattributed line costs the report nothing. Only a number that is
+    nowhere in the prose is dropped -- including one whose line number is not in the prose at all,
+    which is the shape a hallucinated line takes once the model returns an index (D-085).
     """
     markdown = section(store)
     llm = llm_returning(
         {
-            "text": "a paraphrase of the sentence about discrimination",
+            "line": 2,
             "value": 0.7412,
             "citation": store.artifact("metrics.test.auc").citation(),
         },
-        {"text": "a sentence that is not in the section at all", "value": 0.5},
+        {"line": 99, "value": 0.5},
     )
     extraction = extract(SECTION, markdown, llm)
     assert [claim.value for claim in extraction.claims] == [0.7412, 0.7, 3500, 1500]
     first = extraction.claims[0]
     assert first.citation is not None and "metrics.test.auc" in first.citation
     assert first.id not in extraction.unattributed_ids
+    assert extraction.n_from_model == 2
     dropped = [item for item in extraction.exclusions if item.pattern == RETURNED_EXCLUDED]
     assert [item.examples for item in dropped] == [["0.5"]]
 
@@ -320,6 +322,42 @@ def test_the_instruction_names_the_section_and_carries_the_prose(store: Artifact
     assert EXTRACTION_INSTRUCTION.split("\n", 1)[0] in prompt
     assert "outcomes" in prompt
     assert "0.7412" in prompt
+
+
+def test_the_prompt_numbers_the_prose_and_asks_for_the_number_not_the_text(
+    store: ArtifactStore,
+) -> None:
+    """The extractor names a line rather than quoting it, which is what D-085 bought."""
+    llm = FakeLLM(default='{"claims": []}')
+    markdown = section(store)
+    extract(SECTION, markdown, llm)
+    prompt = llm.calls[0].prompt
+    for number, line in enumerate(markdown.splitlines(), 1):
+        assert f"{number}| {line}" in prompt
+    assert '"line" is the number printed to the left' in prompt
+    # The field is gone from the schema, so a model that answers with the old shape is rejected
+    # rather than quietly half-understood.
+    assert "text" not in ExtractedClaims.model_json_schema()["$defs"]["ExtractedClaim"]["required"]
+    with pytest.raises(LLMOutputError):
+        extract(SECTION, markdown, llm_returning({"text": "a line", "value": 0.7412}))
+
+
+def test_numbering_the_prose_and_reading_it_back_is_a_round_trip() -> None:
+    """`numbered_lines` is the inverse of `numbered_prose`, table rows and blank lines included."""
+    prose = "The AUC is 0.7412.\n\n| decile | lift |\n| 1 | 2.2409 |"
+    lines = prose.split("\n")
+    assert numbered_lines(numbered_prose(prose)) == dict(enumerate(lines, 1))
+    assert numbered_prose(prose).splitlines()[3] == "4| | 1 | 2.2409 |"
+
+
+def test_the_package_version_is_excluded_at_the_end_of_a_sentence_too() -> None:
+    """A version at the end of a sentence is still the version; the full stop is punctuation."""
+    markdown = "The champion in credit_default 1.0 scores 0.7412 on test.\nIt is version 1.0.\n"
+    extraction = extract(SECTION, markdown, llm_returning(), package_version="1.0")
+    assert [claim.value for claim in extraction.claims] == [0.7412]
+    patterns = {exclusion.pattern: exclusion.examples for exclusion in extraction.exclusions}
+    assert patterns["package_version"] == ["1.0"]
+    assert extraction.n_excluded_tokens == 2
 
 
 def test_merge_exclusions_deduplicates_across_sections(store: ArtifactStore) -> None:

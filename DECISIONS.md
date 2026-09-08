@@ -1898,3 +1898,187 @@ here and recorded.
   alternative: making `--timeout` a total budget for the whole validation, which would need a clock
   threaded through the planner, the tools and the drafter, and would kill a run half-way with a
   report the renderer would then refuse — a failure mode strictly worse than the tool's own caps.
+
+## D-084. One eligible-number tokenizer, and no way to call it without the package version
+
+- **Date:** 2026-09-08 (Phase 9 follow-up, decided in Cowork)
+- **Q:** The first live validation of `credit_default` produced a report in which all 140
+  post-repair claims verified, and then refused to render it:
+  `the rendered report does not satisfy docs/REPORT_SCHEMA.md: these numbers in the prose are
+  covered by no verified claim and are not wrapped: ['1.0']`. The number is the `1.0` of "The
+  champion in credit_default 1.0 is a linear-in-log-odds scorecard", section 2, which D-015
+  excludes as the package version. The extraction pre-pass excluded it — the pipeline passes
+  `package_version=loaded.spec.version` to `extract` — and the renderer's `uncovered_numbers` did
+  not, because it called `masked_prose(body)` with the version argument defaulted away. Two
+  callers of one rule, one of which could not see the whole rule. How is that closed?
+- **A:** The rule becomes a function and the wrong call stops existing.
+  `src/quaestor/verifier/tokens.py` holds the tokenizer (`NUMERIC_TOKEN_RE`, `numeric_tokens`,
+  `token_value`, `line_spans`), the nine exclusion patterns of D-015, `ExcludedToken`,
+  `Exclusion`, `exclusions_of`, `drafted_prose`, and **one** function that answers the only
+  question any caller has: `eligible_numbers(markdown, *, package_version=None)`, returning the
+  masked text, the section's lines, the eligible tokens with their offsets and line indices, and
+  the tokens excluded with the class each fell into. All three callers read it — the pre-pass
+  (`verifier/extract.py`), the repair loop's wrapper (`report/repair.py`) and the renderer's
+  uncovered-number check (`report/renderer.py`) — and `uncovered_numbers`, `check_report` and
+  `wrap_unverified` all take `package_version`, which `render_report` and `pipeline.validate`
+  fill from `package.spec.version`. **`masked_prose` is deleted**, not deprecated: it was the
+  spelling that made this defect possible, it had no caller left after the refactor, and a public
+  function whose easy call is the wrong one is a defect waiting for its second author. Two
+  narrower things are decided here as well. The version guard's trailing lookahead becomes
+  `(?!\w|\.\d)` instead of `(?![\w.])`, because version `1.0` at the end of a sentence is written
+  `1.0.` and the old guard left exactly the token this exclusion exists for eligible; `1.0.3` and
+  `1.0x` are still not the version. And `check_report`'s new keyword is optional, so the Phase 9
+  CLI test that calls it on a written report keeps working; the renderer, which is the caller that
+  can refuse a run, always passes it.
+- **Why:** Grounding precision is the number this project asks to be judged on, and the apparatus
+  that protects it is a set of agreements about which numbers count: the pre-pass owns the
+  denominator (D-064), a claim for an excluded token is dropped (D-077), an unverified number is
+  wrapped and never deleted (D-073), and a report with an unwrapped uncovered number is not
+  written. Every one of those is a statement about the *same set*, so the set has to be computed
+  once. Three code paths computing it separately is not a style problem: it is two of the four
+  agreements silently disagreeing, and the failure it produced was the worst available shape — not
+  a wrong number in a report, but a correct report thrown away, after 17 model calls and 17
+  minutes, over a number nobody had claimed. Deleting `masked_prose` rather than fixing its
+  default is the part that makes this a fix rather than a patch: a default argument that is wrong
+  for every real caller is a trap, and the version was defaulted away in `repair.py` too, where
+  it had not yet cost anything. Rejected alternatives: giving `masked_prose` a required
+  `package_version` parameter, which leaves three tokenizing loops in three modules and fixes only
+  the argument that happened to be missing this time; and reading the version off the report's own
+  front matter inside `uncovered_numbers`, which makes a checker parse the artifact it is checking
+  and would have gone on being wrong for `wrap_unverified`, which has no report to parse.
+  Measured: `tests/test_live_credit_attempt1.py` reconstructs sections 2 and 3 of the attempt from
+  its recorded extraction prompts and asserts that the pre-pass and the renderer return the same
+  token set for each; and that every section of the attempt, checked against its own post-repair
+  verdicts, now has nothing uncovered, while section 2 checked *without* the version still reports
+  `['1.0']` — the defect is fixed by the version reaching the check, not by the rule being
+  relaxed. See `docs/DESIGN.md`, Phase 9 follow-up, and `docs/EVALUATION.md`.
+
+## D-085. The extractor returns the line's number, not the line's text
+
+- **Date:** 2026-09-08 (Phase 9 follow-up, decided in Cowork)
+- **Q:** `ExtractedClaim.text` asks the model to copy back "the whole line the number appears on,
+  copied exactly, citations included". On the first live run that made extraction **8 of 17 model
+  calls and 63,865 of 92,196 output tokens** — 69% of everything the run generated — with the
+  longest single call at **20,257 tokens and 197 seconds** (section 4, 44 claims), because a
+  sentence carrying four numbers is re-typed four times, citations and all. The caller already has
+  the prose it sent. Can the field go?
+- **A:** Yes. `ExtractedClaim.text` is replaced by `ExtractedClaim.line`, a 1-based index into the
+  prose the extraction prompt showed; the prompt prints that prose one numbered line per line
+  (`numbered_prose`, and `numbered_lines` reads it back), and `extract` resolves each returned
+  index against the lines it sent and fills `Claim.text` from it before the pre-pass runs. So
+  `claims.json`, `CLAIMS_SCHEMA.json`, `Claim`, `VerifiedClaim`, the claim id — which hashes
+  `[section, text, value]` — and every appendix are unchanged: the text is still the sentence, it
+  is simply no longer transmitted. A line number that is not in the prose is treated exactly as an
+  ineligible token's claim is: the claim is dropped, counted in `n_from_model`, and published in
+  the exclusion list under `extractor_returned_excluded_token` (D-077). D-077's second matching
+  pass survives unchanged and now covers the misnamed-line case: a claim whose own line has no
+  token of its value is offered to any unfilled token of the section, so naming the wrong line
+  costs the report nothing. The offline fake and `eval/verifier_eval.py`'s fake extractor read the
+  numbers back out of the prompt they were sent, which is what a competent extractor does.
+- **Why:** The field was a way for the answer to disagree with the prose, and it was the single
+  largest cost in the run. Both halves of that matter and the first is the reason to prefer the
+  index even at equal cost: D-063 already refuses to ask a model for `section`, `id` and `source`
+  because "asking a model for a value the caller can compute is a way of being told a different
+  one", and `text` is that value — the pre-pass had to normalise whitespace and fall back to
+  substring matching precisely because the copy came back slightly changed. An index is verifiable
+  in one comparison. The cost is the reason it was found now rather than in Phase 7: nothing in
+  the offline suite pays for output tokens, so a prompt that asks a model to re-type its input is
+  free in every test and 69% of the bill on the first real run. Rejected alternatives: asking for
+  a character offset, which is what the drafter's own thousands separators make unreliable and
+  which D-064's note already rejected for the pre-pass; and keeping `text` and asking for a
+  truncated prefix, which trades a whole failure mode for a smaller one and leaves the claim id
+  depending on how the model truncated. Not claimed here: how much this saves live. The number
+  above is what the field cost on one run, and the saving will be measured on the next one rather
+  than estimated in this entry.
+
+## D-086. `L2` is two overlaps read against a within-train baseline, and only the identifier is high
+
+- **Date:** 2026-09-08 (Phase 9 follow-up, decided in Cowork)
+- **Q:** The first live validation raised `F-001 L2` at severity **high** on the real
+  `credit_default` sample: 1.2556% of the test rows carried a feature vector that also appears in
+  the training split, against `threshold.L2.overlap` of 0.5%. The panel's features are coarse
+  integers and small ratios — delinquency counts, six-month means of rounded bills — and its
+  identifiers are disjoint by construction: the split is a random 70/30 over `client_id`. Is a
+  repeated feature vector contamination?
+- **A:** Not on its own, and the a-priori reason is that **identical feature vectors from distinct
+  clients are not contamination**: on discrete data two different subjects can write the same row,
+  and the rate at which that happens is a property of the feature set, not of the split. So
+  `check_leakage` computes three quantities and reports all of them: `leakage.overlap.ids`, the
+  share of test rows whose *identifier* — the declared `id_column`, and the period as well for a
+  hazard panel, which is what `key_columns` returns — also identifies a row of train;
+  `leakage.overlap.features`, the share whose *feature vector* appears in train, which is the
+  Phase 5 quantity unchanged; and `leakage.duplicates.train`, the share of train rows whose
+  feature vector occurs more than once inside train, which is what coincidence looks like in this
+  dataset measured on the one split that cannot be contaminated by itself. The `L2` candidate
+  follows: **severity high** when the identifier overlap exceeds `threshold.L2.overlap`, because
+  the same row is in both splits under the same name; **severity medium** when the feature overlap
+  exceeds `max(threshold.L2.overlap, 2 × leakage.duplicates.train)`, because a re-keyed copy looks
+  exactly like this and a coincidence does not; otherwise **no candidate**, and the three numbers
+  are reported. `leakage.overlap` stays in the store as an alias of `leakage.overlap.features`:
+  the Phase 1 golden report cites it, `tests/test_tools_clean.py` requires every golden Appendix B
+  name to resolve in a real run, and a logical name that stops resolving is a committed citation
+  that dangles. `threshold.L2.overlap` keeps its value and its meaning; nothing was loosened.
+- **Why:** The screen was measuring the feature set's granularity and calling it contamination,
+  which is the highest-cost mistake a validation copilot can make — a severity-high finding that
+  says the held-out split is not held out invalidates every metric in the report. And it was not
+  detectable from the synthetic control: `synthetic.py` draws continuous features, so the clean
+  panel's feature overlap is exactly 0.0 and the rule looked exact. The baseline is a *measured*
+  null rather than a chosen constant for the same reason the exclusion list is published: the
+  question "is 1.2556% a lot?" has no answer that does not come from the data, and the within-train
+  duplicate share answers it in the only units that mean anything. The factor of 2 is deliberately
+  blunt (`DUPLICATE_MULTIPLE`), and it is a factor rather than a test because the quantity it
+  guards is a false-alarm rate rather than a p-value; on the attempt's own panel the cross-split
+  share was 1.2556% — `leakage.overlap`, committed with the run — against a within-train share of
+  1.1619% recomputed from that run's `data_train.csv`, which is not committed (D-087): a ratio of
+  1.08 where the rule asks for more than 2, and the margin the constant exists to refuse.
+  Splitting the severity is the second half: the study's
+  `L2` recipe copies rows, and whether it re-keys them is the difference between certain
+  contamination and probable contamination, so it is the difference between high and medium rather
+  than between fires and does not. Rejected alternatives: raising `threshold.L2.overlap` until the
+  real sample passed, which is choosing the number that makes the run green and would hide a real
+  3% contamination on a coarser panel; dropping the feature-vector screen for the identifier one,
+  which loses the re-keyed variant of the seeded defect entirely; and hashing the identifier into
+  the feature vector, which makes every row unique and turns the screen off without saying so.
+  Measured: `tests/test_tool_rules.py` now carries both branches of the seeded shape (3% of test
+  rows copied into train — ids kept, high, identifier overlap 3.0%; ids re-keyed, medium,
+  identifier overlap 0.0% and feature overlap 3.0%), the clean synthetic control at 0.0 / 0.0 /
+  0.0 with the alias equal to the feature overlap, and the attempt's case as a discrete panel:
+  feature overlap **1.2667%** against a within-train duplicate share of **1.2857%**, identifiers
+  disjoint, **no candidate** — where the Phase 5 rule raises `L2` high. The clean synthetic
+  `credit_default` still yields exactly `{E1 low}` (D-017) and `msr_prepayment` exactly `{}`
+  (D-047), each now over three more artifacts.
+
+## D-087. What of the first live run is committed, and what is kept outside the repository
+
+- **Date:** 2026-09-08 (Phase 9 follow-up)
+- **Q:** The operator's first live validation is committed as `eval/results/first-live/`, so that
+  `docs/EVALUATION.md` and `tests/test_live_credit_attempt1.py` read the run rather than a
+  retelling of it. The run directory as written holds the trace, the 17 cassettes, the 121-entry
+  artifact store, `run/*.json` — and `run/data_train.csv`, `run/data_test.csv`,
+  `run/predictions_{train,test}.csv` plus the four `run.data_*` / `run.predictions_*` **artifacts**,
+  which are byte-for-byte the same rows. `CLAUDE.md`: real data is never committed. What goes in?
+- **A:** The directory is named `credit-attempt1` — the run is one attempt of several the runbook
+  expects, and the report it would have written does not exist — and it is committed without any
+  row-level file: not the four CSVs under `run/`, which the Cowork decision names, and **not the
+  four row-level CSV artifacts either**, which it does not name but which hold the identical rows
+  under a content address. Everything else goes in: `trace.jsonl`, `cassettes/`, `run/*.json`
+  (splits, features, metrics, model_summary — aggregates and coefficients, as the Phase 3
+  follow-up committed for the same subject), and `artifacts/` including `index.json`, so every
+  logical name the trace cites is still listed with its hash, its kind and its summary. The eight
+  excluded files are moved to `~/code/data-raw/credit/first-live-attempt1-rows/`, outside the tree
+  and inside `.gitignore`'s guard, rather than deleted. The consequence is stated rather than
+  hidden: a citation to `run.data_train`, `run.data_test`, `run.predictions_train` or
+  `run.predictions_test` resolves in `index.json` and has no payload file in the repository. No
+  report claim cites one — all four are `kind: table` with no value — and no test reads one.
+- **Why:** The instruction excluded `run/*.csv` in order to keep client rows out of the
+  repository, and the same rows arrive a second time through the artifact store, so honouring the
+  words and not the reason would have committed 2.8 MB of exactly what was being excluded. The
+  precedent is the subject's own: the Phase 3 real-sample commit shipped
+  `subjects/credit_default/artifacts/real/*.json` as "aggregates and coefficients only, no rows".
+  Keeping `index.json` complete rather than pruning the four entries is deliberate: the index is
+  the run's inventory, and an inventory with four rows quietly removed misrepresents what the run
+  computed, while an inventory whose four largest payloads are absent from the repository is a
+  fact a reader can see. Rejected alternatives: committing the row files because the UCI credit
+  dataset is public, which puts 30,000 rows of client data in a repository whose constitution says
+  no rows and invites the same argument for the next dataset; and dropping `artifacts/` entirely,
+  which would leave the trace's artifact hashes citing nothing.

@@ -189,6 +189,7 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "verifier/extract.py",
         "verifier/grounding.py",
         "verifier/match.py",
+        "verifier/tokens.py",
         "vocab.py",
     ]
 

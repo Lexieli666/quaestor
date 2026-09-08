@@ -36,7 +36,7 @@ from ..package import ModelPackage
 from ..trace import EventType, TraceEvent
 from ..verifier.claim import ClaimStatus, VerifiedClaim
 from ..verifier.claims_doc import ClaimsDocument
-from ..verifier.extract import NUMERIC_TOKEN_RE, drafted_prose, masked_prose, token_value
+from ..verifier.tokens import drafted_prose, eligible_numbers
 from ..vocab import SECTION_ORDER, Configuration, ReportSection
 from .drafter import finding_heading
 from .repair import UNVERIFIED_OPEN, wrapped_values
@@ -538,22 +538,31 @@ def _appendix_d(inputs: ReportInputs) -> str:
     )
 
 
-def uncovered_numbers(body: str, claims: Sequence[VerifiedClaim]) -> list[str]:
+def uncovered_numbers(
+    body: str,
+    claims: Sequence[VerifiedClaim],
+    *,
+    package_version: str | None = None,
+) -> list[str]:
     """Return the numeric tokens of the drafted prose that nothing accounts for.
 
     A token is accounted for when a claim of the report verifies it, or when it is wrapped
-    ``⟦unverified: …⟧``. Exclusions are the pre-pass's own (D-015), applied here by reusing the
-    extractor's masking so that a number in a renderer block, a citation or inline code is not
-    counted twice.
+    ``⟦unverified: …⟧``. Which tokens are eligible at all is not decided here: it is
+    :func:`~quaestor.verifier.tokens.eligible_numbers`, the same function the extraction pre-pass
+    and the repair loop's wrapper read, so that this check cannot refuse a report over a number
+    the pre-pass never counted as a claim (D-084).
 
     Args:
         body: Sections 1 to 7 of the rendered report.
         claims: Every post-repair claim of the report.
+        package_version: The package's version string, which is excluded by D-015 and which the
+            drafter does mention in prose -- "the champion in credit_default 1.0 is a
+            linear-in-log-odds scorecard" is the sentence that cost the first live run its report.
 
     Returns:
         The tokens with nothing behind them, in prose order.
     """
-    masked = masked_prose(body)
+    eligible = eligible_numbers(body, package_version=package_version)
     verified: dict[float, int] = {}
     for claim in claims:
         if claim.status is ClaimStatus.verified:
@@ -561,12 +570,11 @@ def uncovered_numbers(body: str, claims: Sequence[VerifiedClaim]) -> list[str]:
     for value in wrapped_values(body):
         verified[value] = verified.get(value, 0) + 1
     uncovered: list[str] = []
-    for _, token in ((m.start(), m.group(0)) for m in NUMERIC_TOKEN_RE.finditer(masked)):
-        value = token_value(token)
-        if verified.get(value, 0) > 0:
-            verified[value] -= 1
+    for token in eligible.tokens:
+        if verified.get(token.value, 0) > 0:
+            verified[token.value] -= 1
         else:
-            uncovered.append(token)
+            uncovered.append(token.text)
     return uncovered
 
 
@@ -622,7 +630,12 @@ def render_report(inputs: ReportInputs) -> str:
             "",
         ]
     )
-    failures = check_report(report, inputs.configuration, inputs.claims.post_repair)
+    failures = check_report(
+        report,
+        inputs.configuration,
+        inputs.claims.post_repair,
+        package_version=spec.version,
+    )
     if failures:
         raise ReportSchemaError(
             "the rendered report does not satisfy docs/REPORT_SCHEMA.md: " + "; ".join(failures)
@@ -634,6 +647,8 @@ def check_report(
     report: str,
     configuration: Configuration,
     claims: Sequence[VerifiedClaim],
+    *,
+    package_version: str | None = None,
 ) -> list[str]:
     """Apply to a rendered report the checks ``tests/test_golden_spec.py`` applies to the golden.
 
@@ -641,13 +656,16 @@ def check_report(
         report: The whole of ``report.md``.
         configuration: Which configuration wrote it.
         claims: Its post-repair claims.
+        package_version: The package's version string, passed on to
+            :func:`uncovered_numbers`; omitted, the version is not excluded from the prose, so a
+            caller that has the package should always pass it. :func:`render_report` does.
 
     Returns:
         One message per problem, empty when the report satisfies the schema.
     """
     problems = check_front_matter(front_matter_of(report))
     body = drafted_and_rendered_body(report)
-    uncovered = uncovered_numbers(body, claims)
+    uncovered = uncovered_numbers(body, claims, package_version=package_version)
     problems += check_structure(report, configuration=configuration, uncovered=uncovered)
     problems += _unwrapped_failures(body, claims)
     for appendix in APPENDICES:

@@ -46,6 +46,7 @@ from quaestor.verifier import (
     Unit,
     extract,
     match_claims,
+    numbered_lines,
     numeric_tokens,
     token_value,
 )
@@ -350,8 +351,9 @@ def section_markdown(item: FixtureItem, store: ArtifactStore, seed: int = SEED) 
 def fake_extractor(unit: Unit = Unit.ratio) -> FakeLLM:
     """Return a `FakeLLM` that extracts the numbers of a prompt's prose deterministically.
 
-    It reads the prose out of the extraction prompt, takes every numeric token of every line, and
-    attaches the citation that follows the token on that line. That is what a competent extractor
+    It reads the numbered prose out of the extraction prompt, takes every numeric token of every
+    line, and attaches the citation that follows the token on that line together with the line
+    number the prompt printed beside it (D-085). That is what a competent extractor
     does, so the offline half measures the *matcher* and the pre-pass end to end while the live
     half of Phase 13 measures a model.
 
@@ -365,7 +367,7 @@ def fake_extractor(unit: Unit = Unit.ratio) -> FakeLLM:
     def answer(prompt: str) -> str:
         prose = prompt.split("Prose:\n", 1)[-1].split("\n\nAnswer with one JSON object", 1)[0]
         claims = []
-        for line in prose.splitlines():
+        for number, line in sorted(numbered_lines(prose).items()):
             if not line.strip():
                 continue
             for offset, token in numeric_tokens(line):
@@ -373,7 +375,7 @@ def fake_extractor(unit: Unit = Unit.ratio) -> FakeLLM:
                 citation = rest.split("]]", 1)[0] + "]]" if rest.startswith("[[art:") else None
                 claims.append(
                     ExtractedClaim(
-                        text=line.strip(),
+                        line=number,
                         value=token_value(token),
                         unit=Unit.percent if token.endswith("%") else unit,
                         citation=citation,

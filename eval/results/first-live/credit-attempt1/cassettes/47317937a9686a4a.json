@@ -1,0 +1,100 @@
+{
+  "calls": 1,
+  "completion": {
+    "cost_usd": 0.14346699999999998,
+    "latency_ms": 38887.0,
+    "model": "claude-cli",
+    "raw": {
+      "api_error_status": null,
+      "duration_api_ms": 38887,
+      "duration_ms": 37977,
+      "fast_mode_disabled_reason": "sdk_opt_in_required",
+      "fast_mode_state": "off",
+      "is_error": false,
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "contextWindow": 200000,
+          "costUSD": 0.003307,
+          "inputTokens": 3242,
+          "maxOutputTokens": 32000,
+          "outputTokens": 13,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        },
+        "claude-opus-5[1m]": {
+          "cacheCreationInputTokens": 5890,
+          "cacheReadInputTokens": 600,
+          "canonicalModel": "claude-opus-5",
+          "contextWindow": 1000000,
+          "costUSD": 0.14015999999999998,
+          "inputTokens": 2,
+          "maxOutputTokens": 64000,
+          "outputTokens": 3238,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        }
+      },
+      "num_turns": 1,
+      "permission_denials": [],
+      "quaestor_bare": false,
+      "result": "{\"claims\":[{\"text\":\"The largest variance inflation factor across the retained features is 3.544 [[art:d3785ba9:vif.max]], against a threshold of 10.0 [[art:aeb4f33c:threshold.M1.vif]].\",\"value\":3.544,\"unit\":\"ratio\",\"metric\":\"vif\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:d3785ba9:vif.max]]\",\"rounding\":null},{\"text\":\"The largest variance inflation factor across the retained features is 3.544 [[art:d3785ba9:vif.max]], against a threshold of 10.0 [[art:aeb4f33c:threshold.M1.vif]].\",\"value\":10.0,\"unit\":\"ratio\",\"metric\":\"vif\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:aeb4f33c:threshold.M1.vif]]\",\"rounding\":null},{\"text\":\"The largest variance inflation factor across the retained features is 3.544 [[art:d3785ba9:vif.max]], against a threshold of 10.0 [[art:aeb4f33c:threshold.M1.vif]].\",\"value\":1,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:aeb4f33c:threshold.M1.vif]]\",\"rounding\":null},{\"text\":\"Belsley's condition number of the column-standardised design is 4.279 [[art:ba0d9cc4:condition_number]], against a threshold of 30.0 [[art:7e52fd7a:threshold.M1.condition_number]].\",\"value\":4.279,\"unit\":\"ratio\",\"metric\":\"condition_number\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:ba0d9cc4:condition_number]]\",\"rounding\":null},{\"text\":\"Belsley's condition number of the column-standardised design is 4.279 [[art:ba0d9cc4:condition_number]], against a threshold of 30.0 [[art:7e52fd7a:threshold.M1.condition_number]].\",\"value\":30.0,\"unit\":\"ratio\",\"metric\":\"condition_number\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:7e52fd7a:threshold.M1.condition_number]]\",\"rounding\":null},{\"text\":\"Belsley's condition number of the column-standardised design is 4.279 [[art:ba0d9cc4:condition_number]], against a threshold of 30.0 [[art:7e52fd7a:threshold.M1.condition_number]].\",\"value\":1,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:7e52fd7a:threshold.M1.condition_number]]\",\"rounding\":null}]}",
+      "session_id": "9dc45162-b8de-44dc-ab37-527b9043aa04",
+      "stop_reason": "end_turn",
+      "subtype": "success",
+      "terminal_reason": "completed",
+      "time_to_request_ms": 98,
+      "total_cost_usd": 0.14346699999999998,
+      "ttft_ms": 32024,
+      "ttft_stream_ms": 1357,
+      "type": "result",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 5890,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 5890,
+        "cache_read_input_tokens": 600,
+        "inference_geo": "not_available",
+        "input_tokens": 2,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 5890,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 5890,
+            "cache_read_input_tokens": 600,
+            "input_tokens": 2,
+            "output_tokens": 3238,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 3238,
+        "output_tokens_details": {
+          "thinking_tokens": 2339
+        },
+        "server_tool_use": {
+          "web_fetch_requests": 0,
+          "web_search_requests": 0
+        },
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "uuid": "30484204-a31f-407f-a302-1baf2897b21f"
+    },
+    "text": "{\"claims\":[{\"text\":\"The largest variance inflation factor across the retained features is 3.544 [[art:d3785ba9:vif.max]], against a threshold of 10.0 [[art:aeb4f33c:threshold.M1.vif]].\",\"value\":3.544,\"unit\":\"ratio\",\"metric\":\"vif\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:d3785ba9:vif.max]]\",\"rounding\":null},{\"text\":\"The largest variance inflation factor across the retained features is 3.544 [[art:d3785ba9:vif.max]], against a threshold of 10.0 [[art:aeb4f33c:threshold.M1.vif]].\",\"value\":10.0,\"unit\":\"ratio\",\"metric\":\"vif\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:aeb4f33c:threshold.M1.vif]]\",\"rounding\":null},{\"text\":\"The largest variance inflation factor across the retained features is 3.544 [[art:d3785ba9:vif.max]], against a threshold of 10.0 [[art:aeb4f33c:threshold.M1.vif]].\",\"value\":1,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:aeb4f33c:threshold.M1.vif]]\",\"rounding\":null},{\"text\":\"Belsley's condition number of the column-standardised design is 4.279 [[art:ba0d9cc4:condition_number]], against a threshold of 30.0 [[art:7e52fd7a:threshold.M1.condition_number]].\",\"value\":4.279,\"unit\":\"ratio\",\"metric\":\"condition_number\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:ba0d9cc4:condition_number]]\",\"rounding\":null},{\"text\":\"Belsley's condition number of the column-standardised design is 4.279 [[art:ba0d9cc4:condition_number]], against a threshold of 30.0 [[art:7e52fd7a:threshold.M1.condition_number]].\",\"value\":30.0,\"unit\":\"ratio\",\"metric\":\"condition_number\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:7e52fd7a:threshold.M1.condition_number]]\",\"rounding\":null},{\"text\":\"Belsley's condition number of the column-standardised design is 4.279 [[art:ba0d9cc4:condition_number]], against a threshold of 30.0 [[art:7e52fd7a:threshold.M1.condition_number]].\",\"value\":1,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:7e52fd7a:threshold.M1.condition_number]]\",\"rounding\":null}]}",
+    "tokens_in": 2,
+    "tokens_out": 3238
+  },
+  "key": "47317937a9686a4a",
+  "provider": "claude-cli",
+  "request": {
+    "params": {},
+    "prompt": "You are extracting the numeric claims of one section of a model-validation report, so that each\ncan be checked against the artifact it cites. Section: sensitivity.\n\nList EVERY number that appears in the prose below, in the order it appears, including numbers that\nappear inside a citation's logical name and numbers written with a thousands separator or a per\ncent sign. For each one:\n\n- \"text\" is the whole line the number appears on, copied exactly, citations included.\n- \"value\" is the number as written, with thousands separators and the per cent sign removed:\n  \"3,500\" is 3500, \"22.0%\" is 22.0.\n- \"unit\" is \"percent\" when the number is written with a per cent sign, \"count\" for a number of\n  rows, features or events, \"currency\", \"bp\" for basis points, \"months\" for a horizon, and\n  \"ratio\" for every other dimensionless quantity (AUC, PSI, VIF, a coefficient, a lift).\n- \"metric\" is what the number measures, taken from the logical name of the artifact it cites\n  (auc, brier, psi, vif, calibration_slope, delta_auc, coefficient, event_rate, ...), or null.\n- \"split\" is train, test, out_of_time or vintage_holdout, or null.\n- \"comparison\" is \"eq\" for a number that equals its artifact; \"delta\" for a difference written\n  \"from a to b\" or \"a gap of x\", whose value is the second cited artifact minus the first; and\n  \"ratio\" for a number written as one artifact divided by another. A delta or ratio carries TWO\n  adjacent citations, in that order.\n- \"citation\" is the [[art:...]] token the number carries, copied exactly, or null when the\n  sentence carries none. Do not invent a citation and do not move one from another number.\n- \"rounding\" is the number of decimals the prose wrote when it wrote fewer than the artifact has\n  (2 for a lift written 2.24), or null.\n\nReturn every number even when it has no citation: a number you leave out is still counted, and\ncounted against the report.\n\nProse:\nSupervisory guidance directs that sensitivity analysis be employed, where appropriate to the particular model, to check the impact of small changes in inputs and parameter values on model outputs, and that its results feed a clear plan of action where a model proves unstable [[reg:SR11-7:V.1.a]].\n\n### 5.1 Multicollinearity among the retained features\n\nThe largest variance inflation factor across the retained features is 3.544 [[art:d3785ba9:vif.max]], against a threshold of 10.0 [[art:aeb4f33c:threshold.M1.vif]].\nBelsley's condition number of the column-standardised design is 4.279 [[art:ba0d9cc4:condition_number]], against a threshold of 30.0 [[art:7e52fd7a:threshold.M1.condition_number]].\nBoth diagnostics therefore sit well inside their thresholds, and no retained feature exceeds the per-feature limit.\nOn this evidence the design carries no collinearity severe enough to make the fitted coefficients unstable under small perturbations of the training sample, and the coefficient signs and magnitudes reported earlier can be read individually rather than only as a block.\n\n### 5.2 Stability across declared regimes\n\nThe model package declares no regime column, so no partition of the data into regimes was available and no cross-regime stability comparison was performed.\nThis test is recorded as not applicable in Appendix D, and nothing in this report should be read as reporting a regime-stability result for this model.\n\n### 5.3 Rate-shock scenario analysis\n\nRate-shock scenarios, together with the associated checks on the value change at the extreme shocks, on whether the shock curve is monotone, and on the convexity of that curve against the direction the package declares, apply to hazard models.\nThe subject of this report is not a hazard model, so none of these scenarios were constructed and none were run.\nThey are recorded as not applicable in Appendix D.\n\n### 5.4 Limitation\n\nThe sensitivity evidence available for this model is confined to the static collinearity diagnostics above.\nIt does not establish the behaviour of the model under shifted input distributions or under stressed macroeconomic conditions, and the guidance treats such robustness and stability checks as work to be repeated periodically once the model is in production [[reg:SR11-7:V.1.b]].\nThis absence is carried forward to the findings and limitations section rather than resolved here.\n\n\nAnswer with one JSON object and nothing else: no prose before or after it, no explanation, no markdown fence. It must validate against this JSON schema:\n{\"$defs\": {\"Comparison\": {\"description\": \"What the claimed value is asserted to equal.\\n\\n``delta`` and ``ratio`` are cited by two adjacent ``[[art:...]]`` tokens, in order (D-012).\\nThe enum is not nullable: ``eq`` is the explicit default, so \\\"this number equals its artifact\\\"\\nhas one spelling and not two (D-018).\\n\\nAttributes:\\n    eq: The value matches the cited artifact.\\n    delta: The value matches ``second - first``.\\n    ratio: The value matches ``second / first``.\", \"enum\": [\"eq\", \"delta\", \"ratio\"], \"title\": \"Comparison\", \"type\": \"string\"}, \"ExtractedClaim\": {\"additionalProperties\": false, \"description\": \"One claim as the model returns it: the grammar minus the fields the caller already knows.\\n\\n``section``, ``id`` and ``source`` are not asked for. The caller knows which section it passed\\nin, the id is a hash of the other three fields, and the source of an extraction is always\\n``report``; asking a model for a value the caller can compute is a way of being told a\\ndifferent one (DECISIONS D-063).\\n\\nAttributes:\\n    text: The line the number appears on.\\n    value: The number as written, separators and per cent sign removed.\\n    unit: How it is written.\\n    metric: What it measures, or ``None``.\\n    split: Which split it is about, or ``None``.\\n    comparison: ``eq``, ``delta`` or ``ratio``.\\n    citation: The citation the number carries, or ``None``.\\n    rounding: Decimals the prose used, or ``None``.\", \"properties\": {\"text\": {\"minLength\": 1, \"title\": \"Text\", \"type\": \"string\"}, \"value\": {\"title\": \"Value\", \"type\": \"number\"}, \"unit\": {\"$ref\": \"#/$defs/Unit\", \"default\": \"ratio\"}, \"metric\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Metric\"}, \"split\": {\"anyOf\": [{\"$ref\": \"#/$defs/SplitName\"}, {\"type\": \"null\"}], \"default\": null}, \"comparison\": {\"$ref\": \"#/$defs/Comparison\", \"default\": \"eq\"}, \"citation\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Citation\"}, \"rounding\": {\"anyOf\": [{\"minimum\": 0, \"type\": \"integer\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Rounding\"}}, \"required\": [\"text\", \"value\"], \"title\": \"ExtractedClaim\", \"type\": \"object\"}, \"SplitName\": {\"description\": \"The splits a claim may be stated on, exactly as ``CLAIMS_SCHEMA.json`` enumerates them.\\n\\nAttributes:\\n    train: The development split.\\n    test: The held-out split.\\n    out_of_time: A later-period split; hazard subjects.\\n    vintage_holdout: One origination year held out; hazard subjects.\", \"enum\": [\"train\", \"test\", \"out_of_time\", \"vintage_holdout\"], \"title\": \"SplitName\", \"type\": \"string\"}, \"Unit\": {\"description\": \"How a number is written, which decides how it is normalised before matching.\\n\\nAttributes:\\n    ratio: Every dimensionless quantity not written with a ``%`` -- AUC, PSI, VIF, a\\n        coefficient, a lift.\\n    percent: Written with a ``%``; normalised against a unit-interval artifact by dividing\\n        by 100.\\n    count: A number of rows, features or events. Matched to half a unit, so integers match\\n        exactly.\\n    currency: A money amount.\\n    bp: Basis points, as a rate shock is written.\\n    months: A horizon.\", \"enum\": [\"ratio\", \"percent\", \"count\", \"currency\", \"bp\", \"months\"], \"title\": \"Unit\", \"type\": \"string\"}}, \"additionalProperties\": false, \"description\": \"The JSON object the extractor is asked for: a list of claims under one key.\\n\\nA bare JSON array is a shape more models get wrong than a single-key object, and\\n:func:`~quaestor.llm.structured.structured` validates a ``BaseModel``, not a list.\\n\\nAttributes:\\n    claims: The claims, in the order the numbers appear.\", \"properties\": {\"claims\": {\"items\": {\"$ref\": \"#/$defs/ExtractedClaim\"}, \"title\": \"Claims\", \"type\": \"array\"}}, \"title\": \"ExtractedClaims\", \"type\": \"object\"}",
+    "system": null
+  },
+  "schema_version": 1
+}
