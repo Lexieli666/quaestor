@@ -1,0 +1,22 @@
+{
+  "id": "vq09",
+  "question": "What was the loss given default implied by the recovery rate?",
+  "label": "loss given default implied by the recovery rate",
+  "table": [
+    [
+      "item",
+      "value"
+    ],
+    [
+      "Exposure at default",
+      "5000"
+    ],
+    [
+      "Recovered",
+      "2900"
+    ]
+  ],
+  "arithmetic": "1 - (2900 / 5000) = 0.42",
+  "answer": 0.42,
+  "unit": "ratio"
+}

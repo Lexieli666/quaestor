@@ -1372,3 +1372,171 @@ here and recorded.
   the drafter shown for this section?" exactly rather than approximately. Rejected alternative:
   a slug with a disambiguating counter, which makes the artifact's name depend on the order the
   plan happened to run in, so two runs of one package would produce different Appendix B names.
+
+## D-060. `vocab.py`: where the section identifiers and the configuration names live
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** `report.md`'s front matter, `claims.json` and `findings.json` all name the same seven
+  sections and the same three configurations, and both JSON Schemas spell the enums out.
+  `CLAUDE.md`'s repository layout gives sections no home and puts configurations in `configs.py`.
+  Where does one spelling of each live?
+- **A:** A new module, `src/quaestor/vocab.py`, holding `ReportSection` and `Configuration` and
+  importing nothing. `findings.py` and `verifier/` both need them in Phase 7; `report/` and
+  `configs.py` arrive in Phase 8 and will import `findings`, `verifier` and `tools`.
+- **Why:** Putting the vocabulary in `configs.py` or under `report/` makes the import graph a
+  cycle the moment Phase 8 fills either one — `configs.py` will import the tool registry, the
+  registry imports `findings.py`, and `findings.py` would import `configs.py`. A module with no
+  imports of its own cannot participate in a cycle, and the two enums are shared vocabulary rather
+  than behaviour, so nothing else belongs in it. It is one module outside `CLAUDE.md`'s layout,
+  recorded here because the layout is the contract. Rejected alternative: defining
+  `ReportSection` inside `findings.py`, which is where the first consumer happens to be and which
+  would leave a reader looking for the report's section list inside the findings module.
+
+## D-061. The evidence rule binds construction; reading a document back waives it deliberately
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** `CLAUDE.md`: "A `Finding` object cannot be constructed without at least one artifact hash
+  that exists in the store." The store is not a field of a persisted finding, and `eval/score.py`
+  scores a run from `findings.json` alone — often on a machine that no longer has that run's
+  artifacts, and always for the golden report, whose hashes resolve to nothing by design. How is
+  the rule enforced without making a written document unreadable?
+- **A:** The store reaches the validator through pydantic's **validation context**, under the key
+  `store`. `Finding.model_validate(payload, context={"store": store})` looks every hash up;
+  `context={"store": None}` says out loud "this document was written by a run that checked it, and
+  I am reading it back without that run's store"; **no context at all is refused**, so the waiver
+  is always written down at the call site. `FindingsDocument.read` defaults to `None` and
+  `Finding.from_candidates` always passes a real store. The non-empty-list half of the rule is a
+  field constraint and is never waived. A `_evidence_checked` private attribute records that the
+  check has run, because a pydantic `mode="after"` validator fires again whenever the instance is
+  placed inside another model — putting a finding into a `FindingsDocument` re-runs it with no
+  context, which would otherwise fail every document ever built.
+- **Why:** The rule exists to stop a validator inventing a finding, and that is a property of the
+  moment a finding is made, not of every later read of the file it was written to. Making the
+  waiver a distinct, named value rather than a missing argument is what keeps it from becoming the
+  default by accident: forgetting the store is an error, waiving it is a sentence. Rejected
+  alternative: a module-level "checking on/off" flag or a context variable, which is action at a
+  distance — a test that forgot to reset it would silently disable the constraint the project is
+  built around.
+
+## D-062. A claim's id is computed when it is made and kept when it is read
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** `Claim.id` is `stable_hash([section, text, value])` (D-012). Should reading a
+  `claims.json` recompute it and check it?
+- **A:** No. A claim built in the pipeline computes its id; a claim read from a file keeps the id
+  the file carries. The golden `claims.json`'s ids were written by hand in Phase 1 and do not
+  reproduce the hash, and it is pinned by `MANIFEST.json`, so recomputation would make the Phase 1
+  specification unreadable by the Phase 7 code that implements it.
+- **Why:** An id is an identifier: its job is to let the repair loop, the `repairs` list and the
+  trace name one claim, and it does that whatever it is. Treating it as a checksum would add a
+  failure mode ("this file's ids disagree with this version's hashing") that no consumer of the
+  file can act on, and would couple the readability of every archived study result to the
+  stability of a hash function across releases. Rejected alternative: validating the id on read
+  and rewriting it when it disagrees, which is the worst of both — it changes a persisted
+  identifier and tells nobody.
+
+## D-063. The extractor is asked for eight fields, not eleven
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** `structured()` returns a pydantic model. Should the extractor's model be `Claim` itself?
+- **A:** No. `ExtractedClaim` is the eight fields a model can know — `text`, `value`, `unit`,
+  `metric`, `split`, `comparison`, `citation`, `rounding` — and the caller adds the three it
+  already knows: `section` (it passed it in), `id` (a hash of the other three) and `source`
+  (always `report` for an extraction).
+- **Why:** Asking a model for a value the caller can compute is a way of being told a different
+  one, and each of the three has a consequence: a wrong `section` moves a claim into another
+  section's grounding row, a wrong `id` breaks the repair loop's ability to name a claim, and a
+  `source` of `developer` would smuggle report prose into the channel that raises `T1` findings.
+  Rejected alternative: asking for all eleven and overwriting three after the fact, which is the
+  same thing with a longer prompt and a silent correction.
+
+## D-064. `extract` returns a record, not a bare `list[Claim]`
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** Spec §3.10 writes the extractor as returning `list[Claim]`. The same section also
+  requires that a number found by the regex pre-pass be marked `unattributed` rather than
+  `unsupported`, and that the exclusion list appear in `claims.json`. Neither fits in the list.
+- **A:** `extract` returns an `Extraction`: `claims` is the list the spec names, and beside it are
+  `unattributed` (the ids the pre-pass added), `exclusions`, `n_excluded_tokens` and
+  `n_from_model`. The matcher takes the ids as `match_claims(..., unattributed=...)`. An exclusion
+  class is recorded only when it actually swallowed a numeric token — except for citations, whose
+  hash and logical name are excluded by construction — so the published list is what was excluded
+  rather than what could have been.
+- **Why:** `unattributed` and `unsupported` are different failures and the study counts them
+  separately, so the distinction cannot be reconstructed from a claim's fields: a pre-pass claim
+  and an uncited extracted claim are identical objects. `n_from_model` is extraction recall, which
+  `04` §6 asks for by name. Widening the return type is the smallest change that keeps the spec's
+  list intact — `extraction.claims` is exactly what §3.10 describes. Rejected alternative:
+  a `status` field on `Claim` set to `unattributed` at extraction time, which would put the
+  matcher's vocabulary on the extractor's output and give `claims.json` two places to disagree
+  about a claim's verdict.
+
+## D-065. The matcher's message is not a field of `VerifiedClaim`
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** The repair loop hands the drafter a sentence — "you wrote 0.68 for `metrics.oot.auc`; the
+  artifact says 0.6812; cite or remove" (§3.11). Where does that sentence live?
+- **A:** On `Match`, which carries the `VerifiedClaim` and the message together; only the claim is
+  persisted. The message also goes onto the `claim_check` trace event, so a run's own record of
+  why a claim failed survives without enlarging `claims.json`.
+- **Why:** `claims.json` is the study's scoring input and `CLAIMS_SCHEMA.json` is closed, so a new
+  field is a schema change after Phase 1, which `CLAUDE.md` makes a stop-and-ask. It would also be
+  the wrong place: the message is written for the drafter and changes with the wording of the
+  repair prompt, while the persisted claim is a measurement. Rejected alternative: reconstructing
+  the sentence in the repair loop from `status`, `value` and `artifact_value`, which duplicates
+  the matcher's knowledge of *why* a claim failed — a dangling citation and a mismatched value
+  need different sentences and only the matcher knows which happened.
+
+## D-066. A report with no claims scores 0.0, not 1.0
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** Grounding precision is `verified / (verified + mismatch + unsupported + dangling +
+  unattributed)`. What is it when the denominator is zero?
+- **A:** `0.0`, printed beside `n_claims: 0`.
+- **Why:** This is the one number in the repository that could flatter by construction. A vacuous
+  `1.0000` on the front page of a report that made no checkable statement is exactly the headline
+  a reader would misread, and it is reachable — a `plain_llm` run whose model wrote prose with no
+  numbers in it produces it. `0.0` beside a zero denominator is unmistakable and cannot be quoted
+  out of context in the README, because the README quotes the study's mean and minimum. Rejected
+  alternative: `None`, which the schema would have to admit as a nullable number and which every
+  consumer — the front matter, the scope block, `summary.json` — would then have to special-case.
+
+## D-067. A mismatched developer claim stores its comparison as an artifact
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** D-016 makes a mismatched `package.yaml` claim the claim channel of a `T1` finding. A
+  finding needs evidence, and the comparison — declared 0.139 against a computed 0.1602 — is not
+  an artifact any tool wrote. What does the candidate point at?
+- **A:** At the cited artifact **and** at `developer_claim.<i>`, a JSON artifact this check writes
+  holding the declaration, the logical name it was compared to, both values, their difference, the
+  tolerance and the status. Under `--synthetic` nothing is compared and nothing is stored.
+- **Why:** Every other candidate points at a number a tool computed; this one is the only
+  comparison in Quaestor with no threshold behind it, so without a stored record its evidence
+  would be the artifact alone — which is the number that is *right*, not the disagreement that is
+  the finding. Storing the comparison also lets the report cite it rather than restate it, which
+  is the rule the whole citation apparatus exists to enforce. Rejected alternative: exempting `T1`
+  from the evidence rule the way `PRE_RUN_TOOL` is exempted (D-021), which would put a second hole
+  in the one constraint `CLAUDE.md` states as non-negotiable.
+
+## D-068. The golden report's 92 claims are re-matched on logical name, and the test says so
+
+- **Date:** 2026-09-07 (Phase 7)
+- **Q:** The Phase 7 acceptance asks that every one of the golden report's 92 post-repair claims
+  verify against a store built from Appendix B. The golden's hashes are `sha256(logical_name)[:8]`
+  and resolve to nothing, and a content address of an illustrative value is not the address of the
+  same value stored today. How is the test honest about what it checks?
+- **A:** `tests/verifiersupport.py` rebuilds a store from Appendix B under the golden's own logical
+  names and rewrites each citation's `hash8` to the rebuilt store's before matching; the module
+  docstring, the test module's docstring and the Phase 7 run-log line all state that this one test
+  matches on the logical name and the path and not on the hash. Appendix B carries values only for
+  the scalars, so the two table artifacts are read back out of the report's own renderer blocks and
+  the five JSON artifacts are written out from the report's prose, which is stated where they are
+  defined.
+- **Why:** The hash is the half of a citation that stops a number being cited to another run's
+  artifact, so a test that quietly dropped it while claiming to check citations would be worse than
+  no test. Naming the licence keeps the check worth having — it exercises the matcher over 92 real
+  claims covering percent normalisation, counts, a declared rounding, a delta, a table cell and
+  five JSON paths — while leaving the hash assertion to `tests/test_citations.py`,
+  `tests/test_verifier_match.py` and, from Phase 8, the pipeline itself. Rejected alternative:
+  editing the golden report's hashes so that they resolve, which is a sanctioned-edit request under
+  D-011 for a directory whose whole purpose is to be a fixed specification.

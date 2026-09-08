@@ -90,6 +90,23 @@ run that was not committed.
   candidate, which brings the registry to nine. `retrieve_guidance("outcomes analysis")` returns
   SR 26-2 V.1.b, SR 11-7 V.1.c and SR 11-7 V.1, in that order (D-054, D-055). `data/README.md`
   says where the two PDFs come from and why they are not committed.
+- Phase 7 findings and the claim verifier: `quaestor.vocab` (`ReportSection`, `Configuration`,
+  D-060); `quaestor.findings` gains `Finding`, whose evidence rule is enforced against an
+  `ArtifactStore` passed in the pydantic validation context (D-061), `Finding.from_candidates` —
+  the only public way to make a finding, which merges candidates of one class, unions their
+  evidence and demands a one-sentence reason for a changed severity — `CandidateNotPromoted` and
+  `FindingsDocument`, the `findings.json` envelope of `FINDINGS_SCHEMA.json`; and
+  `quaestor.verifier` — `Claim` and `VerifiedClaim` field-for-field against `CLAIMS_SCHEMA.json`,
+  `extract()` (one `structured()` call plus the deterministic regex pre-pass that owns the
+  denominator of grounding precision, D-064), `match_claim`/`match_claims` (citation resolution,
+  percent-to-ratio and basis-point normalisation, D-014's per-unit tolerances, `delta` and `ratio`
+  over two adjacent citations), `grounding()` per section and per report, `ClaimsDocument` (the
+  `claims.json` envelope, with `repairs` left for Phase 8) and `verify_developer_claims`, which
+  evaluates `package.yaml` `claims:` only under `--data` and stores each mismatch's comparison as
+  `developer_claim.<i>` so its `T1` candidate has evidence (D-016, D-067). `eval/verifier_eval.py`
+  ships the offline half of the `04` section 6 component eval over ten committed fixtures written
+  for this repository, reporting a perturbation that lands inside tolerance as a tolerance boundary
+  rather than as an error.
 
 ### Changed
 

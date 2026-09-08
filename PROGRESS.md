@@ -39,7 +39,12 @@ are named in brackets.
     citations resolve) and `SR26-2` (current, the drafter's default from Phase 8); OCC Bulletin
     2011-12 is **not** ingested, and spec §3.8's `occ-2011-12.jsonl` is therefore never written
     (D-055)
-- [ ] **Phase 7** — Findings + claim verifier (spec §3.9–3.10)
+- [x] **Phase 7** — Findings + claim verifier (spec §3.9–3.10)
+  - the extractor's regex pre-pass is the denominator of grounding precision: a model that omits a
+    number cannot lower it, and a silent extractor scores extraction recall 0.0 rather than
+    precision 1.0 over nothing (D-064)
+  - the evidence rule binds **construction**; reading a written `findings.json` back waives it
+    deliberately and by name, because `eval/score.py` scores a run from the file alone (D-061)
 - [ ] **Phase 8** — Drafter, repair, renderer, planner, configs; end-to-end on synthetic with
   `FakeLLM` (spec §3.11–3.13)
   - clean synthetic `credit_default` must yield exactly {E1 low} (D-017)
@@ -288,3 +293,47 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   `+1` idf smoothing (D-057), checked longhand against a three-document toy corpus. The registry
   now holds **nine** tools. No test reads a PDF, calls a live model, downloads data, trains on real
   data or reads an API key. No push.
+- 2026-09-07 — **Phase 7** — gate green on the four conditions that apply plus 5a: `pytest -q` 871
+  passed, 0 failed, 0 skipped, 0 xfailed (102 new); coverage of `src/quaestor` **100%**
+  (`coverage run -m pytest`, 3726 statements) against the 85% floor; `ruff check` and `ruff format
+  --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean (49 source
+  files). Gate condition **5a applies and passes** — `tests/test_golden_spec.py` (13 checks) still
+  pins `examples/golden_report/`, which this phase **did not touch**: no byte of the directory
+  changed and no new D-011 row was needed. **5b belongs to Phase 9**, where `quaestor validate`
+  arrives — the CLI is still the Phase 0 version stub, so the `quaestor validate --synthetic --llm
+  fake` line of `CLAUDE.md`'s command list was not run, and the verifier was exercised directly and
+  through `eval/verifier_eval.py` instead. **Gate condition 6 belongs to Phase 11**, where
+  `tests/probatio/` arrives (D-007). Shipped `src/quaestor/vocab.py` (`ReportSection`,
+  `Configuration`), the second half of `src/quaestor/findings.py` (`Finding`,
+  `Finding.from_candidates`, `CandidateNotPromoted`, `FindingsDocument`), `src/quaestor/verifier/`
+  (`claim.py`, `extract.py`, `match.py`, `grounding.py`, `claims_doc.py`, `developer.py`),
+  `eval/verifier_eval.py`, the ten fixtures under `tests/fixtures/verifier_eval/`,
+  `tests/verifiersupport.py` and eight test modules
+  (`test_findings_document`, `test_verifier_claims`, `test_verifier_extract`, `test_verifier_match`,
+  `test_verifier_grounding`, `test_verifier_developer`, `test_verifier_golden`,
+  `test_verifier_eval_fixtures`), DECISIONS D-060 to D-068 and the Phase 7 section of
+  `docs/DESIGN.md`. `tests/test_scaffold.py`'s module list and public-API list were updated for the
+  seven new modules and for `Finding`, `Claim`, `ClaimStatus`, `VerifiedClaim`, `ClaimsDocument`,
+  `FindingsDocument`, `Configuration` and `ReportSection`; `validate` is still asserted absent.
+  **Measured on the Phase 1 golden report: all 92 post-repair claims re-match as `verified`
+  against a store rebuilt from Appendix B, with every `artifact_value` and every `tolerance` equal
+  to the golden's own, and the pre-pass reproduces the golden's claim set section by section —
+  13 / 14 / 13 / 39 / 4 / 4 / 5 = 92 tokens, none extra and none missing.** That one test matches
+  on the **logical name and path, not on the hash**: the golden's hashes are
+  `sha256(logical_name)[:8]` and cannot agree with a content address computed today, and the two
+  table artifacts and the five JSON artifacts are rebuilt from the report's renderer blocks and
+  prose rather than from Appendix B, which prints no value for them (D-068). **The offline verifier
+  component eval (`04` §6) over the ten committed fixtures at seed 20260901 returns status accuracy
+  1.0 on all three expected classes and extraction recall 1.0, with the per-item statuses:
+  vq01 relative_down verified/mismatch/unsupported; vq02 percent_ratio_confusion
+  verified/mismatch/unsupported; vq03 relative_down verified/mismatch/unsupported; vq04
+  relative_down verified/verified/unsupported — a tolerance boundary, 0.035 perturbed to 0.03255,
+  inside the 0.005 the grammar allows; vq05 relative_down verified/mismatch/unsupported; vq06
+  digit_transposition verified/mismatch/unsupported; vq07 percent_ratio_confusion
+  verified/mismatch/unsupported; vq08 relative_up verified/mismatch/unsupported; vq09 decimal_shift
+  verified/mismatch/unsupported; vq10 relative_up verified/verified/unsupported — the second
+  tolerance boundary, 0.0725 perturbed to 0.076125.** Both boundaries are reported as boundaries
+  and not as errors, which is what `04` §6 asks for. All five perturbation types are drawn by the
+  seed. The ten fixture tables were written for this repository; no FinQA or TAT-QA row is in it,
+  and the live half of the component eval is Phase 13. No test calls a live model, downloads data,
+  trains on real data or reads an API key. No push.

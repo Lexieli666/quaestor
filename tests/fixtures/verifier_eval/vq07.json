@@ -1,0 +1,25 @@
+{
+  "id": "vq07",
+  "question": "By how much did interest expense change between the two years?",
+  "label": "change in interest expense between the two years",
+  "table": [
+    [
+      "item",
+      "year 1",
+      "year 2"
+    ],
+    [
+      "Interest expense",
+      "210",
+      "168"
+    ],
+    [
+      "Interest income",
+      "96",
+      "104"
+    ]
+  ],
+  "arithmetic": "168 - 210 = -42",
+  "answer": -42,
+  "unit": "currency"
+}

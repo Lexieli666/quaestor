@@ -1,0 +1,30 @@
+{
+  "id": "vq06",
+  "question": "What was the average quarterly balance?",
+  "label": "average quarterly balance",
+  "table": [
+    [
+      "quarter",
+      "balance"
+    ],
+    [
+      "Q1",
+      "2100"
+    ],
+    [
+      "Q2",
+      "2300"
+    ],
+    [
+      "Q3",
+      "2500"
+    ],
+    [
+      "Q4",
+      "2700"
+    ]
+  ],
+  "arithmetic": "(2100 + 2300 + 2500 + 2700) / 4 = 2400",
+  "answer": 2400,
+  "unit": "currency"
+}

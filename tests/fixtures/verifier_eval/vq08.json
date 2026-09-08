@@ -1,0 +1,25 @@
+{
+  "id": "vq08",
+  "question": "What was the interest coverage ratio in year 2?",
+  "label": "interest coverage ratio in year 2",
+  "table": [
+    [
+      "item",
+      "year 1",
+      "year 2"
+    ],
+    [
+      "Operating income",
+      "780",
+      "900"
+    ],
+    [
+      "Interest expense",
+      "210",
+      "150"
+    ]
+  ],
+  "arithmetic": "900 / 150 = 6.0",
+  "answer": 6.0,
+  "unit": "ratio"
+}

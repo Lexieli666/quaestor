@@ -1,0 +1,25 @@
+{
+  "id": "vq03",
+  "question": "How many more people were employed at the end of year 2 than at the end of year 1?",
+  "label": "increase in headcount over the year",
+  "table": [
+    [
+      "segment",
+      "year 1",
+      "year 2"
+    ],
+    [
+      "Origination",
+      "72",
+      "84"
+    ],
+    [
+      "Servicing",
+      "48",
+      "54"
+    ]
+  ],
+  "arithmetic": "(84 + 54) - (72 + 48) = 18",
+  "answer": 18,
+  "unit": "count"
+}

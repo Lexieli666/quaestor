@@ -1,0 +1,25 @@
+{
+  "id": "vq01",
+  "question": "By how much did revenue grow between the two years?",
+  "label": "increase in revenue between the two years",
+  "table": [
+    [
+      "item",
+      "year 1",
+      "year 2"
+    ],
+    [
+      "Revenue",
+      "1200",
+      "1500"
+    ],
+    [
+      "Cost of sales",
+      "750",
+      "1050"
+    ]
+  ],
+  "arithmetic": "1500 - 1200 = 300",
+  "answer": 300,
+  "unit": "currency"
+}

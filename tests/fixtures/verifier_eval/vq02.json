@@ -1,0 +1,25 @@
+{
+  "id": "vq02",
+  "question": "What was the gross margin in year 2?",
+  "label": "gross margin in year 2",
+  "table": [
+    [
+      "item",
+      "year 1",
+      "year 2"
+    ],
+    [
+      "Revenue",
+      "1200",
+      "1500"
+    ],
+    [
+      "Gross profit",
+      "390",
+      "450"
+    ]
+  ],
+  "arithmetic": "450 / 1500 = 0.3",
+  "answer": 0.3,
+  "unit": "ratio"
+}

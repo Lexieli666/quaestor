@@ -1,0 +1,26 @@
+{
+  "id": "vq10",
+  "question": "What was the annualised prepayment rate for the pool?",
+  "label": "annualised prepayment rate for the pool",
+  "table": [
+    [
+      "item",
+      "value"
+    ],
+    [
+      "Beginning balance",
+      "48000"
+    ],
+    [
+      "Scheduled principal",
+      "600"
+    ],
+    [
+      "Unscheduled principal",
+      "290"
+    ]
+  ],
+  "arithmetic": "1 - (1 - 290 / (48000 - 600)) ** 12 = 0.0725",
+  "answer": 0.0725,
+  "unit": "ratio"
+}

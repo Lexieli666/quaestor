@@ -1,0 +1,22 @@
+{
+  "id": "vq05",
+  "question": "What were operating expenses as a percentage of revenue?",
+  "label": "operating expenses as a share of revenue",
+  "table": [
+    [
+      "item",
+      "amount"
+    ],
+    [
+      "Revenue",
+      "1600"
+    ],
+    [
+      "Operating expenses",
+      "320"
+    ]
+  ],
+  "arithmetic": "320 / 1600 = 0.20, written as 20.0%",
+  "answer": 20.0,
+  "unit": "percent"
+}

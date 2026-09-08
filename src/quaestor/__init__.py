@@ -11,7 +11,7 @@ What this module exports grows with the phases that implement it. Spec section 9
 eventual public surface; Phase 2 ships everything on that list that now exists -- the package
 loader, the artifact store, the LLM layer, the defect vocabulary, the errors and
 :func:`~quaestor.hashing.stable_hash`; Phase 3 adds :func:`~quaestor.sandbox.run_model`.
-``Finding`` arrives in Phase 7 and ``validate`` in Phase 8.
+Phase 7 adds ``Finding`` and the claim verifier; ``validate`` arrives in Phase 8.
 
 ``__version__`` is the single source of truth for the distribution version, which
 ``pyproject.toml`` reads through hatchling. The distribution is named ``quaestor-mrm`` because the
@@ -33,12 +33,14 @@ from .errors import (
     ToolError,
     VerificationError,
 )
-from .findings import DefectClass, FindingCandidate, Severity
+from .findings import DefectClass, Finding, FindingCandidate, FindingsDocument, Severity
 from .hashing import stable_hash
 from .llm import LLM, Completion, FakeLLM
 from .package import ModelPackage, load_package
 from .sandbox import MemoryCap, RunResult, run_model
 from .trace import EventType, TraceEvent, TraceReader, TraceWriter
+from .verifier import Claim, ClaimsDocument, ClaimStatus, VerifiedClaim
+from .vocab import Configuration, ReportSection
 
 __version__ = "0.1.0.dev0"
 
@@ -47,11 +49,17 @@ __all__ = [
     "Artifact",
     "ArtifactError",
     "ArtifactStore",
+    "Claim",
+    "ClaimStatus",
+    "ClaimsDocument",
     "Completion",
+    "Configuration",
     "DefectClass",
     "EventType",
     "FakeLLM",
+    "Finding",
     "FindingCandidate",
+    "FindingsDocument",
     "LLMOutputError",
     "LLMProviderError",
     "MemoryCap",
@@ -59,6 +67,7 @@ __all__ = [
     "PackageError",
     "QuaestorError",
     "ReportSchemaError",
+    "ReportSection",
     "RunResult",
     "SandboxError",
     "Severity",
@@ -67,6 +76,7 @@ __all__ = [
     "TraceReader",
     "TraceWriter",
     "VerificationError",
+    "VerifiedClaim",
     "__version__",
     "load_package",
     "run_model",

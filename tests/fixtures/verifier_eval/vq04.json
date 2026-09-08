@@ -1,0 +1,22 @@
+{
+  "id": "vq04",
+  "question": "What was the default rate on the portfolio?",
+  "label": "default rate on the portfolio",
+  "table": [
+    [
+      "item",
+      "count"
+    ],
+    [
+      "Accounts",
+      "2400"
+    ],
+    [
+      "Accounts in default",
+      "84"
+    ]
+  ],
+  "arithmetic": "84 / 2400 = 0.035",
+  "answer": 0.035,
+  "unit": "ratio"
+}

@@ -549,3 +549,65 @@ request rather than slugifying the query, because "outcomes analysis" and "outco
 split" slugify alike and the store refuses to reuse a name for a different payload; the golden
 report's readable `guidance.outcomes_analysis` stays illustrative, under the carve-out Phase 5
 already wrote into `tests/test_tools_clean.py` (D-059).
+
+## Phase 7 — Findings, the claim grammar and the verifier that owns the denominator
+
+**The pre-pass is the point, not the extractor.** Grounding precision is the number this project
+asks to be judged on, and it has an obvious failure mode: an extractor that returns fewer numbers
+scores better, because every number it omits leaves the denominator. So the model does not own the
+denominator. `extract()` makes one `structured()` call and then tokenises the same prose
+deterministically; every numeric token the model did not return becomes a claim with status
+`unattributed`. The pre-pass can only add. Two consequences fall out of that and are asserted:
+a `FakeLLM` that returns two of four numbers still produces four claims, and a silent extractor
+scores an extraction recall of 0.0 with every sentence `unattributed` rather than a precision of
+1.0 over nothing. The rejected alternative — trusting the extractor and spot-checking it — is what
+makes a grounding figure a measurement of an extractor rather than of a report.
+
+**A line is the sentence.** The pre-pass works line by line, and within a line matches tokens to
+the model's claims **by value and in order**. That is what attaches the right citation to the right
+number in "0.7412 against 0.7538", with no model involvement in the attachment. The rejected
+alternative is matching by character offset inside the sentence, which breaks the first time the
+drafter writes `3,500` and the extractor returns `3500`; matching by value and order survives every
+reformatting of the number that does not change which number it is. The report format writes one
+sentence, or one table row, per line, so the unit is the unit a claim quotes; a drafter that writes
+a three-sentence paragraph on one line still gets order matching within the paragraph.
+
+**Six exclusion classes, and only what they actually swallowed.** D-015 fixed the list — section
+and finding numbering, regulatory section ids, the eight hex characters of a citation, the package
+version, inline code, renderer blocks. Every one of them lowers the denominator, so `claims.json`
+publishes the list with the tokens each class removed, and the count is printed in Appendix A. Two
+details are Phase 7's own. A class is recorded only when it *did* swallow a numeric token, so the
+published list is evidence rather than boilerplate; citations are the exception, since their hash
+and logical name are excluded by construction. And `\d+\.` is section numbering **only at the start
+of a line** — an unanchored version also matches the `0.` of "no feature is flagged 0." and would
+delete a claim invisibly, which is the failure mode an exclusion list is most dangerous for.
+
+**Matching is arithmetic with a receipt.** The matcher resolves the citation itself, normalises
+percent to ratio (and basis points to a rate) when the artifact lives in the unit interval, applies
+D-014's per-unit tolerance widened by any declared rounding, and records the artifact value and the
+tolerance it used on the claim. That last field is why Appendix A can be read: a reader who wants
+to know why 0.74 verified against 0.7412 can see the 0.005 that allowed it, and why `23%` did not
+verify against 0.2213. A `delta` is `second − first` and a `ratio` is `second ÷ first` over two
+adjacent citations; a `delta` carrying one citation **dangles with a message** rather than
+verifying against its single operand, which is the one place a permissive reading would let a
+made-up difference through.
+
+**Findings: three verbs and a receipt.** `Finding.from_candidates` merges candidates of one class,
+unions their evidence, and demands a one-sentence reason whenever the severity it publishes differs
+from the one the check suggested — and refuses a reason with no change, because a reason beside an
+unchanged severity reads as a change that did not happen. Every promotion writes one `finding`
+trace event carrying both severities and whether they differ, so the study counts re-severitisation
+from structured data. The evidence rule reaches the model through pydantic's validation context
+rather than through a field, and reading a written document back waives it deliberately and by
+name (D-061): `eval/score.py` scores a run from `findings.json` on a machine that no longer has the
+artifacts, and the golden report's hashes resolve to nothing by design.
+
+**The verifier component fixtures are this repository's own.** `04` §6 evaluates the verifier alone
+on FinQA and TAT-QA in Phase 13; Phase 7 ships the offline half against ten tables written here.
+Each item renders three sentences — correctly cited, perturbed, uncited — and the expected statuses
+are `verified`, `mismatch`, `unsupported`. The number that matters is the middle one: a ±5–15%
+perturbation of a rate of 0.035 moves it by less than the 0.005 the grammar allows, so the sentence
+is *supposed* to verify. Those items are reported as **tolerance boundaries**, with the tolerance
+that produced them, and never as errors — a component eval that scored its own tolerance as a
+mistake would push the tolerance down until real reports started failing. Two of the ten items
+land there at seed 20260901, and the run log says which.

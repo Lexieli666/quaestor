@@ -165,24 +165,38 @@ def test_the_module_list_is_the_one_the_run_log_claims() -> None:
         "tools/thresholds.py",
         "trace.py",
         "verifier/__init__.py",
+        "verifier/claim.py",
+        "verifier/claims_doc.py",
+        "verifier/developer.py",
+        "verifier/extract.py",
+        "verifier/grounding.py",
+        "verifier/match.py",
+        "vocab.py",
     ]
 
 
-# The public surface of spec section 9, as far as Phase 3 implements it. `Finding` arrives in
-# Phase 7 and `validate` in Phase 8; both are asserted absent so that a half-built one cannot be
-# mistaken for the real thing. `run_model` is on the list from Phase 3 because `CLAUDE.md` makes
-# subprocess execution of a subject a hard constraint, so it is part of the surface a reader of
-# the package has to be able to find.
+# The public surface of spec section 9, as far as Phase 7 implements it. `validate` arrives in
+# Phase 8 and is asserted absent so that a half-built one cannot be mistaken for the real thing.
+# `run_model` is on the list from Phase 3 because `CLAUDE.md` makes subprocess execution of a
+# subject a hard constraint, so it is part of the surface a reader of the package has to be able
+# to find; `Finding`, the claim grammar and the two persisted documents joined it in Phase 7,
+# because a caller that cannot name a finding or a claim cannot check either one.
 PUBLIC_API = [
     "LLM",
     "Artifact",
     "ArtifactError",
     "ArtifactStore",
+    "Claim",
+    "ClaimStatus",
+    "ClaimsDocument",
     "Completion",
+    "Configuration",
     "DefectClass",
     "EventType",
     "FakeLLM",
+    "Finding",
     "FindingCandidate",
+    "FindingsDocument",
     "LLMOutputError",
     "LLMProviderError",
     "MemoryCap",
@@ -190,6 +204,7 @@ PUBLIC_API = [
     "PackageError",
     "QuaestorError",
     "ReportSchemaError",
+    "ReportSection",
     "RunResult",
     "SandboxError",
     "Severity",
@@ -198,6 +213,7 @@ PUBLIC_API = [
     "TraceReader",
     "TraceWriter",
     "VerificationError",
+    "VerifiedClaim",
     "__version__",
     "load_package",
     "run_model",
@@ -205,7 +221,7 @@ PUBLIC_API = [
 ]
 
 
-def test_the_public_api_is_exactly_what_phase_3_ships() -> None:
+def test_the_public_api_is_exactly_what_phase_7_ships() -> None:
     assert quaestor.__all__ == PUBLIC_API
 
 
@@ -216,6 +232,6 @@ def test_every_public_symbol_is_importable_and_documented(symbol: str) -> None:
         assert value.__doc__, f"quaestor.{symbol} has no docstring"
 
 
-@pytest.mark.parametrize("symbol", ["Finding", "validate"])
+@pytest.mark.parametrize("symbol", ["validate"])
 def test_the_symbols_of_a_later_phase_are_not_exported_yet(symbol: str) -> None:
     assert not hasattr(quaestor, symbol)
