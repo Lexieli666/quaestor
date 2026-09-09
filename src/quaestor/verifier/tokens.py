@@ -15,12 +15,13 @@ The function returns the masked text, the section's lines, the eligible tokens w
 and the tokens it excluded with the class each fell into -- everything any of the three callers
 needs, so that none of them has a reason to re-derive a part of it.
 
-The six exclusion classes are D-015's, in D-015's order: a renderer block or a ``[[table:...]]``
+The exclusion classes are D-015's six, in D-015's order: a renderer block or a ``[[table:...]]``
 directive (nothing inside was written by a model), the hex characters and the logical name inside
 an artifact citation, a regulatory section id, inline code, a finding id, section and list
 numbering -- including a cross-reference to a section of this report written in words, "Section 4"
-(D-112) -- and the package version string. Masking writes spaces over each region rather than
-deleting it, so every offset a caller computes still points where it did in the original text.
+(D-112) -- and the package version string, plus a seventh added since: a reference to an entry of
+this project's own decision log, ``D-050`` (D-116). Masking writes spaces over each region rather
+than deleting it, so every offset a caller computes still points where it did in the original text.
 """
 
 from __future__ import annotations
@@ -90,6 +91,21 @@ _REG_CITATION_RE: Final = re.compile(r"\[\[reg:(?P<body>[^\]]*)\]\]")
 _FINDING_ID_RE: Final = re.compile(r"\bF-\d{3}\b")
 """``F-001``: finding numbering."""
 
+_DECISIONS_REFERENCE_RE: Final = re.compile(r"\bD-\d{3}\b")
+"""``D-050``: a reference to an entry of this project's own decision log.
+
+Section 4 of the third live ``credit_default`` run drafted "The declared bound on the train-to-test
+AUC gap under rule O1 (D-050) is 0.08 [[art:630f28f4:threshold.O1.auc_gap]]", and the ``50`` was
+counted in the denominator, flagged as unattributed and removed by a repair round that also lost the
+sentence's second, verified ``0.08``. The drafter did not invent the reference: the artifact summary
+it was shown reads "O1: the train-to-test AUC gap (D-050)". So the number leaves the denominator
+here, and the summary stops carrying the reference (DECISIONS D-116).
+
+It is a class of its own rather than a widening of :data:`_FINDING_ID_RE` because it is a different
+document: ``F-001`` numbers a finding of *this report*, which Appendix A resolves, and ``D-050``
+numbers an entry of ``DECISIONS.md``, which a reader of the report cannot look up at all.
+"""
+
 _SECTION_NUMBER_RE: Final = re.compile(r"§\s?\d+(?:\.\d+)*|^[ \t]*\d+\.(?=\s)", re.MULTILINE)
 r"""Section and list numbering: ``§6``, and a ``1.`` that opens a line.
 
@@ -123,6 +139,7 @@ _PATTERN_ORDER: Final = (
     "citation_hash",
     "regulatory_section_id",
     "finding_id",
+    "decisions_reference",
     "package_version",
     EXTRACTOR_RETURNED_EXCLUDED,
 )
@@ -370,6 +387,7 @@ def _masked(markdown: str, package_version: str | None) -> tuple[str, list[Exclu
     text = _mask(text, _REG_CITATION_RE, "regulatory_section_id", found, example="body")
     text = _mask(text, _INLINE_CODE_RE, "inline_code", found)
     text = _mask(text, _FINDING_ID_RE, "finding_id", found)
+    text = _mask(text, _DECISIONS_REFERENCE_RE, "decisions_reference", found)
     text = _mask(text, _HEADING_RE, "section_number", found, example="token")
     text = _mask(text, _SECTION_NUMBER_RE, "section_number", found)
     text = _mask(text, _SECTION_REFERENCE_RE, "section_number", found)

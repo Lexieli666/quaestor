@@ -3069,3 +3069,148 @@ here and recorded.
   asserts a follow-up step's report carries the expanded table block and still cites `auc_gap` and
   `share` in prose; `tests/test_report_sections.py` asserts the prefix offers the table to section 4
   and not to section 5.
+
+## D-116. A reference to this project's decision log is not a claim, and a caption does not carry one
+
+- **Date:** 2026-09-08 (Phase 9 pre-flight, follow-up 6)
+- **Q:** Turning the three archived live runs into offline fixtures asks the tokenizer question of
+  every draft those runs made rather than of the reports they shipped, and the first thing it finds
+  is section 4 of the third run: "The declared bound on the train-to-test AUC gap under rule O1
+  **(D-050)** is 0.08 `[[art:630f28f4:threshold.O1.auc_gap]]`". The `50` was an eligible token, was
+  counted in the denominator, was reported `unattributed`, and provoked a repair round whose
+  re-draft also rewrote the neighbouring sentence and cost the report a *verified* `0.08`. The
+  drafter did not invent the reference: the caption of the artifact it was shown reads "O1: the
+  train-to-test AUC gap (D-050)". Is `D-050` an exclusion or a thing the prose should not contain?
+- **A:** Both, each where it belongs. `_DECISIONS_REFERENCE_RE` masks `\bD-\d{3}\b` under a new
+  exclusion class `decisions_reference`, so a decision reference wherever a model writes it is not
+  a claim; and no artifact caption carries one any more -- the four in `THRESHOLD_SUMMARIES` and
+  the one in `check_collinearity` lose theirs, and `tests/test_pipeline.py` asserts that no
+  artifact either synthetic run stores has one. It is a class of its own and not a widening of
+  `finding_id`: `F-001` numbers a finding of *this report*, which Appendix A resolves for the
+  reader, and `D-050` numbers an entry of a file the reader does not have. This amends D-015's list
+  of six classes to seven, which is why it is recorded here rather than folded into D-112.
+- **Why:** Neither half is sufficient. With the exclusion alone the report still prints Quaestor's
+  own bookkeeping in its prose and in Appendix B, in a document addressed to a model developer at a
+  bank who cannot look the reference up -- the same readability defect as D-113, one document
+  further out. With the caption fix alone a live model that writes `D-050` from anywhere else still
+  mints a claim of fifty, and the archive shows it is a *choice* the model makes rather than a
+  transcription: attempts 1 and 3 sent byte-identical section-4 prompts -- the cassette key is a
+  hash of the request and both runs stored the same one -- and only attempt 3 copied the reference
+  out of the caption. So the tokenizer has to read a form the prompt no longer teaches, which is
+  D-099's rule in reverse and for the same reason.
+  The cost is the usual one: an exclusion lowers the denominator, and D-015 is emphatic that a
+  denominator which quietly shrinks is the failure an exclusion list is most dangerous for. So the
+  blast radius is measured rather than argued -- over the draft calls of all four archived runs
+  that made any, the class removes exactly one token, attempt 3's `D-050`, which
+  `tests/test_archive_fixtures.py` asserts as an equality and not as a bound.
+  Rejected alternatives: an instruction to the drafter not to write a decision reference, which is
+  D-113's remedy and right where the prompt has a legitimate reason to show the name but wrong
+  here, because the prompt has no reason at all to show this one -- and an instruction cannot stop
+  a caption from being copied, which is the mechanism; widening `_FINDING_ID_RE` to `[DF]-\d{3}`,
+  which puts two documents in one audit class and makes the exclusion list less legible than the
+  thing it audits; excluding only `(D-\d{3})` in parentheses, which is a pattern over punctuation
+  and would count a bare "as D-050 requires"; and stripping the reference in the renderer, which
+  edits the sentence the claim id hashes (D-099's argument against normalising prose after
+  drafting). Measured: `tests/test_verifier_extract.py` asserts one claim for the run's own
+  sentence and `D-050` recorded as excluded, and that "the D-050 cohort holds 12 rows" still claims
+  twelve; `tests/test_archive_fixtures.py` asserts the sentence as the cassette holds it, the
+  caption as attempt 3's own index holds it, and the shipped caption without it.
+
+## D-117. The repair event says whether the round was scoped at all
+
+- **Date:** 2026-09-08 (Phase 9 pre-flight, follow-up 6)
+- **Q:** D-109 scopes a repair round to the lines carrying a flagged claim, and
+  `scope_to_flagged_lines` has one fallback: when no line of the previous draft carries one of the
+  flagged claims it returns the whole re-draft, with `lines_redrafted` set to the re-draft's line
+  count. That is the one path on which D-109's guarantee does not hold, and nothing on the trace
+  distinguishes it from a round that happened to re-draft every line. What should a live run that
+  took it look like in the record?
+- **A:** Explicit. `scope_to_flagged_lines` returns a `ScopedRedraft` -- the markdown, the count,
+  and `scoped` -- and the `repair` trace event carries `scoped: false` when the fallback fired and
+  `scoped: true` when it did not. The decision is not recomputed by the caller: `repair_sections`
+  reads it off the return value, because a rule evaluated in two places is the shape of defect
+  D-084 named and D-091 and D-099 repeated.
+- **Why:** The whole of D-109's argument is that a repair round's blast radius should equal the
+  damage that provoked it, and the fallback is the case where it does not: the section is replaced
+  wholesale on the strength of claims that could not be located in it. That is a legitimate
+  outcome -- the alternative is a round that changes nothing at all -- but it is one a reader of a
+  live trace has to be able to find, and `lines_redrafted == len(lines)` is an inference over two
+  documents rather than a fact in one. None of the six archived rounds took the path, which
+  `tests/test_archive_fixtures.py` asserts by the reason it cannot: `Claim.text` *is* the line the
+  number sits on (D-085), so a flagged claim of a draft is findable in that draft.
+  Rejected alternatives: deriving `scoped` in `repair_sections` from `_flagged_line_numbers`, which
+  states the rule twice; raising instead of falling back, which turns a repairable section into a
+  failed run over a claim the round could not place; and reading it off `lines_redrafted`, which is
+  the inference this entry exists to remove.
+
+## D-118. The archive is a fixture over the drafts, and the coverage arithmetic is shared
+
+- **Date:** 2026-09-08 (Phase 9 pre-flight, follow-up 6)
+- **Q:** Every defect class this project has found came out of a person reading a live report at
+  roughly $6 and twenty-two minutes a run. The runs are committed, so the reading can be a test --
+  but of what text, and sharing what code with `tests/test_golden_spec.py` check 7, which asks the
+  same question of the Phase 1 golden?
+- **A:** Of the drafters' own completions, and sharing the counting but not the tokenizer.
+  `tests/archivesupport.py` reads each archived run -- report, `claims.json`, trace, cassettes,
+  index -- and recovers every drafting call from its cassette, a repair round's *previous* draft
+  from the repair prompt that quotes it verbatim, and the round's flagged claims from the ids its
+  own `repair` event lists. `tests/claimsupport.py` holds the coverage arithmetic, stdlib only, and
+  check 7 now calls it. Check 7 keeps its numeric pattern as a literal.
+- **Why:** `report.md` cannot answer the question the fixture is for. A repair round's answer to a
+  number it could not verify is usually to delete it, so a token that provoked a round is exactly
+  the token the shipped report no longer holds: the third run's `(D-050)` is not in its report at
+  all, and a check over the three reports passes on all three -- which is worth asserting, and
+  finds nothing. The first drafts are where the population of unknown token classes lives, and the
+  cassettes hold them.
+  What is shared is chosen the same way. The counting is arithmetic over tokens and claims already
+  in hand and belongs in one place, because two copies of it are two chances to disagree about what
+  "covered" means -- D-084's whole lesson. The tokenizer is *not* shared, and that is deliberate:
+  `tests/test_golden_spec.py` is the executable specification of the report and imports no part of
+  the package it specifies, so a change to `tokens.py` cannot make the specification agree with it
+  by construction. D-099 already treats the two expressions as copies kept in step by hand, and
+  `claimsupport.py` importing nothing is what lets check 7 use it without acquiring the dependency.
+  What the cassettes cannot support is recorded where it bites rather than worked around. The
+  re-extraction that followed each archived round ran on that run's own unscoped re-draft, so no
+  tape holds the extraction of a scoped one and the claims a scoped round would have produced
+  cannot be replayed; the replay asserts the text and says so in its docstring. Attempts 1 and 2
+  wrote no `claims.json` -- the first was refused by the renderer (D-084), the second exited 1 when
+  a tool raised (D-088) -- so the coverage check cannot run on them; attempt 1's draft calls are
+  still read, against the verified `claim_check` events of its trace, which is how the fixture
+  shows that D-112's section-reference exclusion would have saved that run a flagged claim four
+  runs before the run that found it. And a re-draft is located by the section its prompt names,
+  which is unambiguous only because no archived section went to a second round: that is asserted,
+  so an archive that acquires one fails rather than silently replaying the wrong tape.
+  Rejected alternatives: checking the reports only, which is the check that finds nothing and was
+  written first; adding the archive's tokens to `tests/test_golden_spec.py`, which would make the
+  Phase 1 specification depend on the operator's run directory and on `quaestor` itself; copying
+  check 7's loop into the new module, which is what this entry exists not to do; and reconstructing
+  a first draft by re-running the pipeline against the cassettes, which is a replay layer and is
+  Phase 11's.
+
+## D-119. The two Phase 9 follow-up pipeline cases run at the default panel and assert the set
+
+- **Date:** 2026-09-08 (Phase 9 pre-flight, follow-up 6)
+- **Q:** `tests/test_pipeline.py`'s two Phase 9 follow-up cases -- a tool the loop asked for that
+  does not apply (D-089) and one that raised inside itself (D-088) -- run at `SMALL = 1200` rows
+  and assert `"E1" in` the run's findings. D-017 says the clean synthetic `credit_default` panel
+  raises exactly `{E1 low}`, and `in` is not that statement. At 1,200 rows the subject raises `T1`
+  at high and `C1` at medium beside the `E1`, so the weaker assertion is what the small panel
+  forced. Is the small panel worth it?
+- **A:** No, for these two. Both run at the default 5,000 rows and assert
+  `{("E1", "low")} == the finding set`, through a `_finding_set` helper that says what D-017 is a
+  statement about. **Measured on this machine: one `full_agent` run of the case is 2.16 s at 1,200
+  rows and 2.40 s at 5,000, and the two cases together went from 7.07 s to 6.93 s of wall-clock
+  under `pytest -q -k`, which is inside the noise of the session fixtures they share.** `SMALL`
+  stays for the thirteen other cases that use it, whose subject is a planner action or a
+  configuration and not the finding set.
+- **Why:** These two cases exist to show that a refused step and a raising tool do not cost the run
+  its report, and "the report is still the report D-017 describes" is the strongest form of that
+  claim available. `"E1" in` passes on a panel that also raised `T1` at high -- a *high*-severity
+  finding on a clean subject -- which is precisely the outcome the case would want to fail on, and
+  it passes at 1,200 rows today for that reason. A quarter of a second per run is not a trade.
+  Rejected alternatives: keeping `SMALL` and asserting the whole `{T1, C1, E1}` set it produces,
+  which pins a small panel's artefacts as though they were the subject's behaviour and would fail
+  the next time the generator's tails change; moving every use of `SMALL` to the default, which buys
+  nothing for the cases that assert a planner action and costs a second and a half; and dropping the
+  finding assertion from the two cases, which removes the only line in either that says the run
+  produced a *correct* report and not merely a report.

@@ -479,3 +479,38 @@ def test_a_number_after_the_word_section_in_another_sense_is_still_a_claim() -> 
     markdown = "The cross-section holds 4 rows and the mean is 0.5.\n"
     extraction = extract(SECTION, markdown, llm_returning())
     assert [claim.value for claim in extraction.claims] == [4.0, 0.5]
+
+
+# --- Phase 9 pre-flight: a decision reference is not a claim either (D-116) ---------------------
+
+
+def test_a_reference_to_this_project_s_decision_log_is_not_a_claim(store: ArtifactStore) -> None:
+    """The third live run's own section-4 sentence, which cost it a round and a verified 0.08.
+
+    "(D-050)" came out of the caption of the artifact the sentence cites, so the pipeline taught
+    the drafter to write a number its own verifier then reported as unattributed -- D-099's shape.
+    The declared bound is still a claim; the reference is recorded as excluded.
+    """
+    citation = store.artifact("metrics.test.auc").citation()
+    markdown = (
+        "The declared bound on the train-to-test AUC gap under rule O1 (D-050) is 0.08 "
+        f"{citation}.\n"
+    )
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [0.08]
+    patterns = {exclusion.pattern: exclusion.examples for exclusion in extraction.exclusions}
+    assert patterns["decisions_reference"] == ["D-050"]
+
+
+def test_a_number_beside_a_decision_reference_is_still_a_claim() -> None:
+    """The pattern takes the reference and nothing around it: a count beside one is untouched."""
+    markdown = "The D-050 cohort holds 12 rows at a rate of 0.5.\n"
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [12.0, 0.5]
+
+
+def test_a_four_digit_reference_shaped_number_is_not_excluded() -> None:
+    """`D-1234` is not a decision of this project, and `2026` after a letter is not one either."""
+    markdown = "Vintage D-1234 holds 2026 rows.\n"
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [1234.0, 2026.0]

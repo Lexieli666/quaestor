@@ -444,7 +444,13 @@ def test_the_repair_round_rewrote_a_line_nobody_flagged() -> None:
 
 
 def test_scoping_the_round_to_its_flagged_lines_keeps_the_damaged_line_out() -> None:
-    """The run's own section 4, replayed: four lines re-drafted and the fifth left alone."""
+    """The run's own section 4, replayed: four lines re-drafted and every other line untouched.
+
+    Keeping the damaged line out is the half this run's reading found. The other half is the
+    guarantee D-109 actually makes, which is about *all* the rest of the section and not one
+    sentence of it: every line of the previous draft that carried no flagged claim comes back
+    byte-identical. Both are asserted here.
+    """
     report = _report().splitlines()
     start = report.index("## 4. Outcomes analysis")
     end = report.index("## 5. Sensitivity and scenario analysis")
@@ -466,9 +472,17 @@ def test_scoping_the_round_to_its_flagged_lines_keeps_the_damaged_line_out() -> 
     assert len(flagged) == 4
     assert sum(1 for line in previous if line in flagged) == 4
     failures = [Match(claim=VerifiedClaim(**claim)) for claim in _failed()[:4]]
-    scoped, redrafted = scope_to_flagged_lines("\n".join(previous), "\n".join(after), failures)
-    assert redrafted == 4
+    result = scope_to_flagged_lines("\n".join(previous), "\n".join(after), failures)
+    scoped = result.markdown
+    assert result.lines_redrafted == 4
+    assert result.scoped is True, "the round found its flagged lines and did not fall back"
     assert UNDAMAGED in scoped.splitlines()
     assert DAMAGED not in scoped
     for text in flagged:
         assert text not in scoped, "the flagged lines still take their re-drafted text"
+    kept = set(scoped.splitlines())
+    written = [line for line in previous if line.strip()]
+    unflagged = [line for line in written if line not in flagged]
+    assert len(unflagged) == len(written) - 4, "the four flagged lines and everything else"
+    missing = [line for line in unflagged if line not in kept]
+    assert missing == [], "every unflagged line of the previous section 4 is kept verbatim"

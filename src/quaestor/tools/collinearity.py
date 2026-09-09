@@ -131,7 +131,7 @@ class CheckCollinearityTool(Tool["CheckCollinearityTool.Args"]):
                 "condition_number",
                 kappa,
                 ArtifactKind.scalar,
-                "Belsley's condition number of the column-standardised design (D-035)",
+                "Belsley's condition number of the column-standardised design",
             )
         )
 

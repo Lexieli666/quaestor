@@ -9,6 +9,24 @@ run that was not committed.
 
 ### Added
 
+- The archived live runs are offline regression fixtures. `tests/archivesupport.py` reads each run
+  committed under `eval/results/first-live/` — report, `claims.json`, trace, cassettes, artifact
+  index — recovering every drafting call from its cassette and every repair round's *previous*
+  draft from the repair prompt that quotes it; `tests/claimsupport.py` holds the claim-coverage
+  arithmetic, standard library only, and `tests/test_golden_spec.py` check 7 now calls it instead
+  of carrying its own copy. `tests/test_archive_fixtures.py` asks two questions of each archived
+  run: is every eligible numeric token of the prose covered by a post-repair claim — of the three
+  rendered reports and of the twenty-one first drafts they were repaired from — and does a repair
+  round keep every unflagged line of its previous draft byte-identical. Both answers are pinned to
+  the figures `docs/EVALUATION.md` prints, so a number in that document that drifts from the
+  archive fails the suite (D-118).
+- `decisions_reference`, the seventh exclusion class: a reference to an entry of this project's own
+  decision log is not a claim (D-116, amending D-015's list of six).
+- `ScopedRedraft`, the return of `scope_to_flagged_lines`, carrying the markdown, the count of
+  lines re-drafted and `scoped` — which the `repair` trace event now prints, so a round that fell
+  back to taking the whole re-draft is visible in the record rather than inferred from a line
+  count (D-117).
+
 - Phase 0 scaffolding: `src/` layout under the distribution name `quaestor-mrm` and the import
   name `quaestor`, the `quaestor` console script as a version stub, the empty subpackages of the
   repository layout, the scaffold tests, the CI quality gate on Python 3.11 and 3.12, and the
@@ -491,3 +509,18 @@ run that was not committed.
   `credit_default`, which gained a `data.manifest` when its real sample was committed, so the test
   had been failing on `main`; it now uses the hazard fixture, which is the package that declares
   no manifest.
+- **A reference to this project's decision log was counted as a claim, and an artifact caption is
+  where it came from (D-116).** The third live run's section 4 drafted "The declared bound on the
+  train-to-test AUC gap under rule O1 (D-050) is 0.08", the `50` was counted in the grounding
+  denominator, reported `unattributed` and removed by a repair round — whose re-draft also rewrote
+  the neighbouring sentence and cost the report a *verified* `0.08` on a line nobody had flagged.
+  The caption of the artifact the sentence cites read "O1: the train-to-test AUC gap (D-050)",
+  which is what the prompt showed the drafter. The tokenizer now excludes `\bD-\d{3}\b` and no
+  artifact caption carries a decision reference; over the drafts of all four archived runs that
+  made any, the new class removes exactly one token. Found offline, by the archive fixtures, with
+  no live call.
+- `tests/test_pipeline.py`'s two Phase 9 follow-up cases asserted `"E1" in` the run's findings on a
+  1,200-row panel, which passes on a panel that also raises `T1` at high and `C1` at medium — the
+  opposite of what a case about "the run still produces a correct report" wants. Both run at the
+  default 5,000 rows and assert the whole finding set, `{E1 low}` (D-017); the panel costs 0.24 s
+  a run (D-119).

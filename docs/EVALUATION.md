@@ -4,8 +4,9 @@ Every number in this file comes from a run committed in this repository, and the
 where the number is used. `tests/test_live_credit_attempt1.py`,
 `tests/test_live_credit_attempt2.py`, `tests/test_live_credit_attempt3.py`,
 `tests/test_live_credit_attempt4.py` and `tests/test_live_credit_attempt5.py` re-derive each
-figure of section 1 from the trace it claims to come from, so a number that drifts from its run fails the suite rather than sitting in a
-document. Where a figure was computed from a file the repository deliberately
+figure of section 1 from the trace it claims to come from, and `tests/test_archive_fixtures.py`
+re-derives the figures of the last entry from the three archived runs together, so a number that
+drifts from its run fails the suite rather than sitting in a document. Where a figure was computed from a file the repository deliberately
 does *not* hold — a real sample's rows — it says so at the point of use.
 
 This document is not yet the evaluation the project is for. The seeded-defect study of
@@ -512,3 +513,101 @@ price.
 
 **Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, and a `credit_default`
 attempt on a build carrying D-109 to D-115. Both are the operator's, and neither has happened.
+
+### 2026-09-08 — the archive as an offline fixture: what `pytest` found without a live call
+
+No run. This entry is about the three archived runs above, read as fixtures rather than as history.
+
+**Why the archive is worth reading again.** Every defect class in this document was found by a
+person reading a rendered report — attempt 3 at $4.38 and 20:18, attempt 4 at $4.16 and 15:09,
+attempt 5 at $6.05 and 22:08. All three runs are committed under `eval/results/first-live/` with
+their reports, `claims.json`, traces, cassettes and artifact indexes (D-087), so the same reading
+can be done by the suite, on the same bytes, at no cost and on every commit.
+`tests/archivesupport.py` reads them; `tests/test_archive_fixtures.py` asks two questions of each.
+
+**The tokenizer question, and why it has to be asked of the drafts.** Generalising
+`tests/test_golden_spec.py` check 7 to the three live reports finds nothing: every eligible numeric
+token of every one of the three bodies is covered by a post-repair claim, and every post-repair
+claim has a token in the prose — 159, 161 and 285 tokens against 159, 161 and 285 claims. That is
+worth having and is not where the defects are. **A repair round's answer to a number it could not
+verify is usually to delete it, so a token that provoked a round is exactly the token the shipped
+report no longer holds.** The same check over the twenty-one *first drafts* the three runs made,
+recovered from their cassettes, leaves five residues:
+
+| run | section | token in the first draft | what it is |
+|---|---|---|---|
+| attempt 3 | 4. Outcomes | `50`, of "under rule O1 **(D-050)** is 0.08" | **a new class** — DECISIONS D-116 |
+| attempt 3 | 4. Outcomes | a second `0.08` | a verified claim an unflagged line lost — D-109 |
+| attempt 3 | 3. Data integrity | `9.982e-06` | the exponent form — D-099 |
+| attempt 4 | 2. Conceptual soundness | `1.92e-05`, `-5.589e-05` | the same, twice — D-099 |
+| attempt 4 | 3. Data integrity | `9.982e-06` | the same literal, one run later — D-099 |
+| attempt 5 | 4. Outcomes | `10160`, `16210` | counts the prompt rounded — D-110 |
+
+**One new token class, and the run it came from.** `(D-050)`, in the first draft of attempt 3's
+section 4: "The declared bound on the train-to-test AUC gap under rule O1 (D-050) is 0.08
+`[[art:630f28f4:threshold.O1.auc_gap]]`". The `50` was counted in the denominator, reported
+`unattributed`, and provoked a repair round — and that round's re-draft also rewrote the
+neighbouring sentence "…the bound of 0.08 `[[art:630f28f4:threshold.O1.auc_gap]]` is not breached"
+into "…the declared bound is not breached", so the report lost a *verified* claim to a line nobody
+had flagged. One reference cost a model call and two claims. The drafter did not invent it: the
+caption of the artifact the sentence cites reads "O1: the train-to-test AUC gap (D-050)", which is
+what the drafting prompt showed it. D-116 takes both halves — `\bD-\d{3}\b` is a new exclusion
+class `decisions_reference`, and no artifact caption carries a decision reference any more.
+
+**The archive also says the reference is a choice and not a transcription.** Attempts 1 and 3 sent
+byte-identical section-4 drafting prompts — the cassette key is a hash of the request and both runs
+stored the tape under `a3a5316ac0480158` — and only attempt 3 copied the reference out of the
+caption. So the exclusion is not redundant with the caption fix: a live model may write the form
+whatever the prompt does.
+
+**What the fixture measures about the exclusion.** An exclusion lowers the grounding denominator,
+which D-015 names as the failure an exclusion list is most dangerous for, so the new class's blast
+radius is asserted as an equality rather than argued: over the draft calls of all four archived runs
+that made any, `decisions_reference` removes **exactly one token**, attempt 3's `D-050`.
+
+**Three classes the archive shows a run earlier than the run that found them.** Not new, and that
+is the point of a regression fixture:
+
+* **D-099, the exponent form** — the same three literals in three runs. Attempt 1's trace records
+  `9.982` and `6` as its only two unattributed claims, attempt 3 removed them, attempt 4 lost all
+  six of its failed claims to them, and the class was named only at attempt 4. The fixture reads
+  each literal as one token now, in every draft that wrote one.
+* **D-112, a section cross-reference in words** — attempt 1's section 3 wrote "the contamination
+  finding in section 3.3", and the `3.3` was one of the three flagged claims of that run's single
+  repair round. It is excluded now, and the exclusion was decided at attempt 5, four runs later.
+* **D-109, a repair round rewriting a line nobody flagged** — decided on one round of one run, and
+  the archive holds six rounds over three runs. Replaying each against the previous draft its own
+  repair prompt quotes: the drafter changed a line it was not asked about in **five of the six** —
+  two lines in attempt 3's outcomes round, two and one in attempt 4's, two and three in attempt 5's
+  outcomes and monitoring rounds, and none in attempt 3's data-integrity round. **Ten lines across
+  the archive that the current build discards**, and on all six rounds `scope_to_flagged_lines`
+  keeps every one of the previous draft's unflagged lines byte-identical — 39, 41, 41, 49, 52 and 23
+  of them.
+
+**What the D-111 pairing says of the three runs now.** Given each round's flagged claims and the
+claims of the section after it, `_round_records` reports **attempt 3: 0 rewritten / 3 removed;
+attempt 4: 0 / 6; attempt 5: 0 / 5** — the splits the entries above state. All three runs reported
+one fewer removal and one rewrite at the time, because D-105's two pairing grounds were read as
+alternatives; attempt 3's Appendix A is the third instance of that, unrecorded until now.
+
+**What the cassettes cannot support, said rather than worked around.** The re-extraction that
+followed each archived round ran on that run's own *unscoped* re-draft, so no tape holds the
+extraction of a scoped one: the replay asserts the text a scoped round produces and not the claims
+it would have yielded, and the test's docstring says so. Attempts 1 and 2 wrote no `claims.json` —
+the first was refused by the renderer (D-084), the second exited 1 when a tool the loop asked for
+raised (D-088) — so the coverage question cannot be asked of them; attempt 1's draft calls are read
+all the same, against the verified `claim_check` events of its trace, which is where its `3.3` came
+from.
+
+| # | what the archive fixtures found offline | kind | fixed in |
+|---|---|---|---|
+| DECISIONS D-116 | Attempt 3's section 4 drafted "under rule O1 (D-050) is 0.08" and the `50` was counted, flagged and removed by a round that also cost the section a verified `0.08`. The reference came from the artifact caption the prompt showed. `\bD-\d{3}\b` is now an exclusion class, and no caption carries a decision reference. | defect | this commit |
+| DECISIONS D-117 | `scope_to_flagged_lines`' fallback returns the whole re-draft when it can find no flagged line, and nothing on the trace distinguished that from a round that re-drafted every line. The `repair` event now carries `scoped`. No archived round took the path. | gap | same commit |
+| DECISIONS D-118 | The archive fixture reads the drafters' completions and not only `report.md`, because a repair round removes the token the check is for; the coverage arithmetic is shared with check 7 and the tokenizer deliberately is not. | gap | same commit |
+| DECISIONS D-119 | `tests/test_pipeline.py`'s two Phase 9 follow-up cases ran at 1,200 rows and asserted `"E1" in` the findings, which passes on a panel that also raises `T1` at high. They run at the default 5,000 and assert the set; the cost is 0.24 s a run. | defect | same commit |
+
+All four ship in one commit, which cannot cite its own hash; the run-log line under Phase 9 in
+`PROGRESS.md` is written in the same commit.
+
+**Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, and a `credit_default`
+attempt on a build carrying D-109 to D-119. Both are the operator's, and neither has happened.

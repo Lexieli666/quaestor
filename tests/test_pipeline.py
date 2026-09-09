@@ -18,6 +18,7 @@ both subjects run in `--synthetic` mode.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import jsonschema
@@ -37,7 +38,15 @@ GOLDEN = REPO_ROOT / "examples" / "golden_report"
 CREDIT = REPO_ROOT / "subjects" / "credit_default"
 MSR = REPO_ROOT / "subjects" / "msr_prepayment"
 SMALL = 1200
-"""How many rows the variant runs generate: enough for every tool, small enough to run six times."""
+"""How many rows the variant runs generate: enough for every tool, small enough to run six times.
+
+A panel this small is not the clean panel D-017 is about: at 1,200 rows the credit subject raises
+`T1` at high and `C1` at medium beside the `E1` D-017 names, so a test that runs at `SMALL` cannot
+assert the finding set and the two Phase 9 follow-up cases asserted `"E1" in` it instead. Those two
+now run at the default 5,000 and assert the set, because the difference is 0.24 s a run (D-119);
+every other use of this constant is a case whose subject is a planner action or a configuration
+and not the finding set.
+"""
 
 
 def run_validate(
@@ -74,6 +83,26 @@ def hazard(tmp_path_factory: pytest.TempPathFactory) -> ValidationRun:
 
 
 # --- the two documents, and the four files spec section 8 says a run writes ----------------------
+
+
+def test_no_artifact_a_run_stores_names_an_entry_of_the_decision_log(
+    credit: ValidationRun, hazard: ValidationRun
+) -> None:
+    """D-116: a caption is shown to the drafter and printed in Appendix B, so it stays readable.
+
+    The third live run copied `(D-050)` out of `threshold.O1.auc_gap`'s caption into its prose,
+    where the `50` was counted as a claim of fifty. The tokenizer now excludes the reference
+    wherever a model writes it; this is the other half, and it is asserted over every artifact two
+    whole runs store rather than over the one table that had them, because any tool can write a
+    caption.
+    """
+    for run in (credit, hazard):
+        named = {
+            name: run.store.entry(name).summary
+            for name in run.store.names()
+            if re.search(r"\bD-\d{3}\b", run.store.entry(name).summary)
+        }
+        assert named == {}, run.package.spec.name
 
 
 def test_validate_writes_the_four_files_and_the_store(credit: ValidationRun) -> None:
@@ -334,6 +363,16 @@ def _front(report: str) -> dict[str, object]:
     return loaded
 
 
+def _finding_set(run: ValidationRun) -> set[tuple[str, str]]:
+    """The run's findings as `(defect class, severity)` pairs, so a test can assert the set.
+
+    D-017 is a statement about the whole set and not about one member of it: the clean synthetic
+    `credit_default` panel yields exactly `{E1 low}`. A case that asserts `"E1" in` the list would
+    pass on a panel that also raised `T1` and `C1`, which is what 1,200 rows does (D-119).
+    """
+    return {(f.defect_class.value, f.severity.value) for f in run.findings.findings}
+
+
 # --- the Phase 9 follow-up: an inapplicable request, and a tool that raises ----------------------
 
 
@@ -354,7 +393,7 @@ def test_an_inapplicable_tool_is_refused_and_the_run_still_drafts(tmp_path: Path
             {"stop": True},
         ]
     )
-    run = run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
+    run = run_validate(CREDIT, tmp_path / "out", llm=llm)
 
     assert [step.accepted for step in run.steps] == [False, False]
     assert [step.executed for step in run.steps] == [False, False]
@@ -378,7 +417,7 @@ def test_an_inapplicable_tool_is_refused_and_the_run_still_drafts(tmp_path: Path
         == []
     )
     assert run.precision_post == 1.0
-    assert "E1" in [finding.defect_class.value for finding in run.findings.findings]
+    assert _finding_set(run) == {("E1", "low")}, "D-017 still holds when a step is refused"
     assert "`check_stability` (R1)" in run.report
 
 
@@ -399,7 +438,7 @@ def test_a_follow_up_that_raises_inside_the_tool_still_produces_a_report(tmp_pat
             {"stop": True},
         ]
     )
-    run = run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
+    run = run_validate(CREDIT, tmp_path / "out", llm=llm)
 
     assert [step.accepted for step in run.steps] == [True, False]
     assert run.steps[0].executed is False
@@ -430,7 +469,7 @@ def test_a_follow_up_that_raises_inside_the_tool_still_produces_a_report(tmp_pat
         == []
     )
     assert run.precision_post == 1.0
-    assert "E1" in [finding.defect_class.value for finding in run.findings.findings]
+    assert _finding_set(run) == {("E1", "low")}, "D-017 still holds when a step's tool raises"
 
 
 # --- the Phase 9 follow-up 4: an executed step reaches the prose (D-101, D-102) -----------------

@@ -122,25 +122,33 @@ THRESHOLD_SUMMARIES: Final[Mapping[str, str]] = {
     "threshold.E1.delta_auc": "E1: the challenger's AUC lead over the champion",
     "threshold.L1.single_feature_auc": "L1: the AUC one feature may reach on its own",
     "threshold.L2.overlap": "L2: the fraction of test rows that may also be in train",
-    "threshold.M1.condition_number": "M1: Belsley's condition number of the design (D-035)",
+    "threshold.M1.condition_number": "M1: Belsley's condition number of the design",
     "threshold.M1.vif": "M1: the variance inflation factor of any retained feature",
-    "threshold.O1.auc_gap": "O1: the train-to-test AUC gap (D-050)",
+    "threshold.O1.auc_gap": "O1: the train-to-test AUC gap",
     "threshold.O1.holdout_gap": "O1: how far a period split's AUC may fall below test",
     "threshold.O1.slice_auc_gap": (
         "how far a sub-population's AUC may fall below the split's before the result is an open "
-        "item (D-102); it raises no candidate"
+        "item; it raises no candidate"
     ),
     "threshold.O1.slice_min_share": (
-        "the share of a split a sub-population must hold before it can raise an open item (D-102)"
+        "the share of a split a sub-population must hold before it can raise an open item"
     ),
     "threshold.R1.auc_gap": "R1: the AUC difference across regimes",
     "threshold.R1.sign_flip_coef": "R1: the coefficient a sign flip must exceed in both regimes",
-    "threshold.S1.psi": "S1: the population stability index, train against test (D-046)",
+    "threshold.S1.psi": "S1: the population stability index, train against test",
     "rule.calibration_first_event_rate": (
         "the event rate below which the report puts calibration before discrimination"
     ),
 }
-"""The caption each threshold is stored with, so Appendix B says what a number governs."""
+"""The caption each threshold is stored with, so Appendix B says what a number governs.
+
+No caption names a ``DECISIONS.md`` entry. A summary is shown to the drafter and printed in
+Appendix B, so a ``(D-050)`` in one is a reference to this project's own decision log inside a
+document addressed to a model developer, who cannot look it up -- and the third live run copied
+one into its prose, where the ``50`` was counted as a claim of fifty (DECISIONS D-116). The
+reference belongs in this module's docstrings, which carry it. ``tests/test_pipeline.py``
+asserts that no artifact either synthetic run stores carries one.
+"""
 
 
 class Thresholds:

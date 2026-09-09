@@ -802,3 +802,70 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   including a line-by-line replay of the repair round), DECISIONS D-109 to D-115, the Phase 9
   follow-up 5 section of `docs/DESIGN.md` and the `CHANGELOG.md` entries. No test calls a live
   model, downloads data, trains on real data or reads an API key. No push.
+- 2026-09-08 — **Phase 9 pre-flight (follow-up 6)** — **no live run, no live data**: the three
+  archived runs that rendered (`credit-attempt3`, `credit-attempt4`, `credit-attempt5`) turned into
+  offline regression fixtures, so the next defect class is found by `pytest` rather than by a person
+  reading a report at $6 and twenty-two minutes. Gate green on the five conditions that apply:
+  `pytest -q` **1389 passed**, 0 failed, 0 skipped, 0 xfailed (49 new); coverage of `src/quaestor`
+  **100%** (`coverage run -m pytest`, 6,020 statements) against the 85% floor; `ruff check` and
+  `ruff format --check` clean on `src tests eval subjects` (137 files); `mypy --strict
+  src/quaestor` clean (60 source files); gate condition 5 green — `examples/golden_report/` is
+  **untouched** (`git diff --stat examples/golden_report/` prints nothing and `MANIFEST.json` still
+  hashes to `40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116`, D-011's second and
+  current row), and `quaestor validate --synthetic --llm fake` renders both subjects through the
+  installed console script (credit_default 1.0000 → 1.0000 over 49 claims, 1 finding, 168
+  artifacts, 4.28 s; msr_prepayment 1.0000 → 1.0000 over 45 claims, 0 findings, 271 artifacts,
+  6.28 s — the same figures as follow-up 5, because an artifact caption is not a claim). Four
+  decisions, **D-116 to D-119**.
+  **What the archive found.** Generalising `tests/test_golden_spec.py` check 7 to the three live
+  reports finds **nothing**: 159, 161 and 285 eligible tokens against 159, 161 and 285 post-repair
+  claims, both directions clean. That is because a repair round deletes the numbers it could not
+  verify, so the same check over the **twenty-one first drafts** those reports were repaired from —
+  recovered from the cassettes — is where the classes are. Seven residue tokens over five
+  sections, and **one new token
+  class**: attempt 3's section 4 drafted "The declared bound on the train-to-test AUC gap under rule
+  O1 **(D-050)** is 0.08 `[[art:630f28f4:threshold.O1.auc_gap]]`", the `50` was counted in the
+  denominator, reported `unattributed`, and provoked a round whose re-draft also rewrote the
+  neighbouring sentence and cost the report a **verified `0.08`**. The reference came out of the
+  caption the prompt showed it (`"O1: the train-to-test AUC gap (D-050)"`). D-116 takes both halves
+  — `\bD-\d{3}\b` becomes the seventh exclusion class, `decisions_reference`, and the four
+  `THRESHOLD_SUMMARIES` captions and `check_collinearity`'s lose their references, asserted over
+  every artifact both synthetic runs store. Both halves are needed and the archive is what shows
+  it: attempts 1 and 3 sent **byte-identical** section-4 prompts (one cassette key,
+  `a3a5316ac0480158`, in both directories) and only attempt 3 copied the reference, so the form is
+  a choice a live model makes. Blast radius asserted as an equality: over the draft calls of all
+  four archived runs that made any, the class removes **exactly one token**.
+  **Three classes the archive shows earlier than the run that named them.** D-099's exponent form
+  in attempts 1, 3 and 4, named at 4 (`9.982e-06`, `1.92e-05`, `-5.589e-05`); D-112's
+  section-reference-in-words in attempt 1 — "the contamination finding in section 3.3", one of that
+  run's three flagged claims — named at 5; and **D-109 in five of the six repair rounds the archive
+  holds**, not one: the drafter changed a line nobody flagged in attempt 3's outcomes round (2
+  lines), attempt 4's two rounds (2 and 1), and attempt 5's outcomes and monitoring rounds (2 and
+  3), **ten lines in all**, and `scope_to_flagged_lines` keeps all **245** unflagged lines of those
+  six previous drafts byte-identical. The D-111 pairing over the three runs' own records reports
+  **0 rewritten / 3, 6 and 5 removed** — the splits `docs/EVALUATION.md` states for attempts 4 and
+  5, and the first record of attempt 3's false rewrite row.
+  **How it is built (D-118).** `tests/archivesupport.py` reads a run — report, `claims.json`,
+  trace, cassettes, index — recovering each drafting call from its cassette, each round's
+  **previous** draft from the repair prompt that quotes it verbatim, and each round's flagged
+  claims from the ids its own `repair` event lists. `tests/claimsupport.py` holds the coverage
+  arithmetic, **standard library only**, and check 7 now calls it instead of carrying a copy; the
+  *tokenizer* stays a deliberate second copy in the golden test, which imports no part of the
+  package it specifies (D-099's own arrangement). What the cassettes cannot support is written into
+  the tests: the re-extraction after each archived round ran on that run's unscoped re-draft, so no
+  tape holds the extraction of a scoped one and the replay asserts the text and not the claims;
+  attempts 1 and 2 wrote no `claims.json`, so attempt 1's drafts are read against the verified
+  `claim_check` events of its trace instead; and a re-draft is found by the section its prompt
+  names, which is asserted to be unambiguous because no archived section went to a second round.
+  **Two residuals closed while the archive was open.** `scope_to_flagged_lines` returns a
+  `ScopedRedraft` and the `repair` event carries **`scoped`**, so the one path on which D-109's
+  guarantee does not hold is a fact in the record and not an inference from `lines_redrafted`
+  (D-117) — none of the six archived rounds took it, asserted by the reason it cannot. And
+  `tests/test_pipeline.py`'s two Phase 9 follow-up cases move off `SMALL = 1200` to the default
+  panel and assert the **whole** finding set `{E1 low}` instead of `"E1" in` it, which passed on a
+  panel raising `T1` at **high**: **measured at 2.16 s a run at 1,200 rows against 2.40 s at 5,000,
+  and 7.07 s against 6.93 s for the pair under `pytest -k`** (D-119). Also shipped: the dated
+  `docs/EVALUATION.md` §1 entry for the archive fixtures, `tests/test_archive_fixtures.py` (44
+  checks), the Phase 9 pre-flight section of `docs/DESIGN.md` and the `CHANGELOG.md` entries. No
+  test calls a live model, downloads data, trains on real data or reads an API key; the archive is
+  read as JSON and text only, and no byte of `eval/results/first-live/` changed. No push.

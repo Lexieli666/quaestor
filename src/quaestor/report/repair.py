@@ -33,7 +33,7 @@ import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
-from typing import Final
+from typing import Final, NamedTuple
 
 from ..findings import Finding, FindingCandidate
 from ..trace import EventType, TraceWriter
@@ -53,6 +53,7 @@ __all__ = [
     "UNVERIFIED_OPEN",
     "DraftInputs",
     "RepairOutcome",
+    "ScopedRedraft",
     "SectionDraft",
     "Verify",
     "is_wrapped",
@@ -283,9 +284,27 @@ def _closest(lines: Sequence[str], candidate: str) -> int | None:
     return best[1]
 
 
-def scope_to_flagged_lines(
-    previous: str, redraft: str, failures: Sequence[Match]
-) -> tuple[str, int]:
+class ScopedRedraft(NamedTuple):
+    """What one repair round took from the re-draft it asked for.
+
+    Attributes:
+        markdown: The section after the round.
+        lines_redrafted: How many of the flagged lines the re-draft actually changed.
+        scoped: Whether the round was scoped to the flagged lines at all. ``False`` says
+            :func:`scope_to_flagged_lines` found no line of the previous draft carrying a flagged
+            claim and returned the whole re-draft, which is the one path on which D-109's guarantee
+            does not hold. It is recorded on the ``repair`` trace event rather than left to be
+            inferred from ``lines_redrafted``: a run that took the fallback is a run whose section
+            was replaced wholesale, and a reader of the trace should not have to compare a line
+            count against a draft to find out (DECISIONS D-117).
+    """
+
+    markdown: str
+    lines_redrafted: int
+    scoped: bool
+
+
+def scope_to_flagged_lines(previous: str, redraft: str, failures: Sequence[Match]) -> ScopedRedraft:
     """Take from a re-draft only the lines that carried a flagged claim (DECISIONS D-109).
 
     A repair round asks for the whole section because a sentence cannot be corrected out of its
@@ -308,15 +327,16 @@ def scope_to_flagged_lines(
         failures: The claims that did not verify, whose ``text`` is the line each sits on.
 
     Returns:
-        The section with the flagged lines re-drafted and nothing else changed, and how many of
-        those lines the re-draft actually changed.
+        The section with the flagged lines re-drafted and nothing else changed, how many of those
+        lines the re-draft actually changed, and whether the round was scoped at all.
     """
     lines = previous.split("\n")
     flagged = _flagged_line_numbers(lines, failures)
     if not flagged:
         # Nothing in the previous draft carries a flagged claim -- the section was drafted from a
         # prose the failures did not come from -- so there is no line to scope the re-draft to.
-        return redraft, len(redraft.split("\n"))
+        # The round is recorded as unscoped, because on this path the whole section is replaced.
+        return ScopedRedraft(redraft, len(redraft.split("\n")), False)
     taken: dict[int, list[str]] = {}
     for candidate in redraft.split("\n"):
         if not candidate.strip():
@@ -334,7 +354,7 @@ def scope_to_flagged_lines(
         if rewritten != [line]:
             changed += 1
         result.extend(rewritten)
-    return "\n".join(result), changed
+    return ScopedRedraft("\n".join(result), changed, True)
 
 
 def _pair(before: Match, after: Sequence[Match], taken: set[int]) -> int | None:
@@ -435,7 +455,8 @@ def repair_sections(
                 previous=draft.markdown,
                 problems=problems,
             )
-            markdown, redrafted = scope_to_flagged_lines(draft.markdown, returned, failures)
+            scoped = scope_to_flagged_lines(draft.markdown, returned, failures)
+            markdown = scoped.markdown
             extraction, matches = verify(draft.section, markdown)
             rows, removed = _round_records(draft.section, failures, matches)
             draft = SectionDraft(
@@ -457,7 +478,8 @@ def repair_sections(
                     instructions=problems,
                     repaired=[row.claim_id for row in rows if row.after.status == "verified"],
                     removed=removed,
-                    lines_redrafted=redrafted,
+                    lines_redrafted=scoped.lines_redrafted,
+                    scoped=scoped.scoped,
                     still_failing=[
                         match.claim.id
                         for match in matches

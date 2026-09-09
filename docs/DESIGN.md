@@ -1229,3 +1229,66 @@ absent; the two mismatched counts are shown to be what `four_significant_figures
 the pairing that produced Appendix A's false row is refused by `_same_statement` on the run's own two
 claims; and the run's own section 4 is replayed line by line through `scope_to_flagged_lines`, which
 re-drafts four lines and leaves the damaged sentence unwritten.
+
+## Phase 9 pre-flight — What the archive found without a live call
+
+Five live runs have cost about $22 and an hour and a half of wall-clock, and every defect class in
+`docs/EVALUATION.md` came out of a person reading one of their reports. The runs are committed
+(D-087), which means the reading is repeatable by machine, and the sixth live run should not be
+paying to rediscover anything the fifth already wrote down. This follow-up turns the three rendered
+runs into fixtures.
+
+**The check has to run over the drafts, not the reports.** Generalising `tests/test_golden_spec.py`
+check 7 — every eligible numeric token of the prose covered by a post-repair claim, and every claim
+covered by a token — to the three archived reports passes on all three. That is worth asserting and
+finds nothing, and the reason it finds nothing is structural: a repair round's answer to a number it
+could not verify is usually to delete it, so a token that provoked a round is precisely the token
+the shipped report no longer holds. The population of unknown token classes lives in the *first
+drafts*, and those are recoverable — every drafting call is a committed cassette, and a repair
+round's previous draft is quoted verbatim inside its own repair prompt. Rejected alternative:
+pointing the check at `report.md` only, which is the version written first and which passes.
+
+**What sharing means here.** The coverage counting lives once, in `tests/claimsupport.py`, and
+check 7 calls it: two copies of "what does covered mean" are two chances to disagree, which is
+D-084's whole lesson. The *tokenizer* is deliberately not shared. `tests/test_golden_spec.py` is
+the executable specification of the report and imports no part of the package it specifies, so
+check 7 keeps the numeric expression as a literal kept in step by hand — as D-099 did when the
+exponent group was added to both — and `claimsupport.py` importing nothing but the standard library
+is what lets the specification use it without acquiring a dependency on the implementation.
+Rejected alternative: importing `quaestor.verifier.tokens` into the golden test, which would make a
+change to the tokenizer agree with the specification by construction.
+
+**One new token class in five runs.** `(D-050)`, in attempt 3's section 4: a reference to this
+project's own decision log, counted as a claim of fifty, flagged, and removed by a round whose
+re-draft also cost the section a verified `0.08` on a line nobody had flagged. D-116 takes both
+halves — the tokenizer excludes `\bD-\d{3}\b` under a class of its own, and no artifact caption
+carries a decision reference, which is where this one came from. Both are needed, and the archive
+is what shows it: attempts 1 and 3 sent byte-identical section-4 prompts, and only attempt 3 copied
+the reference out of the caption, so a caption fix alone leaves a form the verifier cannot read and
+an exclusion alone leaves the tool's bookkeeping in a bank's report. Rejected alternative: a
+sentence in `DRAFT_INSTRUCTION`, which is D-113's remedy and cannot stop a caption being copied.
+
+**Three classes the archive shows earlier than the run that named them.** D-099's exponent form
+appears in attempts 1, 3 and 4 and was named at 4; D-112's section cross-reference in words appears
+in attempt 1 and was named at 5; and D-109 — a repair round rewriting a line nobody flagged — was
+decided on one round of one run and is visible in five of the six rounds the archive holds, ten
+lines in all, with `scope_to_flagged_lines` keeping all 245 unflagged lines of those six previous
+drafts byte-identical. The D-111 pairing over the three runs' real records reports 0 rewritten and
+3, 6 and 5 removed, which is the third instance of a false rewrite row and the first time attempt
+3's has been recorded.
+
+**What the fixtures cannot do is written into them.** The re-extraction after each archived round
+ran on that run's own unscoped re-draft, so no cassette holds the extraction of a scoped one: the
+replay asserts the text and its docstring says the claims cannot be replayed. Attempts 1 and 2
+wrote no `claims.json`, so the coverage question cannot be asked of them, and attempt 1's drafts are
+read against the verified `claim_check` events of its trace instead. A re-draft is found by the
+section its prompt names, which is unambiguous only because no archived section went to a second
+round — asserted, so an archive that acquires one fails rather than replaying the wrong tape.
+
+**Two residuals closed while the archive was open.** `scope_to_flagged_lines` now returns a
+`ScopedRedraft` carrying `scoped`, and the `repair` trace event prints it, so the one path on which
+D-109's guarantee does not hold is a fact in the record rather than an inference from a line count
+(D-117); the decision is read off the return value rather than recomputed by the caller, for the
+reason D-084 exists. And `tests/test_pipeline.py`'s two Phase 9 follow-up cases move from a
+1,200-row panel and `"E1" in` the findings to the default panel and the whole set, because `in`
+passes on a panel that also raises `T1` at high and the difference is 0.24 s a run (D-119).

@@ -360,8 +360,8 @@ def test_a_re_draft_that_leaves_no_link_at_all_is_recorded_as_a_removal(
 # --- Phase 9 follow-up 5: the re-draft is taken line by line (D-109, D-111) --------------------
 
 
-def _scoped(store: ArtifactStore, previous: str, redraft: str, path: Path) -> tuple[str, int]:
-    """Run one repair round over `previous` and return the section after it and its trace count."""
+def _scoped(store: ArtifactStore, previous: str, redraft: str, path: Path) -> tuple[str, int, bool]:
+    """Run one repair round over `previous`; return the section, the line count and `scoped`."""
     trace = TraceWriter(path / "trace.jsonl", run_id="scoped")
     outcome = repair_sections(
         [draft_of(store, previous)],
@@ -372,7 +372,11 @@ def _scoped(store: ArtifactStore, previous: str, redraft: str, path: Path) -> tu
         max_rounds=1,
     )
     event = TraceReader(trace.path).events("repair")[0]
-    return outcome.drafts[0].markdown, int(event.payload["lines_redrafted"])
+    return (
+        outcome.drafts[0].markdown,
+        int(event.payload["lines_redrafted"]),
+        bool(event.payload["scoped"]),
+    )
 
 
 def test_a_re_draft_that_alters_an_unrelated_line_leaves_that_line_alone(
@@ -390,10 +394,11 @@ def test_a_re_draft_that_alters_an_unrelated_line_leaves_that_line_alone(
         f"On the whole split the AUC is 0.7412 {citation}, which is not the figure for this slice."
         f"\nOn the low-limit half the AUC is 0.7412 {citation}."
     )
-    markdown, redrafted = _scoped(store, previous, redraft, tmp_path)
+    markdown, redrafted, scoped = _scoped(store, previous, redraft, tmp_path)
     assert markdown.split("\n")[0] == keep
     assert markdown.split("\n")[1] == f"On the low-limit half the AUC is 0.7412 {citation}."
     assert redrafted == 1
+    assert scoped is True, "the round was scoped to its flagged lines"
 
 
 def test_the_flagged_line_is_still_replaced_by_its_re_draft(
@@ -406,12 +411,13 @@ def test_the_flagged_line_is_still_replaced_by_its_re_draft(
         "An opening sentence with no number in it.\n"
         f"The AUC is 0.7412 {citation}.\nA closing sentence."
     )
-    markdown, redrafted = _scoped(store, previous, redraft, tmp_path)
+    markdown, redrafted, scoped = _scoped(store, previous, redraft, tmp_path)
     assert markdown == (
         "An opening sentence with no number in it.\n"
         f"The AUC is 0.7412 {citation}.\nA closing sentence."
     )
     assert redrafted == 1
+    assert scoped is True, "the round was scoped to its flagged lines"
 
 
 def test_a_flagged_line_the_re_draft_dropped_is_dropped(
@@ -419,11 +425,12 @@ def test_a_flagged_line_the_re_draft_dropped_is_dropped(
 ) -> None:
     """Removing the number by removing the sentence is still one of the three answers."""
     previous = "An opening sentence with no number in it.\nThe AUC is 0.7500."
-    markdown, redrafted = _scoped(
+    markdown, redrafted, scoped = _scoped(
         store, previous, "An opening sentence with no number in it.", tmp_path
     )
     assert markdown == "An opening sentence with no number in it."
     assert redrafted == 1
+    assert scoped is True, "the round was scoped to its flagged lines"
 
 
 def test_the_repair_event_records_how_many_lines_were_re_drafted(
@@ -433,8 +440,9 @@ def test_the_repair_event_records_how_many_lines_were_re_drafted(
     citation = store.artifact("metrics.test.auc").citation()
     previous = "The first AUC is 0.7500.\nThe second AUC is 0.68."
     redraft = f"The first AUC is 0.7412 {citation}.\nThe second AUC is 0.68."
-    _, redrafted = _scoped(store, previous, redraft, tmp_path)
+    _, redrafted, scoped = _scoped(store, previous, redraft, tmp_path)
     assert redrafted == 1
+    assert scoped is True, "the round was scoped to its flagged lines"
 
 
 def test_a_replacement_citing_another_artifact_is_a_removal_not_a_rewrite(
@@ -480,10 +488,42 @@ def test_a_replacement_citing_another_artifact_is_a_removal_not_a_rewrite(
 def test_a_re_draft_of_a_section_whose_lines_carry_no_flagged_claim_is_taken_whole(
     store: ArtifactStore,
 ) -> None:
-    """The scoping needs a line to scope to: with none, the round is the round it always was."""
+    """The scoping needs a line to scope to: with none, the round is the round it always was.
+
+    And it says so. D-109 left this fallback returning the whole re-draft with nothing on the
+    trace to distinguish it from a round that happened to re-draft every line, so a live run that
+    took it would look like a scoped round in the record. `scoped` is that distinction (D-117).
+    """
     previous = "The AUC is 0.68."
     failures = draft_of(store, "A sentence from another draft entirely, holding 0.68.").failures
     assert failures
-    markdown, redrafted = scope_to_flagged_lines(previous, "A wholly new line.", failures)
-    assert markdown == "A wholly new line."
-    assert redrafted == 1
+    result = scope_to_flagged_lines(previous, "A wholly new line.", failures)
+    assert result.markdown == "A wholly new line."
+    assert result.lines_redrafted == 1
+    assert result.scoped is False
+
+
+def test_the_repair_event_says_when_the_round_was_not_scoped_at_all(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """D-117: the fallback fired, and the trace event carries `scoped: false` rather than nothing.
+
+    The round is provoked here by a claim whose text is a line of no draft at all, which is the
+    only way `_flagged_line_numbers` comes back empty: the section is then replaced wholesale, and
+    that is a fact about the run a reader of the trace should not have to infer.
+    """
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="unscoped")
+    draft = draft_of(store, "The AUC is 0.68.")
+    stranger = draft_of(store, "A sentence from another draft entirely, holding 0.68.")
+    draft.matches = stranger.matches
+    repair_sections(
+        [draft],
+        drafter=drafter_returning("A wholly new line."),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        trace=trace,
+        max_rounds=1,
+    )
+    event = TraceReader(trace.path).events("repair")[0]
+    assert event.payload["scoped"] is False
+    assert event.payload["lines_redrafted"] == 1

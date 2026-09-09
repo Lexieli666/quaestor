@@ -22,10 +22,21 @@ from typing import Any
 import jsonschema
 import yaml
 
+from claimsupport import ClaimKey, cover
+
 ROOT = Path(__file__).resolve().parents[1]
 GOLDEN = ROOT / "examples" / "golden_report"
 DECISIONS = ROOT / "DECISIONS.md"
 OUTLINE = ROOT / "data" / "regulatory" / "sr11-7-outline.yaml"
+
+GOLDEN_NUMERIC_TOKEN = r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?:[eE][+-]?\d+)?%?"
+"""Check 7's numeric pattern, deliberately a literal and not `quaestor.verifier.tokens`.
+
+This module is the executable specification of the report, so it imports no part of the package it
+specifies; the two copies of the expression are kept in step by hand, which is what D-099 did when
+the exponent group was added to both. `claimsupport.cover` is shared because it is arithmetic over
+tokens and claims already in hand and imports nothing either (D-118).
+"""
 
 MANIFEST_FILES = (
     "CLAIMS_SCHEMA.json",
@@ -118,19 +129,13 @@ def test_artifact_citations_and_finding_evidence_resolve_against_appendix_b() ->
 
 # 7
 def test_every_numeric_token_in_the_prose_is_covered_by_a_post_repair_claim() -> None:
-    numeric = re.findall(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?:[eE][+-]?\d+)?%?", drafted_prose())
-    unclaimed = Counter(
-        (claim["value"], claim["unit"] == "percent") for claim in CLAIMS["post_repair"]
-    )
-    uncovered = []
-    for token in numeric:
-        key = (float(token.replace(",", "").rstrip("%")), token.endswith("%"))
-        if unclaimed[key] > 0:
-            unclaimed[key] -= 1
-        else:
-            uncovered.append(token)
-    assert not uncovered, f"numbers in the prose with no claim: {uncovered}"
-    assert not [k for k, v in unclaimed.items() if v > 0], "claims with no token in the prose"
+    numeric = re.findall(GOLDEN_NUMERIC_TOKEN, drafted_prose())
+    claims = [
+        ClaimKey(claim["value"], claim["unit"] == "percent") for claim in CLAIMS["post_repair"]
+    ]
+    coverage = cover(numeric, claims)
+    assert not coverage.uncovered, f"numbers in the prose with no claim: {coverage.uncovered}"
+    assert not coverage.unclaimed, "claims with no token in the prose"
 
 
 # 8
