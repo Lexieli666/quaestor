@@ -30,7 +30,12 @@ from quaestor.pipeline import UNEVIDENCED_PREFIX, ValidationRun
 from quaestor.report import UNVERIFIED_OPEN, check_report
 from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
 from quaestor.tools.metrics import SCALAR_METRICS
-from quaestor.tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR, Thresholds
+from quaestor.tools.thresholds import (
+    SLICE_GAP_BOUND,
+    SLICE_SHARE_CEILING,
+    SLICE_SHARE_FLOOR,
+    Thresholds,
+)
 from reportsupport import SectionFake
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -552,6 +557,68 @@ def test_a_slice_below_the_size_floor_never_reaches_the_open_items(tmp_path: Pat
     findings = _section(run.report, "## 6. Findings and recommendations")
     assert slice_auc in outcomes.split(FOLLOW_UPS_HEADING, 1)[1]
     assert slice_auc not in findings
+
+
+def test_a_slice_that_is_the_whole_split_is_refused_and_the_report_still_renders(
+    tmp_path: Path,
+) -> None:
+    """D-121 end to end: the shape the sixth live run's third step took, and what it costs now.
+
+    That step asked for `delinq_count_6m above_median` on a column whose median is 0, and the tool
+    answered -- share 1 on both splits, an AUC gap of 0, and a paragraph of section 4 reporting the
+    split to itself. The ceiling is lowered here so the same refusal fires on a slice the synthetic
+    panel does have, because what is under test is the path and not the number: the step is
+    recorded accepted and not executed, its message reaches the trace and the next step's prompt
+    (D-088), nothing of the slice is in the store, `### Follow-up analyses` is absent because no
+    step executed, and the report renders and validates.
+    """
+    llm = SectionFake(plan_actions=list(SLICE_ACTIONS))
+    run = run_validate(
+        CREDIT,
+        tmp_path / "out",
+        llm=llm,
+        thresholds=Thresholds({SLICE_SHARE_CEILING: 0.4}),
+    )
+
+    assert [step.accepted for step in run.steps] == [True, False]
+    assert run.steps[0].executed is False
+    assert run.steps[0].reason == ""
+    assert "limit_bal <= median(limit_bal)" in run.steps[0].error
+    assert SLICE_SHARE_CEILING in run.steps[0].error
+
+    step = TraceReader(run.out_dir / "trace.jsonl").events("plan_step")[0]
+    assert step.payload["accepted"] is True
+    assert step.payload["executed"] is False
+    assert "median(limit_bal)" in step.payload["error"]
+    assert not [name for name in run.store.names() if ".sub.limit_bal_low" in name]
+    assert FOLLOW_UPS_HEADING not in run.report
+
+    assert run.report_path.is_file()
+    assert (
+        check_report(
+            run.report,
+            run.configuration,
+            run.claims.post_repair,
+            package_version=run.package.spec.version,
+        )
+        == []
+    )
+    assert run.precision_post == 1.0
+    assert _finding_set(run) == {("E1", "low")}, "D-017 still holds when a slice is refused"
+
+
+def test_the_loop_is_told_that_a_slice_which_is_the_whole_split_is_refused(
+    tmp_path: Path,
+) -> None:
+    """D-122: the planner is told the rule before it spends a step finding it out."""
+    llm = SectionFake(plan_actions=[{"stop": True}])
+    run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
+    prompt = next(call.prompt for call in llm.calls if "You are the planning half" in call.prompt)
+    assert "A sub-population must be a proper part of the split." in prompt
+    assert "a rule that resolves to the whole of it" in prompt
+    assert "on a column whose median is also its" in prompt
+    assert "`above_median` the rows strictly above it" in prompt
+    assert "is refused with the share it selected" in prompt
 
 
 def test_a_run_whose_loop_stopped_carries_no_follow_up_subsection(credit: ValidationRun) -> None:

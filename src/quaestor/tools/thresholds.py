@@ -31,7 +31,10 @@ carried here because it is the same kind of thing -- a number a check applies th
 entitled to cite. ``threshold.O1.slice_auc_gap`` and ``threshold.O1.slice_min_share`` are two more
 of that kind: they raise no candidate and decide only where a sub-population's result is reported,
 and they are here because a sentence that says a slice is materially worse has to be able to cite
-the number that decided it (DECISIONS D-102).
+the number that decided it (DECISIONS D-102). ``threshold.O1.slice_max_share`` is the fourth, and
+the only one of them that refuses a call rather than routing its result: a slice holding at least
+that share of its split is the split, and ``compute_metrics`` will not compute it (DECISIONS
+D-121).
 """
 
 from __future__ import annotations
@@ -47,6 +50,7 @@ __all__ = [
     "DEFAULT_THRESHOLDS",
     "EFFECTIVE_SUFFIX",
     "SLICE_GAP_BOUND",
+    "SLICE_SHARE_CEILING",
     "SLICE_SHARE_FLOOR",
     "THRESHOLD_SUMMARIES",
     "Thresholds",
@@ -68,6 +72,16 @@ SLICE_SHARE_FLOOR: Final = "threshold.O1.slice_min_share"
 
 A slice of thirty rows can differ from its split's AUC by anything at all, and asking a developer
 to answer for it is asking them to explain sampling noise.
+"""
+
+SLICE_SHARE_CEILING: Final = "threshold.O1.slice_max_share"
+"""The share of a split a sub-population must stay below to be a sub-population at all (D-121).
+
+The sixth live run's third loop step asked for ``delinq_count_6m above_median`` on a column whose
+median is its minimum, so the rule selected every row of both splits: share 1 on each, an AUC gap
+of 0, and twenty-two artifacts per split describing a population identical to its parent. A slice
+at or above this share is refused by :mod:`quaestor.tools.metrics`, which is the one bound of the
+four that stops a call instead of deciding where its answer is reported.
 """
 
 EFFECTIVE_SUFFIX: Final = "_effective"
@@ -106,6 +120,7 @@ DEFAULT_THRESHOLDS: Final[Mapping[str, float]] = {
     "threshold.O1.auc_gap": 0.08,
     "threshold.O1.holdout_gap": 0.05,
     "threshold.O1.slice_auc_gap": 0.08,
+    "threshold.O1.slice_max_share": 0.95,
     "threshold.O1.slice_min_share": 0.10,
     "threshold.R1.auc_gap": 0.10,
     "threshold.R1.sign_flip_coef": 0.05,
@@ -129,6 +144,9 @@ THRESHOLD_SUMMARIES: Final[Mapping[str, str]] = {
     "threshold.O1.slice_auc_gap": (
         "how far a sub-population's AUC may fall below the split's before the result is an open "
         "item; it raises no candidate"
+    ),
+    "threshold.O1.slice_max_share": (
+        "the share of a split at which a sub-population is the whole split and is refused"
     ),
     "threshold.O1.slice_min_share": (
         "the share of a split a sub-population must hold before it can raise an open item"

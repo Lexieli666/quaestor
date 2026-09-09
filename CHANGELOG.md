@@ -9,6 +9,27 @@ run that was not committed.
 
 ### Added
 
+- The `credit_default` live validation, committed as `eval/results/first-live/credit/` on the sixth
+  attempt (D-087's terms; the row-level CSVs are outside the repository and
+  `find … -name '*.csv' -size +20k` prints nothing). 18 model calls, 17 tool calls, 258 artifacts,
+  210 claims at grounding precision 1.0000 before repair and 1.0000 after, **no repair round**, no
+  finding, no open item, exit 0, $3.9739, 872.74 s, with the bounded loop running four steps that
+  all executed. `report.md` is committed as produced and is never edited: it is the run the README
+  excerpts, and the excerpt's five wording edits are applied in the excerpt only, listed verbatim
+  in D-120 and destined for a before/after diff in `docs/PROVENANCE.md` (D-120).
+- `threshold.O1.slice_max_share`, at 0.95: the share of a split at which a sub-population is the
+  whole split. It is the fourth `Thresholds` entry that raises no candidate and the only one of
+  them that refuses a tool call rather than routing its result (D-121).
+- `tests/test_live_credit.py`, 30 checks re-deriving every figure the sixth run's write-up quotes
+  from that run's own trace, claims, findings, artifact index and 18 cassettes — including the
+  degenerate slice's share of 1 on both splits, the five excerpt edits each appearing in
+  `report.md` exactly once, and the decile and calibration readings no rule remarks on.
+- The sixth run joins `tests/test_archive_fixtures.py` as the archive's negative case: four
+  rendered reports instead of three, no entry in any of the three expectation tables, and that
+  absence asserted — zero uncovered tokens in all seven of its first drafts, no `repair` event in
+  the trace, `claims.json` or Appendix C, and every written line of every first draft found in
+  `report.md` (D-124).
+
 - The archived live runs are offline regression fixtures. `tests/archivesupport.py` reads each run
   committed under `eval/results/first-live/` — report, `claims.json`, trace, cassettes, artifact
   index — recovering every drafting call from its cassette and every repair round's *previous*
@@ -263,6 +284,19 @@ run that was not committed.
 
 ### Changed
 
+- **`below_median` and `above_median` partition the split, with the median's own rows in the lower
+  half** (D-122). They were `< median` and `>= median`, so on a discrete column whose median is its
+  minimum — `delinq_count_6m` on the real credit sample, where the median is 0 — the upper half was
+  every row and the lower half none, and neither rule could name the never-delinquent segment the
+  fourth and fifth live runs both found material. They are now `<= median` and `> median`;
+  `subpopulation_expression` reads `delinq_count_6m > median(delinq_count_6m)`.
+- **The bounded loop's prompt states that a rule resolving to the whole split is refused** (D-123),
+  along with where the median boundary falls, so the planner does not spend a step of four finding
+  out. The fourth application of D-089's argument, after D-090 and D-107.
+- `compute_metrics` resolves and checks the slice of **every** split asked for before storing any of
+  them, so a sub-population that is a proper part of train and the whole of test leaves the store as
+  it found it (D-121).
+
 - **The tolerance a claim is held to is the precision its own prose used** (D-069, amending
   D-014): a claim verifies when the artifact rounds to the value as written, at the decimals the
   sentence wrote, with spec §0's per-unit default as the ceiling the tolerance never exceeds and
@@ -428,6 +462,14 @@ run that was not committed.
 
 ### Fixed
 
+- **`compute_metrics` computed a sub-population that was the whole split (D-121).** The sixth live
+  run's third loop step asked for `delinq_count_6m above_median`; the column's median is 0, the rule
+  selected every row of both splits, and the tool answered — share 1 on each, an AUC gap of 0, `n`
+  equal to the splits' own row counts, 22 logical names per split for a population identical to its
+  parent, two rendered tables, three interpreting sentences and one of four loop steps spent. It now
+  raises on the D-088 path with a message naming the resolved rule, the share and the bound, so the
+  step is recorded accepted and not executed and the loop re-plans. The drafter's honest description
+  of it stays in the committed report.
 - **The fifth live run's repair round rewrote a line nobody flagged (D-109).** Asked to correct
   four numbers in section 4, the drafter also turned "…falls below its split's by 0.007286 on test
   and by -0.001109 on train, both within the allowance" into a sentence reporting another slice's

@@ -859,10 +859,113 @@ def test_a_sub_population_is_computed_under_the_name_the_golden_report_cites(
         ctx,
         {"splits": ["test"], "subpopulation": {"column": "limit_bal", "rule": "above_median"}},
     )
-    # The two halves partition the split; ties at the median fall in the upper half.
+    # The two halves partition the split; ties at the median fall in the lower half (D-121).
     high = ctx.store.value("metrics.test.sub.limit_bal_high.n")
     assert low + high == ctx.store.value("metrics.test.n") == 1500
     assert low == pytest.approx(750, abs=25)
+
+
+def test_a_discrete_column_whose_median_is_its_minimum_partitions_and_does_not_degenerate(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """D-121, on the shape of column the sixth live run's third step asked about.
+
+    `delinq_count_6m` on the real credit sample has a median of 0, so `>= median` selected every
+    row of both splits: share 1, an AUC gap of 0, and a slice identical to its parent. The column
+    is rebuilt here as a count whose median is its minimum -- two thirds zeros -- and the two rules
+    are asserted to do what D-121 says: the upper half is the rows that are strictly above 0, the
+    lower half is the zeros, and together they are the split.
+    """
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    for split in ("train", "test"):
+        frame = pd.read_csv(ctx.out_dir / f"data_{split}.csv")
+        counts = np.zeros(len(frame), dtype=int)
+        counts[: len(frame) // 3] = np.arange(1, len(frame) // 3 + 1) % 3 + 1
+        frame["delinq_count_6m"] = counts
+        write_csv(ctx.out_dir / f"data_{split}.csv", frame)
+    run("compute_metrics", ctx, {"splits": ["test"]})
+    total = ctx.store.value("metrics.test.n")
+    slice_ = {"column": "delinq_count_6m", "rule": "below_median"}
+    run("compute_metrics", ctx, {"splits": ["test"], "subpopulation": slice_})
+    low = ctx.store.value("metrics.test.sub.delinq_count_6m_low.n")
+    run(
+        "compute_metrics",
+        ctx,
+        {"splits": ["test"], "subpopulation": {**slice_, "rule": "above_median"}},
+    )
+    high = ctx.store.value("metrics.test.sub.delinq_count_6m_high.n")
+    assert low + high == total
+    assert low == pytest.approx(total * 2 / 3, abs=2)
+    assert ctx.store.value("metrics.test.sub.delinq_count_6m_high.share") < 0.95
+    assert ctx.store.value("metrics.test.sub.delinq_count_6m_low.share") < 0.95
+
+
+def test_a_rule_that_selects_the_whole_split_is_refused_with_the_share_it_selected(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """D-121's refusal, on a constant column, which no median rule can make a proper part of.
+
+    Both a median rule and an equality resolve to the whole split here, and the same check catches
+    both because it reads the share the rule selected and not the rule. The message names the
+    resolved expression, the share and the bound, which is what `follow_up_plan` quotes back to the
+    loop (D-088).
+    """
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    for split in ("train", "test"):
+        frame = pd.read_csv(ctx.out_dir / f"data_{split}.csv")
+        frame["delinq_count_6m"] = 0
+        write_csv(ctx.out_dir / f"data_{split}.csv", frame)
+    run("compute_metrics", ctx, {"splits": ["test"]})
+    before = set(ctx.store.names())
+    with pytest.raises(ToolError, match="holds 1 of 'test'") as raised:
+        run(
+            "compute_metrics",
+            ctx,
+            {
+                "splits": ["test"],
+                "subpopulation": {"column": "delinq_count_6m", "rule": "below_median"},
+            },
+        )
+    assert "delinq_count_6m <= median(delinq_count_6m)" in raised.value.message
+    assert "threshold.O1.slice_max_share" in raised.value.message
+    with pytest.raises(ToolError, match="holds 1 of 'test'"):
+        run(
+            "compute_metrics",
+            ctx,
+            {
+                "splits": ["test"],
+                "subpopulation": {"column": "delinq_count_6m", "rule": "equals:0"},
+            },
+        )
+    assert set(ctx.store.names()) == before, "the pre-pass raises before anything is stored"
+
+
+def test_the_whole_split_check_is_a_pre_pass_over_every_split_asked_for(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """A slice degenerate on the second split stores nothing of the first (D-121, D-088).
+
+    `train` slices cleanly and `test` does not, so the call must leave the store as it found it:
+    a run whose loop step raised goes on to draft, and half a slice in the store is half a slice
+    the drafter can cite.
+    """
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    frame = pd.read_csv(ctx.out_dir / "data_test.csv")
+    frame["delinq_count_6m"] = 0
+    write_csv(ctx.out_dir / "data_test.csv", frame)
+    run("compute_metrics", ctx, {"splits": ["train", "test"]})
+    before = set(ctx.store.names())
+    with pytest.raises(ToolError, match="holds 1 of 'test'"):
+        run(
+            "compute_metrics",
+            ctx,
+            {
+                "splits": ["train", "test"],
+                "subpopulation": {"column": "delinq_count_6m", "rule": "equals:0"},
+            },
+        )
+    assert set(ctx.store.names()) == before
+    assert not [name for name in ctx.store.names() if ".sub.delinq_count_6m_eq_0" in name]
 
 
 def test_a_sub_population_may_be_selected_by_equality(tmp_path: Path, msr_run_dir: Path) -> None:
@@ -1134,9 +1237,13 @@ def test_a_split_whose_outcome_is_constant_is_sign_checked_against_nothing(
 
 
 def test_a_slice_rule_reads_as_an_expression_over_its_column() -> None:
-    """D-112: the prose writes the rule in code, so its parameter is not read as a claim."""
+    """D-112: the prose writes the rule in code, so its parameter is not read as a claim.
+
+    The boundary is D-121's: the median's own rows are in the lower half, so the two rules
+    partition the split and neither of them is the split.
+    """
     assert subpopulation_expression("delinq_last", "equals:0") == "delinq_last == 0"
-    assert subpopulation_expression("limit_bal", "below_median") == "limit_bal < median(limit_bal)"
+    assert subpopulation_expression("limit_bal", "below_median") == "limit_bal <= median(limit_bal)"
     assert subpopulation_expression("utilisation", "above_median") == (
-        "utilisation >= median(utilisation)"
+        "utilisation > median(utilisation)"
     )

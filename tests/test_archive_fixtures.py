@@ -1,8 +1,8 @@
 """The archived live runs as offline regression fixtures.
 
-Five live `credit_default` validations have been run against a real sample and a real model, and
+Six live `credit_default` validations have been run against a real sample and a real model, and
 every defect class this project has found was found by a person reading one of their reports at
-roughly $6 and twenty-two minutes a run. The runs are committed under `eval/results/first-live/`
+roughly $5 and eighteen minutes a run. The runs are committed under `eval/results/first-live/`
 on D-087's terms, so the same reading can be a test: this module asks of each archived run the two
 questions whose answers cost the most to learn.
 
@@ -15,7 +15,10 @@ with check 7 rather than copied from it (DECISIONS D-118).
 
 **May a repair round change a line nobody flagged?** D-109 says no, on the strength of one round of
 one run. The archive holds six rounds over three runs, each with its previous draft quoted in its
-own repair prompt, so the guarantee is replayed against all six.
+own repair prompt, so the guarantee is replayed against all six. The sixth run adds none: it is the
+first live run that repaired nothing, so what it contributes is the negative case of both questions
+-- every token of every one of its first drafts is a claim of the shipped report, and its pre- and
+post-repair claim sets are the same set (D-124).
 
 Nothing here calls a model, downloads anything or trains on anything: the cassettes are read as
 JSON and the reports as text.
@@ -45,10 +48,10 @@ from quaestor.verifier.match import Match
 from quaestor.verifier.tokens import eligible_numbers
 
 RUNS: Final = rendered_runs()
-"""The three archived runs that rendered a report: attempts 3, 4 and 5."""
+"""The four archived runs that rendered a report: attempts 3, 4, 5 and the sixth, `credit`."""
 
 ROUNDS: Final = [round_ for run in RUNS for round_ in run.repair_rounds()]
-"""The six repair rounds of those three runs, in run and then trace order."""
+"""The six repair rounds of those runs, in run and then trace order; the sixth run has none."""
 
 KNOWN_RESIDUE: Final = {
     ("credit-attempt3", "data_integrity"): ["9.982e-06"],
@@ -76,6 +79,10 @@ denominator and then paid a model call to remove, and every entry has a decision
 The `50` of attempt 3's "under rule O1 (D-050)" was in this table when the fixture was written and
 is not in it now: it is the one token class the archive found that no decision covered, and D-116
 excludes it. A new entry appearing here is the next one.
+
+The sixth run, `credit`, has no entry at all, and that is a fact about the run rather than a gap in
+the table: it verified all 210 of its claims on the first pass, so every token of every one of its
+seven first drafts is accounted for by a claim of the shipped report and it repaired nothing.
 """
 
 
@@ -136,7 +143,7 @@ def test_every_number_of_a_rendered_report_is_covered_by_a_post_repair_claim(
     """Check 7 over a live report: every eligible token claimed, and every claim in the prose.
 
     This is the renderer's own third refusal rule, re-derived from the committed bytes by today's
-    tokenizer rather than by the one the run shipped with. It passing on all three runs is what
+    tokenizer rather than by the one the run shipped with. It passing on all four runs is what
     says a change to `tokens.py` has not silently changed what those reports mean: a widened
     exclusion would leave a claim with no token, and a narrowed one a token with no claim.
     """
@@ -146,14 +153,14 @@ def test_every_number_of_a_rendered_report_is_covered_by_a_post_repair_claim(
 
 
 @pytest.mark.parametrize(
-    ("run", "claims"), list(zip(RUNS, (159, 161, 285), strict=True)), ids=_ids(RUNS)
+    ("run", "claims"), list(zip(RUNS, (159, 161, 285, 210), strict=True)), ids=_ids(RUNS)
 )
 def test_the_report_s_own_claim_count_is_the_number_of_eligible_tokens(
     run: ArchivedRun, claims: int
 ) -> None:
     """One eligible token, one claim: the denominator is the prose and not the model's answer.
 
-    The three counts are the ones `docs/EVALUATION.md` section 1 prints for the three runs.
+    The four counts are the ones `docs/EVALUATION.md` section 1 prints for the four runs.
     """
     assert len(_tokens(run.body())) == len(run.claims()["post_repair"]) == claims
 
@@ -318,9 +325,10 @@ def test_the_archive_holds_six_repair_rounds_one_per_section_that_had_one() -> N
     """What the replay below is over, and the assumption that lets a cassette be found by section.
 
     A re-draft is located by the section its prompt names, which is unambiguous only because no
-    archived section went to a second round: every `repair` event of all three runs is `round: 1`.
-    A future archive with two rounds on one section needs the pairing done on the prompt's quoted
-    previous draft instead, and this assertion is what will say so.
+    archived section went to a second round: every `repair` event of every run is `round: 1`. A
+    future archive with two rounds on one section needs the pairing done on the prompt's quoted
+    previous draft instead, and this assertion is what will say so. Six rounds over four rendered
+    runs, because the sixth repaired nothing.
     """
     assert len(ROUNDS) == 6
     assert [round_.event.payload["round"] for round_ in ROUNDS] == [1] * 6
@@ -511,3 +519,87 @@ def test_every_residue_token_is_a_number_the_run_wrote_and_the_report_does_not_c
                 for item in eligible_numbers(draft.markdown, package_version=CREDIT_VERSION).tokens
             )
             assert drafted[key] > post[key], (name, section, token)
+
+
+# --- the sixth run, which repaired nothing ------------------------------------------------------
+
+
+def test_the_sixth_run_carries_no_repair_event_and_no_round_to_replay() -> None:
+    """D-124: the first live run with no repair round, asserted from three places at once.
+
+    The trace has no `repair` event, `claims.json` counts zero repairs and lists no repair row, and
+    the report's own Appendix C prints `repair rounds | 0`. All three have to agree, because the
+    absence of a round is what the two assertions below are conditional on: a run that had repaired
+    something would answer the coverage questions about its re-drafts and not about its drafts.
+
+    It is also the reason D-109's scoped re-draft path has still not run live. Six archived rounds
+    are replayed above and every one of them was made by a build without the scoping in it.
+    """
+    run = ArchivedRun("credit")
+    assert run.events(EventType.repair) == []
+    assert run.repair_rounds() == []
+    assert run.claims()["repairs"] == [], "no repair row in Appendix A"
+    assert [call.cassette for call in run.draft_calls() if call.is_repair] == []
+    assert "| repair rounds | 0 |" in run.report()
+    assert "| re-asks | 0 |" in run.report()
+    assert not [round_ for round_ in ROUNDS if round_.run.name == "credit"]
+
+
+def test_the_sixth_run_s_claim_set_is_the_same_before_and_after_repair() -> None:
+    """The other half of the same fact: nothing was flagged, so nothing moved.
+
+    Both stages hold 210 claims at precision 1.0000 and the two lists are identical documents, so
+    every check this module makes against the post-repair set is a check against what the drafters
+    actually wrote. On attempts 3, 4 and 5 the two sets differ by exactly the numbers their rounds
+    removed, which is what `KNOWN_RESIDUE` is a table of.
+    """
+    run = ArchivedRun("credit")
+    claims = run.claims()
+    assert claims["pre_repair"] == claims["post_repair"]
+    assert len(claims["pre_repair"]) == 210
+    for stage in ("pre_repair", "post_repair"):
+        grounding = claims["grounding"][stage]
+        assert (grounding["precision"], grounding["n_claims"]) == (1.0, 210)
+        assert grounding["status_counts"]["verified"] == 210
+    assert [event.payload["status"] for event in run.events(EventType.claim_check)].count(
+        "verified"
+    ) == 210
+
+
+def test_every_token_of_every_first_draft_of_the_sixth_run_is_a_claim_of_its_report() -> None:
+    """The negative case of `KNOWN_RESIDUE`, which only a run that repaired nothing can give.
+
+    On the other three runs a first draft's uncovered tokens are the population every new defect
+    class has come out of. Here there are none in any of the seven, which is the strongest form the
+    coverage question has been answered in: the drafters wrote 210 numbers, the extractor found the
+    same 210, and the report carries all of them.
+    """
+    run = ArchivedRun("credit")
+    post = run.claim_keys("post_repair")
+    drafts = run.first_drafts()
+    assert len(drafts) == 7
+    for call in drafts:
+        coverage = cover(_tokens(call.markdown), post)
+        assert coverage.uncovered == [], (call.cassette, call.section.value)
+    assert ("credit", "outcomes") not in KNOWN_RESIDUE
+
+
+def test_the_sixth_run_s_drafts_are_the_prose_its_report_carries_line_for_line() -> None:
+    """Cassette-to-report agreement with no round in the way, so it holds for every written line.
+
+    The general check above skips the sections a run repaired, because a repaired section's first
+    draft is not what the report carries. Nothing was repaired here, so every written line of every
+    one of the seven completions has to be in `report.md` -- except a `[[table:<name>]]` line,
+    which is a directive the renderer replaces with the table itself (D-013, D-115).
+    """
+    run = ArchivedRun("credit")
+    report = run.report()
+    directive = re.compile(r"^\s*\[\[table:[^\]]+\]\]\s*$")
+    tables = 0
+    for call in run.first_drafts():
+        lines = [line for line in call.markdown.split("\n") if line.strip()]
+        assert len(lines) > 3, call.cassette
+        tables += sum(1 for line in lines if directive.match(line))
+        missing = [line for line in lines if line not in report and not directive.match(line)]
+        assert missing == [], (call.cassette, missing[:1])
+    assert tables == 11, "eight slice tables and the three the plan's own metrics wrote"

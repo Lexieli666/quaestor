@@ -41,7 +41,12 @@ from ..package import ThresholdSpec
 from . import stats
 from .frames import feature_frame, predictions, require_split, scored_frame
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
-from .thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR, package_threshold_names
+from .thresholds import (
+    SLICE_GAP_BOUND,
+    SLICE_SHARE_CEILING,
+    SLICE_SHARE_FLOOR,
+    package_threshold_names,
+)
 
 __all__ = [
     "THRESHOLD_TABLE",
@@ -148,7 +153,7 @@ def subpopulation_expression(column: str, rule: str) -> str:
         rule: ``below_median``, ``above_median`` or ``equals:<value>``.
 
     Returns:
-        ``delinq_last == 0``, ``limit_bal < median(limit_bal)``, ``utilisation >=
+        ``delinq_last == 0``, ``limit_bal <= median(limit_bal)``, ``utilisation >
         median(utilisation)``.
 
     The drafter is asked to write this inside backticks, which the tokenizer masks as inline code.
@@ -156,11 +161,16 @@ def subpopulation_expression(column: str, rule: str) -> str:
     "**delinq_last equals 1.**", and the 0 and the 1 -- the parameters of a slice rule, not
     quantities anything computed -- were counted as claims, flagged as unsupported and removed in
     a repair round (DECISIONS D-112).
+
+    The median's own rows are in the *lower* half, which is D-121: the two rules have to partition
+    the split, and the boundary has to be the closed side of the half that can be empty. On a
+    discrete column whose median is its minimum -- ``delinq_count_6m`` on the real credit sample,
+    where the median is 0 -- ``>= median`` selected every row and ``< median`` none of them.
     """
     if rule == "below_median":
-        return f"{column} < median({column})"
+        return f"{column} <= median({column})"
     if rule == "above_median":
-        return f"{column} >= median({column})"
+        return f"{column} > median({column})"
     return f"{column} == {rule.split(':', 1)[1]}"
 
 
@@ -418,24 +428,21 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
         usually a model conditioning correctly, and a rule that fired on it would be the false
         alarm D-086 exists to refuse. Storing the two bounds is D-091: the sentence that says a
         slice is materially worse cites the number that decided it (DECISIONS D-102).
+
+        Every split's slice is resolved and checked **before** any of them is computed, and the
+        third bound refuses the call outright: a rule that selects the whole of a split is not a
+        sub-population, and a tool that answered it would report the split to itself (D-121). The
+        pre-pass is what keeps that refusal clean -- a raise on the second split after the first
+        had been stored would leave half a slice in the store of a run that goes on to draft
+        (D-088).
         """
+        selected = [self._select(ctx, split, slice_) for split in splits]
         artifacts: list[Artifact] = [
             ctx.thresholds.artifact(ctx.store, SLICE_GAP_BOUND),
             ctx.thresholds.artifact(ctx.store, SLICE_SHARE_FLOOR),
+            ctx.thresholds.artifact(ctx.store, SLICE_SHARE_CEILING),
         ]
-        for split in splits:
-            frame = scored_frame(ctx, split)
-            if slice_.column not in frame.columns:
-                raise ToolError(
-                    f"data_{split}.csv of package {ctx.package.name!r} has no column "
-                    f"{slice_.column!r}, so the sub-population cannot be selected; it has "
-                    f"{list(feature_frame(ctx, split).columns)}"
-                )
-            part = frame[self._mask(frame, slice_)]
-            if part.empty:
-                raise ToolError(
-                    f"the sub-population {slice_.column}:{slice_.rule} selects no row of {split!r}"
-                )
+        for split, frame, part in selected:
             truth = part["y_true"].to_numpy(dtype=int)
             scores = part["y_score"].to_numpy(dtype=float)
             area = stats.auc(truth, scores)
@@ -460,6 +467,49 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
             ]
             artifacts += self._slice_reading(ctx, split, slice_, frame, values)
         return artifacts
+
+    def _select(
+        self, ctx: ToolContext, split: str, slice_: Subpopulation
+    ) -> tuple[str, pd.DataFrame, pd.DataFrame]:
+        """Resolve one slice of one split, or say why it is not a sub-population of it.
+
+        Args:
+            ctx: The tool context, for the scored frame and the share ceiling.
+            split: The split to slice.
+            slice_: The rule the bounded loop asked for.
+
+        Returns:
+            ``(split, the scored frame, the selected rows)``.
+
+        Raises:
+            ToolError: The column is not in the split's data, the rule selects no row of it, or
+                the rule selects at least :data:`SLICE_SHARE_CEILING` of it -- which is the whole
+                split under another name, and answering it would report the split to itself.
+        """
+        frame = scored_frame(ctx, split)
+        if slice_.column not in frame.columns:
+            raise ToolError(
+                f"data_{split}.csv of package {ctx.package.name!r} has no column "
+                f"{slice_.column!r}, so the sub-population cannot be selected; it has "
+                f"{list(feature_frame(ctx, split).columns)}"
+            )
+        part = frame[self._mask(frame, slice_)]
+        if part.empty:
+            raise ToolError(
+                f"the sub-population {slice_.column}:{slice_.rule} selects no row of {split!r}"
+            )
+        share = len(part) / len(frame)
+        ceiling = ctx.thresholds[SLICE_SHARE_CEILING]
+        if share >= ceiling:
+            expression = subpopulation_expression(slice_.column, slice_.rule)
+            raise ToolError(
+                f"the sub-population {slice_.column}:{slice_.rule} resolves to `{expression}`, "
+                f"which holds {share:.4g} of {split!r} -- at or above the ceiling of {ceiling} "
+                f"({SLICE_SHARE_CEILING}) on the share a slice may hold. It is the split rather "
+                f"than a part of it, so its metrics would repeat the split's; ask for a different "
+                f"column or rule"
+            )
+        return split, frame, part
 
     @staticmethod
     def _slice_reading(
@@ -516,7 +566,13 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
 
     @staticmethod
     def _mask(frame: pd.DataFrame, slice_: Subpopulation) -> pd.Series[bool]:
-        """Return the boolean mask one sub-population rule selects."""
+        """Return the boolean mask one sub-population rule selects.
+
+        ``below_median`` and ``above_median`` partition the split, with the median's own rows in
+        the lower half (D-121). The closed side has to be the lower one: on a discrete column
+        whose median is its minimum the upper half held everything and the lower half nothing,
+        which is the sixth live run's third loop step.
+        """
         column = frame[slice_.column]
         if slice_.rule in ("below_median", "above_median"):
             numeric = pd.to_numeric(column, errors="coerce")
@@ -525,7 +581,7 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                     f"column {slice_.column!r} is not numeric, so it has no median to slice at"
                 )
             median = float(numeric.median())
-            return numeric < median if slice_.rule == "below_median" else numeric >= median
+            return numeric <= median if slice_.rule == "below_median" else numeric > median
         wanted = slice_.rule.split(":", 1)[1]
         return column.astype(str) == wanted
 

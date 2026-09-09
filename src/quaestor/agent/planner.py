@@ -404,6 +404,12 @@ Artifacts already in the store ({n_artifacts} of them), by prefix:
 Columns of the split a sub-population can be selected on, exactly as the data spells them; a
 column that is not on this list does not exist and asking for one will fail:
 {columns}
+
+A sub-population must be a proper part of the split. `below_median` selects the rows at or below
+the column's median and `above_median` the rows strictly above it, so the two partition the split;
+a rule that resolves to the whole of it -- `above_median` on a column whose median is also its
+minimum, or an equality on a column that never varies -- is refused with the share it selected,
+because its metrics would only repeat the split's.
 {history}
 Tools you may call, with the JSON schema of each tool's arguments. Only the tools that apply to
 this package are listed; a tool the registry has and this package does not support is not on the

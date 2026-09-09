@@ -1,0 +1,60 @@
+{
+  "class_weight": null,
+  "coefficients": [
+    {
+      "feature": "limit_bal",
+      "value": -0.20913801305721247
+    },
+    {
+      "feature": "age",
+      "value": 0.07253007644877708
+    },
+    {
+      "feature": "utilisation",
+      "value": -0.08257487854367418
+    },
+    {
+      "feature": "pay_ratio_last",
+      "value": 0.006779706815812472
+    },
+    {
+      "feature": "pay_ratio_mean_6m",
+      "value": -0.09823688663835885
+    },
+    {
+      "feature": "delinq_last",
+      "value": 0.4846949872111426
+    },
+    {
+      "feature": "delinq_count_6m",
+      "value": 0.28007557771733244
+    },
+    {
+      "feature": "delinq_max_6m",
+      "value": 0.22625278850808794
+    },
+    {
+      "feature": "bill_mean_6m",
+      "value": -0.007567968246153356
+    },
+    {
+      "feature": "bill_trend_6m",
+      "value": 0.04808068094714198
+    }
+  ],
+  "intercept": -1.4416211706289164,
+  "model": "logistic_regression",
+  "n_train": 21000,
+  "removed": [
+    {
+      "feature": "bill_last",
+      "vif": 33.803856
+    },
+    {
+      "feature": "utilisation_mean_6m",
+      "vif": 10.962284
+    }
+  ],
+  "standardised": true,
+  "vif_threshold": 10.0
+}

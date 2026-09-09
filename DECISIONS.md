@@ -3214,3 +3214,226 @@ here and recorded.
   nothing for the cases that assert a planner action and costs a second and a half; and dropping the
   finding assertion from the two cases, which removes the only line in either that says the run
   produced a *correct* report and not merely a report.
+
+## D-120. The excerpt is edited; the record is not
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 6, decided in Cowork)
+- **Q:** `eval/results/first-live/credit/` is the sixth `credit_default` live run and the one the
+  README will excerpt in Phase 16. Reading it against the excerpt bar found five sentences whose
+  wording a reader outside this project would misread — a delta called a "cost" when it is an
+  improvement, a mechanism asserted where the evidence supports consistency, a bound attributed to
+  the package that Quaestor sets, an overfitting conclusion stated more strongly than a
+  train-to-test comparison supports, and a signed gap read as a shortfall. None of them is a wrong
+  number. May `report.md` be edited?
+- **A:** No. The committed `report.md` is what the pipeline produced on `fc33dd7` and it is never
+  edited, now or later; the run is committed byte-for-byte on D-087's terms (row-level CSVs
+  outside the repository, `find … -name '*.csv' -size +20k` prints nothing). The **excerpt** is
+  where the five edits are applied. Phase 16 takes **§2 and §4 whole** — `### Follow-up analyses`
+  and the degenerate-slice paragraph included — applies the five edits below and nothing else, and
+  prints them as a before/after diff in `docs/PROVENANCE.md` beside a line saying the excerpt is
+  edited and the record is not. **No edit changes a number**, which
+  `tests/test_live_credit.py::test_no_excerpt_edit_changes_a_number` asserts by tokenizing both
+  sides of each pair and comparing the values.
+
+  The five, verbatim, so Phase 16 copies rather than reconstructs them. Each `before` is asserted
+  to be in the committed `report.md` **exactly once**, so this entry cannot drift from the file it
+  quotes:
+
+  1. §2 "Fitted signs against univariate direction", two sentences of the same shape:
+     - `but refitting without the term costs -5.589e-05 [[art:e26d8112:ablation.pay_ratio_last.delta_auc]] of test AUC`
+       → `but refitting without the term changes test AUC by -5.589e-05 [[art:e26d8112:ablation.pay_ratio_last.delta_auc]]`
+     - `refitting without the term costs -0.001393 [[art:99f9dd71:ablation.bill_trend_6m.delta_auc]] of test AUC`
+       → `refitting without the term changes test AUC by -0.001393 [[art:99f9dd71:ablation.bill_trend_6m.delta_auc]]`
+  2. §2, the utilisation paragraph:
+     `the sign reversal reflects the credit limit and billing terms absorbing`
+     → `the sign reversal is consistent with the credit limit and billing terms absorbing`
+  3. §4 "Train-to-test gap":
+     `the bound of 0.08 [[art:630f28f4:threshold.O1.auc_gap]] the package sets for it`
+     → `the bound of 0.08 [[art:630f28f4:threshold.O1.auc_gap]] rule O1 sets for it`
+  4. §4 "Train-to-test gap":
+     `so the fit does not depend on the sample the model was estimated on`
+     → `so there is no sign of overfitting to the estimation sample`
+  5. §4 "Follow-up analyses", the `limit_bal` below-median paragraph:
+     `and -0.001109 [[art:021950a5:metrics.train.sub.limit_bal_low.auc_gap]] below it on train`
+     → `and by -0.001109 [[art:021950a5:metrics.train.sub.limit_bal_low.auc_gap]] on train, that is, marginally above it`
+
+  The prompt this entry was written from quoted edits 1's two `before` strings **without** their
+  citations — `costs -5.589e-05 of test AUC`. Neither string is in `report.md`: the drafter wrote
+  the citation between the number and the words, as the grammar requires. The strings above are
+  the file's, and the `after` strings keep each citation immediately after the number it carries,
+  which is where D-113 puts it.
+- **Why:** The report is evidence. Its value in a README is that a reader can be told "this is
+  what the pipeline wrote, unedited, and here is the trace, the cassettes and the artifact store it
+  wrote it from" — and an edited `report.md` cannot be told that about, however small the edit and
+  however honest the intent. The five sentences are still worth fixing, because a README excerpt is
+  read by people who will not read §4's Follow-up analyses for context and three of the five would
+  mislead them: "costs -5.589e-05 of test AUC" reads as a loss when the sign says the refit was
+  *better* without the term, "the package sets" attributes `threshold.O1.auc_gap` to a developer
+  declaration when `package.yaml` says nothing about it, and "the fit does not depend on the
+  sample" is a stronger claim than one train-and-test partition supports. Applying them in the
+  excerpt and printing the diff gets both: the record stays a record, and the excerpt says what the
+  evidence says. Rejected alternatives: editing `report.md` and noting the edits in
+  `DECISIONS.md`, which makes every future citation of the run's grounding precision a citation of
+  a file a human has touched; excerpting §2 and §4 unedited, which publishes three sentences that
+  misread on their own; excerpting a *paraphrase* of the two sections, which is the thing a
+  validation report exists not to be; re-running the pipeline hoping for better wording, which is
+  $4 and fifteen minutes for a different set of five sentences and would throw away a run whose
+  verifier flagged nothing; and dropping the degenerate-slice paragraph from the excerpt, which
+  would publish the run's four loop steps as four findings-worth of analysis when one of them was
+  the split reported to itself — the paragraph is the most honest thing in the section and D-121 is
+  the fix.
+
+## D-121. A sub-population that is the whole split is refused, at a stored ceiling and before anything is stored
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 6)
+- **Q:** The sixth live run's third loop step asked `compute_metrics` for `delinq_count_6m`
+  `above_median`. `above_median` resolved to `>= median`, the median of `delinq_count_6m` on the
+  real credit sample is 0, and the rule therefore selected **every row of both splits**:
+  `metrics.<split>.sub.delinq_count_6m_high.share` is 1 on train and test, `auc_gap` is 0 on both,
+  `n` is 21,000 and 9,000 — the splits' own row counts — and 22 logical names per split describe a
+  population identical to its parent. The tool answered, section 4 gained two tables and three
+  interpreting sentences about it, and one of four loop steps was spent. The drafter described it
+  honestly. Does the tool answer a rule that selects the whole split?
+- **A:** No. `ComputeMetricsTool._select` raises `ToolError` on the D-088 path, so the step is
+  recorded `accepted: true, executed: false`, the message is quoted back to the loop in the next
+  step's prompt, the step still counts against the maximum of four and the run goes on to draft.
+  The message names the **resolved** rule, the share and the bound:
+  `the sub-population delinq_count_6m:above_median resolves to
+  `delinq_count_6m > median(delinq_count_6m)`, which holds 1 of 'test' — at or above the ceiling of
+  0.95 (threshold.O1.slice_max_share) …`.
+
+  Two sub-decisions, both deliberate.
+
+  **The bound is a stored ceiling and not exact degeneracy.** `threshold.O1.slice_max_share` joins
+  the three numbers `Thresholds` already carries that decide nothing about pass or fail, at
+  **0.95**, and is stored by the tool through `Thresholds.artifact` on every successful slice call
+  on D-102's pattern. A slice holding 0.98 of its split has the same defect as one holding 1.0 —
+  the residual 2% cannot move a metric far enough to make the slice a different population, and
+  the step is spent either way — so testing `share == 1.0` would fix the case the run produced and
+  none of the cases next to it. **0.95 says only that nobody has measured a better value**, which
+  is what D-102 says about its own 0.08 and 0.10. It is deliberately *not* derived from
+  `threshold.O1.slice_min_share` as `1 - 0.10`: sharing the number would mean that re-tuning the
+  open-item floor silently re-tunes what the tool will compute at all, which is the coupling D-102
+  refused for the same reason.
+
+  **The check is a pre-pass over every split before any of them is computed.** `_subpopulation`
+  now resolves the column, the mask, the emptiness and the share for *all* the splits asked for
+  first, and only then stores anything. Otherwise a slice that is a proper part of train and the
+  whole of test would raise after train's 22 artifacts were already in the store, and the run would
+  go on to draft with half a slice in it — a half the section plan would show the drafter and the
+  drafter could legitimately cite.
+- **Why:** D-088's asymmetry is the whole argument for where this lives. A loop step is the model's
+  own extra question and it is refusable on four grounds already; "the rule you asked for is the
+  split you already have" is the fifth, and it belongs where the other four are — on the trace, in
+  the next step's prompt, and not in the exit code. The alternative the run demonstrated is worse
+  than a refusal in every dimension: a step of four, 63 artifact references, two rendered tables,
+  three sentences of prose, and a paragraph the report had to spend explaining that the step said
+  nothing. Refusing it also does not lose information, because the interesting population was the
+  *complement* and D-122 makes it reachable. Rejected alternatives: answering the call and letting
+  the section plan drop a slice whose share is 1, which would leave the artifacts in the store for
+  the drafter to find and would still have spent the step; raising a candidate finding, which would
+  put a defect in *Quaestor's own rule* into the model developer's `findings.json`; making it a
+  hard failure like a rule-based plan's `ToolError`, which would throw away a $4 run over a
+  question the model was free to ask; and putting the ceiling in `package.yaml`, which is a schema
+  change under D-098 for a number no developer has an opinion about.
+
+## D-122. `below_median` and `above_median` partition the split, with the median's own rows in the lower half
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 6)
+- **Q:** D-121 refuses the degenerate call, but the run's step was reasonable and the tool's
+  reading of it was the problem. `above_median` was `>= median` and `below_median` was `< median`:
+  on a discrete column whose median is its minimum — a delinquency count that is 0 for two thirds
+  of the book — the upper half is everything and the lower half is nothing, so *neither* rule can
+  name the never-delinquent segment that attempts 4 and 5 both found material. Which way does the
+  boundary go?
+- **A:** `below_median` is `<= median` and `above_median` is `> median`. The two partition every
+  split, and the median's own rows are in the **lower** half. On `delinq_count_6m` that makes
+  `below_median` the 67% of the book that has never been delinquent and `above_median` the rest,
+  both proper parts, both inside D-121's ceiling. `subpopulation_expression` reads
+  `delinq_count_6m <= median(delinq_count_6m)` and `delinq_count_6m > median(delinq_count_6m)`,
+  which is what the prose quotes in inline code (D-112). `equals:<value>` needs no edge of its own:
+  it degenerates on a constant column, and D-121's check is on the **share the rule resolved to**
+  rather than on the rule, so one check covers all three.
+
+  The prompt this was written from asked only for `above_median` to become strict `>`. Taken alone
+  that leaves the median's own rows in *neither* half — `< median` and `> median` do not partition
+  — and on the run's own column it would make `below_median` raise "selects no row" where a 67%
+  segment exists. Both halves of the boundary have to move for either goal to hold, so
+  `below_median` closed.
+- **Why:** Which side the tie goes to is arbitrary in general and not arbitrary here. A median rule
+  on a continuous column is unaffected either way, because the sample median of an even-sized draw
+  sits between two observations and no row equals it; the choice only bites on the coarse, heaped,
+  zero-inflated columns a real credit panel is made of, and on those the interesting population is
+  almost always the *mode at the bottom* — never delinquent, no balance, no utilisation. Closing
+  the lower side names that population; closing the upper side names its complement and leaves the
+  population itself unreachable. That is the case the archive has twice. Rejected alternatives:
+  `<` and `>`, which is what the prompt asked for and partitions nothing; keeping `<` and `>=` and
+  relying on D-121 to refuse the degenerate arm, which is honest but leaves the segment
+  unreachable by any rule the loop can name; adding a fourth rule such as `equals_min`, which is a
+  new parameter in the `Args` schema for a case two existing rules can cover; and slicing at a
+  quantile the caller passes, which is a wider change to the tool's contract than this defect
+  argues for and would need its own decision. Measured: `tests/test_tool_rules.py` builds a count
+  whose median is its minimum and asserts the two halves are 2/3 and 1/3, disjoint and exhaustive;
+  the same file asserts the halves of `limit_bal` still sum to the split.
+
+## D-123. The loop is told that a rule resolving to the whole split is refused
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 6)
+- **Q:** D-121 refuses the call and D-088 carries the message back, so the loop can recover from
+  the mistake in one step. It still costs a step of four and a model call to make it. D-089, D-090
+  and D-107 each answered the same question the same way — the caller had the fact and the prompt
+  did not carry it. Does the loop prompt carry this one?
+- **A:** Yes. `_LOOP_INSTRUCTION` gains a paragraph after D-107's column list: a sub-population
+  must be a proper part of the split; `below_median` selects the rows at or below the median and
+  `above_median` the rows strictly above it, so the two partition the split; and a rule that
+  resolves to the whole of it — `above_median` on a column whose median is also its minimum, or an
+  equality on a column that never varies — is refused with the share it selected. The refusal in
+  `_select` stays, because a model is free to ask for a slice the prompt told it not to and the
+  refusal has to be legible when it does.
+- **Why:** It is D-107's argument on the next fact: a prompt that invites a mistake and then
+  charges a model call for it is a prompt with a fact missing. The paragraph also states the
+  *boundary* and not only the refusal, which is the part the model cannot derive — D-122 is a
+  choice, and a planner that assumed `>=` would keep asking for the arm that used to work. Saying
+  it in the prompt rather than in the `Subpopulation` schema's field description is D-107's
+  arrangement again: the schemas are generated from each tool's `Args` and are shown to every
+  caller, and this is a sentence about how the bounded loop should choose, not about what the
+  argument means. Rejected alternatives: leaving it to D-121's refusal, which is what the run
+  measured the cost of; naming the columns whose median is their minimum in the prompt, which
+  would put a scan of the data into a prompt builder and would be a fact about the sample rather
+  than about the rule; and stating the ceiling's value, which would date the prompt against a
+  threshold a configuration may override.
+
+## D-124. The sixth run joins the archive as its negative case
+
+- **Date:** 2026-09-08 (Phase 9 follow-up 6)
+- **Q:** D-118 built `tests/test_archive_fixtures.py` over the three archived runs that rendered,
+  and every check in it is keyed on a table of expectations — `KNOWN_RESIDUE`, `REDRAFTED`,
+  `UNFLAGGED` — that only a run with a repair round in it contributes rows to. The sixth run has
+  none: 210 claims, all verified on the first pass, no `repair` event, no re-draft cassette. What
+  does adding it to the fixture assert?
+- **A:** The negative case of both questions D-118 asks, which no previous run could give. It joins
+  `RENDERED_RUNS`, so the two parametrized coverage checks run over four reports and four sets of
+  first drafts instead of three, and its claim count (210) joins the row of counts
+  `docs/EVALUATION.md` prints. It adds **no** entry to any of the three tables, and that absence
+  is asserted rather than left implicit: `test_every_token_of_every_first_draft_of_the_sixth_run_is_a_claim_of_its_report`
+  says every one of its seven completions has zero uncovered tokens — the strongest form the
+  coverage question has been answered in — and
+  `test_the_sixth_run_carries_no_repair_event_and_no_round_to_replay` reads the absence of a round
+  out of the trace, `claims.json` and Appendix C together, because those three have to agree for
+  the coverage checks to be checks of what the drafters wrote. A third case asserts every written
+  line of every first draft is in `report.md`, which the general cassette-to-report check has to
+  skip for a repaired section and does not have to skip here; a `[[table:<name>]]` line is the one
+  exception, being a directive the renderer replaces (D-115), and the count of them is asserted at
+  11 so the exception cannot widen.
+- **Why:** A fixture built only on runs that failed something asserts only what failure looks like.
+  `KNOWN_RESIDUE`'s docstring says "a new entry appearing here is the next one", and that reading
+  depends on the table being a table of *defects* rather than a table of whatever the archive
+  happens to hold — which is a claim about runs with no entry, and until now there were none.
+  Keeping the run's directory name bare, `credit` rather than `credit-attempt6`, is D-120's: it is
+  the run the README excerpts. Rejected alternatives: leaving the run out of the archive and
+  testing it only through `tests/test_live_credit.py`, which would leave the two generalised
+  coverage checks running over exactly the three runs they were written from; adding empty entries
+  to the three tables to make the parametrisation uniform, which would assert nothing and would
+  read as though the run had a round; and asserting the zero-residue property inside the
+  parametrized check for every run, which is false for the other three and is what
+  `KNOWN_RESIDUE` exists to record.

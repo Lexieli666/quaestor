@@ -514,6 +514,155 @@ price.
 **Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, and a `credit_default`
 attempt on a build carrying D-109 to D-115. Both are the operator's, and neither has happened.
 
+### 2026-09-08 — `credit_default`, `full_agent`, Claude CLI — sixth attempt, the README excerpt, and the first run with nothing to repair
+
+The record is `eval/results/first-live/credit/`, committed under the bare name because it is the run
+the README excerpts (D-120). `report.md` is committed as produced and is never edited; the five
+wording edits the excerpt carries are listed verbatim in D-120 and will be printed as a before/after
+diff in `docs/PROVENANCE.md` when Phase 16 writes it. No edit changes a number.
+
+**The run.** The same command as the first five attempts, on `fc33dd7` — the build carrying D-084 to
+D-119. It rendered: 210 claims, grounding precision **1.0000 before repair and 1.0000 after**, no
+finding at any severity, no open item, exit 0. It is the **first live run with no repair round in
+it**: nothing was flagged, so nothing was re-drafted, and the pre- and post-repair claim sets are
+one document.
+
+| quantity | value |
+|---|---|
+| model calls | **18** — 4 plan, 7 draft, 7 extract; no re-ask, and **no repair re-draft**, which is the first time |
+| model | `claude-opus-5[1m]`, through `ClaudeCLILLM` — on every one of the 18 calls |
+| tool calls | **17** — the 13 of the rule-based plan, plus the loop's four `compute_metrics` calls, **none of which raised** — 3.76 s in total, over 258 artifacts |
+| candidates raised | **none**, by any of the 17 |
+| plan steps (bounded loop) | **4**, all accepted and all executed: `limit_bal below_median`, `limit_bal above_median`, `delinq_count_6m above_median`, `utilisation above_median` |
+| claim checks | **210**: 210 verified, 0 mismatched, 0 unsupported, 0 unattributed, 0 dangling |
+| claims, pre-repair | **210** at **1.0000** |
+| claims, post-repair | **210**, the same 210 |
+| findings | **0**, and **no open item** |
+| output tokens | **74,618** — 1,331 plan, 30,549 draft, 42,738 extract |
+| input tokens | **207,429**, and the 18 cassettes carry the same figure |
+| longest single call | an extraction: **14,316 output tokens, 141.0 s** |
+| notional cost | **$3.9739**, of which $1.6208 extraction, $2.0168 drafting, $0.3364 the four plan steps |
+| wall-clock | **14:33** from the first traced event to the last (872.74 s) |
+| report written | **yes** |
+
+**No repair round, so D-109 has still not run live.** The scoped re-draft shipped in follow-up 5
+and the run that would exercise it is the run that flags a claim; this one flagged none. The six
+rounds the archive holds were all made by builds without the scoping in them, so **no tape holds a
+scoped re-draft** and the only replays of D-109's guarantee are the offline ones over those six
+previous drafts (`tests/test_archive_fixtures.py`) and the fixture-level test of the claims
+(`tests/test_repair.py`). That is a gap in the evidence and not a result.
+
+**The loop's four slices, and why no open item was raised.** Slice choice is the model's, on the
+same prompt, subject and model each time, and it has now differed on all three runs whose loop
+executed: attempt 4 took `credit_limit` (refused), `limit_bal` twice and `delinq_count_6m == 0`;
+attempt 5 took `limit_bal` once, `delinq_last == 0`, `delinq_last == 1` and `utilisation`; this run
+took both `limit_bal` halves, `delinq_count_6m` and `utilisation`. The expressions below are the
+rules **as this build resolved them**, which D-122 has since changed:
+
+| slice of test | rows | share | AUC | AUC gap | event rate | mean predicted |
+|---|---|---|---|---|---|---|
+| the split | 9,000 | — | **0.755** | — | 0.2212 | — |
+| `limit_bal < median` | 4,383 | 0.487 | 0.7477 | 0.007286 | 0.2877 | 0.2802 |
+| `limit_bal >= median` | 4,617 | 0.513 | 0.7114 | 0.04359 | 0.1581 | 0.164 |
+| `delinq_count_6m >= median` | 9,000 | **1** | 0.755 | **0** | 0.2212 | 0.2206 |
+| `utilisation >= median` | 4,500 | 0.5 | 0.7781 | −0.02309 | 0.2658 | 0.2608 |
+
+Every one of them is inside `threshold.O1.slice_auc_gap` at 0.08, so D-102 routed none of them to
+section 6 and the report's `### Open items` says it recorded no observation of that kind. **That is
+not the same as there being none.** Attempts 4 and 5 both found the never-delinquent segment
+material — test AUC **0.5875** on `delinq_count_6m == 0` and **0.6312** on `delinq_last == 0`,
+against a split-wide 0.755 — and this run did not test it. Its `delinq_count_6m` step was the whole
+split (below), so the segment attempts 4 and 5 named went untouched. What a reader should take from
+"no open item" is that this run's four questions found nothing, not that the model has none to
+answer.
+
+**One deterministic defect, found by reading, fixed in this commit.** The third step asked for
+`delinq_count_6m above_median`. `above_median` was `>= median`, the median of `delinq_count_6m` on
+this sample is **0**, and the rule therefore selected every row of both splits: share **1** on each,
+an AUC gap of **0**, `n` of 21,000 and 9,000 — the splits' own counts — and 22 logical names per
+split describing a population identical to its parent. The tool answered, the section gained two
+rendered tables and three interpreting sentences, and one of four loop steps was spent. The drafter
+described it honestly, and **that paragraph stays in the committed report**: it says the rule
+"selected the whole of each split rather than a proper subset", and that the step "carries no
+information about the delinquency-concentrated population beyond what the pooled result already
+showed".
+
+| # | what the live run exposed | kind | fixed in |
+|---|---|---|---|
+| DECISIONS D-121 | `compute_metrics` computed a sub-population that was the whole split. It now refuses one, on the D-088 path — the step is recorded accepted and not executed, the message names the resolved rule and the share, and the loop re-plans. The bound is a stored ceiling, `threshold.O1.slice_max_share` at **0.95**, rather than an exact share of 1: a slice holding 0.98 of its split has the same defect. The check is a pre-pass over every split asked for, so a slice degenerate on the second one stores nothing of the first. | defect | this commit |
+| DECISIONS D-122 | `below_median` was `< median` and `above_median` was `>= median`, so on a discrete column whose median is its minimum the upper half was everything and the lower half nothing — and **neither rule could name** the never-delinquent segment attempts 4 and 5 found material. The two are now `<= median` and `> median`: they partition the split, the median's own rows are in the lower half, and on this column `below_median` is the 67% that has never been delinquent. | defect | same commit |
+| DECISIONS D-123 | The loop prompt now states the rule — a sub-population must be a proper part of the split, where the median boundary falls, and that a rule resolving to the whole split is refused with the share it selected — so the planner does not spend a step of four finding out. It is D-089, D-090 and D-107's argument on the next fact. | cost | same commit |
+| DECISIONS D-120 | The excerpt-edit policy, and the five wording edits verbatim. | policy | same commit |
+| DECISIONS D-124 | The run joins `tests/test_archive_fixtures.py` as the archive's negative case: four rendered reports instead of three, no entry in any of the three expectation tables, and that absence asserted. | test | same commit |
+
+All five ship in one commit, which cannot cite its own hash; the run-log line under Phase 9 in
+`PROGRESS.md` is written in the same commit. `tests/test_live_credit.py` (30 checks) re-derives
+every figure above from the committed directory.
+
+**What extraction cost.** Extraction output was **42,738 tokens over 210 claim checks — 204 per
+check**, the fifth reading of a series with no change to `verifier/extract.py` behind any of the
+last four:
+
+| | attempt 1 | attempt 3 | attempt 4 | attempt 5 | attempt 6 |
+|---|---|---|---|---|---|
+| claim checks | 179 | 247 | 262 | 417 | **210** |
+| extraction output, total | 63,865 | 70,147 | 45,230 | 76,400 | **42,738** |
+| **extraction output per claim check** | 357 | 284 | 173 | 183 | **204** |
+| notional cost, whole run | $3.82 | $4.3822 | $4.1603 | $6.0535 | **$3.9739** |
+| wall-clock, whole run | 1,019 s | 1,217.79 s | 908.59 s | 1,328.47 s | **872.74 s** |
+
+357 → 284 → 173 → 183 → 204, **n = 1 at every point**, and no saving is claimed from any of it.
+Five runs of one prompt on one model over five differently shaped reports is not a measurement of
+extraction cost; what the column measures is how much the model chose to think, and a claim about
+the cost of extraction needs repeated runs, which is Phase 12's.
+
+**D-115, measured.** The fifth run wrote nine metrics per split per slice into cited prose — 72 of
+its 285 claims — and D-115 replaced that with a table the renderer expands and three interpreting
+sentences per slice. Both runs executed **four** slices. This run wrote **210** claims against the
+fifth's **285** and cost **$3.97** against **$6.05**, with all 210 verified on the first pass. The
+comparison is not controlled — different columns, different prose, seven drafting calls against
+nine — so what it establishes is the direction and not a coefficient: the table form did not cost
+the report its numbers.
+
+#### What the excerpt does not show
+
+The list Phase 16 quotes rather than rewrites. Every item is a property of this run or of this
+build, and none of them is a defect fixed in this commit.
+
+* **Zero findings and no open item, on a package that passes every bound it declares.** This is the
+  clean control, and what it demonstrates is evidence and judgement — 210 numbers, each carrying a
+  citation to a computed artifact, verified — and **not detection**. What Quaestor finds when
+  something is wrong is Phase 12's seeded-defect study, with precision, recall, false-alarm rate
+  and misses published. A reader shown only this report has been shown no detection result at all.
+* **Loop slice choice varies between runs, and this run missed the segment.** Four steps, all
+  executed, none of them the never-delinquent segment attempts 4 and 5 both found material at test
+  AUC 0.5875 and 0.6312 against 0.755. "No open item" is this run's four questions coming back
+  clean, not the package having no question to answer.
+* **The degenerate step.** One of the four asked for a slice that was the whole split, reported the
+  split to itself, and spent a step of four doing it. The paragraph describing it is in the excerpt
+  deliberately. It is fixed in this commit (D-121, D-122) and was not fixed when the report was
+  written.
+* **Decile reversals go unremarked.** The test event rate is non-monotone at deciles 4 and 5
+  (0.1711 against 0.1767) and at 8 and 9 (0.09667 against 0.1), and calibration bin 6 predicts
+  0.1416 against 0.1767 observed. All three are in tables the report renders, and no sentence
+  mentions any of them, because **no rule this build ships reads within-decile ordering**. A
+  monotonicity rule is not a decision this commit takes.
+* **A sign disagreement the report qualifies and does not route.** §2 records `bill_trend_6m`
+  fitted positive against a negative univariate direction with an ablation delta of −0.001393 of
+  test AUC — the largest of the three disagreements — and calls it "a reason to keep the
+  specification under review". A validator would log that in open items with an owner. Today only
+  D-102's slice rule routes anything there; a rule that routed a sign disagreement with a material
+  ablation delta (D-095) is a DECISIONS question and not this commit's.
+* **SR 26-2 and SR 11-7 citations are mixed.** §7's benchmarking paragraph cites `SR11-7:V.1.b`
+  where the SR 26-2 retrieval returned no span for the same point; §3 and §5 open on SR 26-2. The
+  mixture is D-108's retrieval doing what it can with two corpora and is visible in the excerpt.
+* **One run, and no stability repeats.** Every figure in the excerpt is n = 1. Nothing here says
+  what the next run of the same command would produce, and the five runs before it produced five
+  different reports.
+
+**Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, which waits on the
+Freddie Mac download. The `credit_default` live validation is **done**: this run is it.
+
 ### 2026-09-08 — the archive as an offline fixture: what `pytest` found without a live call
 
 No run. This entry is about the three archived runs above, read as fixtures rather than as history.

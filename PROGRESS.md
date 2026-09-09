@@ -82,9 +82,19 @@ are named in brackets.
     0.5875 on the 6,048 rows of 9,000 where `delinq_count_6m == 0`, which the report never
     mentioned. All six of its failed claims are one tokenizer defect and six of its sentences are
     the same shape of defect as attempt 3's; the ten that reading found are fixed in the fourth
-    Phase 9 follow-up below. The README excerpt will come from the run after **these** fixes. The
-    `msr_prepayment` run and a `credit_default` attempt on a build carrying D-099 to D-108 are
-    still outstanding
+    Phase 9 follow-up below. The **fifth attempt rendered** — 22 model calls, 285 claims, 0.9827 →
+    1.0000, zero findings, exit 0, $6.0535, 1,328.47 s — and carries the first `### Open items` the
+    pipeline produced live; it is committed as `eval/results/first-live/credit-attempt5/` and its
+    seven defects are fixed in the fifth follow-up. The **`credit_default` live validation is now
+    done and committed as `eval/results/first-live/credit/`**, on the **sixth** attempt: 18 model
+    calls, 17 tool calls, 258 artifacts, 210 claims at grounding precision **1.0000 pre-repair and
+    1.0000 post-repair**, **no repair round**, zero findings, no open item, exit 0, $3.9739,
+    872.74 s, with the bounded loop running four steps that all executed. It carries the bare name
+    because it is the run the README excerpts, `report.md` is committed as produced and is never
+    edited, and the excerpt's five wording edits live outside it (D-120). Attempts 1 to 5 are
+    archived beside it. The one deterministic defect reading found — a loop step whose
+    `above_median` rule resolved to the whole split — is fixed in the sixth follow-up below. The
+    **`msr_prepayment` live run remains outstanding**, on the Freddie Mac download
 - [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
 - [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
@@ -869,3 +879,80 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   checks), the Phase 9 pre-flight section of `docs/DESIGN.md` and the `CHANGELOG.md` entries. No
   test calls a live model, downloads data, trains on real data or reads an API key; the archive is
   read as JSON and text only, and no byte of `eval/results/first-live/` changed. No push.
+- 2026-09-08 — **Phase 9 follow-up 6** — the operator's **sixth** `credit_default` live run
+  (`--llm claude-cli`, real UCI sample, `full_agent`, `claude-opus-5[1m]`) **rendered on
+  `fc33dd7`** and **is the `credit_default` live validation**: 18 model calls (4 plan, 7 draft, 7
+  extract, no re-ask), 17 tool calls **none of which raised**, 258 artifacts, 210 claim checks, 210
+  claims at grounding precision **1.0000 pre-repair and 1.0000 post-repair**, **no repair round**,
+  zero findings, **no Open item**, exit 0, **$3.9739**, **872.74 s**. The bounded loop ran four
+  steps and **all four executed** — `limit_bal below_median`, `limit_bal above_median`,
+  `delinq_count_6m above_median`, `utilisation above_median`. Committed **byte-for-byte as
+  produced** as `eval/results/first-live/credit/` — the bare name, because it is the run the README
+  excerpts — on D-087's terms (`find eval/results/first-live/credit -name '*.csv' -size +20k`
+  prints nothing; the eight row-level CSVs are in `~/code/data-raw/credit/first-live-rows/`).
+  Attempts 1 to 5 are archived beside it; the `msr_prepayment` live run remains outstanding on the
+  Freddie Mac download. Gate green on the five conditions that apply: `pytest -q` **1431 passed**,
+  0 failed, 0 skipped, 0 xfailed (42 new); coverage of `src/quaestor` **100%** (`coverage run -m
+  pytest`, 6,030 statements) against the 85% floor; `ruff check` and `ruff format --check` clean on
+  `src tests eval subjects` (139 files); `mypy --strict src/quaestor` clean (60 source files); gate
+  condition 5 green — `examples/golden_report/` is **untouched** (`git diff --stat
+  examples/golden_report/` prints nothing and `MANIFEST.json` still hashes to
+  `40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116`, D-011's second and current
+  row), and `quaestor validate --synthetic --llm fake` renders both subjects through the installed
+  console script (credit_default 1.0000 → 1.0000 over 49 claims, 1 finding, 168 artifacts, 4.76 s;
+  msr_prepayment 1.0000 → 1.0000 over 45 claims, 0 findings, 271 artifacts, 6.52 s — the same
+  figures as the pre-flight, because neither fake run's loop asks for a slice and the new bound is
+  stored only by a call that computes one). Five decisions, **D-120 to D-124**.
+  **The excerpt policy (D-120).** `report.md` is committed as produced and is **never edited**. The
+  README excerpt is §2 and §4 **whole** — `### Follow-up analyses` and the degenerate-slice
+  paragraph included — with **five wording edits applied in the excerpt only**, recorded verbatim in
+  D-120 so Phase 16 copies rather than reconstructs them and destined for a before/after diff in
+  `docs/PROVENANCE.md`. No edit changes a number, asserted by tokenizing both sides of each pair;
+  each `before` string is asserted to be in the committed report **exactly once**, so the entry
+  cannot drift from the file. Two of the six strings the prompt supplied were quoted **without their
+  citations** and are in the file only with them — the drafter writes the citation between the
+  number and the words — so D-120 records the file's own strings.
+  **One deterministic defect, found by reading.** The third loop step asked for `delinq_count_6m
+  above_median`; `above_median` was `>= median`, the median of that column on this sample is **0**,
+  and the rule selected **every row of both splits** — share **1** on each, an AUC gap of **0**, `n`
+  of 21,000 and 9,000, **22 logical names per split** for a population identical to its parent, two
+  rendered tables, three interpreting sentences and one of four steps spent. The drafter described
+  it honestly and that paragraph stays in the report. `compute_metrics` now **refuses** a slice that
+  is the whole split, on the D-088 path, with a message naming the resolved rule, the share and the
+  bound (D-121): the bound is a **stored ceiling**, `threshold.O1.slice_max_share` at **0.95**,
+  rather than an exact share of 1, because a slice holding 0.98 of its split has the same defect and
+  because deriving it from `slice_min_share` would let the open-item floor silently re-tune what the
+  tool computes; and the check is a **pre-pass over every split asked for**, so a slice degenerate
+  on the second stores nothing of the first. `below_median` and `above_median` are now `<= median`
+  and `> median` (D-122): they **partition** the split, the median's own rows are in the lower half,
+  and on this column `below_median` is the 67% that has never been delinquent — the segment attempts
+  4 and 5 found material at test AUC 0.5875 and 0.6312 against 0.755, which under `<`/`>=` **no
+  median rule could name**. The prompt asked only for `above_median` to become strict `>`; taken
+  alone that leaves the median's own rows in neither half, so both sides moved and D-122 records
+  why. `equals:` needs no edge of its own, because the check reads the share the rule resolved to.
+  The loop prompt now carries all of it (D-123), which is D-089, D-090 and D-107's argument a fourth
+  time.
+  **What the run does not show, and what it did not exercise.** It is the **first live run with no
+  repair round**, so D-109's scoped re-draft path has **still not run live** and **no tape holds
+  one** — all six archived rounds were made by builds without the scoping in them. Slice choice is
+  the model's and has now differed on all three runs whose loop executed, and **no Open item was
+  raised because this run did not test the never-delinquent segment**, not because the package has
+  no question to answer. Extraction was **42,738 output tokens over 210 claim checks, 204 per
+  check**, the fifth reading of 357 → 284 → 173 → 183 → 204 with `verifier/extract.py` unchanged
+  behind the last four: **n = 1 each and no saving is claimed**. D-115 measured: **210 claims
+  against attempt 5's 285** with four executed slices in both, and **$3.97 against $6.05** — the
+  direction, not a coefficient, since the two runs sliced different columns and made seven drafting
+  calls against nine. Also shipped: the dated `docs/EVALUATION.md` §1 entry for the sixth attempt,
+  carrying a **"What the excerpt does not show"** subsection so Phase 16 quotes the known-limitations
+  list rather than rewriting it (zero findings is evidence and judgement and not detection; the
+  missed segment; the degenerate step; the decile reversals at 4/5 and 8/9 and calibration bin 6
+  that no rule reads; the `bill_trend_6m` sign disagreement §2 qualifies and nothing routes to Open
+  items; SR 26-2 and SR 11-7 mixed where SR 26-2 returned no span; one run, no stability repeats);
+  `tests/test_live_credit.py` (30 checks); the run added to `tests/test_archive_fixtures.py` as the
+  archive's **negative case** (D-124, 51 checks there now); DECISIONS D-120 to D-124; the Phase 9
+  follow-up 6 section of `docs/DESIGN.md`; and the `CHANGELOG.md` entries. **Not in scope, noted:** a
+  rule routing a sign disagreement with a material ablation delta (D-095) to Open items the way
+  D-102 routes slices — it changes drafting behaviour and needs a bound, so it is a DECISIONS
+  question and not this commit. No test calls a live model, downloads data, trains on real data or
+  reads an API key; no byte of `eval/results/first-live/` outside the new `credit/` directory
+  changed. No push.

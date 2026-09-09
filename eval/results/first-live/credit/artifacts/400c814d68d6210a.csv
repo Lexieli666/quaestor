@@ -1,0 +1,10 @@
+metric,value
+n,21000
+event_rate,0.2211904762
+auc,0.7545552576
+gini,0.5091105152
+ks,0.4144375385
+brier,0.1383762773
+logloss,0.4439401117
+mean_predicted,0.2212248699
+share,1

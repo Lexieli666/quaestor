@@ -1292,3 +1292,80 @@ D-109's guarantee does not hold is a fact in the record rather than an inference
 reason D-084 exists. And `tests/test_pipeline.py`'s two Phase 9 follow-up cases move from a
 1,200-row panel and `"E1" in` the findings to the default panel and the whole set, because `in`
 passes on a panel that also raises `T1` at high and the difference is 0.24 s a run (D-119).
+
+## Phase 9 follow-up 6 — What the run the README excerpts changed
+
+The sixth live `credit_default` run is the `credit_default` live validation. It rendered on
+`fc33dd7` with 210 claims, grounding precision 1.0000 before repair and 1.0000 after, no repair
+round, no finding, no open item, exit 0, $3.9739 and 872.74 s, and it is committed under the bare
+name `eval/results/first-live/credit/` because it is the run the README excerpts. Reading it against
+that bar found one deterministic defect and five sentences whose wording misreads outside the
+report's own context. The two get different treatments, and the difference is the point of this
+follow-up.
+
+**The record is not edited, and the excerpt is.** `report.md` is what the pipeline produced. Its
+value in a README is that a reader can be told "unedited, and here is the trace, the cassettes and
+the artifact store it was written from" — which an edited file cannot be told about, however small
+the edit. The five wording edits are therefore applied in the excerpt only, listed verbatim in
+D-120 so Phase 16 copies rather than reconstructs them, and printed as a before/after diff in
+`docs/PROVENANCE.md`. None of them changes a number, asserted by tokenizing both sides of each pair
+and comparing values; each `before` is asserted to be in the committed file exactly once, so the
+decision entry cannot drift from the file it quotes. Rejected alternatives: editing `report.md` and
+noting the edits, which makes every later citation of the run's grounding precision a citation of a
+file a human touched; and excerpting a paraphrase, which is the thing a validation report exists not
+to be.
+
+**A slice that is the whole split is a refusal, not an answer.** The loop's third step asked for
+`delinq_count_6m above_median`; the column's median is 0, `>= median` selected every row of both
+splits, and the tool answered — share 1, an AUC gap of 0, 22 logical names per split for a
+population identical to its parent, two rendered tables, and a step of four spent. `_select` now
+raises on the D-088 path, so the step is recorded accepted and not executed and the loop re-plans.
+Two choices inside it. The bound is a **stored ceiling** at 0.95 (`threshold.O1.slice_max_share`)
+rather than an exact share of 1, because a slice holding 0.98 of its split has the same defect and
+testing for degeneracy alone would fix the one case the run produced; 0.95 says only that nobody has
+measured a better value, which is what D-102 says about its own two numbers, and it is deliberately
+not derived from `slice_min_share` so that re-tuning the open-item floor cannot silently re-tune
+what the tool will compute. And the check is a **pre-pass over every split asked for**, because a
+slice that is a proper part of train and the whole of test would otherwise raise with train's
+artifacts already stored, leaving the drafter half a slice it could legitimately cite. Rejected
+alternatives: answering and letting the section plan drop it, which spends the step and leaves the
+artifacts; and raising a candidate finding, which would put a defect in Quaestor's own rule into the
+developer's `findings.json`.
+
+**The two median rules partition the split, and the median's rows are in the lower half.** The
+refusal alone leaves the interesting population unreachable: on a delinquency count that is 0 for
+two thirds of the book, `< median` selected nothing and `>= median` everything, so neither rule
+could name the never-delinquent segment that attempts 4 and 5 both found material at test AUC 0.5875
+and 0.6312 against 0.755. `below_median` is now `<= median` and `above_median` is `> median`. Which
+side the tie closes is arbitrary on a continuous column — the sample median of an even draw sits
+between two observations — and not arbitrary on the coarse, heaped, zero-inflated columns a real
+credit panel is made of, where the population worth slicing is almost always the mode at the bottom.
+`equals:` needs no edge of its own, because D-121's check reads the share the rule resolved to and
+not the rule. Rejected alternatives: `<` and `>`, which partitions nothing and leaves the median's
+own rows in neither half; and a fourth rule such as `equals_min`, which is a new argument for a case
+two existing rules cover.
+
+**The loop is told the rule.** D-089, D-090, D-107 and now D-123 are one argument applied four
+times: a prompt that invites a mistake and then charges a model call for it is a prompt with a fact
+missing. `_LOOP_INSTRUCTION` states that a sub-population must be a proper part of the split, where
+the median boundary falls, and that a rule resolving to the whole split is refused with the share it
+selected. The boundary is the half the model cannot derive, because D-122 is a choice. Rejected
+alternative: putting it in the `Subpopulation` field description, which is generated from the `Args`
+model and shown to every caller, where this is a sentence about how the bounded loop should choose.
+
+**The archive gains its negative case.** D-118's fixture is keyed on tables — `KNOWN_RESIDUE`,
+`REDRAFTED`, `UNFLAGGED` — that only a run with a repair round contributes rows to, so until now
+every check in it was a check of what failure looks like. This run flagged nothing, so it adds no
+row to any of them, and that absence is asserted rather than assumed: zero uncovered tokens in every
+one of its seven first drafts, the absence of a round read out of the trace, `claims.json` and
+Appendix C together, and every written line of every first draft found in `report.md` — the last
+being a check the general one has to skip for a repaired section (D-124).
+
+**What did not happen is also a result.** No repair round means D-109's scoped re-draft has still
+not run live, and no cassette in the archive holds one, because all six archived rounds were made by
+builds without the scoping in them. `docs/EVALUATION.md` §1 records that as a gap in the evidence
+rather than as a passing test, and its "What the excerpt does not show" subsection carries the rest
+of the known limitations — zero findings is evidence and judgement and not detection, the loop's
+slice choice varies and this run missed the segment, the decile reversals no rule reads, the sign
+disagreement nothing routes, the mixed corpora, and n = 1 — so Phase 16 quotes that list rather than
+writing a new one.

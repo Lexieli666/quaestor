@@ -52,7 +52,7 @@ __all__ = [
 ARCHIVE: Final = Path(__file__).resolve().parents[1] / "eval" / "results" / "first-live"
 """Where the operator's live runs are committed (D-087)."""
 
-RENDERED_RUNS: Final = ("credit-attempt3", "credit-attempt4", "credit-attempt5")
+RENDERED_RUNS: Final = ("credit-attempt3", "credit-attempt4", "credit-attempt5", "credit")
 """The archived runs that rendered a report and wrote a `claims.json`.
 
 Attempts 1 and 2 produced neither -- the first was refused by the renderer over an uncovered number
@@ -60,6 +60,11 @@ that was never a claim (D-084) and the second exited 1 when a tool the loop aske
 (D-088) -- so neither can answer "is every token covered by a post-repair claim". Attempt 1's own
 draft calls are still readable and one check below uses them, against the verified `claim_check`
 events of its trace rather than against a claims document it does not have.
+
+`credit` is the sixth attempt and carries no `attempt` suffix because it is the run the README
+excerpts (D-120). It is the archive's first run with no repair round in it, so it answers the
+coverage questions with nothing removed from its prose and contributes no round to the replay
+(D-124).
 """
 
 CREDIT_VERSION: Final = "1.0"

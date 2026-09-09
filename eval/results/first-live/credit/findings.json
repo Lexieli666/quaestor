@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260909T002419Z-d03b07c6",
+  "illustrative": false,
+  "findings": [],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ]
+  }
+}
