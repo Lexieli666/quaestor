@@ -1,11 +1,17 @@
-"""The ``quaestor`` console script: ``validate``, ``tool`` and ``corpus ingest``.
+"""The ``quaestor`` console script: ``validate``, ``tool``, ``corpus ingest`` and ``study build``.
 
-Spec section 3.14 lists eight commands. Three of them exist today, and only those three have a
-parser: ``study`` arrives with the seeded-defect generator in Phase 10 and the study in Phase 12,
-``verifier-eval`` with Phase 13, and ``mcp`` with Phase 15. A flag that parses and then says "not
-implemented" is worse than no flag, because a reader of ``--help`` cannot tell the difference
-between what this program does and what it is going to do; the Phase 0 design paragraph on
-half-built flag surfaces is the whole argument, and it applies here (D-082).
+Spec section 3.14 lists eight commands. Four of them exist today, and only those four have a
+parser: ``study run`` and ``study score`` arrive with the study in Phase 12, ``verifier-eval``
+with Phase 13, and ``mcp`` with Phase 15. A flag that parses and then says "not implemented" is
+worse than no flag, because a reader of ``--help`` cannot tell the difference between what this
+program does and what it is going to do; the Phase 0 design paragraph on half-built flag surfaces
+is the whole argument, and it applies here (D-082). ``study`` therefore takes exactly one action
+today, and ``quaestor study run`` is an argparse "invalid choice" like any misspelling.
+
+``study build`` is the one command whose implementation is not in this package. The seeded-defect
+generator lives in ``eval/seed.py``, outside ``src/``, because the pipeline being measured must
+not be able to import the thing that plants the defects; so the command loads it from beside the
+taxonomy it was given, and says so when it is not there (DECISIONS D-127).
 
 **Exit codes**, which are the interface a script sees:
 
@@ -23,10 +29,12 @@ Every message written to standard error names the command that fixes it, which i
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from types import ModuleType
 from typing import Any, Final, NoReturn
 
 from . import __version__
@@ -45,7 +53,15 @@ from .tools.registry import ToolContext
 from .trace import TraceWriter
 from .vocab import Configuration
 
-__all__ = ["EXIT_FAILED_RUN", "EXIT_OK", "EXIT_USAGE", "PROVIDERS", "build_parser", "main"]
+__all__ = [
+    "EXIT_FAILED_RUN",
+    "EXIT_OK",
+    "EXIT_USAGE",
+    "PROVIDERS",
+    "SEED_MODULE",
+    "build_parser",
+    "main",
+]
 
 EXIT_OK: Final = 0
 """The command did what it was asked."""
@@ -64,6 +80,16 @@ SYNTHETIC_FROM_SUBJECT: Final = -1
 
 _TRACE_FILE: Final = "trace.jsonl"
 """A ``quaestor tool`` call appends to the same trace a validation of that run directory wrote."""
+
+SEED_MODULE: Final = "seed.py"
+"""The seeded-defect generator, looked for beside ``--taxonomy`` and loaded under an alias."""
+
+_SEED_ALIAS: Final = "quaestor_eval_seed"
+"""What ``eval/seed.py`` is imported as, so it does not collide with anything on the path."""
+
+_DEFAULT_TAXONOMY: Final = Path("eval") / "taxonomy.yaml"
+_SUBJECTS_DIRNAME: Final = "subjects"
+"""Where the clean subjects are, relative to the checkout the taxonomy was found in."""
 
 
 class _Parser(argparse.ArgumentParser):
@@ -106,6 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_validate(commands)
     _add_tool(commands)
     _add_corpus(commands)
+    _add_study(commands)
     return parser
 
 
@@ -260,6 +287,144 @@ def _add_corpus(commands: Any) -> None:
         help="where the section outlines are (default: data/regulatory of this checkout)",
     )
     ingest_parser.set_defaults(run=_run_corpus)
+
+
+def _add_study(commands: Any) -> None:
+    """Add ``quaestor study build``: the seeded-defect variants of `04` section 2.
+
+    ``build`` is the only action, so ``quaestor study run`` and ``quaestor study score`` are
+    argparse "invalid choice" errors until Phase 12 writes them, which is what D-082 asks of every
+    command that does not exist yet.
+    """
+    study_parser = commands.add_parser(
+        "study",
+        help="build the seeded-defect variants the evaluation runs on",
+        description=(
+            "The seeded-defect study of 04-SEEDED-DEFECT-STUDY.md. Only `build` exists today: it "
+            "writes one variant package per row of the taxonomy, each with a SEED.yaml recording "
+            "what was done to it that no validation run ever reads. `run` and `score` are Phase "
+            "12."
+        ),
+    )
+    actions = study_parser.add_subparsers(dest="action", metavar="ACTION", required=True)
+    build_parser = actions.add_parser(
+        "build",
+        help="write one variant package per row of eval/taxonomy.yaml",
+        description=(
+            "Copy each subject, apply one recipe to the copy and write SEED.yaml beside it. The "
+            "variants are generated artefacts and are never committed; --out should be a "
+            "gitignored directory. Real-data variants are built at study time from a --data path "
+            "and are not written here."
+        ),
+    )
+    build_parser.add_argument(
+        "--taxonomy",
+        metavar="FILE",
+        type=Path,
+        default=_DEFAULT_TAXONOMY,
+        help=f"the taxonomy to build (default: {_DEFAULT_TAXONOMY}); {SEED_MODULE} is loaded "
+        "from the same directory",
+    )
+    build_parser.add_argument(
+        "--out", metavar="DIR", type=Path, required=True, help="where the variant packages go"
+    )
+    build_parser.add_argument(
+        "--subjects",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help="where the clean subjects are (default: subjects/ beside the taxonomy's directory)",
+    )
+    build_parser.add_argument(
+        "--synthetic",
+        metavar="N",
+        nargs="?",
+        type=int,
+        const=SYNTHETIC_FROM_SUBJECT,
+        default=None,
+        help=(
+            "the panel size each variant is meant to be validated at, recorded in its SEED.yaml; "
+            "with no number, each subject's documented default"
+        ),
+    )
+    build_parser.set_defaults(run=_run_study_build)
+
+
+def _load_seed_module(directory: Path) -> ModuleType:
+    """Import ``eval/seed.py`` from a directory, under an alias of its own.
+
+    Args:
+        directory: Where the taxonomy is, which is where the generator is looked for.
+
+    Returns:
+        The loaded module.
+
+    Raises:
+        PackageError: There is no ``seed.py`` there, or it does not import.
+    """
+    path = directory / SEED_MODULE
+    if not path.is_file():
+        raise PackageError(
+            f"there is no {SEED_MODULE} beside {directory}, so there is no seeded-defect "
+            "generator to run; `quaestor study build` works inside a checkout of this "
+            "repository, where eval/seed.py sits next to eval/taxonomy.yaml",
+            fix="quaestor study build --taxonomy eval/taxonomy.yaml --out eval/variants",
+        )
+    spec = importlib.util.spec_from_file_location(_SEED_ALIAS, path)
+    if spec is None or spec.loader is None:  # pragma: no cover - a file that is not importable
+        raise PackageError(f"{path} is not importable as a module")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[_SEED_ALIAS] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _run_study_build(args: argparse.Namespace) -> int:
+    """Run ``quaestor study build`` and print where each variant went."""
+    taxonomy_path = Path(args.taxonomy)
+    if not taxonomy_path.is_file():
+        return _fail(
+            f"there is no taxonomy at {taxonomy_path}",
+            "quaestor study build --taxonomy eval/taxonomy.yaml --out eval/variants",
+        )
+    try:
+        seed_module = _load_seed_module(taxonomy_path.parent)
+    except PackageError as exc:
+        return _fail(str(exc.message), exc.fix or "quaestor study build --help")
+    subjects = (
+        Path(args.subjects)
+        if args.subjects is not None
+        else taxonomy_path.parent.parent / _SUBJECTS_DIRNAME
+    )
+    if not subjects.is_dir():
+        return _fail(
+            f"there is no subjects directory at {subjects}",
+            "quaestor study build --taxonomy eval/taxonomy.yaml --subjects subjects "
+            "--out eval/variants",
+        )
+    try:
+        taxonomy = seed_module.load_taxonomy(taxonomy_path)
+        results: list[Any] = seed_module.build_all(
+            taxonomy,
+            args.out,
+            subjects_dir=subjects,
+            synthetic_n=seed_module.synthetic_sizes(taxonomy, args.synthetic),
+        )
+    except (ValueError, KeyError, OSError) as exc:
+        return _fail(
+            f"{taxonomy_path} could not be built: {exc}",
+            f"cat {taxonomy_path}",
+            code=EXIT_FAILED_RUN,
+        )
+    built = 0
+    for result in results:
+        if result.built:
+            built += 1
+            print(f"{result.spec.id}: {result.spec.recipe} -> {result.root}")
+        else:
+            print(f"{result.spec.id}: dropped ({result.spec.dropped_reason})")
+    print(f"{built} variant(s) under {args.out}; {len(results) - built} dropped")
+    return EXIT_OK
 
 
 def _fail(message: str, fix: str, code: int = EXIT_USAGE) -> int:

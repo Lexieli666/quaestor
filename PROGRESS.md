@@ -95,7 +95,17 @@ are named in brackets.
     archived beside it. The one deterministic defect reading found — a loop step whose
     `above_median` rule resolved to the whole split — is fixed in the sixth follow-up below. The
     **`msr_prepayment` live run remains outstanding**, on the Freddie Mac download
-- [ ] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
+- [x] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
+  - **nothing was dropped**: all fourteen seeded recipes produce their `expected_signal` on the
+    synthetic subjects and all fourteen are detected at severity ≥ medium by `rules_only`, and the
+    four controls raise exactly what D-017 and D-047 fix (D-136 records every measurement)
+  - the `msr` `S1` recipe is **redesigned**, not dropped, along the line D-046 named: it re-cuts
+    train and test by calendar time so the shift lands on the train-to-test comparison Quaestor
+    tests (D-129)
+  - two defects in **Quaestor** were found by seeding, both the same shape — a tool refusing to run
+    on exactly the data a seeded defect produces, and the refusal ending the whole validation
+    instead of being reported: `challenger_compare` on a missing value (D-125) and
+    `compute_metrics` on a separable split (D-126). Both are fixed; neither changes a control
 - [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
   (`04` §3–5)
@@ -956,3 +966,56 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   question and not this commit. No test calls a live model, downloads data, trains on real data or
   reads an API key; no byte of `eval/results/first-live/` outside the new `credit/` directory
   changed. No push.
+- 2026-09-08 — **Phase 10** — gate green on all five conditions that apply: `pytest -q` **1486
+  passed**, 0 failed, 0 skipped, 0 xfailed (55 new); coverage of `src/quaestor` **100%**
+  (`coverage run -m pytest`, 6097 statements) against the 85% floor; `ruff check` and `ruff format
+  --check` clean on `src tests eval subjects` (141 files); `mypy --strict src/quaestor` clean (60
+  source files). Gate condition **5a** passes — `tests/test_golden_spec.py` still pins
+  `examples/golden_report/`, which this phase **did not touch**: `MANIFEST.json` still has the
+  sha256 D-011's table pins (`40a9a75f…`) and no byte of the directory changed. Gate condition
+  **5b** passes: both `quaestor validate … --synthetic --llm fake --out DIR` lines run through the
+  installed console script in `tests/test_cli.py` and again from a shell here — **`credit_default`
+  grounding precision 1.0000 pre- and post-repair over 49 claims, 168 artifacts, one finding
+  (`E1 low`, D-017); `msr_prepayment` 1.0000 and 1.0000 over 45 claims, 271 artifacts, no finding
+  (D-047)** — the same figures as the last follow-up, which is what a phase that adds no artifact
+  to a clean run should leave. **Gate condition 6 belongs to Phase 11** (D-007). Shipped
+  `eval/taxonomy.yaml` and `docs/CHECKLIST.md` (copied from the Cowork drafts of 2026-09-09; no
+  `met_where` sentence and no parameter was changed, and the checklist needed **no** correction —
+  every tool it names is in the registry and every class code is one of spec §3.7's twelve, which
+  `tests/test_seed.py` asserts), `eval/seed.py` (the fourteen recipes, `DefectSpec`, `Taxonomy`,
+  `seed()`, `build_all()` and a `main()` of its own), `quaestor study build` in `cli.py`,
+  `tests/test_seed.py` (51 checks), the separability and missing-value cases in
+  `tests/test_tool_rules.py` and `tests/test_tool_frames.py`, DECISIONS **D-125 to D-137**, the
+  Phase 10 section of `docs/DESIGN.md` and the `CHANGELOG.md` entries. `eval/variants/` is
+  gitignored: a variant is a generated artefact and a real-data variant would carry rows of the
+  data.
+  **All fourteen seeded recipes fire and nothing was dropped.** Measured at seed 20260901 through
+  `run_model` and `rules_only` (which calls no model), `credit_default --synthetic 5000` and
+  `msr_prepayment --synthetic 2000`, each variant's signal against its bound: `L1` single-feature
+  AUC **0.9450** against 0.90 on both credit arms (and `leakage.timing.n_flagged` 1 on the
+  declared arm) and **1.0000** on the hazard subject; `L2` feature overlap **3.00%** and **2.997%**
+  against 0.50% with identifier overlap 0.0000 on both, the medium arm of D-086 by the human's
+  decision (D-128); `R1` `stability.bill_trend_6m.sign_flip` **1**; `C1` mean-predicted-to-observed
+  gap **94.9%** and **371.6%** against 25%; `S1` `psi.limit_bal` **1.196** and `psi.burnout`
+  **3.016** against 0.25; `M1` `vif.max` **121,914** and condition number **1,023** against 10 and
+  30; `D1` test missingness **0.300** against a train 0.000 and a gap bound of 0.10; `T1` a
+  declared minimum of **0.78** against a recomputed AUC of **0.7480**; `X1` convexity **+336,109**
+  where the package declares negative, with −300 bp and +300 bp both **+168,055**. Every one is a
+  finding of the seeded class at severity ≥ medium in `findings.json`, which is `04` §4's
+  detection criterion. The four controls raise exactly what D-017 and D-047 fix — `{E1 low}` and
+  `{}` — and the two harmlessly perturbed ones raise the same sets as their clean twins.
+  **Two margins are thin and are named** (D-136): the hidden `L1` arm clears its ceiling by 0.045,
+  and the SMOTE variant's calibration slope sits 0.005 below its floor, though that `C1` does not
+  depend on the slope. **Two recipes needed a decision rather than a parameter**: the hazard `S1`
+  is redesigned as a train-to-test re-cut, which is the branch D-046 promised and the alternative
+  to dropping it (D-129), and `R1` had to *add* the effect it reverses, because `bill_trend_6m` is
+  not in the clean generating process at all (D-130). **Seeding found two defects in Quaestor**,
+  both the same shape — a tool refusing to run on exactly the data a seeded defect produces, and
+  the refusal ending the whole validation instead of being reported: `challenger_compare` treated
+  a missing value as a non-numeric one, so the `D1` variant produced no report (D-125), and
+  `compute_metrics` let the calibration slope's non-convergence propagate, so the separable hazard
+  `L1` variant produced no report either (D-126). Both are fixed and neither adds an artifact to a
+  clean run. **Five of the eighteen variants are synthetic-only** — the two credit `L1` arms,
+  credit `R1`, credit `M1` and the hazard `L1` — because each needs a column the real samples do
+  not build; the list is D-137 and the work is Phase 12's. No test calls a live model, downloads
+  data, trains on real data or reads an API key. No push.

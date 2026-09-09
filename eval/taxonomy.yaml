@@ -1,0 +1,183 @@
+# eval/taxonomy.yaml — Phase 10, filled in Cowork on 2026-09-09 from the human's answers. Final.
+# Copy to the repo as eval/taxonomy.yaml. Class codes are fixed by 02-SPEC.md section 3.7 and are
+# the scoring keys of the study; do not rename them.
+#
+# met_where: one sentence per class, the human's own, no employer names, no proprietary detail.
+# It is the interview answer to "have you actually seen this defect". expected_signal is the
+# acceptance test for the recipe on the synthetic subject (04-SEEDED-DEFECT-STUDY.md section 2):
+# a recipe that does not produce its signal there is dropped and recorded in docs/STUDY.md, never
+# tuned until it fires.
+version: 1
+subjects: [credit_default, msr_prepayment]
+study:
+  variants: 18          # 14 seeded + 4 controls; exactly one seeded defect per variant
+  seed: 20260901
+controls:
+  - {id: control_credit_clean,      subject: credit_default,  recipe: none}
+  - {id: control_msr_clean,         subject: msr_prepayment,  recipe: none}
+  - {id: control_credit_perturbed,  subject: credit_default,  recipe: harmless_perturbation, params: {shuffle_rows: true, feature_prefix: "f_"}}
+  - {id: control_msr_perturbed,     subject: msr_prepayment,  recipe: harmless_perturbation, params: {shuffle_rows: true, feature_prefix: "f_"}}
+defects:
+
+  # ---- L1: target leakage ------------------------------------------------------------------
+  - id: credit__L1__after_outcome_declared
+    class: L1
+    subject: credit_default
+    recipe: add_post_outcome_feature
+    params:
+      feature: pay_amt_next          # synthetic: payment received in month t+1, correlated with
+                                     # the outcome, NOT derived from default_next_month directly
+      declared_timing: after_outcome
+    expected_signal: "check_leakage timing screen flags the feature (leakage.timing.n_flagged >= 1)"
+    met_where: "A retail scorecard where a 'months since last payment' feature was refreshed after the observation window closed, so it encoded the outcome."
+  - id: credit__L1__after_outcome_hidden
+    class: L1
+    subject: credit_default
+    recipe: add_post_outcome_feature
+    params:
+      feature: pay_amt_next
+      declared_timing: before_period_start   # the dishonest declaration
+    expected_signal: "leakage.target_corr.max_single_feature_auc > threshold.L1.single_feature_auc (0.90); implausible test AUC"
+    met_where: "A retail scorecard where a 'months since last payment' feature was refreshed after the observation window closed, so it encoded the outcome."
+  - id: msr__L1__eom_balance
+    class: L1
+    subject: msr_prepayment
+    recipe: end_of_month_balance      # replaces bom_balance_log with the end-of-month balance
+    params: {}
+    expected_signal: "single-feature AUC > 0.90 on the balance feature; implausible test AUC"
+    met_where: "A prepayment hazard model where the end-of-month balance leaked the payoff, fixed by lagging to beginning-of-month."
+
+  # ---- L2: train/test contamination --------------------------------------------------------
+  - id: credit__L2__contamination
+    class: L2
+    subject: credit_default
+    recipe: duplicate_test_into_train
+    params:
+      fraction: 0.03                  # realistic instances are 1-2%; 3% clears D-086's effective
+                                      # feature-overlap bound (2 x train duplicate rate = 2.32%
+                                      # on the real sample) without being a caricature
+      fresh_ids: true                 # decided (human, 2026-09-09): the duplicated rows are
+                                      # re-keyed with new client_ids to match the met_where
+                                      # instance; this tests the feature-overlap arm at severity
+                                      # medium (D-086), still a detection under 04 section 4, and
+                                      # is the honest test. STUDY.md carries one sentence on why.
+    expected_signal: "leakage.overlap.ids or leakage.overlap.features above its L2 bound"
+    met_where: "A model whose holdout was drawn after de-duplication on account id, but re-issued accounts carried new ids and the same customer appeared on both sides."
+  - id: msr__L2__contamination
+    class: L2
+    subject: msr_prepayment
+    recipe: duplicate_test_into_train
+    params: {fraction: 0.03, fresh_ids: true}   # same decision, on loan-months (new loan ids)
+    expected_signal: "leakage.overlap.ids or leakage.overlap.features above its L2 bound"
+    met_where: "A model whose holdout was drawn after de-duplication on account id, but re-issued accounts carried new ids and the same customer appeared on both sides."
+
+  # ---- R1: regime-dependent feature --------------------------------------------------------
+  - id: credit__R1__regime_flip
+    class: R1
+    subject: credit_default
+    recipe: regime_sign_flip
+    params:
+      regime_column: application_cohort   # synthetic, two levels, written into data_<split>.csv
+                                          # and declared as regime.column in the variant's package.yaml
+      feature: bill_trend_6m              # the sign disagreement section 2 of the live report
+                                          # singles out as the one carrying discrimination
+      # proposed mechanism, to confirm on synthetic: the feature's relationship with the outcome
+      # is reversed on one cohort, so the pooled coefficient is near zero and the per-regime fits
+      # carry opposite signs
+    expected_signal: "check_stability: coefficient sign of bill_trend_6m flips across application_cohort"
+    met_where: "A behavioural feature whose sign reversed between a low-rate and a rising-rate period, and the pooled fit averaged the two into a coefficient near zero."
+  # msr R1 is not a study variant (04 section 2 variant plan); the incentive-coefficient flip
+  # across rate_regime is the subject's own declared regime and check_stability reads it as is.
+
+  # ---- C1: miscalibration ------------------------------------------------------------------
+  - id: credit__C1__smote_uncalibrated
+    class: C1
+    subject: credit_default
+    recipe: smote_no_recalibration
+    params: {ratio: 1.0}                # raw probabilities reported
+    expected_signal: "calibration_slope outside [0.8, 1.2] and/or calibration.mean_rel_gap above threshold.C1.mean_ratio_rel; Brier worsens"
+    met_where: "A class-balanced training set whose predicted default rate came out several times the observed portfolio rate because no one recalibrated back to the base rate."
+  - id: msr__C1__oversampled_hazard
+    class: C1
+    subject: msr_prepayment
+    recipe: oversample_events
+    params: {factor: 5}                 # raw hazards reported
+    expected_signal: "calibration slope / mean-predicted vs observed gap on the hazard; CPR actual-vs-predicted level shift"
+    met_where: "A class-balanced training set whose predicted default rate came out several times the observed portfolio rate because no one recalibrated back to the base rate."
+
+  # ---- S1: population shift ----------------------------------------------------------------
+  - id: credit__S1__segment_shift
+    class: S1
+    subject: credit_default
+    recipe: train_on_segment
+    params: {column: limit_bal, rule: below_median}   # D-122: <= median; train on the low-limit
+                                                      # half, score all
+    expected_signal: "psi.<feature> or psi.y_score > threshold.S1.psi (0.25) on train vs test"
+    met_where: "A model built on one origination channel and later applied to a channel with a different applicant profile, with no PSI check at deployment."
+  - id: msr__S1__vintage_shift
+    class: S1
+    subject: msr_prepayment
+    recipe: train_pre_test_post         # REDESIGNED (Cowork, 2026-09-09; D-046): the shift must
+                                        # land on the tested train-vs-test comparison. The recipe
+                                        # rewrites the split assignment only -- which rows
+                                        # splits.json calls train and test -- not the process.
+    params:
+      train: {vintages: [2014], periods_through: "2019-12"}
+      test:  {periods_from: "2020-01"}  # the refinancing wave the training window never sees
+      out_of_time: unchanged
+      vintage_holdout: unchanged
+    expected_signal: "psi.<feature> or psi.y_score > threshold.S1.psi (0.25) on train vs test; the clean control must NOT fire on this comparison (D-046: control reads 3.09 only on train vs out_of_time, which is reported, not tested)"
+    met_where: "A prepayment model fitted on pre-refinance-wave vintages and used to price servicing on post-wave originations."
+
+  # ---- M1: multicollinearity ---------------------------------------------------------------
+  - id: credit__M1__vif_reintroduced
+    class: M1
+    subject: credit_default
+    recipe: reintroduce_collinear
+    params:
+      features: [bill_last, utilisation_mean_6m]   # the two the developer's VIF screen removed
+                                                   # (33.8 and 10.96 on the real sample)
+      add_near_duplicate_of: bill_last
+      near_duplicate_name: bill_last_adj           # the original plus small noise
+    expected_signal: "vif.max > threshold.M1.vif (10) and/or condition_number > threshold.M1.condition_number (30)"
+    met_where: "The same balance expressed in two currencies or two scalings entering as separate features, producing unstable coefficients between refits."
+  # msr M1 (incentive_bp beside incentive) is in 04 section 2's recipe column but not in its
+  # variant plan (msr x {L1, L2, C1, X1, S1}); kept out of the 18 unless the human adds it.
+
+  # ---- D1: data integrity ------------------------------------------------------------------
+  - id: credit__D1__test_only_missingness
+    class: D1
+    subject: credit_default
+    recipe: test_only_missing
+    params:
+      feature: pay_ratio_last           # carries ablation weight, so imputing to 0 moves PSI and
+                                        # the coefficient's effect at once
+      fraction: 0.30
+      impute_value: 0
+    expected_signal: "profile.<split>.missing gap between splits > threshold.D1.missing_gap (0.1)"
+    met_where: "A data-vendor field that went dark for part of the scoring population and was silently filled with zero by the pipeline default."
+  # msr D1 (one feature missing for one vintage) is likewise outside the variant plan.
+
+  # ---- T1: false developer claim -----------------------------------------------------------
+  - id: credit__T1__false_claim
+    class: T1
+    subject: credit_default
+    recipe: false_declared_claim
+    params: {metric: auc, split: test, inflate_by: 0.05}   # claim 0.05 above the artifact; the
+                                                           # declared min set so the true value
+                                                           # breaches it
+    expected_signal: "developer claim status mismatch in claims.json; threshold.package.auc.test.min breached (T1 candidate)"
+    met_where: "Model documentation that reported a development-sample AUC as if it were the validation-sample AUC."
+
+  # ---- X1: scenario inconsistency ----------------------------------------------------------
+  - id: msr__X1__projection_sign
+    class: X1
+    subject: msr_prepayment
+    recipe: projection_sign_error       # servicing value rises at -300 bp
+    params: {}
+    expected_signal: "run_scenarios: non-monotone value curve or sign inconsistent with the declared convexity expectation"
+    met_where: "A rate-shock table where one scenario had been entered with the wrong sign and the value curve was non-monotone across shocks."
+
+# Not seedable, scored only as consequences where a recipe targets them (04 section 2): R0, O1;
+# T1 also arises from the false claim above. E1 is the clean synthetic credit subject's own
+# expected finding (D-017) and is not seeded.

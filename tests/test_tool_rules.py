@@ -487,6 +487,33 @@ def test_c1_does_not_fire_on_the_clean_subjects(tmp_path: Path, credit_run_dir: 
     assert ctx.store.value("calibration.mean_rel_gap.test") < 0.25
 
 
+def test_a_separable_split_is_reported_rather_than_ending_the_run(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """D-126: a leak that separates the outcome must not stop the report being written."""
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    frame = pd.read_csv(ctx.out_dir / "predictions_test.csv")
+    # The predictions now say exactly what happened, which is what a leaked feature produces.
+    frame["y_score"] = np.where(frame["y_true"] == 1, 1.0 - 1e-9, 1e-9)
+    write_csv(ctx.out_dir / "predictions_test.csv", frame)
+    result = run("compute_metrics", ctx, {"splits": ["test"]})
+    assert ctx.store.value("calibration.separable.test") == 1
+    assert "calibration_slope.test" not in ctx.store
+    assert "calibration_intercept.test" not in ctx.store
+    assert ctx.store.value("metrics.test.auc") == 1.0
+    assert "C1" not in classes(result)
+    rows = {row["metric"]: row for row in ctx.store.load(THRESHOLD_TABLE)}
+    assert rows["calibration_slope"]["result"] == "not evaluated"
+    assert "calibration_slope on test" in result.summary
+
+
+def test_the_clean_subject_is_not_separable(tmp_path: Path, credit_run_dir: Path) -> None:
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    run("compute_metrics", ctx, {"splits": ["test"]})
+    assert "calibration.separable.test" not in ctx.store
+    assert "calibration_slope.test" in ctx.store
+
+
 # --- O1: out-of-sample degradation ---------------------------------------------------------------
 
 

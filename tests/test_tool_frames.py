@@ -147,8 +147,29 @@ def test_a_non_numeric_feature_matrix_is_refused_by_both_tools_that_fit_on_it(
     write_csv(credit_ctx.out_dir / "data_train.csv", frame)
     with pytest.raises(ToolError, match=r"non-numeric or missing value in \['age'\]"):
         default_registry().call("check_collinearity", {}, credit_ctx)
-    with pytest.raises(ToolError, match=r"non-numeric or missing value in \['age'\]"):
+    with pytest.raises(ToolError, match=r"non-numeric value in \['age'\]"):
         default_registry().call("challenger_compare", {}, credit_ctx)
+
+
+def test_a_missing_feature_value_is_not_a_non_numeric_one(credit_ctx: ToolContext) -> None:
+    """D-125: the challenger reads a hole natively and says so; the VIF has no answer for one."""
+    frame = pd.read_csv(credit_ctx.out_dir / "data_test.csv")
+    frame.loc[frame.index[:300], "age"] = np.nan
+    write_csv(credit_ctx.out_dir / "data_test.csv", frame)
+    result = default_registry().call("challenger_compare", {}, credit_ctx)
+    record = credit_ctx.store.load("challenger.missing_values")
+    assert record["rows_with_a_missing_feature"]["train"] == 0.0
+    assert record["rows_with_a_missing_feature"]["test"] > 0.0
+    assert "ablation.baseline_auc" not in credit_ctx.store
+    skipped = credit_ctx.store.load("ablation.skipped")
+    assert "missing values" in skipped["reason"]
+    assert "challenger.auc" in {artifact.name for artifact in result.artifacts}
+
+    train = pd.read_csv(credit_ctx.out_dir / "data_train.csv")
+    train.loc[train.index[:300], "age"] = np.nan
+    write_csv(credit_ctx.out_dir / "data_train.csv", train)
+    with pytest.raises(ToolError, match=r"non-numeric or missing value in \['age'\]"):
+        default_registry().call("check_collinearity", {}, credit_ctx)
 
 
 def test_a_feature_the_screen_cannot_score_is_reported_at_a_neutral_auc(

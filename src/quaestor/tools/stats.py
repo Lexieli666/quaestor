@@ -51,6 +51,7 @@ __all__ = [
     "PSI_BINS",
     "PSI_FLOOR",
     "VIF_CAP",
+    "SeparableSampleError",
     "auc",
     "belsley_condition_number",
     "brier",
@@ -85,6 +86,17 @@ _EPS: Final = 1e-12
 
 
 Vector = NDArray[np.float64]
+
+
+class SeparableSampleError(ToolError):
+    """The predictions separate the outcome, so a calibration slope has no finite estimate.
+
+    A :class:`~quaestor.errors.ToolError` like any other, with a type of its own so that a caller
+    can tell "there is no slope here" apart from "this sample cannot be read". The distinction
+    matters exactly once, and it is the case a validation copilot must not fall over on: a model
+    whose scores separate its outcome is the signature of the leak the ``L1`` screen exists to
+    find, and a run that dies before the report is written finds nothing at all (DECISIONS D-126).
+    """
 
 
 def _as_vector(values: Sequence[float] | NDArray[Any] | pd.Series) -> Vector:
@@ -258,9 +270,12 @@ def calibration_slope_intercept(
         ``(slope, intercept)``.
 
     Raises:
-        ToolError: The sample has one class, the design is singular -- which happens when every
-            prediction is the same number, so there is no slope to fit -- or the iteration did not
-            converge.
+        ToolError: The sample has one class, or the design is singular -- which happens when every
+            prediction is the same number, so there is no slope to fit.
+        SeparableSampleError: The iteration did not converge, which on this design means the
+            predictions separate the outcome and the estimate is infinite. It is a
+            :class:`~quaestor.errors.ToolError` like the others, and it has a type of its own
+            because a caller can carry on without a slope and cannot carry on without a sample.
     """
     truth = _check_binary(_as_vector(y_true))
     scores = _check_probabilities(_as_vector(y_score))
@@ -287,9 +302,9 @@ def calibration_slope_intercept(
         beta = beta + step
         if float(np.max(np.abs(step))) < tolerance:
             return float(beta[1]), float(beta[0])
-    raise ToolError(
+    raise SeparableSampleError(
         f"the calibration slope did not converge in {max_iterations} Newton steps; the sample is "
-        "probably separable, which means no finite maximum likelihood estimate exists"
+        "separable, which means no finite maximum likelihood estimate exists"
     )
 
 

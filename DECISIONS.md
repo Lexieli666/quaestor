@@ -3437,3 +3437,437 @@ here and recorded.
   read as though the run had a round; and asserting the zero-residue property inside the
   parametrized check for every run, which is false for the other three and is what
   `KNOWN_RESIDUE` exists to record.
+
+## D-125. The challenger reads a missing value and refuses a non-numeric one
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** `challenger_compare` coerced its feature matrix with `pd.to_numeric(errors="coerce")` and
+  raised a `ToolError` on any `NaN` in the result, calling it "a non-numeric or missing value".
+  The `D1` recipe of `04` §2 puts a hole in `data_test.csv` — a vendor field that went dark for
+  30% of the scoring population, which the subject imputes on its way into the fit and does not
+  impute in the file it delivers — and that hole is the whole of what the `D1` screen measures.
+  With the rule as written, `quaestor validate` on the `D1` variant **exited 1 with no report**:
+  the one class of defect the tool could not survive was the one the tool's neighbour exists to
+  find. Is a hole a non-numeric value?
+- **A:** No, and the two are told apart by comparing the missingness mask before and after
+  coercion. A cell that held something and is `NaN` after coercion was not a number, and no model
+  in this file can take it: that is still a `ToolError`, now worded "a non-numeric value in
+  `[...]`". A cell that was already empty is *missing data*, which
+  `HistGradientBoostingClassifier` reads natively, so the challenger is fitted on the matrix as
+  delivered. Two consequences are stored rather than left implicit. `challenger.missing_values`
+  is a JSON artifact — the share of rows carrying a missing feature value in each split, and one
+  sentence saying that the challenger used its own native handling while the champion's treatment
+  is the subject's and is not recoverable from the contract files — and it is stored **only when
+  something is missing**, on the pattern `ablation.skipped` already sets. And the per-feature
+  ablation, which refits a standardised `LogisticRegression`, does not run on a matrix with holes:
+  it returns `ablation.skipped` naming that reason. `check_collinearity` is deliberately left
+  alone: a variance inflation factor of a column with holes has no answer, its message already
+  says to impute or drop, and the `D1` recipe puts the hole in `test` where the VIF is not
+  computed.
+- **Why:** The guard was written to catch a string in a numeric column and it caught a fact about
+  the data instead, and the cost of that conflation is the highest a validation copilot can pay:
+  no report at all, on a package whose defect is *reportable*. Distinguishing the two is one line
+  of masks and it makes each message true. Storing the missing-value note is D-095's rule applied
+  to a measurement that *was* made but not on the same terms as the champion's, and skipping the
+  ablation is the same rule applied to one that could not be. Rejected alternatives: imputing the
+  holes inside the tool with a zero or a median, which invents a treatment the developer did not
+  declare and then compares a challenger fitted on invented data with a champion fitted on
+  whatever the subject actually did; dropping the rows with holes, which changes the split the
+  comparison is stated on; and leaving the refusal and marking the `D1` recipe `status: dropped`,
+  which would publish a guaranteed miss caused by this codebase and score it against the detector.
+  Measured: `tests/test_tool_frames.py` carries both halves — a string column still refuses in both
+  tools, and a `NaN` column in `test` gives a challenger AUC, a `challenger.missing_values` record
+  with `train` at 0.0 and `test` above it, and `ablation.skipped`; the same hole moved into `train`
+  still refuses in `check_collinearity`. The clean synthetic subjects have no missing cell, so
+  neither control's artifact set changes.
+
+## D-126. A separable split has no calibration slope, and the run says so instead of ending
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** `stats.calibration_slope_intercept` fits `logit(P(y=1)) = a + b·logit(p)` by Newton's
+  method and raises when it does not converge, which on this design means the sample is separable
+  and the maximum likelihood estimate is infinite. The `msr` `L1` variant — `bom_balance_log`
+  reading the *closing* balance, which is exactly zero on the loan-months that prepaid — is
+  separable by construction: test AUC 1.0000, Brier 1.01e-08. `quaestor validate` on it **exited
+  1 with no report**. Separation is the signature of the leak the `L1` screen exists to find. What
+  should the tool do?
+- **A:** Report it. `stats` gains `SeparableSampleError`, a `ToolError` subclass raised only on
+  non-convergence, so a caller can tell "there is no slope here" from "this sample cannot be
+  read". `compute_metrics._calibration_fit` catches it and, for that split, stores no
+  `calibration_slope.<split>` and no `calibration_intercept.<split>` and stores
+  `calibration.separable.<split>` = 1 instead, only in that case. Everything else about the split
+  is computed and stored as before — AUC, KS, Brier, log loss, the calibration table, the decile
+  table, `calibration.mean_rel_gap.<split>`. `C1`'s slope arm has nothing to read for that split
+  and does not run, its mean-predicted arm is unaffected, and a developer-declared
+  `calibration_slope` rule falls into the threshold table's existing **"not evaluated"** row, the
+  same one any rule nothing answers already lands in.
+- **Why:** A validation report that cannot be written about a model whose scores separate its own
+  outcome is a validation report missing from exactly the case it was built for. The absent
+  artifact is the honest encoding: there is no finite estimate, so there is no number, and the
+  report's threshold table says the rule was not evaluated rather than showing a figure that is
+  an artefact of where the iteration was stopped. The flag is stored only when it is 1 because its
+  presence is the fact — `ablation.skipped` sets the pattern — and storing a 0 on every split of
+  every run would move the artifact count of both clean controls for nothing. Rejected
+  alternatives: returning the last finite Newton iterate, which is a number whose value is decided
+  by `max_iterations` and which a drafter would quote as an estimate; falling back to a penalised
+  fit, which silently answers a different question with the same name; raising `C1`, which calls
+  separation miscalibration when it is the opposite — the predictions are perfectly ordered and
+  the defect is upstream of them; and leaving the failure and marking the `msr` `L1` recipe
+  dropped, which would blame a recipe for a hole in the detector. Measured:
+  `tests/test_tool_rules.py` scores a test split at 1e-9 and 1-1e-9 by outcome and asserts
+  `calibration.separable.test` = 1, no slope and no intercept artifact, test AUC 1.0, no `C1`, the
+  threshold row `not evaluated`, and the summary naming `calibration_slope on test`; the clean
+  subject stores no separability flag and does store a slope.
+
+## D-127. The seeded-defect generator stays outside the package, and `study build` loads it
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** Spec §5 and `CLAUDE.md`'s layout both put `seed()` in `eval/seed.py`, which is not
+  shipped: `pyproject.toml` excludes `eval/` from the sdist and the wheel packages `src/quaestor`
+  only. Spec §3.14 tabulates `quaestor study build` as a console-script command. Where does the
+  code live?
+- **A:** In `eval/seed.py`, and `cli.py` loads it from the directory holding `--taxonomy` — which
+  is `eval/` for the default `eval/taxonomy.yaml` — under the alias `quaestor_eval_seed`. A
+  `--taxonomy` with no `seed.py` beside it is a usage error naming that `quaestor study build`
+  works inside a checkout of this repository. `study` takes exactly one action, so
+  `quaestor study run` and `quaestor study score` remain argparse "invalid choice" errors, which
+  is D-082 unchanged for the two commands Phase 12 writes.
+- **Why:** The separation is the same one `quaestor/package/loader.py` is built around: the
+  pipeline being measured must not be able to see the answer key, and moving the recipes into
+  `src/quaestor` would make the module that plants the defects importable from inside the process
+  that is supposed to find them. The command is a development command by nature — it reads
+  `subjects/`, it writes a gitignored tree, and its real-data half will read a `--data` path the
+  operator names — so binding it to a checkout costs nothing that is not already bound. Rejected
+  alternatives: `src/quaestor/study/seed.py` with `eval/seed.py` as a thin re-export, which puts
+  the generator in the wheel and contradicts the layout `CLAUDE.md` fixes; a `--seed-module` flag,
+  which is a path a user would have to know to pass; and leaving `study build` out of `cli.py` and
+  documenting `python eval/seed.py`, which loses the one command spec §3.14 names.
+
+## D-128. `L2` re-keys what it copies, on both subjects, and the medium arm is the honest test
+
+- **Date:** 2026-09-08 (Phase 10; the decision and the sentence are the human's, Cowork 2026-09-09)
+- **Q:** D-086 split `L2` into two arms: an identifier overlap above `threshold.L2.overlap` is
+  severity **high**, and a feature-vector overlap above the larger of that bound and twice the
+  within-train duplicate share is severity **medium**. The taxonomy's `duplicate_test_into_train`
+  recipe carries `fresh_ids: true` on both subjects, which means the copied rows are re-keyed and
+  only the medium arm can fire. Should the study seed the high arm instead, or as well?
+- **A:** No: `fresh_ids: true` on both, and the medium arm is what the study measures. **The
+  human's reason, recorded here so that `docs/STUDY.md` can quote it in Phase 12: the recipe
+  matches the instance she met and the medium arm is the honest test.** The instance is the
+  `met_where` sentence of the same row — "a model whose holdout was drawn after de-duplication on
+  account id, but re-issued accounts carried new ids and the same customer appeared on both
+  sides". A detection at severity medium is a detection under `04` §4, whose criterion is severity
+  at least medium, so nothing about the scoring changes.
+- **Why:** The high arm is the case a `SELECT` with a wrong join key produces and it is caught by
+  reading two files; the medium arm is the case a de-duplication step lets through, and it is the
+  one that needs a within-train baseline to be distinguished from coincidence at all. Seeding the
+  arm that the detector finds trivially would measure the wrong thing. `eval/seed.py` raises on
+  `fresh_ids: false` rather than silently seeding the other arm, because a recipe that quietly
+  answers a different question than its parameters state is worse than one that refuses.
+  Measured, at the default panel: on `credit_default`, 45 of the 1,500 test clients copied into
+  train under new `client_id`s — feature overlap **3.00%** against an effective bound of 0.50%
+  (the declared 0.5% wins, because the within-train duplicate share is 0.0000 on continuous
+  synthetic features), identifier overlap **0.0000**, `L2` at severity **medium**; on
+  `msr_prepayment`, 461 of 15,382 test loan-months — feature overlap **2.997%**, identifier
+  overlap 0.0000, `L2` **medium**.
+
+## D-129. The `msr` `S1` recipe becomes a train-to-test re-cut, not an out-of-time one
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** D-046 promised this decision. `04` §2's `msr` `S1` recipe is "train on pre-2015 vintages,
+  out-of-time is 2020+ with no monitoring split", whose signal — PSI above 0.25 — would land
+  entirely on the train-to-**out_of_time** comparison, which D-046 reports and does not test. As
+  written the variant would be seeded and detected by nothing. Redesign or drop?
+- **A:** Redesign, along the line D-046 named: the shift must land on the *train-to-test*
+  comparison. `train_pre_test_post` rewrites **which rows `splits.json` calls what** and nothing
+  else — train is the 2014 vintage through 2019-12, test is every training-vintage loan-month from
+  2020-01 onward, and `out_of_time` and `vintage_holdout` keep the rules they had. The panel, the
+  features and the beginning-of-month lagging are the clean subject's, value for value; the
+  variant's `package.yaml` states the two new split rules in words, so the declaration and the
+  code say the same thing. The clean `msr` control still reads 0.0619 on train-to-test and still
+  raises nothing, which is the property that makes the seeded variant's 3.016 mean something.
+- **Why:** A recipe whose signal lands on a comparison the detector deliberately does not test is
+  a statement about the recipe, and publishing it as a miss would make the study's recall figure
+  a measurement of `04`'s draft rather than of this pipeline. The redesign keeps the defect the
+  row is about — a model fitted before a refinancing wave and used to price servicing after it —
+  and moves it onto the comparison a validator would actually make. That test and `out_of_time`
+  now hold the same rows is deliberate and is part of the instance: the recipe's own words in
+  `04` are "with no monitoring split". Rejected alternatives: dropping the row, which is the other
+  branch D-046 offered and would leave the study with 13 seeded variants and no `S1` on the hazard
+  subject at all; and re-scoping `S1` to fire on the out-of-time comparison, which D-046 refuses by
+  name because the scoping was decided on the clean control before any variant existed.
+  Measured, at the default panel: train-to-test PSI **3.016** on `burnout` against 0.25, with
+  `loan_age` at 1.680, `note_rate` at 1.342, `incentive` at 0.873 and the score itself at 0.837;
+  `S1` at severity medium, and the package's own `psi` rule breached as a `T1` at severity high.
+
+## D-130. `R1` needs a cohort *and* an effect, because the clean process has no trend effect
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** The taxonomy proposes `regime_sign_flip`: a synthetic two-level `application_cohort`
+  written into `data_<split>.csv` and declared as `regime.column`, with `bill_trend_6m`'s
+  relationship to the outcome reversed on one cohort. The mechanism is marked "to confirm". But
+  `bill_trend_6m` is not in the clean generating process at all — `_drivers` uses utilisation,
+  the two delinquency terms, the payment ratio, the limit, the age and the interaction — so its
+  true coefficient is zero and reversing zero reverses nothing. `R1` needs a top-ten feature whose
+  fitted coefficient is above 0.05 **in both regimes** and changes sign between them. Confirm or
+  drop?
+- **A:** Confirmed, with the mechanism made explicit: the recipe adds the effect and then reverses
+  it. `application_cohort` is assigned by client index — deterministic, balanced, and drawing no
+  random number, so every other column of the panel is the clean control's — and the linear
+  predictor gains `1.10 · sign(cohort) · z(bill_trend_6m)`, where `z` is the standardised
+  six-month statement slope and `sign` is +1 on one cohort and −1 on the other. The intercept is
+  re-solved on the new predictor, as it is for every parameter set, so the base rate does not
+  move. `code/features.py` carries the cohort through the engineering step as a non-feature
+  column, `code/run.py` writes it into `data_<split>.csv` beside the features, and the variant's
+  `package.yaml` declares `regime: {column: application_cohort}` — which is also what makes the
+  rule-based plan call `check_stability` at all, since the clean credit subject declares no regime.
+- **Why:** "Reverse the feature's relationship with the outcome" presupposes a relationship, and
+  the clean subject was built without one for this column; saying so here is the difference
+  between a recipe that seeds a defect and a recipe that seeds a coincidence. The pooled fit
+  averaging two opposite effects into a coefficient near zero is exactly the `met_where` sentence
+  — "the pooled fit averaged the two into a coefficient near zero" — and it is what makes the
+  champion look stable when it is not. Rejected alternatives: reversing an existing driver such as
+  `delinq_last`, which would change the base rate and the interaction the clean control's `E1`
+  depends on; and using the sign of an existing weak coefficient, which D-047 already records as
+  sitting inside the seed-to-seed noise. Measured, at the default panel:
+  `stability.bill_trend_6m.sign_flip` = **1**, `R1` at severity medium. Two other retained
+  features, `delinq_max_6m` and `pay_ratio_last`, also flip on this variant and are collateral:
+  they are near-zero coefficients that the cohort split resolves differently, and the study reports
+  them under `04` §4's collateral-findings rule rather than as detections.
+
+## D-131. SMOTE is written out by hand, and the resampling never leaves the fit
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** The `credit` `C1` recipe is "train on SMOTE-resampled data, report raw probabilities" at
+  ratio 1.0. `imbalanced-learn` is not a runtime dependency of this repository and adding one is a
+  stop-and-ask. And where does the resampled matrix go — into the fit only, or into the
+  `data_train.csv` the variant delivers?
+- **A:** Written out by hand, in the variant's own `code/run.py`, from `numpy` and
+  scikit-learn's `NearestNeighbors`: pick a minority row, pick one of its five minority
+  neighbours, take a uniform point on the segment between them, repeat until the classes are
+  balanced. And the resampling stays **inside the fit**: `data_train.csv`,
+  `predictions_train.csv` and `splits.json` are the panel's own rows, so the variant carries
+  exactly one defect and it is a calibration defect.
+- **Why:** Both halves keep the variant a one-defect variant. A dependency added to a seeded
+  variant makes the variant harder to run than the subject it came from, and the five lines of
+  Chawla et al. (2002) are not the part of this project anybody doubts. Writing the synthetic rows
+  into the delivered training file would move every feature distribution as well, so the drift
+  screen would fire on a variant seeded for calibration and the study's confusion table would
+  record a defect the recipe did not plant; keeping them in the fit is also the instance, where
+  the resampler sat inside a modelling pipeline and the data as handed over was real. Rejected
+  alternatives: `class_weight="balanced"`, which is a different defect with a different signature;
+  and adding `imbalanced-learn` as a dev dependency, which is a dependency question asked to avoid
+  writing five lines. Measured, at the default panel: mean predicted **0.4379** against an
+  observed rate of **0.2247**, a relative gap of **94.9%** against the 25% bound; the calibration
+  slope falls to **0.7952**, outside [0.80, 1.20], so `C1` fires on both arms and the package's own
+  declared `calibration_slope` minimum of 0.80 is breached as a `T1` at severity high. The `msr`
+  counterpart, `oversample_events` at factor 5 — every prepaid loan-month repeated five times in
+  the fitting rows and nowhere else — gives mean predicted **0.03802** against an observed
+  **0.008061**, a relative gap of **371.6%**, and `C1` at severity medium.
+
+## D-132. The post-outcome payment is drawn from the latent margin, and it is drawn sharply
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** The `credit` `L1` recipe adds `pay_amt_next`, "a synthetic payment in month t+1,
+  correlated with the outcome, **not derived from `default_next_month`**", declared honestly as
+  `after_outcome` in one variant and as `before_period_start` in the other. Variant B's only
+  detector is the single-feature AUC ceiling of 0.90, so the construction has to be strong enough
+  to clear it without being a recoding of the target column. What construction?
+- **A:** The latent margin. The clean process draws `target = 1[u < sigmoid(eta)]` for a uniform
+  `u`; the same draw written as a threshold is `target = 1[margin > 0]` with
+  `margin = eta - logit(u)`, so the recipe reuses the uniform it already drew, keeps the target
+  bit-for-bit the same, and takes the payment as `usual_payment · sigmoid(-margin / 0.25) ·
+  lognormal(0, 0.35²)`, drawn *after* the target so no other column of the panel moves. The
+  feature is therefore derived from the latent variable the outcome is a threshold of, and not
+  from the outcome column: neither is recoverable from the other, 3.7% of clients pay exactly
+  nothing and a defaulted client can still make a payment.
+- **Why:** A payment "correlated with the outcome" has to be correlated through something, and the
+  only thing available that is not the target column is the latent distress the target is a
+  reading of. **The temperature was changed once, and it is the change worth recording.** The
+  first construction used 1.0, at which a client a full margin unit into distress still pays a
+  quarter of their usual amount; measured, that gave a single-feature AUC of **0.8323** and
+  variant B did not fire. The temperature was then set to 0.25 — a client one unit into distress
+  pays about two per cent of their usual amount — because that is what the payment received on an
+  account that has gone bad looks like, and the 1.0 version was the artificial one. This is not
+  the tuning `04` §2 forbids: the detector, its threshold and the recipe's declared parameters are
+  untouched, and what changed is the mechanism's fidelity to the sentence the row is about. It is
+  reported to Cowork as a change made here, to overrule if the reading is wrong. Measured, at the
+  default panel and identical in both arms: single-feature AUC **0.9450** against the 0.90
+  ceiling, a margin of **0.045** — the narrowest margin of any recipe in the taxonomy, and one to
+  watch on real data. Variant A additionally has `leakage.timing.n_flagged` = 1 and the pre-run
+  `L1` candidate `load_package` raises from `package.yaml` alone; both arms carry `L1` at severity
+  **high**, and both push the champion's test AUC to **0.9755**, which is the "implausible test
+  AUC" the taxonomy's signal column also names and which no rule of this pipeline fires on.
+
+## D-133. `D1`'s hole is in the delivered file and the imputation is in the fit
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** `04` §2's `D1` recipe is "one feature is ≈30% missing in test only, imputed as 0 by the
+  subject", and its signal is the missingness gap between splits. But `profile_data` measures
+  missingness in `data_<split>.csv`, which is the matrix the subject used: if the subject imputes
+  before it writes, the gap is zero and the recipe is undetectable by the rule that names it.
+  Where does the imputation happen?
+- **A:** After the file is written and before the model sees it. The variant blanks
+  `pay_ratio_last` on 30% of the held-out rows, writes `data_test.csv` with the hole in it — which
+  is what a validator is handed, and what a data vendor's outage actually leaves behind — and
+  imputes with 0 on the way into the screen, the fit and the score, so nothing fails and no metric
+  complains. `data_train.csv` is untouched.
+- **Why:** The recipe's sentence has two halves and they happen at different moments: the field
+  went dark in the delivered data, and the pipeline's default filled it in silently. Imputing
+  before the write would put the defect somewhere nothing can see it and would make the row a
+  guaranteed miss; imputing nowhere would make the subject fail to run, which is an `R0` and a
+  different class. This is also the recipe that found D-125. Measured, at the default panel:
+  `profile.test.missing.max` **0.3000** against `profile.train.missing.max` **0.0000** and a
+  `threshold.D1.missing_gap` of 0.10, `D1` at severity medium; the champion's test AUC falls from
+  0.7480 to 0.7446, which no rule fires on and which is the point — a silently imputed field costs
+  almost nothing on the headline number.
+
+## D-134. `T1` inflates the package's own declaration and puts the floor between it and the truth
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** The `T1` recipe is "`package.yaml` claims test AUC ≈0.05 above the artifact and its
+  declared minimum sits so the true value breaches it". `eval/seed.py` writes packages and runs
+  nothing, so it cannot read "the artifact": the true AUC is not known until the variant runs.
+  What is the claim inflated *from*, and where does the floor go?
+- **A:** From the package's own declared claim, and the floor goes half the inflation below the
+  claim. `credit_default` declares "AUC on the test split is 0.755", from its committed real-sample
+  run; the variant declares 0.805 and moves the declared `auc` minimum on `test` from 0.70 to
+  **0.78**, which is `0.755 + 0.05/2`. Both the synthetic truth (0.7480) and the real one (0.755)
+  are below it, so the rule breaches in either data mode, and no parameter beyond the taxonomy's
+  own `inflate_by` is invented. A package that declares no claim about the metric, or no threshold
+  on it, is an error naming which is missing rather than a silently unseeded variant.
+- **Why:** Anchoring on the developer's own declaration is what makes the recipe a *false
+  declaration* rather than a number chosen against a measurement the developer never made, and it
+  is the shape of the instance: documentation that reported a development-sample figure as if it
+  were the validation-sample one, with a comfort floor set just underneath it. Deriving the floor
+  from `inflate_by` rather than adding a second parameter keeps the taxonomy's row the whole of the
+  specification. Rejected alternative: running the subject inside `seed()` to read the true AUC and
+  placing the floor from that, which makes seeding cost a model fit, makes a variant's bytes depend
+  on the machine that built it and breaks idempotence. Measured, at the default panel:
+  `threshold.package.auc.test.min` **0.78** against a recomputed `metrics.test.auc` of **0.7480**,
+  `T1` at severity **high**. The claim channel of `T1` — the verifier marking the declaration a
+  `mismatch` — is **not** exercised under `--synthetic`, because D-016 does not evaluate developer
+  claims there; on this subject the threshold arm is the whole of the synthetic signal, and the
+  claim arm is a real-data measurement for Phase 12.
+
+## D-135. The harmless control renames at the boundary and shuffles the panel
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** Spec §5's second control is "the two subjects with a harmless perturbation (row order
+  shuffled, feature columns renamed with a prefix)". The hazard subject names its feature columns
+  in a dozen places — the servicing book, the projection's feature frame, the baseline hazard —
+  so renaming them *inside* the subject is a large edit for a control whose whole point is to
+  change nothing. Where does the rename happen?
+- **A:** At the boundary. The variant renames the declared features in `package.yaml` and renames
+  them again in the three files the subject writes that name a feature — `data_<split>.csv`,
+  `features.json` and `model_summary.json`'s coefficients and removals — and leaves the subject's
+  own internals alone. So every check that reads a declaration and every check that reads a
+  contract file still agree about what a column is called, which is the property the control
+  exists to test, and a spline column of the hazard design keeps the name it had, because it is
+  not a declared feature. The shuffle is a permutation of the panel applied at the same seam every
+  data-transforming recipe uses; both subjects draw their splits over *sorted* identifiers, which
+  is documented in their own code as the reason a shuffled variant gets the same split.
+- **Why:** A control that required a hundred-line edit would be testing the edit. Renaming what
+  the package declares and what the subject publishes is the whole of what any check can see.
+  Measured, at the default panel: `control_credit_perturbed` raises exactly `{E1 low}` like
+  `control_credit_clean` (D-017) and `control_msr_perturbed` exactly `{}` like `control_msr_clean`
+  (D-047), and on the credit pair `metrics.test.auc`, `metrics.train.auc`, `vif.max`,
+  `condition_number`, `psi.max`, `calibration_slope.test`, `challenger.auc` and
+  `challenger.delta_auc` are equal to ten significant figures. **One number does move, on the
+  hazard pair, and it is worth naming**: the challenger's AUC goes from 0.7337 to 0.6999 and its
+  lead from −0.0415 to −0.0753. `HistGradientBoostingClassifier` turns early stopping on
+  automatically above 10,000 rows and draws its validation split by position from a fixed random
+  state, so shuffling the rows changes which loan-months it holds out; the credit subject's 3,500
+  training rows are below that threshold and its challenger is unchanged. Neither figure is
+  anywhere near the +0.03 that raises `E1`, so the finding set is identical — but a control that
+  is bit-identical in every number would have been the stronger claim, and this one is not.
+
+## D-136. What every recipe produced on the synthetic subjects, measured
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** The taxonomy's `expected_signal` column is a prediction as well as an acceptance test.
+  What did each recipe actually produce at the declared seed and the documented panel size, and
+  which of them only just cleared its bound?
+- **A:** All fourteen fired, and the four controls raised what D-017 and D-047 fix. Measured at
+  seed 20260901 on this machine (Python 3.12.14, scikit-learn 1.9.0, numpy 2.5.3, pandas 3.0.5),
+  `credit_default --synthetic 5000` and `msr_prepayment --synthetic 2000`, through `run_model` and
+  the `rules_only` configuration, which calls no model:
+
+  | variant | measured | bound | finding |
+  |---|---|---|---|
+  | `credit__L1__after_outcome_declared` | `leakage.timing.n_flagged` 1; single-feature AUC 0.9450 | ≥ 1; > 0.90 | `L1` high |
+  | `credit__L1__after_outcome_hidden` | single-feature AUC **0.9450** | > 0.90 | `L1` high |
+  | `msr__L1__eom_balance` | single-feature AUC **1.0000**, test AUC 1.0000 | > 0.90 | `L1` high |
+  | `credit__L2__contamination` | feature overlap **3.00%**, id overlap 0.00% | > 0.50% | `L2` medium |
+  | `msr__L2__contamination` | feature overlap **2.997%**, id overlap 0.00% | > 0.50% | `L2` medium |
+  | `credit__R1__regime_flip` | `stability.bill_trend_6m.sign_flip` **1** | = 1 | `R1` medium |
+  | `credit__C1__smote_uncalibrated` | mean-to-observed gap **94.9%**, slope 0.7952 | > 25%; ∉ [0.8, 1.2] | `C1` medium |
+  | `msr__C1__oversampled_hazard` | mean-to-observed gap **371.6%** | > 25% | `C1` medium |
+  | `credit__S1__segment_shift` | `psi.limit_bal` **1.196**, score PSI 0.187 | > 0.25 | `S1` medium |
+  | `msr__S1__vintage_shift` | `psi.burnout` **3.016**, score PSI 0.837 | > 0.25 | `S1` medium |
+  | `credit__M1__vif_reintroduced` | `vif.max` **121,914**, kappa **1,023** | > 10; > 30 | `M1` medium |
+  | `credit__D1__test_only_missingness` | test missingness **0.300**, train 0.000 | > 0.10 | `D1` medium |
+  | `credit__T1__false_claim` | declared minimum **0.78**, recomputed AUC 0.7480 | breach | `T1` high |
+  | `msr__X1__projection_sign` | convexity **+336,109**, −300 bp and +300 bp both +168,055 | declared negative; monotone | `X1` high |
+
+  **The margins are not alike, and two of them are thin.** `credit__L1__after_outcome_hidden`
+  clears its ceiling by **0.045** (0.9450 against 0.90) and is the recipe to watch when the study
+  runs on real data; every other bound is cleared by at least a factor of two, and most by orders
+  of magnitude. `credit__C1__smote_uncalibrated`'s slope arm is also close — 0.7952 against a floor
+  of 0.80, a margin of 0.005 — but its mean-predicted arm clears 25% by a factor of nearly four, so
+  the `C1` finding does not depend on the slope.
+
+  **Collateral findings, reported here because `04` §4 scores them separately.** Every
+  `credit_default` variant except the two `L1` arms also raises the clean control's own `E1` at
+  severity low, which is D-017's expected finding travelling with the subject rather than a false
+  alarm; on the two `L1` arms the leak lifts the champion above the challenger and `E1` stops
+  firing, and a `C1` appears instead (train slope 1.383). `credit__S1__segment_shift` and
+  `msr__S1__vintage_shift` each raise a `T1` at high, because the shift breaches the package's own
+  declared `psi` ceiling of 0.25 — a true consequence of the seeded defect, not a second defect.
+  `credit__C1__smote_uncalibrated` raises a `T1` on the declared calibration-slope floor for the
+  same reason. `msr__L1__eom_balance` raises an `X1` at high: a champion dominated by a leaked
+  balance projects a value curve whose convexity is positive where the package declares negative.
+  `msr__L2__contamination` and `msr__S1__vintage_shift` each raise an `R1` on one weak coefficient
+  (`burnout`, `sato`), which D-047 already records as sitting close to the seed-to-seed noise on
+  this subject.
+- **Why:** These are the numbers the study's recall is measured against and the numbers a later
+  change would first show up in, so they are recorded here rather than left in a test's
+  assertions, on the pattern D-047 and D-053 set. The two thin margins are named because a recipe
+  that barely clears its bound on synthetic data is a recipe whose real-data result says as much
+  about the panel as about the detector.
+
+## D-137. Five of the eighteen variants are synthetic-only, and Phase 12 is where that is paid
+
+- **Date:** 2026-09-08 (Phase 10)
+- **Q:** `quaestor study build` writes synthetic-mode variants; `04` §3 runs the study on the real
+  samples as well, and the prompt for this phase says real-data variants are built at study time
+  from a `--data` path. Which recipes actually work in both data modes as written, and which do
+  not?
+- **A:** Nine of the fourteen work in both, because they hang off the seam *after* the subject has
+  chosen its data mode, or they only edit `package.yaml`: `duplicate_test_into_train` on both
+  subjects, `train_on_segment`, `train_pre_test_post`, `test_only_missing`,
+  `smote_no_recalibration`, `oversample_events`, `false_declared_claim` and
+  `projection_sign_error`, and so do both `harmless_perturbation` controls. **Five variants are
+  synthetic-only** and are named here rather than discovered in Phase 12:
+  `credit__L1__after_outcome_declared` and `credit__L1__after_outcome_hidden` need a
+  `pay_amt_next` column the real sample does not carry; `credit__R1__regime_flip` needs an
+  `application_cohort`; `credit__M1__vif_reintroduced` needs `bill_last_adj`, which its patched
+  `engineer` computes from the raw statement schema that `--data` mode never sees, because
+  `sample.py` writes the engineered features and `code/run.py` reads them back; and
+  `msr__L1__eom_balance` patches `build_panel`, which a `--data` run does not call at all, since
+  `sample_freddie.py` builds the panel and `code/run.py` reads the four split files it wrote.
+  `quaestor study build` therefore offers no `--data` flag in this phase: it would build packages
+  that cannot run.
+- **Why:** All five need a *column* that the real sample does not have, and a column is built by
+  `sample.py` and `sample_freddie.py` rather than by a recipe — so the real-data half of these
+  five is an edit to the samplers, which are the two files that read the real data and which no
+  test in this repository may exercise. Writing that edit blind, in the phase that cannot run it,
+  is how a Phase 12 session discovers at the shell that five variants do not build. Recording the
+  list is the alternative. The synthetic construction of the post-outcome payment also does not
+  carry over unchanged: it reads the latent margin of the generating process (D-132), and a real
+  panel has none, so the real-data variant will have to draw the payment conditioned on the
+  observed outcome with overlap — a weaker claim than the synthetic one, and one whose
+  single-feature AUC has to be measured rather than assumed, given that the synthetic arm clears
+  its ceiling by only 0.045. Rejected alternative: writing the `--data` branches now, guarded and
+  untested, which puts five untestable code paths in a generator whose whole value is that a
+  variant is what it says it is.

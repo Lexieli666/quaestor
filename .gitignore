@@ -45,3 +45,9 @@ data-raw/
 # NOTE: `eval/results/`, `eval/results/published/` and (from Phase 11) `tests/probatio/cassettes/`
 # are deliberately NOT ignored. They hold committed study results and recorded tapes, which CI and
 # every provenance claim in the documentation must be able to read.
+
+# The seeded-defect variants of Phase 10 are generated artefacts, not sources: `quaestor study
+# build` writes one package per row of `eval/taxonomy.yaml`, and the taxonomy plus `eval/seed.py`
+# are what is committed. A variant built from real data would also carry rows of it, which is the
+# second reason this directory never enters the repository (CLAUDE.md, hard constraints).
+eval/variants/

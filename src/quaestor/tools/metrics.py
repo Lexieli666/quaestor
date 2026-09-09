@@ -319,9 +319,6 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
             for metric in SCALAR_METRICS
         ]
 
-        slope, intercept = stats.calibration_slope_intercept(truth, scores)
-        values["calibration_slope"] = slope
-        values["calibration_intercept"] = intercept
         rate = values["event_rate"]
         relative_gap = abs(values["mean_predicted"] - rate) / rate if rate > 0.0 else 0.0
         values["mean_rel_gap"] = relative_gap
@@ -333,24 +330,13 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                 f"calibration by decile of predicted probability on {split}",
             ),
             ctx.store.put(
-                f"calibration_slope.{split}",
-                slope,
-                ArtifactKind.scalar,
-                f"logistic regression of the outcome on logit(p) on {split}: the slope",
-            ),
-            ctx.store.put(
-                f"calibration_intercept.{split}",
-                intercept,
-                ArtifactKind.scalar,
-                f"logistic regression of the outcome on logit(p) on {split}: the intercept",
-            ),
-            ctx.store.put(
                 f"calibration.mean_rel_gap.{split}",
                 relative_gap,
                 ArtifactKind.scalar,
                 f"mean predicted against observed on {split}, relative",
             ),
         ]
+        artifacts += self._calibration_fit(ctx, split, truth, scores, values)
 
         rows = stats.deciles_table(truth, scores)
         artifacts += [
@@ -369,6 +355,67 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
         ]
         artifacts += self._cpr(ctx, split, frame)
         return values, artifacts
+
+    def _calibration_fit(
+        self,
+        ctx: ToolContext,
+        split: str,
+        truth: Any,
+        scores: Any,
+        values: dict[str, float],
+    ) -> list[Artifact]:
+        """Store the calibration slope and intercept, or record that the sample is separable.
+
+        A separable sample has no finite maximum likelihood slope. Phase 10's ``L1`` variant of
+        the hazard subject is one -- the leaked balance is exactly zero on the loan-months that
+        prepaid -- and until this the whole validation exited on it, which is the one case where
+        a report matters most. So the two artifacts are simply not stored, ``calibration.
+        separable.<split>`` records why, the ``C1`` slope rule has nothing to read for that split
+        and does not run, and a developer-declared ``calibration_slope`` threshold falls into the
+        threshold table's "not evaluated" row like any other rule nothing answers (D-126).
+
+        Args:
+            ctx: The run's context.
+            split: The split being measured.
+            truth: Its outcomes.
+            scores: Its predicted probabilities.
+            values: The split's metrics, gaining ``calibration_slope`` and
+                ``calibration_intercept`` when they exist.
+
+        Returns:
+            The slope and the intercept; or, on a separable sample, the one artifact that
+            records that there is no slope. Nothing is stored on a sample that is not separable
+            beyond the two estimates, on the pattern ``ablation.skipped`` already sets: the
+            presence of the record is the fact.
+        """
+        try:
+            slope, intercept = stats.calibration_slope_intercept(truth, scores)
+        except stats.SeparableSampleError:
+            return [
+                ctx.store.put(
+                    f"calibration.separable.{split}",
+                    1,
+                    ArtifactKind.scalar,
+                    f"the predictions on {split} separate the outcome, so the calibration slope "
+                    "has no finite maximum likelihood estimate and was not computed",
+                )
+            ]
+        values["calibration_slope"] = slope
+        values["calibration_intercept"] = intercept
+        return [
+            ctx.store.put(
+                f"calibration_slope.{split}",
+                slope,
+                ArtifactKind.scalar,
+                f"logistic regression of the outcome on logit(p) on {split}: the slope",
+            ),
+            ctx.store.put(
+                f"calibration_intercept.{split}",
+                intercept,
+                ArtifactKind.scalar,
+                f"logistic regression of the outcome on logit(p) on {split}: the intercept",
+            ),
+        ]
 
     def _cpr(self, ctx: ToolContext, split: str, frame: pd.DataFrame) -> list[Artifact]:
         """Store the monthly actual-against-predicted CPR table for a hazard subject.
@@ -676,15 +723,15 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
         artifacts: list[Artifact] = list(bounds.values())
         candidates: list[FindingCandidate] = []
         for split, values in computed.items():
-            slope = values["calibration_slope"]
+            slope = values.get("calibration_slope")
             gap = values["mean_rel_gap"]
-            outside = slope < low or slope > high
+            outside = slope is not None and (slope < low or slope > high)
             adrift = gap > relative
             if not (outside or adrift):
                 continue
             evidence: list[str] = []
             detail: list[str] = []
-            if outside:
+            if outside and slope is not None:
                 bound = (
                     "threshold.C1.calibration_slope.min"
                     if slope < low

@@ -9,6 +9,22 @@ run that was not committed.
 
 ### Added
 
+- `eval/taxonomy.yaml`, the seeded-defect taxonomy: fourteen seeded variants over nine classes and
+  two subjects plus four controls, each row carrying its recipe, its parameters, the sentence
+  saying where the defect was met and an `expected_signal` in the tools' own logical names.
+  `docs/CHECKLIST.md` carries the practice-to-check table the same sentences back.
+- `eval/seed.py`: `seed(subject_pkg, defect, out_dir)` copies a subject, applies one of fourteen
+  recipes to the copy and writes `SEED.yaml` beside it — the provenance file no code path in
+  `quaestor` opens. Building the same recipe twice writes the same bytes.
+- `quaestor study build --taxonomy FILE --out DIR [--synthetic [N]]`, which writes all eighteen
+  variant packages. `study run` and `study score` stay argparse "invalid choice" errors until
+  Phase 12 (D-082 unchanged). The variants are generated artefacts: `eval/variants/` is gitignored
+  and only the taxonomy and the generator are committed.
+- `challenger.missing_values`, stored when a feature matrix carries a hole: the share of rows with
+  a missing value per split and one sentence on how the challenger read them (D-125).
+- `calibration.separable.<split>`, stored when the predictions on a split separate the outcome, in
+  place of a calibration slope that has no finite estimate (D-126).
+
 - The `credit_default` live validation, committed as `eval/results/first-live/credit/` on the sixth
   attempt (D-087's terms; the row-level CSVs are outside the repository and
   `find … -name '*.csv' -size +20k` prints nothing). 18 model calls, 17 tool calls, 258 artifacts,
@@ -461,6 +477,19 @@ run that was not committed.
   `eligible_numbers(...).masked` instead.
 
 ### Fixed
+
+- `challenger_compare` refused any `NaN` in its feature matrix as "a non-numeric or missing value",
+  so a package with a missing value in the delivered matrix produced **no report at all** — the
+  `D1` seeded variant, whose defect is exactly that missing value. Coercion failures and genuine
+  holes are now told apart: a non-numeric column still refuses, a hole is read natively by the
+  boosted challenger, and the per-feature ablation, which refits a logistic regression, records
+  `ablation.skipped` instead of failing (D-125).
+- `compute_metrics` let the calibration slope's non-convergence end the run, so a model whose
+  scores separate its own outcome produced **no report at all** — the `msr` `L1` seeded variant,
+  whose leaked end-of-month balance is zero on exactly the loan-months that prepaid. A separable
+  split now stores no slope and no intercept, records `calibration.separable.<split>`, leaves
+  `C1`'s slope arm unrun for that split and lets a declared `calibration_slope` rule fall into the
+  threshold table's existing "not evaluated" row (D-126).
 
 - **`compute_metrics` computed a sub-population that was the whole split (D-121).** The sixth live
   run's third loop step asked for `delinq_count_6m above_median`; the column's median is 0, the rule

@@ -510,10 +510,18 @@ def _help_of(argv: Sequence[str]) -> str:
     return completed.stdout
 
 
-def test_the_top_level_help_lists_the_three_commands_that_exist() -> None:
+def test_the_top_level_help_lists_the_four_commands_that_exist() -> None:
     text = _help_of(["--help"])
-    assert "validate" in text and "tool" in text and "corpus" in text
-    assert "study" not in text and "verifier-eval" not in text and " mcp" not in text
+    assert "validate" in text and "tool" in text and "corpus" in text and "study" in text
+    assert "verifier-eval" not in text and " mcp" not in text
+
+
+def test_study_offers_build_alone_until_phase_12_writes_the_other_two() -> None:
+    """D-082 unchanged for the two study actions that do not exist yet."""
+    lines = _help_of(["study", "--help"]).splitlines()
+    actions = [line.split()[0] for line in lines if line.startswith("    ") and line.split()]
+    assert "build" in actions
+    assert "run" not in actions and "score" not in actions
 
 
 def test_a_data_run_asks_the_subject_for_no_generated_rows() -> None:

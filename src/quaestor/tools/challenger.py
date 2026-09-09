@@ -23,6 +23,7 @@ the same statement as one on a column it depends on (DECISIONS D-095).
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, Final
 
 import numpy as np
@@ -116,6 +117,10 @@ class ChallengerCompareTool(Tool["ChallengerCompareTool.Args"]):
                 f"split {train!r} holds one outcome only, so no challenger can be fitted on it"
             )
 
+        missing = {
+            train: float(design.isna().any(axis=1).mean()),
+            test: float(held_out.isna().any(axis=1).mean()),
+        }
         challenger = HistGradientBoostingClassifier(random_state=args.seed).fit(design, truth)
         scores = challenger.predict_proba(held_out)[:, 1]
         test_truth = test_frame["y_true"].to_numpy(dtype=int)
@@ -151,7 +156,27 @@ class ChallengerCompareTool(Tool["ChallengerCompareTool.Args"]):
             ),
         ]
 
-        artifacts += self._ablation(ctx, design, held_out, truth, test_truth, features, test)
+        if any(share > 0.0 for share in missing.values()):
+            artifacts.append(
+                ctx.store.put(
+                    "challenger.missing_values",
+                    {
+                        "rows_with_a_missing_feature": missing,
+                        "handling": (
+                            "the boosted challenger takes missing values natively; how the "
+                            "champion treated them is the subject's own choice and is not "
+                            "recoverable from the contract files"
+                        ),
+                    },
+                    ArtifactKind.json,
+                    "the share of rows carrying a missing feature value in each split, and how "
+                    "the challenger read them",
+                )
+            )
+
+        artifacts += self._ablation(
+            ctx, design, held_out, truth, test_truth, features, test, missing=missing
+        )
 
         threshold = ctx.thresholds.artifact(ctx.store, "threshold.E1.delta_auc")
         artifacts.append(threshold)
@@ -198,6 +223,8 @@ class ChallengerCompareTool(Tool["ChallengerCompareTool.Args"]):
         test_truth: np.typing.NDArray[Any],
         features: list[str],
         test: str,
+        *,
+        missing: Mapping[str, float],
     ) -> list[Artifact]:
         """Refit the champion's functional form without each feature and store the AUC it costs.
 
@@ -216,10 +243,26 @@ class ChallengerCompareTool(Tool["ChallengerCompareTool.Args"]):
             test_truth: The held-out split's outcomes.
             features: The feature names, in matrix order.
             test: The held-out split's name, for the captions.
+            missing: The share of rows carrying a missing feature value, per split.
 
         Returns:
             The baseline AUC, one delta per feature, or the single ``ablation.skipped`` note.
         """
+        if any(share > 0.0 for share in missing.values()):
+            return [
+                ctx.store.put(
+                    "ablation.skipped",
+                    {
+                        "reason": (
+                            "a feature matrix with missing values, which the standardised "
+                            "logistic refit this ablation uses cannot take"
+                        ),
+                        "rows_with_a_missing_feature": dict(missing),
+                    },
+                    ArtifactKind.json,
+                    "the per-feature ablation was not run: the feature matrix holds missing values",
+                )
+            ]
         if len(features) > MAX_ABLATION_FEATURES:
             return [
                 ctx.store.put(
@@ -273,13 +316,23 @@ class ChallengerCompareTool(Tool["ChallengerCompareTool.Args"]):
 
     @staticmethod
     def _numeric(frame: pd.DataFrame, features: list[str], split: str) -> pd.DataFrame:
-        """Return the feature matrix as numbers, naming the offending column if it is not."""
-        matrix: pd.DataFrame = frame[features].apply(pd.to_numeric, errors="coerce")
-        if matrix.isna().any().any():
-            columns = sorted(matrix.columns[matrix.isna().any()].tolist())
+        """Return the feature matrix as numbers, keeping a genuinely missing cell missing.
+
+        A column that does not parse as a number and a column with a hole in it are two different
+        facts, and coercion turns both into ``NaN``. They are told apart by comparing the mask
+        before and after: a cell that was a value and is now ``NaN`` was not a number, which no
+        model here can take; a cell that was already empty is missing data, which is exactly what
+        the ``D1`` screen exists to report and which the boosted challenger reads natively
+        (DECISIONS D-125).
+        """
+        raw = frame[features]
+        matrix: pd.DataFrame = raw.apply(pd.to_numeric, errors="coerce")
+        unparsed = matrix.isna() & ~raw.isna()
+        if bool(unparsed.any().any()):
+            columns = sorted(matrix.columns[unparsed.any()].tolist())
             raise ToolError(
-                f"data_{split}.csv holds a non-numeric or missing value in {columns}, so the "
-                "challenger cannot be fitted on the champion's own matrix"
+                f"data_{split}.csv holds a non-numeric value in {columns}, so the challenger "
+                "cannot be fitted on the champion's own matrix"
             )
         return matrix
 

@@ -1369,3 +1369,51 @@ of the known limitations — zero findings is evidence and judgement and not det
 slice choice varies and this run missed the segment, the decile reversals no rule reads, the sign
 disagreement nothing routes, the mixed corpora, and n = 1 — so Phase 16 quotes that list rather than
 writing a new one.
+
+## Phase 10 — The taxonomy and the seeded-defect generator
+
+`eval/taxonomy.yaml` is the study's specification and `eval/seed.py` is the only thing that reads
+it. The taxonomy holds eighteen rows — fourteen seeded variants over nine classes and two
+subjects, plus four controls — and every seeded row carries the class, the recipe, the recipe's
+parameters, one `met_where` sentence in the author's own words and an `expected_signal` written in
+the tools' own logical names. That last column is the point of the file: it is a prediction made
+before the recipe was written, and `tests/test_seed.py` reads it as an acceptance test, artifact
+by artifact and bound by bound. D-136 records what each one measured.
+
+**A recipe patches the package, not the data.** There is no data file anywhere in a variant: a
+recipe edits `package.yaml`, edits `code/`, or hangs a transform off the one seam in each
+subject's entrypoint where the data-building step has finished and the model has not started —
+the classifier's `splits = {...}` line and the hazard subject's. So a variant is a package a
+developer could plausibly have handed over, its diff against the clean subject is a few dozen
+lines, and both data modes go through the same code. Every anchor is checked: an anchor that
+appears the wrong number of times raises rather than silently seeding nothing, because a generator
+that quietly seeds nothing puts a guaranteed miss in the study and blames the detector for it.
+The rejected alternative is a directory of `.patch` files, which is the same fragility with none
+of the error message.
+
+**`SEED.yaml` is the answer key and lives outside `package.yaml`.** Spec §5 asks for the
+provenance in a file the pipeline never reads; `quaestor.package.loader` opens `package.yaml` and
+nothing else, and two tests hold that line — one spies on `Path.read_text` through a
+`load_package` call, the other plants a value in a variant's `SEED.yaml`, validates that variant
+end to end under the offline provider and asserts the value reaches no trace event, no artifact,
+no claim and no line of `report.md`. The generator itself stays in `eval/` for the same reason
+(D-127): moving it into `src/quaestor` would make the module that plants the defects importable
+from inside the process that is supposed to find them, so `quaestor study build` loads it from
+beside the `--taxonomy` it was given and says so when it is not there.
+
+**Variants are artefacts, not sources.** `eval/variants/` is gitignored and only
+`eval/taxonomy.yaml` and `eval/seed.py` are committed; a variant built from real data would carry
+rows of it, which is the second reason. Building the same recipe twice writes the same bytes —
+`seed()` removes its target and rebuilds from the clean subject, and nothing a variant writes
+depends on where it was written, which is why `Variant` carries the variant's *id* rather than its
+directory name.
+
+**Two defects in Quaestor were found by seeding, and both are the same shape**: a tool refusing to
+run on precisely the data the seeded defect produces, and the refusal ending the whole validation
+rather than being reported. `challenger_compare` conflated "not a number" with "missing", so the
+`D1` variant produced no report at all (D-125); `compute_metrics` propagated the calibration
+slope's non-convergence, so the `msr` `L1` variant — whose leaked balance separates the outcome
+exactly — produced no report either (D-126). Both are now facts the report can carry: a
+`challenger.missing_values` record and a skipped ablation in the first case, an absent slope, a
+`calibration.separable.<split>` flag and a "not evaluated" threshold row in the second. Neither
+changes anything about the clean controls, which have no missing cell and no separable split.
