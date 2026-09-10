@@ -3871,3 +3871,723 @@ here and recorded.
   its ceiling by only 0.045. Rejected alternative: writing the `--data` branches now, guarded and
   untested, which puts five untestable code paths in a generator whose whole value is that a
   variant is what it says it is.
+
+## D-138. Every Probatio case input is built by running the pipeline, and pinned byte for byte
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** Spec §6 says a `draft_section` case's input is `{section, artifacts_json, candidates,
+  guidance}` "for the synthetic credit subject" and that an `extract_claims` case's input is "a
+  fixed section text". Where do those bytes come from, and what stops them drifting away from the
+  pipeline they are supposed to be about?
+- **A:** They are **generated, never typed**, by `tests/probatio/casebuilder.py`, which runs
+  `validate(..., llm=OfflineLLM(), config="full_agent", synthetic=5000)` once and *spies* on the
+  two collaborators that decide what a model is shown -- `pipeline._draft_inputs` and
+  `pipeline.follow_up_plan` -- rather than re-deriving their answers. What a case carries is the
+  object the drafter and the loop were actually handed, serialised: `ArtifactBrief.to_payload()`
+  for the artifacts, `FindingCandidate.model_dump()` for the candidates, the retrieved spans'
+  bodies for the guidance. The `extract_claims` prose is section 2 of
+  `eval/results/first-live/credit/report.md`, cut at the heading and passed through the pipeline's
+  own `drafted_prose`, and its six `contains` needles are values of that run's own `claims.json`.
+  `tests/probatio/test_inputs_pinned.py` then asserts, offline and in the ordinary suite, that
+  every committed file is **byte-identical to what the builder produces now**, that each case
+  rebuilds into the objects the run produced, and -- the load-bearing one -- that the prompt a case
+  builds is the prompt the pipeline sent, to the byte. Re-running
+  `python tests/probatio/casebuilder.py` is the fix when it fails.
+- **Why:** A cassette is keyed on the prompt, so a case that builds a *nearly* identical prompt
+  records a tape for a call the pipeline never makes and the suite measures the harness. And a case
+  file is committed data, which drifts silently: a drafting case whose artifacts no longer match
+  the store still drafts something, and a `contains` needle that is no longer a claim of the live
+  report still passes as long as the model writes the digits. Neither failure shows in a green
+  suite and both would be replayed from a tape for as long as the tape lives. Spying rather than
+  re-deriving is D-084's rule -- a second expression of "which artifacts does section 4 get" is a
+  second chance to disagree with the first -- and it is why the builder holds no selector logic at
+  all. Rejected alternatives: hand-written YAML reviewed once, which is the drift this entry
+  exists to prevent; building the inputs inside the test at run time, which would make the case
+  file unreviewable and would silently re-record a different tape on the day a selector changed;
+  and asserting a spot check (a few artifact names, a candidate count) instead of the whole prompt,
+  which passes on exactly the changes that invalidate a tape.
+
+## D-139. Probatio's provider is passed into the systems under test with no adapter
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** `CLAUDE.md` says Quaestor's `LLM` protocol is "structurally identical to Probatio's
+  `Provider`", and `llm/base.py` says the identity exists so that Phase 11 can pass the fixture
+  straight in. Is it actually identical where it matters, or does the test layer need an adapter?
+- **A:** No adapter. `probatio.plugin.provider` yields `_ObservingProvider(CassetteProvider(...))`,
+  whose `complete(prompt, *, system=None, **params)` returns a `probatio.providers.Completion`;
+  Quaestor's `LLM` is a `Protocol` and its consumers -- `structured()`, `Drafter.draft`,
+  `extract`, `follow_up_plan` -- read `.text`, `.model`, `.tokens_in`, `.tokens_out`, `.cost_usd`,
+  `.latency_ms` and `.raw`, every one of which Probatio's `Completion` carries under the same name
+  and the same type. Nothing in Quaestor does an `isinstance` against its own `Completion`, so the
+  two classes never have to be the same class. The one wrapper the suite adds, `_LastAnswer`, is
+  **not** an adapter: it passes the call through unchanged and remembers the answer's text.
+- **Why:** The wrapper exists because a Probatio case asserts on **what the model returned** and
+  all three systems under test return something parsed -- markdown, an `Extraction`, a
+  `FollowUpAction`. Asserting `schema_valid` on a re-serialisation of the parsed object would be a
+  statement about pydantic rather than about the model, and an answer `structured()` refused twice
+  would arrive as an exception where the suite needs a failing assertion. So each system under test
+  catches `LLMOutputError` and returns the raw answer, which is also what makes
+  `--probatio-provider fake --cassette=off` run all ten cases to completion and fail their content
+  assertions instead of erroring. Probatio's own `schema_valid` strips one wrapping code fence
+  before parsing, exactly as `structured()`'s `strip_fence` does, so a fenced answer is judged the
+  same way on both sides of the boundary and no normalisation is needed here.
+  Rejected alternatives: a `QuaestorLLM` shim converting one `Completion` into the other, which is
+  a class whose only job is to be a place where the two definitions can drift apart; and returning
+  the parsed object and dropping `schema_valid`, which is the one assertion in the family that is
+  about the model's own output shape.
+
+## D-140. Where the tapes and the baselines live, and Probatio's cassette keys confirmed
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** `.gitignore` says the tapes live in `tests/probatio/cassettes/`; Probatio resolves
+  `--cassette-dir` and `--baseline-dir` against rootdir and defaults them to `cassettes/` and
+  `.probatio/baseline/`, and `03-RUNBOOK.md`'s two commands pass neither. Where do the files go?
+  And Quaestor's own run cassettes collide across run directories -- do Probatio's?
+- **A:** Both directories are set in `pyproject.toml`'s `addopts`, so the runbook's commands write
+  and read `tests/probatio/cassettes/` and `tests/probatio/baseline/` without a flag, and so does
+  CI's gate-6 step. Every case declares `snapshot: scores`, which is what gives
+  `--update-baseline` something to write.
+  **Probatio's keys do not collide, and the mechanism is not the same one.** A tape is one file at
+  `<cassette-dir>/<suite>/<case_id>.json`, where the suite is the test module's stem, so two cases
+  can never share a file; inside the file an interaction is keyed on
+  `stable_hash({prompt, system, model, params, template})`, and `template` is the judge prompt
+  template's hash when a judge is speaking, so a judge call and a system-under-test call carrying
+  the same text are different interactions. A metamorphic variant is filed under the id of the case
+  it was taken from, which is why one drafting case's tape holds all eight of its calls.
+- **Why:** D-079 already said the two stores have different jobs; this entry records the
+  measurement behind the half of it that was an assumption. Quaestor's own `llm/recording.py` is
+  keyed by request **alone** -- `stable_hash(system, prompt, params)` -- because the question a
+  replay asks there is "what did the model answer *this*", and the accepted consequence is that
+  re-running a validation over the same artifacts hits the same tapes wherever they were written.
+  Probatio's key adds the case and the suite as *path segments* rather than as hash inputs, which
+  is the stronger arrangement for a test suite: a stale tape names the case it belongs to in its
+  own path, so a human reading a `StaleCassetteError` is told which case to re-record rather than a
+  hash. Nothing here needed changing. Rejected alternative: passing `--cassette-dir` on the command
+  line, which would make the runbook's two commands differ from the ones CI runs and from the two
+  printed in the Phase 11 report.
+
+## D-141. `input.guidance` is one joined string and the distractor is a JSON string
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** `@format_jitter(field=...)` reformats a **string** and `@distractor_robust` inserts
+  **strings** into a list. The drafter needs six typed `GuidanceSpan`s and a list of typed
+  `ArtifactBrief`s. How do the two relations reach real inputs without the case carrying a shape
+  the drafter cannot use?
+- **A:** Two encodings, each with one rule.
+  **Guidance.** `input.guidance` is the six retrieved spans' **bodies**, joined with
+  `"\n\n---\n\n"`; each span's `doc`, `section_id` and `heading` live in the case's `metadata`, and
+  the system under test zips the two back together positionally. So the jitter reformats exactly
+  the prose the retriever returned and never touches the `[[reg:...]]` citation the drafter is told
+  to copy -- which the casing transform would have upper-cased into a citation that resolves to
+  nothing. `test_inputs_pinned.py` asserts that all three jitter transforms leave the separator
+  count unchanged, so the zip cannot silently lose a span.
+  **The distractor.** One artifact of the *other* subject -- a mortgage-servicing projection has no
+  place in a credit report -- carried as a one-line JSON object string and appended to
+  `input.artifacts_json`. `probatiosupport.artifact_briefs` parses a string item and copies a
+  mapping item, which is **the only tolerance this harness adds** to what the pipeline itself
+  accepts.
+- **Why:** The alternative for guidance was to make `input.guidance` the whole span list as JSON
+  text, and every one of the three fixed transforms breaks it: the markdown transform wraps it in a
+  fence, the casing transform upper-cases the first sentence and therefore the first keys, and
+  `json.loads` then fails -- so the relation would measure whether the harness can parse its own
+  input rather than whether the drafter's verdict moves. Splitting identity from body puts the
+  jitter on the only part of a span that is prose.
+  For the distractor, the alternative was to teach `DistractorRobust` about mappings, which is a
+  change to a dev dependency for one case, or to leave the string in the list untouched and let the
+  drafter be shown a JSON string among its artifacts, which is a shape the pipeline never produces.
+  **What this relation cannot see is recorded rather than claimed:** the distractor is in the
+  variant's own `artifacts_json`, so a drafter that cites it still satisfies the case's assertions
+  and the relation reports no violation. The relation measures whether the *verdict moves*, and on
+  this suite a citation of the irrelevant artifact would have to be caught by the judge's fourth
+  criterion or by a reader, not by the relation.
+
+## D-142. The `above_median` refusal spec §6 and the phase prompt ask for cannot be provoked
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** The Phase 11 prompt asks for a `plan_followup` case "whose menu shows that `above_median`
+  on a discrete column would be refused, asserting the returned action is not that", citing D-121
+  and D-123. What does that case look like on the synthetic credit subject?
+- **A:** It does not exist, and the second planning case tests the same behaviour on two refusals
+  that are real. Two facts make the asked-for case unbuildable.
+  **`above_median` can no longer resolve to a whole split at all.** D-122 made `below_median` be
+  `<= median` and `above_median` be `> median`. On a column whose median is its minimum,
+  `P(X <= min) >= 0.5` by the definition of a median, so `above_median` selects at most half the
+  split -- and D-121's ceiling is 0.95. The degenerate rules that remain reachable are
+  `below_median` on a near-constant column and `equals:` on a constant one.
+  **No rule reaches the ceiling on this subject.** Measured over all twelve columns of both splits
+  of the synthetic credit run at seed 20260901, the largest share any median rule selects is
+  **0.7754** (`below_median` on `default_next_month`, train) and the largest `equals:` share is the
+  same. D-121's guard is unreachable offline; it is reachable only on the real sample, where
+  `delinq_count_6m`'s median is 0.
+  So `plan_followup.after_refusal` carries a history of **two failures the code actually
+  produces**, generated by calling the code in the builder rather than written out: an action
+  refused as inapplicable (`check_stability` on a package with no `regime.column`, D-089) and one
+  accepted whose tool then raised (a sub-population of `credit_limit`, which is not a column of
+  this subject -- the fourth live run's own mistake, D-088 and D-107). The case asserts that the
+  third step repeats neither.
+- **Why:** A case whose assertion cannot fail for the reason it names is worse than no case: it
+  reads in the suite as coverage of D-121 and covers nothing. `not_contains: ["above_median"]` on a
+  menu of every column would forbid an action the tool would happily run, which is a false alarm
+  waiting to be recorded into a tape; restricting the menu to the one column whose median is its
+  minimum would make the assertion fair only if the model could tell -- and the loop prompt lists
+  column *names* and no medians, so it cannot.
+  **A defect in `_LOOP_INSTRUCTION` was found while establishing this. It is fixed in D-146**,
+  by the operator's decision, on the same day and before any tape was recorded; the paragraph
+  below is what was reported to them and the reasoning that put the choice in their hands. D-123's
+  paragraph said "`below_median` selects the rows at or below the column's
+  median and `above_median` the rows strictly above it, so the two partition the split; a rule that
+  resolves to the whole of it -- `above_median` on a column whose median is also its minimum, or an
+  equality on a column that never varies -- is refused with the share it selected". Its own first
+  clause makes its first example impossible: under `>` that rule selects at most half. The sentence
+  describes the pre-D-122 semantics and survived the rewrite. It is a wording defect in a live
+  prompt, it changes what the planner is told, and every `plan_followup` tape will be keyed on the
+  text that carries it -- so fixing it *before* the recording is cheaper than fixing it after, and
+  the choice belonged to the operator, who was told in the Phase 11 report rather than presented
+  with a silent edit to the planner in a phase whose scope is the test layer. They chose to fix it
+  (D-146), which is why this entry's own case still stands: correcting the example does not make
+  D-121's guard reachable on the synthetic subject, it only stops the prompt naming a rule that
+  cannot trip it.
+  Rejected alternatives: seeding a degenerate column into the subject so that the guard can fire,
+  which changes the clean control D-017 fixes; writing the refusal message by hand, which is a
+  second copy of a sentence the tool owns (D-084); and dropping the second planning case entirely,
+  which would leave D-088, D-089, D-090 and D-107 -- four decisions bought with live runs -- with
+  no case in the layer built to hold them.
+
+## D-143. `tests/probatio/` has no `conftest.py`
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** The pinning tests need one shared offline run. A session fixture belongs in a
+  `conftest.py`. Why is there not one?
+- **A:** Because it breaks six existing modules. `tests/` is not a package, so pytest imports every
+  `conftest.py` under the bare module name `conftest`, and the first one imported wins in
+  `sys.modules`: `tests/probatio/conftest.py` sorts before `tests/test_*.py`, so
+  `from conftest import REPO_ROOT, load_module` -- which `tests/test_seed.py`,
+  `tests/test_verifier_eval_fixtures.py` and four others do -- resolved to the new file and the
+  collection failed with `ImportError`. The fixture is a module fixture in
+  `tests/probatio/test_inputs_pinned.py`, which is the only module that wants it.
+- **Why:** The alternatives are worse for the size of the problem. Adding `__init__.py` to
+  `tests/probatio/` alone does not help, because pytest then walks up for the package root and
+  `tests/` has none; adding it to `tests/` as well changes how every existing module is imported
+  and how `tests/conftest.py`'s own `sys.path` care (its docstring's whole subject) behaves, for a
+  fixture with one consumer. Renaming the shared helpers so that a second `conftest` is harmless
+  would edit six modules to accommodate a seventh. Recorded here because the absence looks like an
+  oversight and the next session to add a fixture will otherwise repeat the failure.
+
+## D-144. `--runs 5` is declared on the extraction test, and the floor is 0.8
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** Spec §6 says `extract_claims` is "run with `--runs 5` and `@flaky_tolerant(p=0.8, n=5)`".
+  `--runs` is a command-line flag that applies to every case in the session. Is it passed?
+- **A:** No, and it must not be. `@flaky_tolerant(n=5)` overrides `--runs` for the marked test, so
+  the marker alone gives the extraction case its five runs; passing `--runs 5` as well would
+  multiply the seven drafting cases **and their seven metamorphic variants each** by five -- 280
+  drafting calls and 280 judge calls instead of 56 and 56, on a record run that is already an hour
+  of model time. The runbook's two commands therefore stay exactly as `03-RUNBOOK.md` writes them,
+  with no `--runs`.
+  **The floor is 0.8 because the extractor's labels vary and its values do not.** D-111 recorded
+  the count-against-ratio disagreement: the same number is classified `count` on one run and
+  `ratio` on the next. A `unit` that moves changes the answer's bytes without changing any value
+  the case asserts on -- but `schema_valid` and `contains` are evaluated over the whole answer, and
+  a run in which the model also drops or re-orders a claim fails the `contains` list. Four of five
+  is the tolerance that lets one such run through while still failing a case that misses a value
+  twice; `p = 1.0` would make a known, recorded and harmless instability into a red suite, and
+  `p = 0.6` would pass a case that got two of its six values wrong.
+- **Why:** The Wilson interval Probatio prints beside the pass rate is the honest part of this and
+  decides nothing: five runs support `[0.28, 0.99]` around a rate of 0.8, which is a statement
+  about the run length, not about the extractor. The floor is a declared tolerance, and this entry
+  is where the declaration is argued rather than in the marker. Rejected alternatives: asserting
+  only the values and dropping `schema_valid`, which removes the one assertion that would catch an
+  answer whose shape changed; and recording more samples per interaction to tighten the interval,
+  which is `--runs 25` at five times the bill for a bound nobody reads.
+
+## D-145. What one record run costs, measured before it is made, and the budgets that follow
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** Spec §6 asks for a `budget` block on every case "so a record run cannot silently spend".
+  What number goes in it?
+- **A:** One derived from the committed live run rather than guessed. Least squares over the
+  eighteen calls of `eval/results/first-live/credit/` gives **$10.43 per million input tokens and
+  $24.65 per million output tokens** -- blended rates that include what the CLI's `total_cost_usd`
+  reports for a turn partly served from cache, reproducing all eighteen recorded costs to within
+  **6.6%** -- with **2.04 prompt bytes per input token** over that run's seven drafting calls and
+  a wall clock of **9.96 ms per output token plus 7.0 s**. Each case's ceiling is
+  `2.5 x` its own estimate, rounded up: twice because `structured()` may re-ask once and a re-ask
+  is the same call again, and a half more because a regression over one run is not a guarantee. No
+  latency ceiling is below two minutes.
+  Measured on the built cases, the record run is **119 provider calls** -- 56 drafting calls (seven
+  cases x eight runs each: the original, three permutations, three jitters and one distractor), 56
+  judge calls (one per drafting run), five extractions and two planning steps -- at an estimated
+  **$25.69** and **62 minutes** of model time. The largest single prompt in it is **53,196 bytes**,
+  the judge's grading of the whitespace-jittered outcomes draft.
+- **Why:** The last number is the one that had to be checked rather than estimated. Probatio
+  0.1.0's `claude-cli` provider passes the prompt as a **positional argument** with no stdin
+  fallback, which is exactly the failure D-078 exists for -- above about 64 KiB a single argument
+  is rejected by macOS before the CLI runs. Every prompt in this suite is under that threshold, by
+  20%, so the shipped provider is usable as it is; the run that would break it is one that adds a
+  follow-up step to a drafting case, since the live outcomes prompt with four executed slices was
+  **71,325 bytes**. That is recorded here so the next person to widen a case knows what it costs.
+  The budgets are enforceable in the record run and not in the offline one: a ceiling is checked
+  against `Completion.cost_usd`, which the `claude-cli` provider fills from the CLI's payload and
+  the fake leaves `None`, so `--probatio-provider fake` reports ten unenforceable ceilings and says
+  so. Rejected alternatives: one flat ceiling for every case, which is either too loose for the
+  planning cases or too tight for the outcomes one; and a `--probatio-prices` table, which would
+  put a list price in the repository that no committed run produced and that `CLAUDE.md`'s "no
+  number a committed run did not produce" rule would not survive.
+
+## D-146. The loop prompt's degenerate-slice example is corrected to one D-122 can produce
+
+- **Date:** 2026-09-08 (Phase 11, decided by the operator)
+- **Q:** D-142 found that `_LOOP_INSTRUCTION`'s standing paragraph names an example its own first
+  clause makes impossible. What replaces it, and when?
+- **A:** `below_median` on a column whose median is also its **maximum**, changed now, before any
+  tape is recorded. The paragraph reads, with the one substitution:
+
+  > A sub-population must be a proper part of the split. `below_median` selects the rows at or
+  > below the column's median and `above_median` the rows strictly above it, so the two partition
+  > the split; a rule that resolves to the whole of it -- `below_median` on a column whose median
+  > is also its maximum, or an equality on a column that never varies -- is refused with the share
+  > it selected, because its metrics would only repeat the split's.
+
+  Nothing else in the prompt, in `_mask`, in `subpopulation_expression` or in the D-121 ceiling
+  changes. `tests/test_pipeline.py`'s existing assertion is tightened from the generic substring
+  `"on a column whose median is also its"` -- which the falsified sentence and the corrected one
+  both satisfy -- to the corrected example in full, plus a negative assertion that the falsified
+  one is gone.
+- **Why:** The example was arithmetically impossible under the semantics the same sentence
+  states. `below_median` is `<= median` and `above_median` is `> median` (D-122), so on a column
+  whose median is its minimum `P(X <= min) >= 0.5` by the definition of a median and
+  `above_median` selects at most half a split -- it can never reach D-121's 0.95 ceiling. The rule
+  that *can* is the mirror of it: when the median is the maximum, `<= median` selects everything.
+  The correction is one word pair and it is length-preserving, which is the reason D-147 exists.
+  **Timing was the whole of the decision.** A cassette key is a hash of the prompt, so this edit
+  invalidates every `plan_followup` tape. Made before the recording it costs nothing; made after
+  it costs both planning tapes and a second live sitting. That is why it was reported at the end
+  of the build rather than folded silently into the test layer, and why it is dated to the day the
+  operator answered.
+  What the correction does **not** do is make D-142's case buildable: no rule reaches the ceiling
+  on the synthetic subject at any median, so the guard stays unreachable offline and
+  `plan_followup.after_refusal` still tests the loop's response to two refusals that are real.
+  Rejected alternatives: deleting the example and leaving only the rule, which drops the concrete
+  case a model reads fastest and leaves the equality example unbalanced; naming the real sample's
+  `delinq_count_6m` explicitly, which puts a column of one subject's real data into a prompt every
+  subject sees; and describing both degenerate median rules, which is a longer sentence for a
+  second case a planner has no way to detect from a list of column names.
+
+## D-147. A case pins the digest of the prompt it sends, not the length of it
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** D-138 pins each case by rebuilding its prompt and comparing it with the pipeline's, and
+  each case carries `metadata.prompt_bytes`. D-146 changed `_LOOP_INSTRUCTION` by swapping
+  `above_median` for `below_median` and `minimum` for `maximum` -- both substitutions the same
+  length. Would the offline suite have noticed?
+- **A:** No, and it does now. Every case gains `metadata.prompt_sha256`, the first sixteen hex
+  characters of the SHA-256 of **the prompt its system under test actually sends** -- not the one
+  `Drafter.prompt` or `loop_prompt` composes, but that string with `structured()`'s strict-JSON
+  instruction and the pydantic schema appended, which is what a cassette key hashes. The builder
+  computes it by running the case's own system under test against a `_PromptRecorder`, a provider
+  that answers with one fixed valid object and keeps the prompt, so the digest comes from the real
+  code path and no composition is restated. `test_every_case_pins_the_prompt_its_tape_will_be_keyed_on`
+  fails with the two digests when they diverge and names the fix: re-run the builder and re-record
+  that family's tapes.
+  Measured, on the tree as it stands: a length-preserving edit to `_LOOP_INSTRUCTION` leaves
+  `test_planning_prompts_rebuild_byte_for_byte` green and fails the digest assertion alone; an
+  edit that also changes the length fails both.
+- **Why:** The prompt is the only thing a tape is keyed on, so it is the only thing whose change
+  makes a committed tape wrong. `prompt_bytes` was chosen in D-138 as a cheap witness and it is a
+  weak one -- it cannot see a substitution, a transposition or a reordering, which is most of what
+  prompt editing consists of. The distinction matters more here than in an ordinary suite because
+  the failure is silent in the *worst* direction: a stale tape does not error, it replays an answer
+  to a question nobody asked any more, and every assertion written against it keeps passing.
+  D-138's whole-prompt equality check does not cover this either, because both sides of that
+  comparison are built from the same edited instruction.
+  Hashing the sent prompt rather than the composed one is deliberate: `structured()` appends a
+  schema generated from a pydantic model, so a field added to `DraftedSection` or `FollowUpAction`
+  changes the prompt and the tape key without changing a line of the drafter. The schema files are
+  separately pinned, but a digest that stopped at the caller's prompt would let a change reach the
+  tapes through a door the pin does not watch.
+  Rejected alternatives: committing the whole prompt beside each case, which is 190 KB of a second
+  copy of what the builder can produce and a second thing to keep in step; hashing the caller's
+  prompt only, which is the door above; and relying on Probatio's own `StaleCassetteError`, which
+  is the right error but arrives at the *next recording session* -- after a green offline suite has
+  said the layer is sound.
+
+## D-148. The grounding rubric asked the judge to quote, which made 80% of its replies unparseable
+
+- **Date:** 2026-09-08 (Phase 11, found by an interrupted record run)
+- **Q:** The first record run was stopped after two cases. `draft_section.summary` passed and
+  `draft_section.conceptual_soundness` failed 3 of 4 assertions. Is the failure the drafter's, the
+  case's, or live variance?
+- **A:** None of the three. It is `rubrics/grounding.md`'s, in its last sentence: "The `rationale`
+  names the criterion that decided the verdict **and quotes the sentence that decided it**". The
+  judge obeyed, inside a JSON string field, and produced
+
+  > `{"verdict": "pass", "score": 1.0, "rationale": "All five criteria hold: ... (e.g. "dropping
+  > the most recent delinquency status costs -0.07585 [[art:3150b111:...]]"), ...`
+
+  which stops parsing at column 209 on the first unescaped quotation mark. `Judge.grade` raises
+  `JudgeOutputError`, `evaluate_judge` returns a failed result, and a verdict of **pass at score
+  1.0** is thrown away. Measured over the three tapes the interrupted run left: **16 of 20 judge
+  replies, 80%, are unparseable** -- fourteen on an unescaped quote and two on a literal newline
+  inside the string. The four that parsed simply happened not to quote anything.
+  The rubric now forbids all three: no quotation marks, no line breaks, no citations or backticks
+  copied out of the prose, with the reason given ("makes your reply unparseable and throws your
+  verdict away"). `test_the_rubric_forbids_the_quoting_that_made_80_per_cent_of_replies_unparseable`
+  asserts the prohibition and the absence of the old sentence.
+  A second thing this exposed and fixed: **a rubric is part of every judge prompt**, so editing it
+  changes every judge interaction key and strands every judge tape -- which D-147's
+  `prompt_sha256` does not see, because it digests the system under test's prompt and a judge call
+  is not the system under test. Each drafting case now also carries `metadata.rubric_sha256`,
+  Probatio's own `Rubric.content_hash` so that one number means the same thing in the case file, in
+  a validation record and in the unvalidated-judge warning.
+- **Why:** The instruction was written to make a failing verdict diagnosable from the report -- a
+  rationale that names the sentence is worth more than one that names a criterion -- and it was
+  written without asking what a quotation mark does inside the JSON object the same prompt demands.
+  The failure mode is the worst available: it does not look like a formatting problem, it looks
+  like the drafter failing a grounding rubric, and on a red suite of seven cases a reader would go
+  looking at the prose. It cost about $10 of live calls to find, which is the argument for the
+  rubric pin rather than against it -- the *next* rubric edit will be caught by a green-to-red
+  offline suite instead of by a record run.
+  What was **not** wrong is worth recording too, because it is what the run bought: on
+  `conceptual_soundness` the drafted section passed `schema_valid`, `contains` and `not_contains`,
+  and the judge's own verdict on it was pass at 1.0. The drafter, the case, the schemas and the
+  three relations were all working on the first live call ever made through this layer.
+  Rejected alternatives: marking the drafting test `@flaky_tolerant`, which tolerates a formatting
+  defect and multiplies seven cases and their variants by `n`; relaxing Probatio's `JudgeVerdict`
+  parse, which is a dev dependency's deliberate strictness and not ours to loosen; and repairing
+  the replies in the tapes by hand, which would make the committed evidence disagree with what the
+  model said.
+  **This entry is a stopgap, and its final form is D-153's.** Every prohibition it adds to the
+  rubric works around a parser that discards a repairable reply: six of the sixteen failures were a
+  `rationale` string left unclosed before the object's own `}`, and two were a complete first
+  object followed by a corrected second one -- in both, a parser reading the first balanced JSON
+  object would have recovered a verdict the model got right. Filed against Probatio as **issue 1 in
+  `notes/probatio-issues.md`**. Until it is fixed, this rubric spends part of its instruction budget
+  on JSON syntax rather than on the thing it grades.
+
+## D-149. Probatio's session cost total excludes judge calls, so `--max-cost` under-counts by half
+
+- **Date:** 2026-09-08 (Phase 11)
+- **Q:** `--max-cost` is the only ceiling that covers a whole record run, and the Phase 11 report
+  offers it as the guard against a runaway sitting. Does it see everything the run spends?
+- **A:** No. `RunState.observe` records a completion only while a sink is open, and
+  `Probatio.check` opens one around the system under test (`_call_sut`) and around each relation
+  variant (`_call_variant`) -- but a `judge` assertion is evaluated inside `evaluate_case`, which
+  is outside both. So judge spend reaches no sink, no case cost and no session total.
+  Measured on the three tapes of the interrupted record run: **$5.1071 of drafting calls and
+  $4.6768 of judge calls, so `--max-cost` sees 52% of what the run actually spends.** Probatio's
+  own `session.py` docstring states the opposite -- "they are real money and they do count toward
+  the session total under `--max-cost`" -- so this is a defect in probatio 0.1.0 as shipped and not
+  a design we are reading wrongly.
+  Nothing in Quaestor changes. The consequence is recorded where it is acted on: a `--max-cost`
+  value passed to the record run is roughly **half** the dollars it will let through, and the
+  Phase 11 report states the ceiling in both currencies rather than one.
+- **Why:** Per-case `budget.max_cost_usd` is unaffected and is still worth having: it covers the
+  calls a case's own system under test makes, which is what a case can be held responsible for,
+  and D-145's ceilings are sized for exactly that. It is the *session* figure that is partial. The
+  distinction matters because the two ceilings are offered to an operator for different jobs -- one
+  stops a case that has gone wrong, the other stops a sitting that has gone long -- and an operator
+  who reads "cost: $16.40" at the end of a run that spent $31 has been told something false about
+  the second.
+  **Amended 2026-09-09, after the third record run.** There is a second half to this, and it is
+  the half that bites: `--max-cost` is **not a circuit breaker**. The ceiling is read in
+  `pytest_sessionfinish`, so it can only set a non-zero exit status *after* the session has
+  finished spending. The third record run was given `--max-cost 7`, spent **$7.59 of visible
+  drafting cost** -- $12.34 in total across the three cases, by their tapes -- and ran to
+  completion; the ceiling failed the session afterwards rather than stopping it. Taken with the
+  judge blindness above, a `--max-cost N` should be read as "fail the sitting if it turns out to
+  have spent more than about `N / 0.6` dollars", not as "stop at `N`". The only ceiling that can
+  actually halt work mid-run is the per-case one, and even that fails the case after its calls are
+  made. What genuinely bounds a sitting is `-k`: recording three cases costs three cases.
+  Not fixed here, and the reason is `CLAUDE.md`'s: `probatio-llm` is a dev dependency of this
+  project, a patch to it is not in Phase 11's scope, and a monkeypatch in `tests/probatio/` that
+  wrapped the judge provider in a sink would put a copy of Probatio's accounting in Quaestor's
+  suite -- two expressions of one rule, which is D-084's whole lesson. It is filed against Probatio
+  as **issue 2 in `notes/probatio-issues.md`**, covering both halves -- judge spend invisible to the
+  total, and a ceiling evaluated in `pytest_sessionfinish` that cannot stop a run -- with the
+  measured 58% visible share that makes both concrete. Rejected alternative: summing the tapes after the run
+  and printing the real total, which is a useful script and still not a ceiling -- it cannot stop
+  anything, because by the time it can be computed the money is spent.
+
+## D-150. The Claude CLI provider's timeout is raised to 600 s in `addopts`, and latency ceilings go uniform
+
+- **Date:** 2026-09-09 (Phase 11, after the second record run)
+- **Q:** The second record run recorded 34 of 37 tests and lost three drafting cases --
+  `data_integrity`, `sensitivity` and `monitoring` -- to `ProbatioConfigError: the Claude CLI did
+  not answer within 120s`. That is a provider timeout, not a verdict. Where is it configured, and
+  what else has to move with it?
+- **A:** Two changes, and one of them was not the obvious one.
+  **The provider timeout goes to 600 s, in `pyproject.toml`'s `addopts`, because that is the only
+  place probatio 0.1.0 will take it.** `ClaudeCLIProvider(timeout_s: float = DEFAULT_TIMEOUT_S)`
+  defaults to 120.0 and is reachable only through `--probatio-timeout`, a session-wide flag; there
+  is **no per-case timeout**. A `timeout` in a case's `params` would not work twice over: the
+  adapter pops `model` and files everything else under `probatio_ignored_params` without acting on
+  it, and `params` is hashed into the interaction key, so the case would silently strand its own
+  tape. Setting it in `addopts` also keeps the runbook's record command unchanged, which is
+  D-140's argument for the two directory flags.
+  **The per-case latency ceilings become one uniform 480 s, and stop being estimated at all.** They
+  had to move regardless of the provider: `sensitivity` and `monitoring` carried the 120 s floor of
+  D-145, exactly the provider's own default, so even without the kill they would have failed their
+  own budgets. But the deeper reason is that the latency model does not work. D-145 fitted wall
+  clock as `9.96 ms x output tokens + 7.0 s` over one run's eighteen calls; measured against the
+  record run, `findings` was predicted at 15.1 s and one of its variants took **100.2 s**, out by a
+  factor of 6.6, because wall clock here is dominated by service variance and not by how much the
+  model writes. The cost model from the same run, by contrast, predicted the whole run's spend to
+  within 6%. So cost keeps its per-case ceiling and latency gets one number taken from the observed
+  tail -- twice the longest single call any tape holds (106.5 s, itself censored, since the three
+  calls that overran 120 s recorded nothing), doubled again for a run in which `structured()`
+  re-asks.
+  The two now sit in the right order: `--probatio-timeout` at 600 s is the hung-process ceiling and
+  `max_latency_ms` at 480 s is the budget, so a slow case **fails a verdict** and only a hung
+  subprocess errors. Before this change they were inverted -- the hang ceiling was tighter than the
+  budget -- which is why three cases errored instead of failing.
+- **Why:** `DEFAULT_TIMEOUT_S`'s own docstring says "two minutes is a hung-process ceiling, not a
+  budget", and on this suite it was acting as a budget: a drafting call that legitimately writes
+  seven thousand tokens over a 39 KB prompt takes longer than that often enough to lose three cases
+  in ten. Raising it does not weaken anything, because the thing that was actually protecting the
+  run -- the per-case ceilings, and `--max-cost` -- is unchanged in cost terms.
+  Abandoning the latency regression rather than re-fitting it is the honest move and the reason is
+  recorded rather than the coefficient: a model fitted on eighteen calls of one sitting was always
+  going to describe that sitting, and one more sitting is not enough to fit a distribution whose
+  spread is the point. A uniform generous ceiling says what it is -- a pathology detector -- where
+  a per-section number derived from a broken fit would have claimed a precision it does not have.
+  **The changed budget does not strand a tape**, which is why the three cases can be re-recorded
+  alone: an interaction key hashes the prompt, the system prompt, the model, the params and the
+  judge template, and a baseline is keyed on `prompt_hash`, which Probatio defines over `input`,
+  `system` and `params` only -- "its assertions, its budget, its tags may change without
+  invalidating the baseline". Verified rather than assumed: after the rebuild all seven complete
+  tapes replay to 34 passed with **zero provider calls** and every snapshot `unchanged`.
+  Rejected alternatives: leaving the timeout at 120 s and shortening the drafting prompts, which
+  changes what the layer tests to fit a subprocess ceiling; passing `--probatio-timeout` on the
+  command line, which would make the runbook's command differ from CI's and from the one printed in
+  the Phase 11 report; and re-fitting the latency model on the two runs now in hand, which is two
+  sittings of a quantity that varied 6.6-fold within one of them.
+
+## D-151. A replay session has to name the model the tapes were recorded against
+
+- **Date:** 2026-09-09 (Phase 11, found replaying the first record run's tapes)
+- **Q:** `03-RUNBOOK.md`'s replay line and `CLAUDE.md`'s gate condition 6 are both
+  `pytest tests/probatio --cassette=replay`, with no provider and no model. The tapes were
+  recorded through `--probatio-provider claude-cli --probatio-model "claude-opus-5[1m]"`. Does
+  replay find them?
+- **A:** No, not as written, and the flag has to be supplied. `interaction_key` hashes
+  `{prompt, system, model, params, template}`, where `model` is `resolve_model(params, model)` and
+  the fallback is the *answering adapter's* own model. A replay session with the default provider
+  builds `FakeProvider(model=model or "fake-1")`, so with no `--probatio-model` every key is
+  computed against the literal string `fake-1`, no tape carries it, and every case fails with
+  `StaleCassetteError: the prompt, the model or the params changed since it was recorded`. The
+  message is accurate and the diagnosis it invites -- that the prompt drifted -- is wrong.
+  So `--probatio-model "claude-opus-5[1m]"` goes into `pyproject.toml`'s `addopts` beside the
+  cassette and baseline directories. **The provider stays `fake`**: replay never touches the inner
+  adapter, so naming a model does not make a session capable of a live call, and a machine with no
+  Claude CLI installed replays these tapes exactly as one with it. That is what lets CI's gate-6
+  step stay the bare command the runbook prints.
+- **Why:** Putting the model in the key is right, and Probatio argues it well -- a tape recorded
+  against one model replaying silently against another is worse than no tape. What is wrong is only
+  the *default*: a fake provider's model name is a plausible-looking string that no real tape can
+  ever match, so the failure lands on every case at once and looks like prompt drift. Configuring
+  it in `addopts` rather than in each of the three commands is D-140's rule, and here it is
+  load-bearing rather than tidy: `pytest -q` is gate condition 1 and passes no Probatio flags at
+  all, so without this the whole suite is red the moment tapes exist.
+  Recorded as a finding against spec section 6 as well: the spec's acceptance line
+  (`pytest tests/probatio --cassette=replay` passes with zero provider calls) is achievable only
+  with a flag the spec does not mention, and this entry is where the difference is written down
+  rather than absorbed into a command nobody can explain.
+  Rejected alternatives: recording without `--probatio-model`, which the plugin refuses outright
+  for a live provider -- and rightly, since the tape would then be keyed on the string
+  `claude-cli`; passing the flag in each of the three commands, which puts a fact about the
+  committed tapes in three places that can disagree; and `--probatio-provider claude-cli` in
+  `addopts`, which would make every offline session construct a live adapter it must never call.
+
+## D-152. A quarter of the judge's replies still do not parse, and every relation violation is one
+
+- **Date:** 2026-09-09 (Phase 11, measured on the second record run's tapes)
+- **Q:** D-148 fixed the rubric sentence that made 80% of judge replies unparseable. On the second
+  record run, are they parsing?
+- **A:** Better, and not yet well. **8 of 32 judge replies on the seven complete tapes still do not
+  parse -- 25%, down from 80%** -- and the cause is now a different one. Six of the eight simply
+  **omit the closing quotation mark** of the `rationale` value, ending `...unavailable.}` where
+  `...unavailable."}` was needed, on rationales of 250 to 450 characters. The other two are a model
+  that noticed its own mistake, wrote a paragraph about it, and emitted a **second** JSON object
+  after the first. None is a truncation: every completion reports `stop_reason: end_turn`.
+  **No case verdict is affected, and that is exactly why this needs saying.** A case's verdict is
+  its original run's assertions, and all four complete drafting cases pass 4 of 4. The eight
+  malformed replies are all on metamorphic *variants* -- so each one makes its variant's verdict
+  differ from the original's, which Probatio reports as a **relation violation**. The counts match
+  exactly: `distractor_robust` 1 of 4, `format_jitter` 3 of 12, `order_invariant` 4 of 12, **8 in
+  total, against 8 malformed replies.** So on this recording *every observed relation violation is
+  a JSON formatting failure in the grader*, and there is **no evidence of a single genuine
+  violation** -- no permutation, reformatting or distractor changed what the drafter did. That is a
+  good result about the drafter and a worthless one about the relations, and spec §6's acceptance
+  criterion asks for the relation rates by name.
+- **A, continued -- what is done about it now:** nothing to the rubric, and the three timed-out
+  cases are re-recorded against the rubric as it stands. The reason is sequencing, not tolerance. A
+  rubric is part of every judge prompt (D-148), so any edit to it strands the judge half of all
+  seven complete tapes and turns a $10.66 re-record of three cases into a $27 re-record of ten,
+  discarding the $20.41 already spent. And the rubric has **one more revision coming regardless**:
+  the operator's 40-row labelling and `probatio validate-judge` are still outstanding, and a κ
+  measured against human labels is the evidence that would say what the rubric should ask for. Two
+  re-records for two rubric edits is one too many, so the order is: record the three, take the
+  layer green, measure κ, and fold whatever the labelling says about the rationale into one
+  revision and one re-record.
+  **Superseded in part, 2026-09-09.** The deferral above rested entirely on the cost of a rubric
+  edit -- "two re-records for two rubric edits is one too many". D-153 then found a defect in the
+  rubric's criterion 5 that *has* to be fixed, which forces exactly the re-record this entry was
+  avoiding. So the rationale cap is folded into that same edit and ships with it, and the argument
+  for waiting for the kappa no longer applies: the kappa will now be measured against the corrected
+  rubric, which is the better order anyway.
+  Written down rather than absorbed: until that recording is made, the relation rates this layer
+  publishes are contaminated at 25% and the Phase 11 run-log line says so. The remedy, when it comes, is most
+  likely to cap the rationale hard -- fifteen words, not one sentence of any length -- or to drop it
+  and return `verdict` and `score` alone, which `JudgeVerdict` already permits since `rationale`
+  defaults to empty and unknown keys are ignored.
+- **Why:** The instinct is to fix the rubric now, and it is wrong for a measurable reason: the fix
+  is unverifiable offline. There is no way to know whether a fifteen-word cap stops a model dropping
+  a closing quote without recording against it, so "fix it now" means buying one experiment at $27
+  and possibly buying a second. Recording the three, on the other hand, buys a complete, green,
+  committable layer for $10.66 whose case verdicts are sound and whose one weak number is measured
+  and published. That is the project's own standard applied to itself -- the differentiator is an
+  evaluation that publishes misses, and a relation rate known to be 25% grader noise is a miss to
+  publish, not one to hide behind a rubric edit nobody has tested.
+  Rejected alternatives: fixing the rubric now and re-recording all ten, which spends $27 to
+  replace one unvalidated rubric with another unvalidated rubric before the κ that would tell us
+  which is better; tolerating malformed replies by relaxing the judge assertion, which is D-148's
+  rejected alternative for the same reason; and dropping the three relations from the drafting test,
+  which removes the measurement instead of the noise and is the one thing spec §6 names.
+
+## D-153. The grounding rubric's criterion 5 forbade what two sections' briefs require
+
+- **Date:** 2026-09-09 (Phase 11, found by the third record run)
+- **Q:** The third record run recorded all three outstanding cases and left two of them failing on
+  a judge verdict. `sensitivity` scored 0.80 with the rationale that "the closing paragraph fails
+  the last criterion by declaring that the cross-regime stability comparison and the rate-shock
+  quantities are not defined or not carried for this model and that no regime column exists";
+  `monitoring` scored 0.80 for "declaring quantities absent from this validation, stating that no
+  realised post-sample outcomes were available and that no override history exists to analyse". Is
+  the defect in the drafter, in a brief, or in the rubric?
+- **A:** In the rubric, and the drafted prose is right. Read what the drafter actually wrote:
+
+  > Two of the analyses this section would otherwise carry are not defined for a model of this
+  > type, and they are recorded in Appendix D on that basis. The stability comparison across
+  > declared regimes presupposes a regime column in the evaluation data, and no regime column is
+  > declared for this package...
+
+  That is section 5's brief, quoted almost back at it: "**Say plainly which of these do not apply
+  to this model type**; they are listed in Appendix D and must not be described as though they had
+  been run." Section 7's is the same shape: "**name anything this validation could not cover** that
+  monitoring should watch instead." And D-114 already drew the line this rubric erased -- D-100's
+  prohibition "is about numbers ... it could not stop a section calling an entire **activity**
+  absent, because an activity is not an artifact selector" -- and its rejected alternatives name a
+  standing rule against saying an activity was not performed as wrong precisely because it "would
+  also forbid Appendix D's own subject matter".
+  So criterion 5 is rewritten to say what D-100 says and no more: a sentence claiming a **number**
+  is not available, not carried, not computed or not recomputed is a failure, and two kinds of
+  sentence are named as explicitly not violations -- an analysis that does not apply to this model
+  type, and something this validation could not cover that monitoring should watch. The test given
+  is whether the sentence is about a quantity a computed artifact could have supplied, with one
+  example each way. `test_the_rubric_lets_a_section_say_an_analysis_does_not_apply` pins it.
+  **The fix is neither of the two things the operator asked me to choose between.** It is not the
+  monitoring brief: D-114 already fixed section 7's one illegitimate absence sentence (benchmarking,
+  contradicted by section 2's own challenger comparison) and these sentences are not that -- there
+  is no artifact and no other section that contradicts them. And it is not a red test documenting a
+  drafter defect: there is no drafter defect to document. On both sections the drafter obeyed its
+  brief, cited Appendix D for the reader, and was failed by a grader I wrote.
+- **Why:** This is the first genuine finding the Probatio layer has produced about the *project*
+  rather than about itself, and it is worth being clear that it points at the rubric: two of seven
+  sections, independently, on the first recording where the judge's replies parsed. A rubric is a
+  specification of what a good section looks like, and mine contradicted two of the seven briefs
+  the pipeline ships. Had it been shipped, the layer would have held the drafter to a standard the
+  report cannot meet, and the natural reading of a red suite -- that the drafter is wrong -- would
+  have sent the next reader to the prose.
+  **The cost, stated because it is the reason this is one decision and not two.** A rubric is part
+  of every judge prompt, so this edit strands the judge half of all seven drafting tapes: measured
+  on the tapes as they stand, re-recording those seven is **124 calls, $28.92 (of which $16.73,
+  58%, is visible to `--max-cost`) and about 79 minutes of model time.** The three non-drafting
+  cases carry no judge assertion and are untouched. Because a re-record is now unavoidable, D-152's
+  rationale-length fix is folded into the same edit rather than deferred to the kappa: fifteen
+  words, nothing after the closing brace, and a reminder to close the string.
+  Rejected alternatives: lowering the judge threshold to 0.8, which passes these two sections by
+  passing any single-criterion failure anywhere; dropping criterion 5 altogether, which is the same
+  re-record and abandons D-100's rule instead of stating it correctly; and leaving the two cases red
+  as documentation, which `CLAUDE.md`'s gate condition 1 forbids and which would publish a false
+  claim about the drafter in the one artefact of this phase a reader will trust.
+  **Measured on the recording this entry produced: 60 live judge replies, 0 unparseable.** The
+  progression across the three recordings is 80%, 25%, 0%. The criterion-5 rewrite is a permanent
+  correction -- it is what D-100 and D-114 already say -- but the four prohibitions this rubric
+  carries about JSON syntax are, with D-148's, a **stopgap for Probatio issue 1**
+  (`notes/probatio-issues.md`): a parser that read the first balanced JSON object would have
+  recovered every one of the 24 verdicts the two earlier recordings threw away. When that is fixed
+  upstream those four bullets can go and the rubric can spend its whole instruction budget on
+  grounding, which is what it is for. Until then they stay and this sentence says why.
+
+## D-154. An offline fake run must never be allowed to write a Probatio baseline
+
+- **Date:** 2026-09-09 (Phase 11)
+- **Q:** All three cases of the third record run reported `snapshot scores_changed` against a
+  baseline whose every content assertion had **failed** -- `schema_valid fail 0.000`,
+  `contains fail 0.000`, `judge fail n/a`, `budget_cost fail n/a` -- on cases that had just been
+  recorded live and passed 4 of 4. Where did that baseline come from?
+- **A:** From my own offline verification run. `pytest tests/probatio --probatio-provider fake
+  --cassette=off` is the step that proves the cases load and the systems under test are wired, and
+  the fake's answers fail every content assertion by design (D-139). `BaselineStore.compare` is
+  called with `update=False` on every run and **records a baseline when the case has none** -- so
+  that fake run silently created baselines for exactly the three cases whose baselines were absent
+  at the time, stamping the fake's failures as the reference. The record run then compared its real
+  results against them and reported drift.
+  The rule from now on: **every fake or `--cassette=off` invocation passes
+  `--baseline-dir` to a throwaway path.** The verification command is
+  `pytest tests/probatio -q --probatio-provider fake --cassette=off --baseline-dir $(mktemp -d)`,
+  and it is written that way in the Phase 11 report and in the run log.
+- **Why:** The failure is silent in both directions and cost real money to see: nothing about a
+  fake run announces that it has written a reference, and nothing about `scores_changed` says the
+  reference came from a fake. It looked like the recording had drifted, which is the one thing it
+  had not done. The asymmetry that makes it dangerous is that `compare` refuses to *overwrite* an
+  existing baseline without `--update-baseline` but is happy to *create* one -- reasonable for a
+  first real run and wrong for a run whose provider is a stub.
+  This is not a Probatio defect and is not filed as one: a baseline recorded on first sight is the
+  documented behaviour, and a suite that runs a fake against a real baseline directory has
+  misconfigured itself. It is a defect in how this suite was being exercised, which is why the
+  remedy is a command and a rule rather than a patch. Rejected alternatives: setting
+  `snapshot: off` on every case, which throws away the drift detection the second runbook command
+  exists to establish; deleting `tests/probatio/baseline/` before each record run, which is the
+  workaround I had been applying by hand and which fails the first time somebody forgets; and
+  teaching the suite to refuse a baseline write when the provider is fake, which puts a rule about
+  Probatio's own store inside Quaestor's tests.
+
+## D-155. Two record sittings ended on a fast exit 1 from `claude -p` that did not reproduce
+
+- **Date:** 2026-09-10 (Phase 11, operator observation across four record sittings)
+- **Q:** Two of the four recording sittings ended early, not on a timeout and not on a verdict, but
+  on the Claude CLI exiting **1 within a few seconds** of being invoked. A trivial `claude -p` call
+  made immediately afterwards, by hand, answered normally. What is recorded about it, and what is
+  done?
+- **A:** Recorded, not diagnosed, and worked around by the shape of the commands. What is known:
+  the failure is fast -- seconds, against the 14 to 106 seconds a real drafting call takes -- so it
+  is not `--probatio-timeout`, whose message is different and whose ceiling was 600 s by then; the
+  CLI exits non-zero, which `ClaudeCLIProvider._payload` turns into `ProbatioConfigError` quoting
+  the tail of stderr; and it did **not** reproduce on a hand-run call seconds later, which rules
+  out the argument vector, the model name and the empty working directory, all of which were
+  unchanged. Most likely a transient on the service or the subscription session rather than
+  anything this repository controls, but that is a guess and it is labelled as one: nothing in the
+  tapes carries the stderr, because a call that fails is a call that records nothing.
+  What follows from it operationally is the useful half. **A record run is not atomic and must not
+  be treated as one.** A sitting that dies part way leaves complete tapes for the cases that
+  finished, a partial tape for the one in flight, and nothing for the rest -- exactly the state the
+  second sitting left. So recording is done in `-k`-scoped sittings, a dead sitting costs only the
+  cases it had not reached, and a partial tape is moved aside rather than kept: `record()` replaces
+  the samples of keys it re-records in the same session and leaves the others in place, so a
+  half-recorded case that is re-recorded ends up carrying dead interactions from the attempt that
+  died.
+- **Why:** It is written down because the next operator will meet it and will otherwise spend the
+  time this one did deciding whether the suite is broken. The distinguishing signature is the one
+  to remember: **seconds, not minutes.** A drafting call that fails in three seconds did not fail
+  for any reason this repository can fix, and the response is to re-run the `-k` selection for the
+  cases with no tape rather than to change a case, a prompt or a ceiling.
+  It is deliberately **not** filed against Probatio: the adapter reported what the subprocess did,
+  with stderr quoted, which is the correct behaviour for an exit code it cannot interpret. Nor is a
+  retry added here -- a retry inside a recording adapter would turn a transient into a silent extra
+  call against the same tape key, and D-088's argument applies unchanged: the failure belongs on
+  the record, not in the exit code of the sitting.
+  Rejected alternatives: retrying the call inside `probatiosupport`, which puts a provider concern
+  in the harness and would spend money without saying so; recording everything in one sitting with
+  a longer ceiling, which is what made the loss expensive the first time; and asserting the
+  stderr text in a test, which would pin a message this repository does not own.

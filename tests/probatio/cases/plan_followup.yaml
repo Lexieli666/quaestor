@@ -1,0 +1,573 @@
+- id: plan_followup.first_step
+  input:
+    candidates:
+    - defect_class: E1
+      evidence:
+      - 5c6c2bfc01a2a6a2
+      - bf5be719e087fe91
+      - c9e502ae8894868f
+      - e042774c838f7426
+      detail: a hist_gradient_boosting challenger reaches an AUC of 0.8240 on test against the champion's
+        0.7480, a lead of 0.0760 against an effective-challenge threshold of 0.03
+      suggested_severity: low
+      tool: challenger_compare
+    completed:
+    - tool: run_model
+      args:
+        synthetic: 5000
+      classes: []
+    - tool: profile_data
+      args: {}
+      classes: []
+    - tool: compute_metrics
+      args: {}
+      classes: []
+    - tool: check_leakage
+      args: {}
+      classes: []
+    - tool: check_collinearity
+      args: {}
+      classes: []
+    - tool: challenger_compare
+      args: {}
+      classes:
+      - E1
+    - tool: retrieve_guidance
+      args:
+        query: model validation elements scope and purpose
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: evaluation of conceptual soundness model design and variables
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: data quality accuracy completeness and representativeness
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: outcomes analysis comparing model output to actual outcomes
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: sensitivity analysis stability benchmarking alternative models
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: model validation findings deficiencies and remediation
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: ongoing monitoring model performance over time
+      classes: []
+    artifact_names:
+    - ablation.age.delta_auc
+    - ablation.baseline_auc
+    - ablation.bill_mean_6m.delta_auc
+    - ablation.bill_trend_6m.delta_auc
+    - ablation.delinq_count_6m.delta_auc
+    - ablation.delinq_last.delta_auc
+    - ablation.delinq_max_6m.delta_auc
+    - ablation.limit_bal.delta_auc
+    - ablation.pay_ratio_last.delta_auc
+    - ablation.pay_ratio_mean_6m.delta_auc
+    - ablation.utilisation.delta_auc
+    - calibration.mean_rel_gap.test
+    - calibration.mean_rel_gap.train
+    - calibration.test
+    - calibration.train
+    - calibration_intercept.test
+    - calibration_intercept.train
+    - calibration_slope.test
+    - calibration_slope.train
+    - challenger.auc
+    - challenger.brier
+    - challenger.delta_auc
+    - challenger.name
+    - condition_number
+    - csi.age
+    - csi.bill_mean_6m
+    - csi.bill_trend_6m
+    - csi.delinq_count_6m
+    - csi.delinq_last
+    - csi.delinq_max_6m
+    - csi.limit_bal
+    - csi.max
+    - csi.pay_ratio_last
+    - csi.pay_ratio_mean_6m
+    - csi.utilisation
+    - deciles.test
+    - deciles.test.top2_capture
+    - deciles.train
+    - deciles.train.top2_capture
+    - guidance.0a0c83585dcb95ba
+    - guidance.273fd684d5a7c123
+    - guidance.688eead9b5ac7dfb
+    - guidance.70baba588b0eb25b
+    - guidance.78ef53a49ee86008
+    - guidance.c8664af1d12442aa
+    - guidance.cbe598ebd328c64f
+    - leakage.duplicates.train
+    - leakage.name_screen
+    - leakage.name_screen.n_matched
+    - leakage.overlap
+    - leakage.overlap.features
+    - leakage.overlap.ids
+    - leakage.target_corr
+    - leakage.target_corr.max_single_feature_auc
+    - leakage.timing
+    - leakage.timing.n_flagged
+    - metrics.test.auc
+    - metrics.test.brier
+    - metrics.test.event_rate
+    - metrics.test.gini
+    - metrics.test.ks
+    - metrics.test.logloss
+    - metrics.test.mean_predicted
+    - metrics.test.n
+    - metrics.train.auc
+    - metrics.train.brier
+    - metrics.train.event_rate
+    - metrics.train.gini
+    - metrics.train.ks
+    - metrics.train.logloss
+    - metrics.train.mean_predicted
+    - metrics.train.n
+    - profile.test.describe
+    - profile.test.missing
+    - profile.test.missing.max
+    - profile.test.n
+    - profile.test.schema
+    - profile.train.describe
+    - profile.train.missing
+    - profile.train.missing.max
+    - profile.train.n
+    - profile.train.schema
+    - psi.age
+    - psi.bill_mean_6m
+    - psi.bill_trend_6m
+    - psi.delinq_count_6m
+    - psi.delinq_last
+    - psi.delinq_max_6m
+    - psi.limit_bal
+    - psi.max
+    - psi.pay_ratio_last
+    - psi.pay_ratio_mean_6m
+    - psi.utilisation
+    - psi.y_score
+    - rule.calibration_first_event_rate
+    - run.data_test
+    - run.data_train
+    - run.duration_s
+    - run.features
+    - run.metrics
+    - run.model_summary
+    - run.predictions_test
+    - run.predictions_train
+    - run.splits
+    - run.status
+    - run.stderr
+    - run.stdout
+    - runtime.max_seconds
+    - sign_check.age.agrees
+    - sign_check.age.coef_sign
+    - sign_check.age.univariate_direction
+    - sign_check.bill_mean_6m.agrees
+    - sign_check.bill_mean_6m.coef_sign
+    - sign_check.bill_mean_6m.univariate_direction
+    - sign_check.bill_trend_6m.agrees
+    - sign_check.bill_trend_6m.coef_sign
+    - sign_check.bill_trend_6m.univariate_direction
+    - sign_check.delinq_count_6m.agrees
+    - sign_check.delinq_count_6m.coef_sign
+    - sign_check.delinq_count_6m.univariate_direction
+    - sign_check.delinq_last.agrees
+    - sign_check.delinq_last.coef_sign
+    - sign_check.delinq_last.univariate_direction
+    - sign_check.delinq_max_6m.agrees
+    - sign_check.delinq_max_6m.coef_sign
+    - sign_check.delinq_max_6m.univariate_direction
+    - sign_check.limit_bal.agrees
+    - sign_check.limit_bal.coef_sign
+    - sign_check.limit_bal.univariate_direction
+    - sign_check.n_disagreements
+    - sign_check.pay_ratio_last.agrees
+    - sign_check.pay_ratio_last.coef_sign
+    - sign_check.pay_ratio_last.univariate_direction
+    - sign_check.pay_ratio_mean_6m.agrees
+    - sign_check.pay_ratio_mean_6m.coef_sign
+    - sign_check.pay_ratio_mean_6m.univariate_direction
+    - sign_check.utilisation.agrees
+    - sign_check.utilisation.coef_sign
+    - sign_check.utilisation.univariate_direction
+    - threshold.C1.calibration_slope.max
+    - threshold.C1.calibration_slope.min
+    - threshold.C1.mean_ratio_rel
+    - threshold.D1.missing_gap
+    - threshold.E1.delta_auc
+    - threshold.L1.single_feature_auc
+    - threshold.L2.overlap
+    - threshold.L2.overlap.features_effective
+    - threshold.M1.condition_number
+    - threshold.M1.vif
+    - threshold.O1.auc_gap
+    - threshold.S1.psi
+    - threshold.package.auc.test.min
+    - threshold.package.brier.test.max
+    - threshold.package.calibration_slope.test.max
+    - threshold.package.calibration_slope.test.min
+    - threshold.package.psi.max
+    - thresholds.evaluation
+    - vif.age
+    - vif.bill_mean_6m
+    - vif.bill_trend_6m
+    - vif.delinq_count_6m
+    - vif.delinq_last
+    - vif.delinq_max_6m
+    - vif.limit_bal
+    - vif.max
+    - vif.pay_ratio_last
+    - vif.pay_ratio_mean_6m
+    - vif.utilisation
+    columns:
+    - client_id
+    - limit_bal
+    - age
+    - utilisation
+    - pay_ratio_last
+    - pay_ratio_mean_6m
+    - delinq_last
+    - delinq_count_6m
+    - delinq_max_6m
+    - bill_mean_6m
+    - bill_trend_6m
+    - default_next_month
+    remaining: 4
+    history: []
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    prompt_bytes: 10535
+    prompt_sha256: ed0f06f74e0df701
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/follow_up_action.json
+  - type: not_contains
+    all:
+    - check_stability
+    - run_scenarios
+    - check_drift
+    - compute_psi
+    - run_backtest
+    - profile_features
+    - check_overfitting
+    case_sensitive: false
+  budget:
+    max_cost_usd: 0.17
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - planner
+  - credit_default
+  - synthetic
+- id: plan_followup.after_refusal
+  input:
+    candidates:
+    - defect_class: E1
+      evidence:
+      - 5c6c2bfc01a2a6a2
+      - bf5be719e087fe91
+      - c9e502ae8894868f
+      - e042774c838f7426
+      detail: a hist_gradient_boosting challenger reaches an AUC of 0.8240 on test against the champion's
+        0.7480, a lead of 0.0760 against an effective-challenge threshold of 0.03
+      suggested_severity: low
+      tool: challenger_compare
+    completed:
+    - tool: run_model
+      args:
+        synthetic: 5000
+      classes: []
+    - tool: profile_data
+      args: {}
+      classes: []
+    - tool: compute_metrics
+      args: {}
+      classes: []
+    - tool: check_leakage
+      args: {}
+      classes: []
+    - tool: check_collinearity
+      args: {}
+      classes: []
+    - tool: challenger_compare
+      args: {}
+      classes:
+      - E1
+    - tool: retrieve_guidance
+      args:
+        query: model validation elements scope and purpose
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: evaluation of conceptual soundness model design and variables
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: data quality accuracy completeness and representativeness
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: outcomes analysis comparing model output to actual outcomes
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: sensitivity analysis stability benchmarking alternative models
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: model validation findings deficiencies and remediation
+      classes: []
+    - tool: retrieve_guidance
+      args:
+        query: ongoing monitoring model performance over time
+      classes: []
+    artifact_names:
+    - ablation.age.delta_auc
+    - ablation.baseline_auc
+    - ablation.bill_mean_6m.delta_auc
+    - ablation.bill_trend_6m.delta_auc
+    - ablation.delinq_count_6m.delta_auc
+    - ablation.delinq_last.delta_auc
+    - ablation.delinq_max_6m.delta_auc
+    - ablation.limit_bal.delta_auc
+    - ablation.pay_ratio_last.delta_auc
+    - ablation.pay_ratio_mean_6m.delta_auc
+    - ablation.utilisation.delta_auc
+    - calibration.mean_rel_gap.test
+    - calibration.mean_rel_gap.train
+    - calibration.test
+    - calibration.train
+    - calibration_intercept.test
+    - calibration_intercept.train
+    - calibration_slope.test
+    - calibration_slope.train
+    - challenger.auc
+    - challenger.brier
+    - challenger.delta_auc
+    - challenger.name
+    - condition_number
+    - csi.age
+    - csi.bill_mean_6m
+    - csi.bill_trend_6m
+    - csi.delinq_count_6m
+    - csi.delinq_last
+    - csi.delinq_max_6m
+    - csi.limit_bal
+    - csi.max
+    - csi.pay_ratio_last
+    - csi.pay_ratio_mean_6m
+    - csi.utilisation
+    - deciles.test
+    - deciles.test.top2_capture
+    - deciles.train
+    - deciles.train.top2_capture
+    - guidance.0a0c83585dcb95ba
+    - guidance.273fd684d5a7c123
+    - guidance.688eead9b5ac7dfb
+    - guidance.70baba588b0eb25b
+    - guidance.78ef53a49ee86008
+    - guidance.c8664af1d12442aa
+    - guidance.cbe598ebd328c64f
+    - leakage.duplicates.train
+    - leakage.name_screen
+    - leakage.name_screen.n_matched
+    - leakage.overlap
+    - leakage.overlap.features
+    - leakage.overlap.ids
+    - leakage.target_corr
+    - leakage.target_corr.max_single_feature_auc
+    - leakage.timing
+    - leakage.timing.n_flagged
+    - metrics.test.auc
+    - metrics.test.brier
+    - metrics.test.event_rate
+    - metrics.test.gini
+    - metrics.test.ks
+    - metrics.test.logloss
+    - metrics.test.mean_predicted
+    - metrics.test.n
+    - metrics.train.auc
+    - metrics.train.brier
+    - metrics.train.event_rate
+    - metrics.train.gini
+    - metrics.train.ks
+    - metrics.train.logloss
+    - metrics.train.mean_predicted
+    - metrics.train.n
+    - profile.test.describe
+    - profile.test.missing
+    - profile.test.missing.max
+    - profile.test.n
+    - profile.test.schema
+    - profile.train.describe
+    - profile.train.missing
+    - profile.train.missing.max
+    - profile.train.n
+    - profile.train.schema
+    - psi.age
+    - psi.bill_mean_6m
+    - psi.bill_trend_6m
+    - psi.delinq_count_6m
+    - psi.delinq_last
+    - psi.delinq_max_6m
+    - psi.limit_bal
+    - psi.max
+    - psi.pay_ratio_last
+    - psi.pay_ratio_mean_6m
+    - psi.utilisation
+    - psi.y_score
+    - rule.calibration_first_event_rate
+    - run.data_test
+    - run.data_train
+    - run.duration_s
+    - run.features
+    - run.metrics
+    - run.model_summary
+    - run.predictions_test
+    - run.predictions_train
+    - run.splits
+    - run.status
+    - run.stderr
+    - run.stdout
+    - runtime.max_seconds
+    - sign_check.age.agrees
+    - sign_check.age.coef_sign
+    - sign_check.age.univariate_direction
+    - sign_check.bill_mean_6m.agrees
+    - sign_check.bill_mean_6m.coef_sign
+    - sign_check.bill_mean_6m.univariate_direction
+    - sign_check.bill_trend_6m.agrees
+    - sign_check.bill_trend_6m.coef_sign
+    - sign_check.bill_trend_6m.univariate_direction
+    - sign_check.delinq_count_6m.agrees
+    - sign_check.delinq_count_6m.coef_sign
+    - sign_check.delinq_count_6m.univariate_direction
+    - sign_check.delinq_last.agrees
+    - sign_check.delinq_last.coef_sign
+    - sign_check.delinq_last.univariate_direction
+    - sign_check.delinq_max_6m.agrees
+    - sign_check.delinq_max_6m.coef_sign
+    - sign_check.delinq_max_6m.univariate_direction
+    - sign_check.limit_bal.agrees
+    - sign_check.limit_bal.coef_sign
+    - sign_check.limit_bal.univariate_direction
+    - sign_check.n_disagreements
+    - sign_check.pay_ratio_last.agrees
+    - sign_check.pay_ratio_last.coef_sign
+    - sign_check.pay_ratio_last.univariate_direction
+    - sign_check.pay_ratio_mean_6m.agrees
+    - sign_check.pay_ratio_mean_6m.coef_sign
+    - sign_check.pay_ratio_mean_6m.univariate_direction
+    - sign_check.utilisation.agrees
+    - sign_check.utilisation.coef_sign
+    - sign_check.utilisation.univariate_direction
+    - threshold.C1.calibration_slope.max
+    - threshold.C1.calibration_slope.min
+    - threshold.C1.mean_ratio_rel
+    - threshold.D1.missing_gap
+    - threshold.E1.delta_auc
+    - threshold.L1.single_feature_auc
+    - threshold.L2.overlap
+    - threshold.L2.overlap.features_effective
+    - threshold.M1.condition_number
+    - threshold.M1.vif
+    - threshold.O1.auc_gap
+    - threshold.S1.psi
+    - threshold.package.auc.test.min
+    - threshold.package.brier.test.max
+    - threshold.package.calibration_slope.test.max
+    - threshold.package.calibration_slope.test.min
+    - threshold.package.psi.max
+    - thresholds.evaluation
+    - vif.age
+    - vif.bill_mean_6m
+    - vif.bill_trend_6m
+    - vif.delinq_count_6m
+    - vif.delinq_last
+    - vif.delinq_max_6m
+    - vif.limit_bal
+    - vif.max
+    - vif.pay_ratio_last
+    - vif.pay_ratio_mean_6m
+    - vif.utilisation
+    columns:
+    - client_id
+    - limit_bal
+    - age
+    - utilisation
+    - pay_ratio_last
+    - pay_ratio_mean_6m
+    - delinq_last
+    - delinq_count_6m
+    - delinq_max_6m
+    - bill_mean_6m
+    - bill_trend_6m
+    - default_next_month
+    remaining: 2
+    history:
+    - step: 1
+      tool: check_stability
+      args: {}
+      why: compare the model's discrimination across regimes
+      accepted: false
+      reason: 'not applicable to this package: package ''credit_default'' declares no `regime.column`,
+        so there are no regimes to compare and Appendix D lists `check_stability` as not checked'
+      executed: false
+      error: ''
+    - step: 2
+      tool: compute_metrics
+      args:
+        subpopulation:
+          column: credit_limit
+          rule: above_median
+      why: recompute the metrics on the high-limit half of each split
+      accepted: true
+      reason: ''
+      executed: false
+      error: data_train.csv of package 'credit_default' has no column 'credit_limit', so the sub-population
+        cannot be selected; it has ['client_id', 'limit_bal', 'age', 'utilisation', 'pay_ratio_last',
+        'pay_ratio_mean_6m', 'delinq_last', 'delinq_count_6m', 'delinq_max_6m', 'bill_mean_6m', 'bill_trend_6m',
+        'default_next_month']
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    prompt_bytes: 11238
+    prompt_sha256: 32964faf4b5a9c3b
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/follow_up_action.json
+  - type: not_contains
+    all:
+    - check_stability
+    - run_scenarios
+    - check_drift
+    - compute_psi
+    - run_backtest
+    - profile_features
+    - check_overfitting
+    - credit_limit
+    case_sensitive: false
+  budget:
+    max_cost_usd: 0.18
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - planner
+  - credit_default
+  - synthetic
+  - after-refusal

@@ -1,0 +1,88 @@
+- id: extract_claims.conceptual_soundness
+  input:
+    section: conceptual_soundness
+    prose: |-
+      This section assesses the design of the credit_default 1.0 champion — its modeling choices, the variables it retains, the interpretability evidence around its fitted parameters, and benchmarking against an alternative model — as contemplated for a conceptual soundness review [[reg:SR26-2:V.1.a]].
+
+      ### Design and inputs
+
+      The champion is a single linear-in-coefficients scoring model with an intercept of -1.442 [[art:ca1c764c:run.model_summary#intercept]], fitted on 21000 [[art:ca1c764c:run.model_summary#n_train]] training rows.
+      The declared feature inventory holds 12 [[art:792cb79c:run.features#n]] features.
+      Of those, 10 [[art:792cb79c:run.features#before_period_start]] are known before the performance period opens and 2 [[art:792cb79c:run.features#at_origination]] are fixed at origination.
+      None are observed during the performance period, 0 [[art:792cb79c:run.features#during_period]], and none after the outcome is determined, 0 [[art:792cb79c:run.features#after_outcome]].
+      Every input is therefore available at the moment the score would be used, which is what the intended decision point requires.
+
+      ### The developer's own feature screen
+
+      The developer applied a collinearity screen with a cutoff of 10 [[art:ca1c764c:run.model_summary#vif_threshold]] on the variance inflation factor.
+      It removed bill_last, whose inflation factor was 33.8 [[art:ca1c764c:run.model_summary#removed.bill_last.vif]], and utilisation_mean_6m at 10.96 [[art:ca1c764c:run.model_summary#removed.utilisation_mean_6m.vif]].
+      Both of the removed variables restate information the retained billing and utilisation terms already carry, so the screen removed redundancy rather than a distinct risk driver, and the cutoff itself is a conventional one for a linear model of this kind.
+
+      ### Coefficients and the signs subject matter expects
+
+      The three delinquency terms carry the largest weights and all push the score toward default: delinq_last at 0.4847 [[art:ca1c764c:run.model_summary#coefficients.delinq_last.value]], delinq_count_6m at 0.2801 [[art:ca1c764c:run.model_summary#coefficients.delinq_count_6m.value]], and delinq_max_6m at 0.2263 [[art:ca1c764c:run.model_summary#coefficients.delinq_max_6m.value]].
+      That is the direction credit subject matter expects, since recent and repeated delinquency is the strongest observable precursor of default.
+      The next largest weight is on the credit limit, -0.2091 [[art:ca1c764c:run.model_summary#coefficients.limit_bal.value]], and its negative sign matches the expectation that larger granted limits mark better-underwritten borrowers.
+      The remaining weights are small by comparison: pay_ratio_mean_6m at -0.09824 [[art:ca1c764c:run.model_summary#coefficients.pay_ratio_mean_6m.value]], utilisation at -0.08257 [[art:ca1c764c:run.model_summary#coefficients.utilisation.value]], age at 0.07253 [[art:ca1c764c:run.model_summary#coefficients.age.value]], bill_trend_6m at 0.04808 [[art:ca1c764c:run.model_summary#coefficients.bill_trend_6m.value]], bill_mean_6m at -0.007568 [[art:ca1c764c:run.model_summary#coefficients.bill_mean_6m.value]], and pay_ratio_last at 0.00678 [[art:ca1c764c:run.model_summary#coefficients.pay_ratio_last.value]].
+      The sustained repayment ratio enters negative, which is the expected direction: borrowers who repay a larger share of the bill over six months default less often.
+
+      ### Fitted signs against univariate direction
+
+      Among the retained features, the count whose fitted sign contradicts the direction of that feature's own single-feature relationship with the outcome on train is 3 [[art:e223cd4a:sign_check.n_disagreements]].
+      The three are utilisation, pay_ratio_last, and bill_trend_6m, and each is set out below with the ablation delta that measures how much the model actually leans on the feature; the baseline these deltas are measured from is a test AUC of 0.755 [[art:789072f8:ablation.baseline_auc]] for a refit of the champion's form on every retained feature.
+
+      Utilisation is fitted negative, -1 [[art:46230409:sign_check.utilisation.coef_sign]], while on its own it points positive toward default, 1 [[art:f0995196:sign_check.utilisation.univariate_direction]], so the two disagree, 0 [[art:cb5a7bc7:sign_check.utilisation.agrees]].
+      Refitting without utilisation changes test AUC by 1.92e-05 [[art:dc9ac505:ablation.utilisation.delta_auc]], an improvement rather than a loss, so the model is not drawing discrimination from this term and the sign reversal reflects the credit limit and billing terms absorbing what utilisation would otherwise carry.
+
+      The most recent repayment ratio is fitted positive, 1 [[art:f018263e:sign_check.pay_ratio_last.coef_sign]], against a univariate direction that is negative, -1 [[art:f8e46d75:sign_check.pay_ratio_last.univariate_direction]], and the two disagree, 0 [[art:79abee77:sign_check.pay_ratio_last.agrees]].
+      A positive weight says a larger last repayment raises the score, which runs against what credit subject matter expects, but refitting without the term costs -5.589e-05 [[art:e26d8112:ablation.pay_ratio_last.delta_auc]] of test AUC, so the counter-intuitive sign sits on a term the model barely uses and its practical effect on any score is slight.
+
+      The six-month billing trend is fitted positive, 1 [[art:abd4aaba:sign_check.bill_trend_6m.coef_sign]], against a negative univariate direction, -1 [[art:a9bff389:sign_check.bill_trend_6m.univariate_direction]], and the two disagree, 0 [[art:c0f6d07d:sign_check.bill_trend_6m.agrees]].
+      This is the disagreement that matters most of the three: refitting without the term costs -0.001393 [[art:99f9dd71:ablation.bill_trend_6m.delta_auc]] of test AUC, so the model is drawing real discrimination through a coefficient whose direction is opposite to the feature's standalone relationship with default.
+      A rising billing trend is conventionally read as growing exposure and hence higher risk, and the positive fitted weight is consistent with that reading even though the univariate direction on train is not, so the disagreement is better explained by conditioning on the delinquency and limit terms than by an error in the specification.
+
+      The features whose fitted signs agree with their univariate directions include the dominant delinquency terms, delinq_last at 1 [[art:a8ba9372:sign_check.delinq_last.agrees]], delinq_count_6m at 1 [[art:a337d16b:sign_check.delinq_count_6m.agrees]], and delinq_max_6m at 1 [[art:da92a015:sign_check.delinq_max_6m.agrees]], together with limit_bal at 1 [[art:103d99fb:sign_check.limit_bal.agrees]], pay_ratio_mean_6m at 1 [[art:7e9a76ca:sign_check.pay_ratio_mean_6m.agrees]], bill_mean_6m at 1 [[art:89279c3b:sign_check.bill_mean_6m.agrees]], and age at 1 [[art:4116add1:sign_check.age.agrees]].
+      The weight the model places on each of these is visible in the refit deltas: delinq_last at -0.005914 [[art:40f4e6bf:ablation.delinq_last.delta_auc]] and limit_bal at -0.003748 [[art:57710b23:ablation.limit_bal.delta_auc]] are the two features the champion depends on most, followed by age at -0.002225 [[art:f6fdd709:ablation.age.delta_auc]], delinq_count_6m at -0.002146 [[art:db90576e:ablation.delinq_count_6m.delta_auc]], delinq_max_6m at -0.001133 [[art:18cb1559:ablation.delinq_max_6m.delta_auc]], pay_ratio_mean_6m at -0.0009816 [[art:cba98844:ablation.pay_ratio_mean_6m.delta_auc]], and bill_mean_6m at -0.0001527 [[art:5b4423ab:ablation.bill_mean_6m.delta_auc]].
+      Read together, the discrimination is concentrated in the most recent delinquency marker and the credit limit, and the model's leading weights sit on the variables a credit analyst would expect to lead.
+
+      ### Effective challenge
+
+      The champion scores 0.755 [[art:365b7034:metrics.test.auc]] AUC on test with a Brier score of 0.1385 [[art:86e93c8f:metrics.test.brier]].
+      The challenger reaches 0.7789 [[art:5646e7f3:challenger.auc]] AUC on the same test data with a Brier score of 0.135 [[art:2031a154:challenger.brier]], so it is both better ranked and better calibrated than the champion.
+      The challenger's lead in AUC is 0.02391 [[art:3877bdd0:challenger.delta_auc]].
+      The threshold set for this review treats a challenger lead as material at 0.03 [[art:e042774c:threshold.E1.delta_auc]], and the observed lead sits below it.
+      On that criterion the challenger's advantage is not large enough to unseat the champion's functional form, though the margin is close enough to the threshold that the comparison is worth re-running whenever the model is refit or the population shifts.
+
+      ### Judgement
+
+      The design is defensible on its own terms: the inputs are all knowable at the decision point, the collinearity screen removed only redundant variables, the largest weights sit on delinquency and the credit limit with the signs subject matter expects, and a stronger alternative did not beat the champion by the margin this review set as decisive.
+      The sign disagreements and ablation deltas above are developmental evidence supporting that judgement, and no rule in this review fires on either family, so nothing in this section is carried forward to the findings section.
+      The qualification worth recording is that one of the disagreements sits on a term the model genuinely uses, which is a reason to keep the specification under review rather than a reason to reject it.
+  metadata:
+    package: credit_default
+    version: '1.0'
+    source: eval/results/first-live/credit/report.md
+    source_section: 2. Conceptual soundness
+    runs: 5
+    floor: 0.8
+    prompt_sha256: 4dd4626ddb76735a
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/extracted_claims.json
+  - type: contains
+    all:
+    - '-1.442'
+    - '0.4847'
+    - '-0.2091'
+    - '0.07253'
+    - '-0.001393'
+    - '-0.002225'
+    case_sensitive: true
+  budget:
+    max_cost_usd: 0.66
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - verifier
+  - credit_default
+  - live-prose

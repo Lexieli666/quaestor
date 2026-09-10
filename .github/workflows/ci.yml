@@ -80,6 +80,10 @@ jobs:
       - name: Gate 6 — Probatio suite in replay, zero provider calls
         run: |
           if [ -d tests/probatio ]; then
+            # The model the tapes were recorded against comes from `addopts`: an interaction
+            # key includes the resolved model, so a session that names none keys on the fake
+            # provider's `fake-1` and can never hit a real tape (DECISIONS D-151). The provider
+            # stays `fake` and is never called; replay never touches it.
             pytest tests/probatio --cassette=replay
           else
             echo "gate 6: tests/probatio does not exist yet (Phase 11)"

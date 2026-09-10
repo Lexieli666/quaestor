@@ -610,13 +610,20 @@ def test_a_slice_that_is_the_whole_split_is_refused_and_the_report_still_renders
 def test_the_loop_is_told_that_a_slice_which_is_the_whole_split_is_refused(
     tmp_path: Path,
 ) -> None:
-    """D-122: the planner is told the rule before it spends a step finding it out."""
+    """D-122: the planner is told the rule before it spends a step finding it out.
+
+    The example the rule carries is pinned as well, because D-146 found it falsified by D-122
+    itself: under `above_median` = `> median`, a column whose median is its minimum selects at
+    most half the split, so the sentence's own first clause made its own example impossible. The
+    degenerate median rule is `below_median` on a column whose median is its *maximum*.
+    """
     llm = SectionFake(plan_actions=[{"stop": True}])
     run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
     prompt = next(call.prompt for call in llm.calls if "You are the planning half" in call.prompt)
     assert "A sub-population must be a proper part of the split." in prompt
     assert "a rule that resolves to the whole of it" in prompt
-    assert "on a column whose median is also its" in prompt
+    assert "`below_median` on a column whose median is also its\nmaximum" in prompt
+    assert "`above_median` on a column whose median is also its" not in prompt
     assert "`above_median` the rows strictly above it" in prompt
     assert "is refused with the share it selected" in prompt
 

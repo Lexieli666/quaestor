@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "description": "The one thing a drafter is asked for.\n\nAttributes:\n    markdown: The section's prose, without its level-2 heading.",
+  "properties": {
+    "markdown": {
+      "minLength": 1,
+      "title": "Markdown",
+      "type": "string"
+    }
+  },
+  "required": [
+    "markdown"
+  ],
+  "title": "DraftedSection",
+  "type": "object"
+}

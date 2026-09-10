@@ -1,0 +1,3260 @@
+- id: draft_section.summary
+  input:
+    section: summary
+    artifacts_json:
+    - name: calibration_slope.test
+      hash8: b7dbb687
+      kind: scalar
+      summary: 'logistic regression of the outcome on logit(p) on test: the slope'
+      value: 1.003
+      citation: '[[art:b7dbb687:calibration_slope.test]]'
+    - name: calibration_slope.train
+      hash8: d02e3091
+      kind: scalar
+      summary: 'logistic regression of the outcome on logit(p) on train: the slope'
+      value: 1.002
+      citation: '[[art:d02e3091:calibration_slope.train]]'
+    - name: challenger.delta_auc
+      hash8: c9e502ae
+      kind: scalar
+      summary: the challenger's AUC on test minus the champion's
+      value: 0.07598
+      citation: '[[art:c9e502ae:challenger.delta_auc]]'
+    - name: condition_number
+      hash8: e41b9562
+      kind: scalar
+      summary: Belsley's condition number of the column-standardised design
+      value: 5.547
+      citation: '[[art:e41b9562:condition_number]]'
+    - name: csi.max
+      hash8: e56cb179
+      kind: scalar
+      summary: the largest characteristic stability index
+      value: 0.02363
+      citation: '[[art:e56cb179:csi.max]]'
+    - name: metrics.test.auc
+      hash8: 5c6c2bfc
+      kind: scalar
+      summary: auc on test, recomputed by quaestor
+      value: 0.748
+      citation: '[[art:5c6c2bfc:metrics.test.auc]]'
+    - name: metrics.test.brier
+      hash8: bbe69430
+      kind: scalar
+      summary: brier on test, recomputed by quaestor
+      value: 0.1489
+      citation: '[[art:bbe69430:metrics.test.brier]]'
+    - name: metrics.test.event_rate
+      hash8: 9209d200
+      kind: scalar
+      summary: event_rate on test, recomputed by quaestor
+      value: 0.2247
+      citation: '[[art:9209d200:metrics.test.event_rate]]'
+    - name: metrics.test.gini
+      hash8: 8e5918d8
+      kind: scalar
+      summary: gini on test, recomputed by quaestor
+      value: 0.496
+      citation: '[[art:8e5918d8:metrics.test.gini]]'
+    - name: metrics.test.ks
+      hash8: '90751047'
+      kind: scalar
+      summary: ks on test, recomputed by quaestor
+      value: 0.4183
+      citation: '[[art:90751047:metrics.test.ks]]'
+    - name: metrics.test.logloss
+      hash8: dda8da69
+      kind: scalar
+      summary: logloss on test, recomputed by quaestor
+      value: 0.4673
+      citation: '[[art:dda8da69:metrics.test.logloss]]'
+    - name: metrics.test.mean_predicted
+      hash8: 4d2f8a37
+      kind: scalar
+      summary: mean_predicted on test, recomputed by quaestor
+      value: 0.2211
+      citation: '[[art:4d2f8a37:metrics.test.mean_predicted]]'
+    - name: metrics.test.n
+      hash8: 64fcf14d
+      kind: scalar
+      summary: n on test, recomputed by quaestor
+      value: 1500
+      citation: '[[art:64fcf14d:metrics.test.n]]'
+    - name: metrics.train.auc
+      hash8: 14b38a2b
+      kind: scalar
+      summary: auc on train, recomputed by quaestor
+      value: 0.7584
+      citation: '[[art:14b38a2b:metrics.train.auc]]'
+    - name: metrics.train.brier
+      hash8: be669a99
+      kind: scalar
+      summary: brier on train, recomputed by quaestor
+      value: 0.1489
+      citation: '[[art:be669a99:metrics.train.brier]]'
+    - name: metrics.train.event_rate
+      hash8: 133a5ff8
+      kind: scalar
+      summary: event_rate on train, recomputed by quaestor
+      value: 0.2246
+      citation: '[[art:133a5ff8:metrics.train.event_rate]]'
+    - name: metrics.train.gini
+      hash8: b4da846e
+      kind: scalar
+      summary: gini on train, recomputed by quaestor
+      value: 0.5169
+      citation: '[[art:b4da846e:metrics.train.gini]]'
+    - name: metrics.train.ks
+      hash8: ccc12729
+      kind: scalar
+      summary: ks on train, recomputed by quaestor
+      value: 0.4451
+      citation: '[[art:ccc12729:metrics.train.ks]]'
+    - name: metrics.train.logloss
+      hash8: 4f02e465
+      kind: scalar
+      summary: logloss on train, recomputed by quaestor
+      value: 0.465
+      citation: '[[art:4f02e465:metrics.train.logloss]]'
+    - name: metrics.train.mean_predicted
+      hash8: 605cce58
+      kind: scalar
+      summary: mean_predicted on train, recomputed by quaestor
+      value: 0.2246
+      citation: '[[art:605cce58:metrics.train.mean_predicted]]'
+    - name: metrics.train.n
+      hash8: 564683ee
+      kind: scalar
+      summary: n on train, recomputed by quaestor
+      value: 3500
+      citation: '[[art:564683ee:metrics.train.n]]'
+    - name: profile.test.n
+      hash8: 2193cf5f
+      kind: scalar
+      summary: rows in test
+      value: 1500
+      citation: '[[art:2193cf5f:profile.test.n]]'
+    - name: profile.train.n
+      hash8: 2510d49d
+      kind: scalar
+      summary: rows in train
+      value: 3500
+      citation: '[[art:2510d49d:profile.train.n]]'
+    - name: psi.max
+      hash8: 381b2570
+      kind: scalar
+      summary: the largest train-to-test PSI, score included
+      value: 0.01095
+      citation: '[[art:381b2570:psi.max]]'
+    - name: runtime.max_seconds
+      hash8: 2ad8d1a5
+      kind: scalar
+      summary: the wall-clock cap package.yaml declares for the subject
+      value: 300
+      citation: '[[art:2ad8d1a5:runtime.max_seconds]]'
+    - name: threshold.package.auc.test.min
+      hash8: 8bfd02cc
+      kind: scalar
+      summary: package.yaml declares auc min 0.7
+      value: 0.7
+      citation: '[[art:8bfd02cc:threshold.package.auc.test.min]]'
+    - name: threshold.package.brier.test.max
+      hash8: d0f98b9c
+      kind: scalar
+      summary: package.yaml declares brier max 0.2
+      value: 0.2
+      citation: '[[art:d0f98b9c:threshold.package.brier.test.max]]'
+    - name: threshold.package.calibration_slope.test.max
+      hash8: 0adb7a89
+      kind: scalar
+      summary: package.yaml declares calibration_slope max 1.2
+      value: 1.2
+      citation: '[[art:0adb7a89:threshold.package.calibration_slope.test.max]]'
+    - name: threshold.package.calibration_slope.test.min
+      hash8: 95fdb848
+      kind: scalar
+      summary: package.yaml declares calibration_slope min 0.8
+      value: 0.8
+      citation: '[[art:95fdb848:threshold.package.calibration_slope.test.min]]'
+    - name: threshold.package.psi.max
+      hash8: fbb5a9d1
+      kind: scalar
+      summary: package.yaml declares psi max 0.25
+      value: 0.25
+      citation: '[[art:fbb5a9d1:threshold.package.psi.max]]'
+    - name: vif.max
+      hash8: 9ae7c45b
+      kind: scalar
+      summary: the largest variance inflation factor
+      value: 7.295
+      citation: '[[art:9ae7c45b:vif.max]]'
+    candidates: []
+    guidance: |-
+      Outcomes analysis compares model outputs to corresponding real-world outcomes to
+      assess model performance relative to model objectives and business use. Outcomes analysis and
+      other elements of the validation process may identify material errors or persistent deviations
+      outside of the banking organization’s established performance thresholds. In such cases, model
+      adjustment, recalibration, or redevelopment may be warranted.
+      Outcomes analysis can take many forms, including testing conducted during model
+      development, reports or analysis performed as part of ongoing monitoring, or standalone
+      activities such as back-testing or outlier analysis. A banking organization’s approach depends on
+      the model’s objectives, methodology, and data availability. As part of model validation, sound
+      practice involves reviewing outcomes analysis to evaluate the reasonableness and
+      appropriateness of the results, with additional analysis and testing, if warranted. When a model’s
+      design relies substantially on expert judgment, quantitative outcomes analysis helps to evaluate
+      the quality of that judgment.
+
+      ---
+
+      Model validation evaluates whether models perform as expected and includes an
+      assessment of a model’s reliability and its limitations. The nature and rigor of validation generally
+      align with the model’s approach, use, and materiality. Sound validation identifies model
+      limitations and errors and clarifies appropriate use and whether corrective actions may be
+      warranted.
+      Validation provides insight into the reliability of a given model, based on its underlying
+      assumptions, methods, data, and relevant theories, as appropriate. This understanding helps
+      characterize the source and extent of the model risk. Validation can reveal performance
+      deterioration over time and inform judgments about acceptable performance ranges. When
+      performance deviates meaningfully from expectations, banking organizations generally consider
+      whether model adjustments, recalibration, or redevelopment are warranted.
+      The timing, nature, and frequency of validation activities vary based on model purpose,
+      model methodology, frequency and scope of model changes, data limitations, and other practical
+      constraints. Sound practice recognizes that validation approaches may differ across models based
+      on their characteristics and use. Validation generally occurs prior to a model’s first use.
+      However, certain circumstances (e.g., an urgent business need) may necessitate using the model
+      before validation is completed. In those cases, sound practice involves greater attention to the
+      model’s limitations when considering the appropriateness of its use, informing relevant
+      stakeholders of those limitations, and determining appropriate controls (e.g., placing limits on
+      model use or more closely monitoring its performance).
+      The quality of validation process depends on the rigor and effectiveness of the review
+      rather than on organizational structure of the banking organization’s risk management function.
+      Technical knowledge and modeling expertise enable appropriate analysis, meaningful critique,
+      and sound judgment about model performance and risk.
+      Even with sound modeling practices and rigorous validation, material model risk can
+      remain. Users of model output benefit from understanding and communicating limitations,
+      monitoring performance, periodically reviewing relevance, and supplementing model output
+      with complementary analysis and information.
+
+      ---
+
+      The widespread use of customized vendor and other third-party products—including
+      data, parameter values, or complete models—can present unique challenges for validation and
+      other model risk management activities. Additionally, because certain components may be
+      proprietary, banking organizations may not receive from the vendor the underlying code, data, or
+      methodology that they would have if a model were developed internally. Nevertheless, the
+      principles of model risk management remain applicable.
+      An important element of model risk management is the validation of vendor products,
+      either by internal or outside parties. Sound practice includes developing an understanding of the
+      vendor model, including its conceptual soundness, design, development data, and performance.
+      Similarly, sound practice involves conducting ongoing monitoring and outcome analysis to
+      assess whether vendor models are accurate, remain fit for purpose, and continue to be reliable.
+      Such analysis can also be used to support any overlay or adjustment to model output. In cases
+      where vendor models are customized to fit a banking organization’s specific business needs,
+      sound practice also involves appropriately documenting, justifying, and evaluating adjustments
+      made to customize the model as part of model validation.
+
+      ---
+
+      The purpose of this document is to provide comprehensive guidance for banks on
+      effective model risk management. Rigorous model validation plays a critical role in
+      model risk management; however, sound development, implementation, and use of
+      models are also vital elements. Furthermore, model risk management encompasses
+      governance and control mechanisms such as board and senior management oversight,
+      policies and procedures, controls and compliance, and an appropriate incentive and
+      organizational structure.
+      Previous guidance and other publications issued by the OCC and the Federal Reserve on
+      the use of models pay particular attention to model validation. [Footnote 2
+      - For instance, the OCC provided guidance on model risk, focusing on model validation, in OCC 2000-16
+      (May 30, 2000), other bulletins, and certain subject matter booklets of the Comptroller's Handbook. The
+      Federal Reserve issued SR Letter 09-01, "Application of the Market Risk Rule in Bank Holding Companies
+      and State Member Banks," which highlights various concepts pertinent to model risk management,
+      including standards for validation and review, model validation documentation, and back-testing. The
+      Federal Reserve's Trading and Capital-Markets Activities Manual also discusses validation and model risk
+      management. In addition, the advanced-approaches risk-based capital rules (12 CFR 3, Appendix C; 12
+      CFR 208, Appendix F; and 12 CFR 225, Appendix G) contain explicit validation requirements for subject
+      banking organizations. End of Footnote 2.]
+      Based on supervisory and
+      industry experience over the past several years, this document expands on existing
+      guidance—most importantly by broadening the scope to include all aspects of model risk
+      management. Many banks may already have in place a large portion of these practices,
+      but all banks should ensure that internal policies and procedures are consistent with the
+      risk management principles and supervisory expectations contained in this guidance.
+      Details may vary from bank to bank, as practical application of this guidance should be
+      customized to be commensurate with a bank's risk exposures, its business activities, and
+      the complexity and extent of its model use. For example, steps taken to apply this
+      guidance at a community bank using relatively few models of only moderate complexity
+      might be significantly less involved than those at a larger bank where use of models is
+      more extensive or complex. [Page Break]
+
+      ---
+
+      Banks rely heavily on quantitative analysis and models in most aspects of financial
+      decision making. [Footnote 1
+      - Unless otherwise indicated, banks refers to national banks and all other institutions for which the Office
+      of the Comptroller of the Currency is the primary supervisor, and to bank holding companies, state member
+      banks, and all other institutions for which the Federal Reserve Board is the primary supervisor. End of Footnote 1.]
+      They routinely use models for a broad range of activities, including
+      underwriting credits; valuing exposures, instruments, and positions; measuring risk;
+      managing and safeguarding client assets; determining capital and reserve adequacy; and
+      many other activities. In recent years, banks have applied models to more complex
+      products and with more ambitious scope, such as enterprise-wide risk measurement,
+      while the markets in which they are used have also broadened and changed. Changes in
+      regulation have spurred some of the recent developments, particularly the U.S. regulatory
+      capital rules for market, credit, and operational risk based on the framework developed
+      by the Basel Committee on Banking Supervision. Even apart from these regulatory
+      considerations, however, banks have been increasing the use of data-driven, quantitative
+      decision-making tools for a number of years.
+      The expanding use of models in all aspects of banking reflects the extent to which models
+      can improve business decisions, but models also come with costs. There is the direct cost
+      of devoting resources to develop and implement models properly. There are also the
+      potential indirect costs of relying on models, such as the possible adverse consequences
+      (including financial loss) of decisions based on models that are incorrect or misused.
+      Those consequences should be addressed by active management of model risk. [Page Break]
+      This guidance describes the key aspects of effective model risk management. Section II
+      explains the purpose and scope of the guidance, and Section III gives an overview of
+      model risk management. Section IV discusses robust model development,
+      implementation, and use. Section V describes the components of an effective validation
+      framework. Section VI explains the salient features of sound governance, policies, and
+      controls over model development, implementation, use, and validation. Section VII
+      concludes.
+
+      ---
+
+      An effective validation framework should include three core elements:
+      • Evaluation of conceptual soundness, including developmental evidence
+      • Ongoing monitoring, including process verification and benchmarking
+      • Outcomes analysis, including back-testing
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    heading: '## 1. Summary and scope'
+    guidance_query: model validation elements scope and purpose
+    brief: |-
+      Open with one sentence that says what the model is, what it predicts, and which guidance this
+      report follows, anchored by a [[reg:...]] citation. Then state how the subject was run and how
+      large each split is, then the headline result: which developer-declared thresholds the model
+      passes, each with the value and the bound, and how many findings were raised at which severity.
+      Do not describe a check that has no artifact in the JSON below.
+    spans:
+    - doc: SR26-2
+      section_id: V.1.b
+      heading: Outcomes Analysis
+    - doc: SR26-2
+      section_id: V
+      heading: Model Validation and Monitoring
+    - doc: SR26-2
+      section_id: VII
+      heading: Vendor and Other Third-Party Products
+    - doc: SR11-7
+      section_id: II
+      heading: Purpose and Scope
+    - doc: SR11-7
+      section_id: I
+      heading: Introduction
+    - doc: SR11-7
+      section_id: V.1
+      heading: Key Elements of Comprehensive Validation
+    findings: []
+    prompt_bytes: 20307
+    rubric_sha256: 9aab524960c01a07
+    prompt_sha256: 820145888ff24b37
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/drafted_section.json
+  - type: contains
+    all:
+    - '[[art:'
+    case_sensitive: true
+  - type: not_contains
+    all:
+    - ⟦unverified
+    - compliant
+    - certified
+    case_sensitive: false
+  - type: judge
+    rubric: grounding
+    threshold: 1.0
+  budget:
+    max_cost_usd: 0.48
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - drafter
+  - credit_default
+  - synthetic
+- id: draft_section.conceptual_soundness
+  input:
+    section: conceptual_soundness
+    artifacts_json:
+    - name: ablation.age.delta_auc
+      hash8: 59398b1b
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without age
+      value: 8.675e-05
+      citation: '[[art:59398b1b:ablation.age.delta_auc]]'
+    - name: ablation.baseline_auc
+      hash8: 3a44e438
+      kind: scalar
+      summary: AUC on test of a refit of the champion's functional form on every retained feature, the
+        level each ablation delta is measured from
+      value: 0.748
+      citation: '[[art:3a44e438:ablation.baseline_auc]]'
+    - name: ablation.bill_mean_6m.delta_auc
+      hash8: 3b91a889
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without bill_mean_6m
+      value: -0.0016
+      citation: '[[art:3b91a889:ablation.bill_mean_6m.delta_auc]]'
+    - name: ablation.bill_trend_6m.delta_auc
+      hash8: 096d7f98
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without bill_trend_6m
+      value: 0.003279
+      citation: '[[art:096d7f98:ablation.bill_trend_6m.delta_auc]]'
+    - name: ablation.delinq_count_6m.delta_auc
+      hash8: c5659def
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without delinq_count_6m
+      value: 0.0006812
+      citation: '[[art:c5659def:ablation.delinq_count_6m.delta_auc]]'
+    - name: ablation.delinq_last.delta_auc
+      hash8: 3150b111
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without delinq_last
+      value: -0.07585
+      citation: '[[art:3150b111:ablation.delinq_last.delta_auc]]'
+    - name: ablation.delinq_max_6m.delta_auc
+      hash8: 3a0d3a0c
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without delinq_max_6m
+      value: 0.0003598
+      citation: '[[art:3a0d3a0c:ablation.delinq_max_6m.delta_auc]]'
+    - name: ablation.limit_bal.delta_auc
+      hash8: 63faa640
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without limit_bal
+      value: 0.0004286
+      citation: '[[art:63faa640:ablation.limit_bal.delta_auc]]'
+    - name: ablation.pay_ratio_last.delta_auc
+      hash8: 5f39089e
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without pay_ratio_last
+      value: 0.002411
+      citation: '[[art:5f39089e:ablation.pay_ratio_last.delta_auc]]'
+    - name: ablation.pay_ratio_mean_6m.delta_auc
+      hash8: 90fa1178
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without pay_ratio_mean_6m
+      value: 0.006603
+      citation: '[[art:90fa1178:ablation.pay_ratio_mean_6m.delta_auc]]'
+    - name: ablation.utilisation.delta_auc
+      hash8: d4ad2039
+      kind: scalar
+      summary: change in test AUC when the champion's form is refitted without utilisation
+      value: -0.01977
+      citation: '[[art:d4ad2039:ablation.utilisation.delta_auc]]'
+    - name: challenger.auc
+      hash8: bf5be719
+      kind: scalar
+      summary: the challenger's AUC on test
+      value: 0.824
+      citation: '[[art:bf5be719:challenger.auc]]'
+    - name: challenger.brier
+      hash8: f9e0583d
+      kind: scalar
+      summary: the challenger's Brier score on test
+      value: 0.1258
+      citation: '[[art:f9e0583d:challenger.brier]]'
+    - name: challenger.delta_auc
+      hash8: c9e502ae
+      kind: scalar
+      summary: the challenger's AUC on test minus the champion's
+      value: 0.07598
+      citation: '[[art:c9e502ae:challenger.delta_auc]]'
+    - name: metrics.test.auc
+      hash8: 5c6c2bfc
+      kind: scalar
+      summary: auc on test, recomputed by quaestor
+      value: 0.748
+      citation: '[[art:5c6c2bfc:metrics.test.auc]]'
+    - name: metrics.test.brier
+      hash8: bbe69430
+      kind: scalar
+      summary: brier on test, recomputed by quaestor
+      value: 0.1489
+      citation: '[[art:bbe69430:metrics.test.brier]]'
+    - name: run.features
+      hash8: abbb748e
+      kind: json
+      summary: the subject's features.json
+      values:
+        after_outcome: 0
+        at_origination: 2
+        before_period_start: 10
+        during_period: 0
+        n: 12
+      citation_form: '[[art:abbb748e:run.features#<path>]]'
+    - name: run.model_summary
+      hash8: 74c10f15
+      kind: json
+      summary: the subject's model_summary.json
+      values:
+        coefficients.limit_bal.value: 0.07266
+        coefficients.age.value: -0.06726
+        coefficients.utilisation.value: 0.2662
+        coefficients.pay_ratio_last.value: 0.1026
+        coefficients.pay_ratio_mean_6m.value: -0.3554
+        coefficients.delinq_last.value: 0.7334
+        coefficients.delinq_count_6m.value: 0.1226
+        coefficients.delinq_max_6m.value: -0.03221
+        coefficients.bill_mean_6m.value: -0.3726
+        coefficients.bill_trend_6m.value: -0.2225
+        intercept: -1.396
+        n_train: 3500
+        removed.bill_last.vif: 160.9
+        removed.utilisation_mean_6m.vif: 36.36
+        vif_threshold: 10
+      citation_form: '[[art:74c10f15:run.model_summary#<path>]]'
+    - name: sign_check.age.agrees
+      hash8: 4116add1
+      kind: scalar
+      summary: 1 when the fitted sign on age agrees with its univariate direction, 0 when it does not
+      value: 1
+      citation: '[[art:4116add1:sign_check.age.agrees]]'
+    - name: sign_check.age.coef_sign
+      hash8: 6172eb93
+      kind: scalar
+      summary: the sign of the fitted coefficient on age
+      value: -1
+      citation: '[[art:6172eb93:sign_check.age.coef_sign]]'
+    - name: sign_check.age.univariate_direction
+      hash8: '66364583'
+      kind: scalar
+      summary: the sign of age's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:66364583:sign_check.age.univariate_direction]]'
+    - name: sign_check.bill_mean_6m.agrees
+      hash8: 89279c3b
+      kind: scalar
+      summary: 1 when the fitted sign on bill_mean_6m agrees with its univariate direction, 0 when it
+        does not
+      value: 1
+      citation: '[[art:89279c3b:sign_check.bill_mean_6m.agrees]]'
+    - name: sign_check.bill_mean_6m.coef_sign
+      hash8: cee1a18f
+      kind: scalar
+      summary: the sign of the fitted coefficient on bill_mean_6m
+      value: -1
+      citation: '[[art:cee1a18f:sign_check.bill_mean_6m.coef_sign]]'
+    - name: sign_check.bill_mean_6m.univariate_direction
+      hash8: 23b89c5d
+      kind: scalar
+      summary: the sign of bill_mean_6m's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:23b89c5d:sign_check.bill_mean_6m.univariate_direction]]'
+    - name: sign_check.bill_trend_6m.agrees
+      hash8: ff3cb24a
+      kind: scalar
+      summary: 1 when the fitted sign on bill_trend_6m agrees with its univariate direction, 0 when
+        it does not
+      value: 1
+      citation: '[[art:ff3cb24a:sign_check.bill_trend_6m.agrees]]'
+    - name: sign_check.bill_trend_6m.coef_sign
+      hash8: 7fd8474e
+      kind: scalar
+      summary: the sign of the fitted coefficient on bill_trend_6m
+      value: -1
+      citation: '[[art:7fd8474e:sign_check.bill_trend_6m.coef_sign]]'
+    - name: sign_check.bill_trend_6m.univariate_direction
+      hash8: a9bff389
+      kind: scalar
+      summary: the sign of bill_trend_6m's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:a9bff389:sign_check.bill_trend_6m.univariate_direction]]'
+    - name: sign_check.delinq_count_6m.agrees
+      hash8: a337d16b
+      kind: scalar
+      summary: 1 when the fitted sign on delinq_count_6m agrees with its univariate direction, 0 when
+        it does not
+      value: 1
+      citation: '[[art:a337d16b:sign_check.delinq_count_6m.agrees]]'
+    - name: sign_check.delinq_count_6m.coef_sign
+      hash8: 17afb6f9
+      kind: scalar
+      summary: the sign of the fitted coefficient on delinq_count_6m
+      value: 1
+      citation: '[[art:17afb6f9:sign_check.delinq_count_6m.coef_sign]]'
+    - name: sign_check.delinq_count_6m.univariate_direction
+      hash8: 549e904e
+      kind: scalar
+      summary: the sign of delinq_count_6m's own single-feature AUC on train minus 0.5
+      value: 1
+      citation: '[[art:549e904e:sign_check.delinq_count_6m.univariate_direction]]'
+    - name: sign_check.delinq_last.agrees
+      hash8: a8ba9372
+      kind: scalar
+      summary: 1 when the fitted sign on delinq_last agrees with its univariate direction, 0 when it
+        does not
+      value: 1
+      citation: '[[art:a8ba9372:sign_check.delinq_last.agrees]]'
+    - name: sign_check.delinq_last.coef_sign
+      hash8: 50d352f8
+      kind: scalar
+      summary: the sign of the fitted coefficient on delinq_last
+      value: 1
+      citation: '[[art:50d352f8:sign_check.delinq_last.coef_sign]]'
+    - name: sign_check.delinq_last.univariate_direction
+      hash8: a78648ba
+      kind: scalar
+      summary: the sign of delinq_last's own single-feature AUC on train minus 0.5
+      value: 1
+      citation: '[[art:a78648ba:sign_check.delinq_last.univariate_direction]]'
+    - name: sign_check.delinq_max_6m.agrees
+      hash8: c946359c
+      kind: scalar
+      summary: 1 when the fitted sign on delinq_max_6m agrees with its univariate direction, 0 when
+        it does not
+      value: 0
+      citation: '[[art:c946359c:sign_check.delinq_max_6m.agrees]]'
+    - name: sign_check.delinq_max_6m.coef_sign
+      hash8: a07d68ab
+      kind: scalar
+      summary: the sign of the fitted coefficient on delinq_max_6m
+      value: -1
+      citation: '[[art:a07d68ab:sign_check.delinq_max_6m.coef_sign]]'
+    - name: sign_check.delinq_max_6m.univariate_direction
+      hash8: b9088f4a
+      kind: scalar
+      summary: the sign of delinq_max_6m's own single-feature AUC on train minus 0.5
+      value: 1
+      citation: '[[art:b9088f4a:sign_check.delinq_max_6m.univariate_direction]]'
+    - name: sign_check.limit_bal.agrees
+      hash8: 0278aad1
+      kind: scalar
+      summary: 1 when the fitted sign on limit_bal agrees with its univariate direction, 0 when it does
+        not
+      value: 0
+      citation: '[[art:0278aad1:sign_check.limit_bal.agrees]]'
+    - name: sign_check.limit_bal.coef_sign
+      hash8: 6af6aef2
+      kind: scalar
+      summary: the sign of the fitted coefficient on limit_bal
+      value: 1
+      citation: '[[art:6af6aef2:sign_check.limit_bal.coef_sign]]'
+    - name: sign_check.limit_bal.univariate_direction
+      hash8: 56d284d6
+      kind: scalar
+      summary: the sign of limit_bal's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:56d284d6:sign_check.limit_bal.univariate_direction]]'
+    - name: sign_check.n_disagreements
+      hash8: e223cd4a
+      kind: scalar
+      summary: retained features whose fitted sign contradicts their univariate direction, of 10 checked
+      value: 3
+      citation: '[[art:e223cd4a:sign_check.n_disagreements]]'
+    - name: sign_check.pay_ratio_last.agrees
+      hash8: 79abee77
+      kind: scalar
+      summary: 1 when the fitted sign on pay_ratio_last agrees with its univariate direction, 0 when
+        it does not
+      value: 0
+      citation: '[[art:79abee77:sign_check.pay_ratio_last.agrees]]'
+    - name: sign_check.pay_ratio_last.coef_sign
+      hash8: f018263e
+      kind: scalar
+      summary: the sign of the fitted coefficient on pay_ratio_last
+      value: 1
+      citation: '[[art:f018263e:sign_check.pay_ratio_last.coef_sign]]'
+    - name: sign_check.pay_ratio_last.univariate_direction
+      hash8: f8e46d75
+      kind: scalar
+      summary: the sign of pay_ratio_last's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:f8e46d75:sign_check.pay_ratio_last.univariate_direction]]'
+    - name: sign_check.pay_ratio_mean_6m.agrees
+      hash8: 7e9a76ca
+      kind: scalar
+      summary: 1 when the fitted sign on pay_ratio_mean_6m agrees with its univariate direction, 0 when
+        it does not
+      value: 1
+      citation: '[[art:7e9a76ca:sign_check.pay_ratio_mean_6m.agrees]]'
+    - name: sign_check.pay_ratio_mean_6m.coef_sign
+      hash8: 077bb6b2
+      kind: scalar
+      summary: the sign of the fitted coefficient on pay_ratio_mean_6m
+      value: -1
+      citation: '[[art:077bb6b2:sign_check.pay_ratio_mean_6m.coef_sign]]'
+    - name: sign_check.pay_ratio_mean_6m.univariate_direction
+      hash8: 24dcef24
+      kind: scalar
+      summary: the sign of pay_ratio_mean_6m's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:24dcef24:sign_check.pay_ratio_mean_6m.univariate_direction]]'
+    - name: sign_check.utilisation.agrees
+      hash8: d0c9a130
+      kind: scalar
+      summary: 1 when the fitted sign on utilisation agrees with its univariate direction, 0 when it
+        does not
+      value: 1
+      citation: '[[art:d0c9a130:sign_check.utilisation.agrees]]'
+    - name: sign_check.utilisation.coef_sign
+      hash8: 85badc3c
+      kind: scalar
+      summary: the sign of the fitted coefficient on utilisation
+      value: 1
+      citation: '[[art:85badc3c:sign_check.utilisation.coef_sign]]'
+    - name: sign_check.utilisation.univariate_direction
+      hash8: f0995196
+      kind: scalar
+      summary: the sign of utilisation's own single-feature AUC on train minus 0.5
+      value: 1
+      citation: '[[art:f0995196:sign_check.utilisation.univariate_direction]]'
+    - name: threshold.E1.delta_auc
+      hash8: e042774c
+      kind: scalar
+      summary: 'E1: the challenger''s AUC lead over the champion'
+      value: 0.03
+      citation: '[[art:e042774c:threshold.E1.delta_auc]]'
+    candidates:
+    - defect_class: E1
+      evidence:
+      - 5c6c2bfc01a2a6a2
+      - bf5be719e087fe91
+      - c9e502ae8894868f
+      - e042774c838f7426
+      detail: a hist_gradient_boosting challenger reaches an AUC of 0.8240 on test against the champion's
+        0.7480, a lead of 0.0760 against an effective-challenge threshold of 0.03
+      suggested_severity: low
+      tool: challenger_compare
+    guidance: |-
+      Validating conceptual soundness involves assessing and documenting model design
+      (including key modeling choices, assumptions, qualitative judgments, and data selection),
+      construction, and developmental testing. While evaluating theoretical construction may be
+      important for some models, other assessments—such as interpretability measures or
+      benchmarking to other models—may be more practical for other models. Sound practice subjects
+      modeling aspects to critical analysis by evaluating both the quality and extent of developmental
+      evidence.
+
+      ---
+
+      The widespread use of customized vendor and other third-party products—including
+      data, parameter values, or complete models—can present unique challenges for validation and
+      other model risk management activities. Additionally, because certain components may be
+      proprietary, banking organizations may not receive from the vendor the underlying code, data, or
+      methodology that they would have if a model were developed internally. Nevertheless, the
+      principles of model risk management remain applicable.
+      An important element of model risk management is the validation of vendor products,
+      either by internal or outside parties. Sound practice includes developing an understanding of the
+      vendor model, including its conceptual soundness, design, development data, and performance.
+      Similarly, sound practice involves conducting ongoing monitoring and outcome analysis to
+      assess whether vendor models are accurate, remain fit for purpose, and continue to be reliable.
+      Such analysis can also be used to support any overlay or adjustment to model output. In cases
+      where vendor models are customized to fit a banking organization’s specific business needs,
+      sound practice also involves appropriately documenting, justifying, and evaluating adjustments
+      made to customize the model as part of model validation.
+
+      ---
+
+      Sound model development activities are aligned with model purpose, business use, and
+      banking organization policy. Model development is not purely a technical exercise. The
+      developer’s judgment influences the model’s conceptual design and soundness, inputs,
+      assumptions, and methodology, all of which affect a model’s inherent risk. Because model
+      development is often multidisciplinary, tailored to actual use, and involves significant
+      subjectivity throughout its lifecycle, sound development practices are important for effective
+      model risk management.
+      An effective development process generally begins with a clear statement of purpose to
+      maximize the likelihood that model development is aligned with the intended use. This
+      fundamental step supports decision-making throughout the development lifecycle, including the
+      selection of data, methodologies, and testing approaches.
+      Input from model users can enhance model development by providing business context
+      and practical insights. Business managers affected by model outcomes may raise questions about
+      the methods or assumptions, particularly when the outcomes are unexpected. Constructive
+      engagement around model design and assumptions strengthens both model understanding and
+      model quality.
+      Model testing is a core component of model development that evaluates whether a model
+      performs as intended. Testing may include a range of activities, from out-of-sample and out-of-
+      time testing, to a comparison of alternative assumptions and methodologies, to a critical
+      assessment of data quality, relevance, and inputs. Testing may be performed by model
+      developers in collaboration with model users. The specific approach depends on the model’s
+      characteristics. The rigor of effective testing is commensurate with model complexity and
+      materiality. For models that have relatively less material impact or for banking organizations
+      with relatively less complex operations, model testing may be more limited in scope.
+
+      ---
+
+      This element involves assessing the quality of the model design and construction. It
+      entails review of documentation and empirical evidence supporting the methods used and
+      variables selected for the model. Documentation and testing should convey an
+      understanding of model limitations and assumptions. Validation should ensure that
+      judgment exercised in model design and construction is well informed, carefully
+      considered, and consistent with published research and with sound industry practice.
+      Developmental evidence should be reviewed before a model goes into use and also as
+      part of the ongoing validation process, in particular whenever there is a material change
+      in the model.
+      A sound development process will produce documented evidence in support of all model
+      choices, including the overall theoretical construction, key assumptions, data, and
+      specific mathematical calculations, as mentioned in Section IV. As part of model
+      validation, those model aspects should be subjected to critical analysis by both evaluating
+      the quality and extent of developmental evidence and conducting additional analysis and
+      testing as necessary. Comparison to alternative theories and approaches should be
+      included. Key assumptions and the choice of variables should be assessed, with analysis
+      of their impact on model outputs and particular focus on any potential limitations. The
+      relevance of the data used to build the model should be evaluated to ensure that it is
+      reasonably representative of the bank's portfolio or market conditions, depending on the
+      type of model. This is an especially important exercise when a bank uses external data or
+      the model is used for new products or activities.
+      Where appropriate to the particular model, banks should employ sensitivity analysis in
+      model development and validation to check the impact of small changes in inputs and
+      parameter values on model outputs to make sure they fall within an expected range.
+      Unexpectedly large changes in outputs in response to small changes in inputs can indicate
+      an unstable model. Varying several inputs simultaneously as part of sensitivity analysis
+      can provide evidence of unexpected interactions, particularly if the interactions are
+      complex and not intuitively clear. Banks benefit from conducting model stress testing to
+      check performance over a wide range of inputs and parameter values, including extreme
+      values, to verify that the model is robust. Such testing helps establish the boundaries of
+      model performance by identifying the acceptable range of inputs as well as conditions
+      under which the model may become unstable or inaccurate.
+      Management should have a clear plan for using the results of sensitivity analysis and
+      other quantitative testing. If testing indicates that the model may be inaccurate or unstable
+      in some circumstances, management should consider modifying certain model properties, [Page Break]
+      putting less reliance on its outputs, placing limits on model use, or developing a new
+      approach.
+      Qualitative information and judgment used in model development should be evaluated,
+      including the logic, judgment, and types of information used, to establish the conceptual
+      soundness of the model and set appropriate conditions for its use. The validation process
+      should ensure that qualitative, judgmental assessments are conducted in an appropriate
+      and systematic manner, are well supported, and are documented.
+
+      ---
+
+      An effective validation framework should include three core elements:
+      • Evaluation of conceptual soundness, including developmental evidence
+      • Ongoing monitoring, including process verification and benchmarking
+      • Outcomes analysis, including back-testing
+
+      ---
+
+      Model risk management should include disciplined and knowledgeable development and
+      implementation processes that are consistent with the situation and goals of the model
+      user and with bank policy. Model development is not a straightforward or routine
+      technical process. The experience and judgment of developers, as much as their technical
+      knowledge, greatly influence the appropriate selection of inputs and processing
+      components. The training and experience of developers exercising such judgment affects
+      the extent of model risk. Moreover, the modeling exercise is often a multidisciplinary
+      activity drawing on economics, finance, statistics, mathematics, and other fields. Models
+      are employed in real-world markets and events and therefore should be tailored for
+      specific applications and informed by business uses. In addition, a considerable amount
+      of subjective judgment is exercised at various stages of model development,
+      implementation, use, and validation. It is important for decision makers to recognize that
+      this subjectivity elevates the importance of sound and comprehensive model risk
+      management processes. [Footnote 4
+      - Smaller banks that rely on vendor models may be able to satisfy the standards in this guidance without an
+      in-house staff of technical, quantitative model developers. However, even if a bank relies on vendors for
+      basic model development, the bank should still choose the particular models and variables that are
+      appropriate to its size, scale, and lines of business and ensure the models are appropriate for the intended
+      use. End of Footnote 4.]
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    heading: '## 2. Conceptual soundness'
+    guidance_query: evaluation of conceptual soundness model design and variables
+    brief: |-
+      Assess the design: what the champion is, how many features it uses and when each is known
+      (the run.features paths carry the counts by timing), which features its own screen removed and
+      why, the largest coefficients and whether their signs are what the subject matter expects, and
+      the effective challenge -- the challenger's score against the champion's, and the threshold that
+      decides whether the difference matters. If a candidate finding below is about the champion's
+      functional form, say so and point the reader at the findings section.
+      Two families of artifact below are evidence for that judgement rather than the subject of any
+      rule. sign_check.<feature>.coef_sign is the sign of the fitted coefficient, +1 or -1;
+      sign_check.<feature>.univariate_direction is the sign of that feature's own relationship with the
+      outcome on train, taken as the sign of its single-feature AUC minus 0.5;
+      sign_check.<feature>.agrees is 1 when they agree and 0 when they do not; and
+      sign_check.n_disagreements counts the features where they do not. ablation.<feature>.delta_auc is
+      the change in test AUC when the champion's functional form is refitted without that feature, so a
+      negative number means the feature was carrying discrimination. For every coefficient whose sign
+      disagrees with its univariate direction, say so, and give that feature's ablation delta as the
+      measure of how much the disagreement matters -- a sign flip on a feature the model barely uses is
+      a different statement from one on a feature it depends on. No rule fires on either family: do not
+      describe anything here as a finding.
+    spans:
+    - doc: SR26-2
+      section_id: V.1.a
+      heading: Conceptual Soundness
+    - doc: SR26-2
+      section_id: VII
+      heading: Vendor and Other Third-Party Products
+    - doc: SR26-2
+      section_id: IV.1
+      heading: Model Development
+    - doc: SR11-7
+      section_id: V.1.a
+      heading: Evaluation of Conceptual Soundness
+    - doc: SR11-7
+      section_id: V.1
+      heading: Key Elements of Comprehensive Validation
+    - doc: SR11-7
+      section_id: IV
+      heading: Model Development, Implementation, and Use
+    findings: []
+    prompt_bytes: 28323
+    rubric_sha256: 9aab524960c01a07
+    prompt_sha256: af74bfa96de418f5
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/drafted_section.json
+  - type: contains
+    all:
+    - '[[art:'
+    case_sensitive: true
+  - type: not_contains
+    all:
+    - ⟦unverified
+    - compliant
+    - certified
+    case_sensitive: false
+  - type: judge
+    rubric: grounding
+    threshold: 1.0
+  budget:
+    max_cost_usd: 0.8
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - drafter
+  - credit_default
+  - synthetic
+- id: draft_section.data_integrity
+  input:
+    section: data_integrity
+    artifacts_json:
+    - name: csi.age
+      hash8: a78e58f6
+      kind: scalar
+      summary: 'CSI of age: its contribution to the shift in the linear predictor'
+      value: 0.0009476
+      citation: '[[art:a78e58f6:csi.age]]'
+    - name: csi.bill_mean_6m
+      hash8: 48df6cc9
+      kind: scalar
+      summary: 'CSI of bill_mean_6m: its contribution to the shift in the linear predictor'
+      value: 0.002369
+      citation: '[[art:48df6cc9:csi.bill_mean_6m]]'
+    - name: csi.bill_trend_6m
+      hash8: 59948e6d
+      kind: scalar
+      summary: 'CSI of bill_trend_6m: its contribution to the shift in the linear predictor'
+      value: 0.00633
+      citation: '[[art:59948e6d:csi.bill_trend_6m]]'
+    - name: csi.delinq_count_6m
+      hash8: 69346f52
+      kind: scalar
+      summary: 'CSI of delinq_count_6m: its contribution to the shift in the linear predictor'
+      value: 0.002449
+      citation: '[[art:69346f52:csi.delinq_count_6m]]'
+    - name: csi.delinq_last
+      hash8: 5babe364
+      kind: scalar
+      summary: 'CSI of delinq_last: its contribution to the shift in the linear predictor'
+      value: 0.02363
+      citation: '[[art:5babe364:csi.delinq_last]]'
+    - name: csi.delinq_max_6m
+      hash8: 7244960d
+      kind: scalar
+      summary: 'CSI of delinq_max_6m: its contribution to the shift in the linear predictor'
+      value: 0.0008965
+      citation: '[[art:7244960d:csi.delinq_max_6m]]'
+    - name: csi.limit_bal
+      hash8: 5b77b34b
+      kind: scalar
+      summary: 'CSI of limit_bal: its contribution to the shift in the linear predictor'
+      value: 0.001211
+      citation: '[[art:5b77b34b:csi.limit_bal]]'
+    - name: csi.max
+      hash8: e56cb179
+      kind: scalar
+      summary: the largest characteristic stability index
+      value: 0.02363
+      citation: '[[art:e56cb179:csi.max]]'
+    - name: csi.pay_ratio_last
+      hash8: aff2b4bf
+      kind: scalar
+      summary: 'CSI of pay_ratio_last: its contribution to the shift in the linear predictor'
+      value: 0.001924
+      citation: '[[art:aff2b4bf:csi.pay_ratio_last]]'
+    - name: csi.pay_ratio_mean_6m
+      hash8: f567818e
+      kind: scalar
+      summary: 'CSI of pay_ratio_mean_6m: its contribution to the shift in the linear predictor'
+      value: 0.001768
+      citation: '[[art:f567818e:csi.pay_ratio_mean_6m]]'
+    - name: csi.utilisation
+      hash8: 10f0f9e7
+      kind: scalar
+      summary: 'CSI of utilisation: its contribution to the shift in the linear predictor'
+      value: 0.004042
+      citation: '[[art:10f0f9e7:csi.utilisation]]'
+    - name: leakage.duplicates.train
+      hash8: 4474c227
+      kind: scalar
+      summary: share of train rows whose feature values are not unique within train
+      value: 0
+      citation: '[[art:4474c227:leakage.duplicates.train]]'
+    - name: leakage.name_screen.n_matched
+      hash8: 407e62be
+      kind: scalar
+      summary: feature names matching the target-adjacent lexicon
+      value: 0
+      citation: '[[art:407e62be:leakage.name_screen.n_matched]]'
+    - name: leakage.overlap
+      hash8: 4c9fcd09
+      kind: scalar
+      summary: share of test rows whose feature values also appear in train
+      value: 0
+      citation: '[[art:4c9fcd09:leakage.overlap]]'
+    - name: leakage.overlap.features
+      hash8: 0fec8048
+      kind: scalar
+      summary: share of test rows whose feature values also appear in train
+      value: 0
+      citation: '[[art:0fec8048:leakage.overlap.features]]'
+    - name: leakage.overlap.ids
+      hash8: 63d37fc5
+      kind: scalar
+      summary: share of test rows whose ['client_id'] also identify a row of train
+      value: 0
+      citation: '[[art:63d37fc5:leakage.overlap.ids]]'
+    - name: leakage.target_corr.max_single_feature_auc
+      hash8: fd829fc4
+      kind: scalar
+      summary: the AUC of the strongest single feature
+      value: 0.6831
+      citation: '[[art:fd829fc4:leakage.target_corr.max_single_feature_auc]]'
+    - name: leakage.timing.n_flagged
+      hash8: 742bcd24
+      kind: scalar
+      summary: features declared during_period or after_outcome
+      value: 0
+      citation: '[[art:742bcd24:leakage.timing.n_flagged]]'
+    - name: profile.test.missing.max
+      hash8: f813848d
+      kind: scalar
+      summary: the largest missing fraction in test
+      value: 0
+      citation: '[[art:f813848d:profile.test.missing.max]]'
+    - name: profile.test.n
+      hash8: 2193cf5f
+      kind: scalar
+      summary: rows in test
+      value: 1500
+      citation: '[[art:2193cf5f:profile.test.n]]'
+    - name: profile.train.missing.max
+      hash8: 050a3099
+      kind: scalar
+      summary: the largest missing fraction in train
+      value: 0
+      citation: '[[art:050a3099:profile.train.missing.max]]'
+    - name: profile.train.n
+      hash8: 2510d49d
+      kind: scalar
+      summary: rows in train
+      value: 3500
+      citation: '[[art:2510d49d:profile.train.n]]'
+    - name: psi.age
+      hash8: f9255a0a
+      kind: scalar
+      summary: PSI of age between train and test
+      value: 0.008124
+      citation: '[[art:f9255a0a:psi.age]]'
+    - name: psi.bill_mean_6m
+      hash8: 028e4281
+      kind: scalar
+      summary: PSI of bill_mean_6m between train and test
+      value: 0.007124
+      citation: '[[art:028e4281:psi.bill_mean_6m]]'
+    - name: psi.bill_trend_6m
+      hash8: c247a6f2
+      kind: scalar
+      summary: PSI of bill_trend_6m between train and test
+      value: 0.00958
+      citation: '[[art:c247a6f2:psi.bill_trend_6m]]'
+    - name: psi.delinq_count_6m
+      hash8: 61491d02
+      kind: scalar
+      summary: PSI of delinq_count_6m between train and test
+      value: 0.002069
+      citation: '[[art:61491d02:psi.delinq_count_6m]]'
+    - name: psi.delinq_last
+      hash8: 03bd52e7
+      kind: scalar
+      summary: PSI of delinq_last between train and test
+      value: 0.00285
+      citation: '[[art:03bd52e7:psi.delinq_last]]'
+    - name: psi.delinq_max_6m
+      hash8: 7a82e7f3
+      kind: scalar
+      summary: PSI of delinq_max_6m between train and test
+      value: 0.005498
+      citation: '[[art:7a82e7f3:psi.delinq_max_6m]]'
+    - name: psi.limit_bal
+      hash8: 601cdba2
+      kind: scalar
+      summary: PSI of limit_bal between train and test
+      value: 0.01095
+      citation: '[[art:601cdba2:psi.limit_bal]]'
+    - name: psi.max
+      hash8: 381b2570
+      kind: scalar
+      summary: the largest train-to-test PSI, score included
+      value: 0.01095
+      citation: '[[art:381b2570:psi.max]]'
+    - name: psi.pay_ratio_last
+      hash8: 3af2ca29
+      kind: scalar
+      summary: PSI of pay_ratio_last between train and test
+      value: 0.004966
+      citation: '[[art:3af2ca29:psi.pay_ratio_last]]'
+    - name: psi.pay_ratio_mean_6m
+      hash8: 2c5baeb2
+      kind: scalar
+      summary: PSI of pay_ratio_mean_6m between train and test
+      value: 0.0055
+      citation: '[[art:2c5baeb2:psi.pay_ratio_mean_6m]]'
+    - name: psi.utilisation
+      hash8: 451e0780
+      kind: scalar
+      summary: PSI of utilisation between train and test
+      value: 0.004244
+      citation: '[[art:451e0780:psi.utilisation]]'
+    - name: psi.y_score
+      hash8: a2885abf
+      kind: scalar
+      summary: PSI of the score between train and test
+      value: 0.007023
+      citation: '[[art:a2885abf:psi.y_score]]'
+    - name: threshold.D1.missing_gap
+      hash8: 9cce25ea
+      kind: scalar
+      summary: 'D1: the missingness gap between splits, as a fraction'
+      value: 0.1
+      citation: '[[art:9cce25ea:threshold.D1.missing_gap]]'
+    - name: threshold.L1.single_feature_auc
+      hash8: c29e7a34
+      kind: scalar
+      summary: 'L1: the AUC one feature may reach on its own'
+      value: 0.9
+      citation: '[[art:c29e7a34:threshold.L1.single_feature_auc]]'
+    - name: threshold.L2.overlap
+      hash8: 9f336eaf
+      kind: scalar
+      summary: 'L2: the fraction of test rows that may also be in train'
+      value: 0.005
+      citation: '[[art:9f336eaf:threshold.L2.overlap]]'
+    - name: threshold.L2.overlap.features_effective
+      hash8: 1ee888c5
+      kind: scalar
+      summary: 'L2: the bound the feature-overlap rule applied, the larger of threshold.L2.overlap and
+        2 x leakage.duplicates.train'
+      value: 0.005
+      citation: '[[art:1ee888c5:threshold.L2.overlap.features_effective]]'
+    - name: threshold.S1.psi
+      hash8: 278b9016
+      kind: scalar
+      summary: 'S1: the population stability index, train against test'
+      value: 0.25
+      citation: '[[art:278b9016:threshold.S1.psi]]'
+    - name: threshold.package.psi.max
+      hash8: fbb5a9d1
+      kind: scalar
+      summary: package.yaml declares psi max 0.25
+      value: 0.25
+      citation: '[[art:fbb5a9d1:threshold.package.psi.max]]'
+    candidates: []
+    guidance: |-
+      Validating conceptual soundness involves assessing and documenting model design
+      (including key modeling choices, assumptions, qualitative judgments, and data selection),
+      construction, and developmental testing. While evaluating theoretical construction may be
+      important for some models, other assessments—such as interpretability measures or
+      benchmarking to other models—may be more practical for other models. Sound practice subjects
+      modeling aspects to critical analysis by evaluating both the quality and extent of developmental
+      evidence.
+
+      ---
+
+      Sound model development activities are aligned with model purpose, business use, and
+      banking organization policy. Model development is not purely a technical exercise. The
+      developer’s judgment influences the model’s conceptual design and soundness, inputs,
+      assumptions, and methodology, all of which affect a model’s inherent risk. Because model
+      development is often multidisciplinary, tailored to actual use, and involves significant
+      subjectivity throughout its lifecycle, sound development practices are important for effective
+      model risk management.
+      An effective development process generally begins with a clear statement of purpose to
+      maximize the likelihood that model development is aligned with the intended use. This
+      fundamental step supports decision-making throughout the development lifecycle, including the
+      selection of data, methodologies, and testing approaches.
+      Input from model users can enhance model development by providing business context
+      and practical insights. Business managers affected by model outcomes may raise questions about
+      the methods or assumptions, particularly when the outcomes are unexpected. Constructive
+      engagement around model design and assumptions strengthens both model understanding and
+      model quality.
+      Model testing is a core component of model development that evaluates whether a model
+      performs as intended. Testing may include a range of activities, from out-of-sample and out-of-
+      time testing, to a comparison of alternative assumptions and methodologies, to a critical
+      assessment of data quality, relevance, and inputs. Testing may be performed by model
+      developers in collaboration with model users. The specific approach depends on the model’s
+      characteristics. The rigor of effective testing is commensurate with model complexity and
+      materiality. For models that have relatively less material impact or for banking organizations
+      with relatively less complex operations, model testing may be more limited in scope.
+
+      ---
+
+      Outcomes analysis compares model outputs to corresponding real-world outcomes to
+      assess model performance relative to model objectives and business use. Outcomes analysis and
+      other elements of the validation process may identify material errors or persistent deviations
+      outside of the banking organization’s established performance thresholds. In such cases, model
+      adjustment, recalibration, or redevelopment may be warranted.
+      Outcomes analysis can take many forms, including testing conducted during model
+      development, reports or analysis performed as part of ongoing monitoring, or standalone
+      activities such as back-testing or outlier analysis. A banking organization’s approach depends on
+      the model’s objectives, methodology, and data availability. As part of model validation, sound
+      practice involves reviewing outcomes analysis to evaluate the reasonableness and
+      appropriateness of the results, with additional analysis and testing, if warranted. When a model’s
+      design relies substantially on expert judgment, quantitative outcomes analysis helps to evaluate
+      the quality of that judgment.
+
+      ---
+
+      A bank's internal audit function should assess the overall effectiveness of the model risk
+      management framework, including the framework's ability to address both types of
+      model risk described in Section III, for individual models and in the aggregate. Findings
+      from internal audit related to models should be documented and reported to the board or
+      its appropriately delegated agent. Banks should ensure that internal audit operates with
+      the proper incentives, has appropriate skills, and has adequate stature in the organization
+      to assist in model risk management. Internal audit's role is not to duplicate model risk
+      management activities. Instead, its role is to evaluate whether model risk management is
+      comprehensive, rigorous, and effective. To accomplish this evaluation, internal audit staff
+      should possess sufficient expertise in relevant modeling concepts as well as their use in
+      particular business lines. If some internal audit staff perform certain validation activities,
+      then they should not be involved in the assessment of the overall model risk management
+      framework.
+      Internal audit should verify that acceptable policies are in place and that model owners
+      and control groups comply with those policies. Internal audit should also verify records
+      of model use and validation to test whether validations are performed in a timely manner
+      and whether models are subject to controls that appropriately account for any weaknesses
+      in validation activities. Accuracy and completeness of the model inventory should be
+      assessed. In addition, processes for establishing and monitoring limits on model usage
+      should be evaluated. Internal audit should determine whether procedures for updating
+      models are clearly documented, and test whether those procedures are being carried out
+      as specified. Internal audit should check that model owners and control groups are
+      meeting documentation standards, including risk reporting. Additionally, internal audit
+      should perform assessments of supporting operational systems and evaluate the reliability
+      of data used by models.
+      Internal audit also has an important role in ensuring that validation work is conducted
+      properly and that appropriate effective challenge is being carried out. It should evaluate
+      the objectivity, competence, and organizational standing of the key validation
+      participants, with the ultimate goal of ascertaining whether those participants have the
+      right incentives to discover and report deficiencies. Internal audit should review
+      validation activities conducted by internal and external parties with the same rigor to see
+      if those activities are being conducted in accordance with this guidance. [Page Break]
+
+      ---
+
+      For the purposes of this document, the term model refers to a quantitative method,
+      system, or approach that applies statistical, economic, financial, or mathematical theories,
+      techniques, and assumptions to process input data into quantitative estimates. A model
+      consists of three components: an information input component, which delivers
+      assumptions and data to the model; a processing component, which transforms inputs into
+      estimates; and a reporting component, which translates the estimates into useful business
+      information. Models meeting this definition might be used for analyzing business
+      strategies, informing business decisions, identifying and measuring risks, valuing
+      exposures, instruments or positions, conducting stress testing, assessing adequacy of
+      capital, managing client assets, measuring compliance with internal limits, maintaining
+      the formal control apparatus of the bank, or meeting financial or regulatory reporting
+      requirements and issuing public disclosures. The definition of model also covers
+      quantitative approaches whose inputs are partially or wholly qualitative or based on
+      expert judgment, provided that the output is quantitative in nature. [Footnote 3
+      - While outside the scope of this guidance, more qualitative approaches used by banking organizations—
+      i.e., those not defined as models according to this guidance—should also be subject to a rigorous control
+      process. End of Footnote 3.]
+      Models are simplified representations of real-world relationships among observed
+      characteristics, values, and events. Simplification is inevitable, due to the inherent
+      complexity of those relationships, but also intentional, to focus attention on particular
+      aspects considered to be most important for a given model application. Model quality can
+      be measured in many ways: precision, accuracy, discriminatory power, robustness,
+      stability, and reliability, to name a few. Models are never perfect, and the appropriate
+      metrics of quality, and the effort that should be put into improving quality, depend on the
+      situation. For example, precision and accuracy are relevant for models that forecast future
+      values, while discriminatory power applies to models that rank order risks. In all
+      situations, it is important to understand a model's capabilities and limitations given its
+      simplifications and assumptions.
+      The use of models invariably presents model risk, which is the potential for adverse
+      consequences from decisions based on incorrect or misused model outputs and reports.
+      Model risk can lead to financial loss, poor business and strategic decision making, or
+      damage to a bank's reputation. Model risk occurs primarily for two reasons:
+      • The model may have fundamental errors and may produce inaccurate outputs
+      when viewed against the design objective and intended business uses. The
+      mathematical calculation and quantification exercise underlying any model
+      generally involves application of theory, choice of sample design and numerical
+      routines, selection of inputs and estimation, and implementation in information
+      systems. Errors can occur at any point from design through implementation. In
+      addition, shortcuts, simplifications, or approximations used to manage
+      complicated problems could compromise the integrity and reliability of outputs [Page Break]
+      from those calculations. Finally, the quality of model outputs depends on the
+      quality of input data and assumptions, and errors in inputs or incorrect
+      assumptions will lead to inaccurate outputs.
+      • The model may be used incorrectly or inappropriately. Even a fundamentally
+      sound model producing accurate outputs consistent with the design objective of
+      the model may exhibit high model risk if it is misapplied or misused. Models by
+      their nature are simplifications of reality, and real-world events may prove those
+      simplifications inappropriate. This is even more of a concern if a model is used
+      outside the environment for which it was designed. Banks may do this
+      intentionally as they apply existing models to new products or markets, or
+      inadvertently as market conditions or customer behavior changes. Decision
+      makers need to understand the limitations of a model to avoid using it in ways
+      that are not consistent with the original intent. Limitations come in part from
+      weaknesses in the model due to its various shortcomings, approximations, and
+      uncertainties. Limitations are also a consequence of assumptions underlying a
+      model that may restrict the scope to a limited set of specific circumstances and
+      situations.
+      Model risk should be managed like other types of risk. Banks should identify the sources
+      of risk and assess the magnitude. Model risk increases with greater model complexity,
+      higher uncertainty about inputs and assumptions, broader use, and larger potential impact.
+      Banks should consider risk from individual models and in the aggregate. Aggregate
+      model risk is affected by interaction and dependencies among models; reliance on
+      common assumptions, data, or methodologies; and any other factors that could adversely
+      affect several models and their outputs at the same time. With an understanding of the
+      source and magnitude of model risk in place, the next step is to manage it properly.
+      A guiding principle for managing model risk is "effective challenge" of models, that is,
+      critical analysis by objective, informed parties who can identify model limitations and
+      assumptions and produce appropriate changes. Effective challenge depends on a
+      combination of incentives, competence, and influence. Incentives to provide effective
+      challenge to models are stronger when there is greater separation of that challenge from
+      the model development process and when challenge is supported by well-designed
+      compensation practices and corporate culture. Competence is a key to effectiveness since
+      technical knowledge and modeling skills are necessary to conduct appropriate analysis
+      and critique. Finally, challenge may fail to be effective without the influence to ensure
+      that actions are taken to address model issues. Such influence comes from a combination
+      of explicit authority, stature within the organization, and commitment and support from
+      higher levels of management.
+      Even with skilled modeling and robust validation, model risk cannot be eliminated, so
+      other tools should be used to manage model risk effectively. Among these are
+      establishing limits on model use, monitoring model performance, adjusting or revising
+      models over time, and supplementing model results with other analysis and information.
+      Informed conservatism, in either the inputs or the design of a model or through explicit [Page Break]
+      adjustments to outputs, can be an effective tool, though not an excuse to avoid improving
+      models.
+      As is generally the case with other risks, materiality is an important consideration in
+      model risk management. If at some banks the use of models is less pervasive and has less
+      impact on their financial condition, then those banks may not need as complex an
+      approach to model risk management in order to meet supervisory expectations. However,
+      where models and model output have a material impact on business decisions, including
+      decisions related to risk management and capital and liquidity planning, and where model
+      failure would have a particularly harmful impact on a bank's financial condition, a bank's
+      model risk management framework should be more extensive and rigorous.
+      Model risk management begins with robust model development, implementation, and
+      use. Another essential element is a sound model validation process. A third element is
+      governance, which sets an effective framework with defined roles and responsibilities for
+      clear communication of model limitations and assumptions, as well as the authority to
+      restrict model usage. The following sections of this document cover each of these
+      elements.
+
+      ---
+
+      The third core element of the validation process is outcomes analysis, a comparison of
+      model outputs to corresponding actual outcomes. The precise nature of the comparison
+      depends on the objectives of a model, and might include an assessment of the accuracy of
+      estimates or forecasts, an evaluation of rank-ordering ability, or other appropriate tests. In
+      all cases, such comparisons help to evaluate model performance, by establishing expected
+      ranges for those actual outcomes in relation to the intended objectives and assessing the
+      reasons for observed variation between the two. If outcomes analysis produces evidence
+      of poor performance, the bank should take action to address those issues. Outcomes
+      analysis typically relies on statistical tests or other quantitative measures. It can also [Page Break]
+      include expert judgment to check the intuition behind the outcomes and confirm that the
+      results make sense. When a model itself relies on expert judgment, quantitative outcomes
+      analysis helps to evaluate the quality of that judgment. Outcomes analysis should be
+      conducted on an ongoing basis to test whether the model continues to perform in line
+      with design objectives and business uses.
+      A variety of quantitative and qualitative testing and analytical techniques can be used in
+      outcomes analysis. The choice of technique should be based on the model's
+      methodology, its complexity, data availability, and the magnitude of potential model risk
+      to the bank. Outcomes analysis should involve a range of tests because any individual test
+      will have weaknesses. For example, some tests are better at checking a model's ability to
+      rank-order or segment observations on a relative basis, whereas others are better at
+      checking absolute forecast accuracy. Tests should be designed for each situation, as not
+      all will be effective or feasible in every circumstance, and attention should be paid to
+      choosing the appropriate type of outcomes analysis for a particular model.
+      Models are regularly adjusted to take into account new data or techniques, or because of
+      deterioration in performance. Parallel outcomes analysis, under which both the original
+      and adjusted models' forecasts are tested against realized outcomes, provides an
+      important test of such model adjustments. If the adjusted model does not outperform the
+      original model, developers, users, and reviewers should realize that additional changes—
+      or even a wholesale redesign—are likely necessary before the adjusted model replaces
+      the original one.
+      Back-testing is one form of outcomes analysis; specifically, it involves the comparison of
+      actual outcomes with model forecasts during a sample time period not used in model
+      development and at an observation frequency that matches the forecast horizon or
+      performance window of the model. The comparison is generally done using expected
+      ranges or statistical confidence intervals around the model forecasts. When outcomes fall
+      outside those intervals, the bank should analyze the discrepancies and investigate the
+      causes that are significant in terms of magnitude or frequency. The objective of the
+      analysis is to determine whether differences stem from the omission of material factors
+      from the model, whether they arise from errors with regard to other aspects of model
+      specification such as interaction terms or assumptions of linearity, or whether they are
+      purely random and thus consistent with acceptable model performance. Analysis of in-
+      sample fit and of model performance in holdout samples (data set aside and not used to
+      estimate the original model) are important parts of model development but are not
+      substitutes for back-testing.
+      A well-known example of back-testing is the evaluation of value-at-risk (VaR), in which
+      actual profit and loss is compared with a model forecast loss distribution. Significant
+      deviation in expected versus actual performance and unexplained volatility in the profits
+      and losses of trading activities may indicate that hedging and pricing relationships are not
+      adequately measured by a given approach. Along with measuring the frequency of losses
+      in excess of a single VaR percentile estimator, banks should use other tests, such as [Page Break]
+      assessing any clustering of exceptions and checking the distribution of losses against
+      other estimated percentiles.
+      Analysis of the results of even high-quality and well-designed back-testing can pose
+      challenges, since it is not a straightforward, mechanical process that always produces
+      unambiguous results. The purpose is to test the model, not individual forecast values.
+      Back-testing may entail analysis of a large number of forecasts over different conditions
+      at a point in time or over multiple time periods. Statistical testing is essential in such
+      cases, yet such testing can pose challenges in both the choice of appropriate tests and the
+      interpretation of results; banks should support and document both the choice of tests and
+      the interpretation of results.
+      Models with long forecast horizons should be back-tested, but given the amount of time it
+      would take to accumulate the necessary data, that testing should be supplemented by
+      evaluation over shorter periods. Banks should employ outcomes analysis consisting of
+      "early warning" metrics designed to measure performance beginning very shortly after
+      model introduction and trend analysis of performance over time. These outcomes analysis
+      tools are not substitutes for back-testing, which should still be performed over the longer
+      time period, but rather very important complements.
+      Outcomes analysis and the other elements of the validation process may reveal significant
+      errors or inaccuracies in model development or outcomes that consistently fall outside the
+      bank's predetermined thresholds of acceptability. In such cases, model adjustment,
+      recalibration, or redevelopment is warranted. Adjustments and recalibration should be
+      governed by the principle of conservatism and should undergo independent review.
+      Material changes in model structure or technique, and all model redevelopment, should
+      be subject to validation activities of appropriate range and rigor before implementation.
+      At times banks may have a limited ability to use key model validation tools like back-
+      testing or sensitivity analysis for various reasons, such as lack of data or of price
+      observability. In those cases, even more attention should be paid to the model's
+      limitations when considering the appropriateness of model usage, and senior management
+      should be fully informed of those limitations when using the models for decision making.
+      Such scrutiny should be applied to individual models and models in the aggregate.
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    heading: '## 3. Data integrity and drift'
+    guidance_query: data quality accuracy completeness and representativeness
+    brief: |-
+      Assess the data: missingness in each split and the gap between them against its threshold,
+      population and characteristic stability between the training split and the others against the
+      declared bound, and each leakage screen -- declared timings, the strongest single feature against
+      the leakage threshold, the share of test rows that also appear in train, and the name screen.
+      The contamination screen has two arms and each is read against its own bound. Compare
+      leakage.overlap.ids with threshold.L2.overlap, and compare leakage.overlap.features with
+      threshold.L2.overlap.features_effective, which is the bound that rule actually applied: it is the
+      larger of threshold.L2.overlap and twice leakage.duplicates.train, because two different subjects
+      writing the same discrete row is coincidence rather than contamination. Cite whichever bound you
+      compare a number against, and do not compare a feature-vector overlap with the declared
+      threshold.
+    spans:
+    - doc: SR26-2
+      section_id: V.1.a
+      heading: Conceptual Soundness
+    - doc: SR26-2
+      section_id: IV.1
+      heading: Model Development
+    - doc: SR26-2
+      section_id: V.1.b
+      heading: Outcomes Analysis
+    - doc: SR11-7
+      section_id: VI.4
+      heading: Internal Audit
+    - doc: SR11-7
+      section_id: III
+      heading: Overview of Model Risk Management
+    - doc: SR11-7
+      section_id: V.1.c
+      heading: Outcomes Analysis
+    findings: []
+    prompt_bytes: 34228
+    rubric_sha256: 9aab524960c01a07
+    prompt_sha256: afd892c0ed52254f
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/drafted_section.json
+  - type: contains
+    all:
+    - '[[art:'
+    case_sensitive: true
+  - type: not_contains
+    all:
+    - ⟦unverified
+    - compliant
+    - certified
+    case_sensitive: false
+  - type: judge
+    rubric: grounding
+    threshold: 1.0
+  budget:
+    max_cost_usd: 0.82
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - drafter
+  - credit_default
+  - synthetic
+- id: draft_section.outcomes
+  input:
+    section: outcomes
+    artifacts_json:
+    - name: calibration.mean_rel_gap.test
+      hash8: d8ffb3d0
+      kind: scalar
+      summary: mean predicted against observed on test, relative
+      value: 0.01585
+      citation: '[[art:d8ffb3d0:calibration.mean_rel_gap.test]]'
+    - name: calibration.mean_rel_gap.train
+      hash8: 53738d45
+      kind: scalar
+      summary: mean predicted against observed on train, relative
+      value: 0.0002283
+      citation: '[[art:53738d45:calibration.mean_rel_gap.train]]'
+    - name: calibration.test
+      hash8: 508ffcf8
+      kind: table
+      summary: calibration by decile of predicted probability on test
+      directive: '[[table:calibration.test]]'
+    - name: calibration_intercept.test
+      hash8: b69c6b52
+      kind: scalar
+      summary: 'logistic regression of the outcome on logit(p) on test: the intercept'
+      value: 0.02729
+      citation: '[[art:b69c6b52:calibration_intercept.test]]'
+    - name: calibration_intercept.train
+      hash8: ed381a81
+      kind: scalar
+      summary: 'logistic regression of the outcome on logit(p) on train: the intercept'
+      value: 0.002062
+      citation: '[[art:ed381a81:calibration_intercept.train]]'
+    - name: calibration_slope.test
+      hash8: b7dbb687
+      kind: scalar
+      summary: 'logistic regression of the outcome on logit(p) on test: the slope'
+      value: 1.003
+      citation: '[[art:b7dbb687:calibration_slope.test]]'
+    - name: calibration_slope.train
+      hash8: d02e3091
+      kind: scalar
+      summary: 'logistic regression of the outcome on logit(p) on train: the slope'
+      value: 1.002
+      citation: '[[art:d02e3091:calibration_slope.train]]'
+    - name: deciles.test
+      hash8: 15d50c28
+      kind: table
+      summary: decile separation on test; decile 1 holds the highest probabilities
+      directive: '[[table:deciles.test]]'
+    - name: deciles.test.top2_capture
+      hash8: d4a1cf7d
+      kind: scalar
+      summary: share of test events in the top two deciles
+      value: 0.4718
+      citation: '[[art:d4a1cf7d:deciles.test.top2_capture]]'
+    - name: deciles.train.top2_capture
+      hash8: 1d20c762
+      kind: scalar
+      summary: share of train events in the top two deciles
+      value: 0.4517
+      citation: '[[art:1d20c762:deciles.train.top2_capture]]'
+    - name: metrics.test.auc
+      hash8: 5c6c2bfc
+      kind: scalar
+      summary: auc on test, recomputed by quaestor
+      value: 0.748
+      citation: '[[art:5c6c2bfc:metrics.test.auc]]'
+    - name: metrics.test.brier
+      hash8: bbe69430
+      kind: scalar
+      summary: brier on test, recomputed by quaestor
+      value: 0.1489
+      citation: '[[art:bbe69430:metrics.test.brier]]'
+    - name: metrics.test.event_rate
+      hash8: 9209d200
+      kind: scalar
+      summary: event_rate on test, recomputed by quaestor
+      value: 0.2247
+      citation: '[[art:9209d200:metrics.test.event_rate]]'
+    - name: metrics.test.gini
+      hash8: 8e5918d8
+      kind: scalar
+      summary: gini on test, recomputed by quaestor
+      value: 0.496
+      citation: '[[art:8e5918d8:metrics.test.gini]]'
+    - name: metrics.test.ks
+      hash8: '90751047'
+      kind: scalar
+      summary: ks on test, recomputed by quaestor
+      value: 0.4183
+      citation: '[[art:90751047:metrics.test.ks]]'
+    - name: metrics.test.logloss
+      hash8: dda8da69
+      kind: scalar
+      summary: logloss on test, recomputed by quaestor
+      value: 0.4673
+      citation: '[[art:dda8da69:metrics.test.logloss]]'
+    - name: metrics.test.mean_predicted
+      hash8: 4d2f8a37
+      kind: scalar
+      summary: mean_predicted on test, recomputed by quaestor
+      value: 0.2211
+      citation: '[[art:4d2f8a37:metrics.test.mean_predicted]]'
+    - name: metrics.test.n
+      hash8: 64fcf14d
+      kind: scalar
+      summary: n on test, recomputed by quaestor
+      value: 1500
+      citation: '[[art:64fcf14d:metrics.test.n]]'
+    - name: metrics.train.auc
+      hash8: 14b38a2b
+      kind: scalar
+      summary: auc on train, recomputed by quaestor
+      value: 0.7584
+      citation: '[[art:14b38a2b:metrics.train.auc]]'
+    - name: metrics.train.brier
+      hash8: be669a99
+      kind: scalar
+      summary: brier on train, recomputed by quaestor
+      value: 0.1489
+      citation: '[[art:be669a99:metrics.train.brier]]'
+    - name: metrics.train.event_rate
+      hash8: 133a5ff8
+      kind: scalar
+      summary: event_rate on train, recomputed by quaestor
+      value: 0.2246
+      citation: '[[art:133a5ff8:metrics.train.event_rate]]'
+    - name: metrics.train.gini
+      hash8: b4da846e
+      kind: scalar
+      summary: gini on train, recomputed by quaestor
+      value: 0.5169
+      citation: '[[art:b4da846e:metrics.train.gini]]'
+    - name: metrics.train.ks
+      hash8: ccc12729
+      kind: scalar
+      summary: ks on train, recomputed by quaestor
+      value: 0.4451
+      citation: '[[art:ccc12729:metrics.train.ks]]'
+    - name: metrics.train.logloss
+      hash8: 4f02e465
+      kind: scalar
+      summary: logloss on train, recomputed by quaestor
+      value: 0.465
+      citation: '[[art:4f02e465:metrics.train.logloss]]'
+    - name: metrics.train.mean_predicted
+      hash8: 605cce58
+      kind: scalar
+      summary: mean_predicted on train, recomputed by quaestor
+      value: 0.2246
+      citation: '[[art:605cce58:metrics.train.mean_predicted]]'
+    - name: metrics.train.n
+      hash8: 564683ee
+      kind: scalar
+      summary: n on train, recomputed by quaestor
+      value: 3500
+      citation: '[[art:564683ee:metrics.train.n]]'
+    - name: psi.age
+      hash8: f9255a0a
+      kind: scalar
+      summary: PSI of age between train and test
+      value: 0.008124
+      citation: '[[art:f9255a0a:psi.age]]'
+    - name: psi.bill_mean_6m
+      hash8: 028e4281
+      kind: scalar
+      summary: PSI of bill_mean_6m between train and test
+      value: 0.007124
+      citation: '[[art:028e4281:psi.bill_mean_6m]]'
+    - name: psi.bill_trend_6m
+      hash8: c247a6f2
+      kind: scalar
+      summary: PSI of bill_trend_6m between train and test
+      value: 0.00958
+      citation: '[[art:c247a6f2:psi.bill_trend_6m]]'
+    - name: psi.delinq_count_6m
+      hash8: 61491d02
+      kind: scalar
+      summary: PSI of delinq_count_6m between train and test
+      value: 0.002069
+      citation: '[[art:61491d02:psi.delinq_count_6m]]'
+    - name: psi.delinq_last
+      hash8: 03bd52e7
+      kind: scalar
+      summary: PSI of delinq_last between train and test
+      value: 0.00285
+      citation: '[[art:03bd52e7:psi.delinq_last]]'
+    - name: psi.delinq_max_6m
+      hash8: 7a82e7f3
+      kind: scalar
+      summary: PSI of delinq_max_6m between train and test
+      value: 0.005498
+      citation: '[[art:7a82e7f3:psi.delinq_max_6m]]'
+    - name: psi.limit_bal
+      hash8: 601cdba2
+      kind: scalar
+      summary: PSI of limit_bal between train and test
+      value: 0.01095
+      citation: '[[art:601cdba2:psi.limit_bal]]'
+    - name: psi.max
+      hash8: 381b2570
+      kind: scalar
+      summary: the largest train-to-test PSI, score included
+      value: 0.01095
+      citation: '[[art:381b2570:psi.max]]'
+    - name: psi.pay_ratio_last
+      hash8: 3af2ca29
+      kind: scalar
+      summary: PSI of pay_ratio_last between train and test
+      value: 0.004966
+      citation: '[[art:3af2ca29:psi.pay_ratio_last]]'
+    - name: psi.pay_ratio_mean_6m
+      hash8: 2c5baeb2
+      kind: scalar
+      summary: PSI of pay_ratio_mean_6m between train and test
+      value: 0.0055
+      citation: '[[art:2c5baeb2:psi.pay_ratio_mean_6m]]'
+    - name: psi.utilisation
+      hash8: 451e0780
+      kind: scalar
+      summary: PSI of utilisation between train and test
+      value: 0.004244
+      citation: '[[art:451e0780:psi.utilisation]]'
+    - name: psi.y_score
+      hash8: a2885abf
+      kind: scalar
+      summary: PSI of the score between train and test
+      value: 0.007023
+      citation: '[[art:a2885abf:psi.y_score]]'
+    - name: rule.calibration_first_event_rate
+      hash8: 42f1351e
+      kind: scalar
+      summary: the event rate below which the report puts calibration before discrimination
+      value: 0.05
+      citation: '[[art:42f1351e:rule.calibration_first_event_rate]]'
+    - name: run.metrics
+      hash8: aebcad6a
+      kind: json
+      summary: the subject's metrics.json
+      values:
+        test.auc: 0.748
+        test.brier: 0.1489
+        test.event_rate: 0.2247
+        test.gini: 0.496
+        test.ks: 0.4183
+        test.logloss: 0.4673
+        test.mean_predicted: 0.2211
+        test.n: 1500
+        train.auc: 0.7584
+        train.brier: 0.1489
+        train.event_rate: 0.2246
+        train.gini: 0.5169
+        train.ks: 0.4451
+        train.logloss: 0.465
+        train.mean_predicted: 0.2246
+        train.n: 3500
+      citation_form: '[[art:aebcad6a:run.metrics#<path>]]'
+    - name: threshold.C1.calibration_slope.max
+      hash8: b6672579
+      kind: scalar
+      summary: 'C1: the top of the calibration slope band'
+      value: 1.2
+      citation: '[[art:b6672579:threshold.C1.calibration_slope.max]]'
+    - name: threshold.C1.calibration_slope.min
+      hash8: 749634ae
+      kind: scalar
+      summary: 'C1: the bottom of the calibration slope band'
+      value: 0.8
+      citation: '[[art:749634ae:threshold.C1.calibration_slope.min]]'
+    - name: threshold.C1.mean_ratio_rel
+      hash8: 20e93a8c
+      kind: scalar
+      summary: 'C1: mean predicted against observed, relative'
+      value: 0.25
+      citation: '[[art:20e93a8c:threshold.C1.mean_ratio_rel]]'
+    - name: threshold.D1.missing_gap
+      hash8: 9cce25ea
+      kind: scalar
+      summary: 'D1: the missingness gap between splits, as a fraction'
+      value: 0.1
+      citation: '[[art:9cce25ea:threshold.D1.missing_gap]]'
+    - name: threshold.E1.delta_auc
+      hash8: e042774c
+      kind: scalar
+      summary: 'E1: the challenger''s AUC lead over the champion'
+      value: 0.03
+      citation: '[[art:e042774c:threshold.E1.delta_auc]]'
+    - name: threshold.L1.single_feature_auc
+      hash8: c29e7a34
+      kind: scalar
+      summary: 'L1: the AUC one feature may reach on its own'
+      value: 0.9
+      citation: '[[art:c29e7a34:threshold.L1.single_feature_auc]]'
+    - name: threshold.L2.overlap
+      hash8: 9f336eaf
+      kind: scalar
+      summary: 'L2: the fraction of test rows that may also be in train'
+      value: 0.005
+      citation: '[[art:9f336eaf:threshold.L2.overlap]]'
+    - name: threshold.L2.overlap.features_effective
+      hash8: 1ee888c5
+      kind: scalar
+      summary: 'L2: the bound the feature-overlap rule applied, the larger of threshold.L2.overlap and
+        2 x leakage.duplicates.train'
+      value: 0.005
+      citation: '[[art:1ee888c5:threshold.L2.overlap.features_effective]]'
+    - name: threshold.M1.condition_number
+      hash8: 7e52fd7a
+      kind: scalar
+      summary: 'M1: Belsley''s condition number of the design'
+      value: 30
+      citation: '[[art:7e52fd7a:threshold.M1.condition_number]]'
+    - name: threshold.M1.vif
+      hash8: aeb4f33c
+      kind: scalar
+      summary: 'M1: the variance inflation factor of any retained feature'
+      value: 10
+      citation: '[[art:aeb4f33c:threshold.M1.vif]]'
+    - name: threshold.O1.auc_gap
+      hash8: 630f28f4
+      kind: scalar
+      summary: 'O1: the train-to-test AUC gap'
+      value: 0.08
+      citation: '[[art:630f28f4:threshold.O1.auc_gap]]'
+    - name: threshold.S1.psi
+      hash8: 278b9016
+      kind: scalar
+      summary: 'S1: the population stability index, train against test'
+      value: 0.25
+      citation: '[[art:278b9016:threshold.S1.psi]]'
+    - name: threshold.package.auc.test.min
+      hash8: 8bfd02cc
+      kind: scalar
+      summary: package.yaml declares auc min 0.7
+      value: 0.7
+      citation: '[[art:8bfd02cc:threshold.package.auc.test.min]]'
+    - name: threshold.package.brier.test.max
+      hash8: d0f98b9c
+      kind: scalar
+      summary: package.yaml declares brier max 0.2
+      value: 0.2
+      citation: '[[art:d0f98b9c:threshold.package.brier.test.max]]'
+    - name: threshold.package.calibration_slope.test.max
+      hash8: 0adb7a89
+      kind: scalar
+      summary: package.yaml declares calibration_slope max 1.2
+      value: 1.2
+      citation: '[[art:0adb7a89:threshold.package.calibration_slope.test.max]]'
+    - name: threshold.package.calibration_slope.test.min
+      hash8: 95fdb848
+      kind: scalar
+      summary: package.yaml declares calibration_slope min 0.8
+      value: 0.8
+      citation: '[[art:95fdb848:threshold.package.calibration_slope.test.min]]'
+    - name: threshold.package.psi.max
+      hash8: fbb5a9d1
+      kind: scalar
+      summary: package.yaml declares psi max 0.25
+      value: 0.25
+      citation: '[[art:fbb5a9d1:threshold.package.psi.max]]'
+    - name: thresholds.evaluation
+      hash8: bc507a88
+      kind: table
+      summary: every threshold package.yaml declares, with its bound, the recomputed value and the outcome
+      directive: '[[table:thresholds.evaluation]]'
+    candidates: []
+    guidance: |-
+      Outcomes analysis compares model outputs to corresponding real-world outcomes to
+      assess model performance relative to model objectives and business use. Outcomes analysis and
+      other elements of the validation process may identify material errors or persistent deviations
+      outside of the banking organization’s established performance thresholds. In such cases, model
+      adjustment, recalibration, or redevelopment may be warranted.
+      Outcomes analysis can take many forms, including testing conducted during model
+      development, reports or analysis performed as part of ongoing monitoring, or standalone
+      activities such as back-testing or outlier analysis. A banking organization’s approach depends on
+      the model’s objectives, methodology, and data availability. As part of model validation, sound
+      practice involves reviewing outcomes analysis to evaluate the reasonableness and
+      appropriateness of the results, with additional analysis and testing, if warranted. When a model’s
+      design relies substantially on expert judgment, quantitative outcomes analysis helps to evaluate
+      the quality of that judgment.
+
+      ---
+
+      Sound model development activities are aligned with model purpose, business use, and
+      banking organization policy. Model development is not purely a technical exercise. The
+      developer’s judgment influences the model’s conceptual design and soundness, inputs,
+      assumptions, and methodology, all of which affect a model’s inherent risk. Because model
+      development is often multidisciplinary, tailored to actual use, and involves significant
+      subjectivity throughout its lifecycle, sound development practices are important for effective
+      model risk management.
+      An effective development process generally begins with a clear statement of purpose to
+      maximize the likelihood that model development is aligned with the intended use. This
+      fundamental step supports decision-making throughout the development lifecycle, including the
+      selection of data, methodologies, and testing approaches.
+      Input from model users can enhance model development by providing business context
+      and practical insights. Business managers affected by model outcomes may raise questions about
+      the methods or assumptions, particularly when the outcomes are unexpected. Constructive
+      engagement around model design and assumptions strengthens both model understanding and
+      model quality.
+      Model testing is a core component of model development that evaluates whether a model
+      performs as intended. Testing may include a range of activities, from out-of-sample and out-of-
+      time testing, to a comparison of alternative assumptions and methodologies, to a critical
+      assessment of data quality, relevance, and inputs. Testing may be performed by model
+      developers in collaboration with model users. The specific approach depends on the model’s
+      characteristics. The rigor of effective testing is commensurate with model complexity and
+      materiality. For models that have relatively less material impact or for banking organizations
+      with relatively less complex operations, model testing may be more limited in scope.
+
+      ---
+
+      Effective model use depends on a clear understanding of a model’s limitations. Model
+      use enables ongoing performance assessment as conditions evolve. User feedback provides
+      business insights that enhance future development. Constructive engagement, particularly around
+      model design, assumptions, and outcomes, strengthens both model understanding and model
+      quality. Using a model beyond its intended purpose introduces additional uncertainty and risk.
+      When extending a model’s use beyond its original application, sound practice involves
+      considering additional analysis of the new usage and its limitations, along with review of
+      existing controls to manage the resulting risk.
+
+      ---
+
+      The third core element of the validation process is outcomes analysis, a comparison of
+      model outputs to corresponding actual outcomes. The precise nature of the comparison
+      depends on the objectives of a model, and might include an assessment of the accuracy of
+      estimates or forecasts, an evaluation of rank-ordering ability, or other appropriate tests. In
+      all cases, such comparisons help to evaluate model performance, by establishing expected
+      ranges for those actual outcomes in relation to the intended objectives and assessing the
+      reasons for observed variation between the two. If outcomes analysis produces evidence
+      of poor performance, the bank should take action to address those issues. Outcomes
+      analysis typically relies on statistical tests or other quantitative measures. It can also [Page Break]
+      include expert judgment to check the intuition behind the outcomes and confirm that the
+      results make sense. When a model itself relies on expert judgment, quantitative outcomes
+      analysis helps to evaluate the quality of that judgment. Outcomes analysis should be
+      conducted on an ongoing basis to test whether the model continues to perform in line
+      with design objectives and business uses.
+      A variety of quantitative and qualitative testing and analytical techniques can be used in
+      outcomes analysis. The choice of technique should be based on the model's
+      methodology, its complexity, data availability, and the magnitude of potential model risk
+      to the bank. Outcomes analysis should involve a range of tests because any individual test
+      will have weaknesses. For example, some tests are better at checking a model's ability to
+      rank-order or segment observations on a relative basis, whereas others are better at
+      checking absolute forecast accuracy. Tests should be designed for each situation, as not
+      all will be effective or feasible in every circumstance, and attention should be paid to
+      choosing the appropriate type of outcomes analysis for a particular model.
+      Models are regularly adjusted to take into account new data or techniques, or because of
+      deterioration in performance. Parallel outcomes analysis, under which both the original
+      and adjusted models' forecasts are tested against realized outcomes, provides an
+      important test of such model adjustments. If the adjusted model does not outperform the
+      original model, developers, users, and reviewers should realize that additional changes—
+      or even a wholesale redesign—are likely necessary before the adjusted model replaces
+      the original one.
+      Back-testing is one form of outcomes analysis; specifically, it involves the comparison of
+      actual outcomes with model forecasts during a sample time period not used in model
+      development and at an observation frequency that matches the forecast horizon or
+      performance window of the model. The comparison is generally done using expected
+      ranges or statistical confidence intervals around the model forecasts. When outcomes fall
+      outside those intervals, the bank should analyze the discrepancies and investigate the
+      causes that are significant in terms of magnitude or frequency. The objective of the
+      analysis is to determine whether differences stem from the omission of material factors
+      from the model, whether they arise from errors with regard to other aspects of model
+      specification such as interaction terms or assumptions of linearity, or whether they are
+      purely random and thus consistent with acceptable model performance. Analysis of in-
+      sample fit and of model performance in holdout samples (data set aside and not used to
+      estimate the original model) are important parts of model development but are not
+      substitutes for back-testing.
+      A well-known example of back-testing is the evaluation of value-at-risk (VaR), in which
+      actual profit and loss is compared with a model forecast loss distribution. Significant
+      deviation in expected versus actual performance and unexplained volatility in the profits
+      and losses of trading activities may indicate that hedging and pricing relationships are not
+      adequately measured by a given approach. Along with measuring the frequency of losses
+      in excess of a single VaR percentile estimator, banks should use other tests, such as [Page Break]
+      assessing any clustering of exceptions and checking the distribution of losses against
+      other estimated percentiles.
+      Analysis of the results of even high-quality and well-designed back-testing can pose
+      challenges, since it is not a straightforward, mechanical process that always produces
+      unambiguous results. The purpose is to test the model, not individual forecast values.
+      Back-testing may entail analysis of a large number of forecasts over different conditions
+      at a point in time or over multiple time periods. Statistical testing is essential in such
+      cases, yet such testing can pose challenges in both the choice of appropriate tests and the
+      interpretation of results; banks should support and document both the choice of tests and
+      the interpretation of results.
+      Models with long forecast horizons should be back-tested, but given the amount of time it
+      would take to accumulate the necessary data, that testing should be supplemented by
+      evaluation over shorter periods. Banks should employ outcomes analysis consisting of
+      "early warning" metrics designed to measure performance beginning very shortly after
+      model introduction and trend analysis of performance over time. These outcomes analysis
+      tools are not substitutes for back-testing, which should still be performed over the longer
+      time period, but rather very important complements.
+      Outcomes analysis and the other elements of the validation process may reveal significant
+      errors or inaccuracies in model development or outcomes that consistently fall outside the
+      bank's predetermined thresholds of acceptability. In such cases, model adjustment,
+      recalibration, or redevelopment is warranted. Adjustments and recalibration should be
+      governed by the principle of conservatism and should undergo independent review.
+      Material changes in model structure or technique, and all model redevelopment, should
+      be subject to validation activities of appropriate range and rigor before implementation.
+      At times banks may have a limited ability to use key model validation tools like back-
+      testing or sensitivity analysis for various reasons, such as lack of data or of price
+      observability. In those cases, even more attention should be paid to the model's
+      limitations when considering the appropriateness of model usage, and senior management
+      should be fully informed of those limitations when using the models for decision making.
+      Such scrutiny should be applied to individual models and models in the aggregate.
+
+      ---
+
+      Model use provides additional opportunity to test whether a model is functioning
+      effectively and to assess its performance over time as conditions and model applications
+      change. It can serve as a source of productive feedback and insights from a
+      knowledgeable internal constituency with strong interest in having models that function
+      well and reflect economic and business realities. Model users can provide valuable
+      business insight during the development process. In addition, business managers affected
+      by model outcomes may question the methods or assumptions underlying the models,
+      particularly if the managers are significantly affected by and do not agree with the
+      outcome. Such questioning can be healthy if it is constructive and causes model
+      developers to explain and justify the assumptions and design of the models.
+      However, challenge from model users may be weak if the model does not materially
+      affect their results, if the resulting changes in models are perceived to have adverse
+      effects on the business line, or if change in general is regarded as expensive or difficult.
+      User challenges also tend not to be comprehensive because they focus on aspects of
+      models that have the most direct impact on the user's measured business performance or
+      compensation, and thus may ignore other elements and applications of the models.
+      Finally, such challenges tend to be asymmetric, because users are less likely to challenge
+      an outcome that results in an advantage for them. Indeed, users may incorrectly believe
+      that model risk is low simply because outcomes from model-based decisions appear
+      favorable to the institution. Thus, the nature and motivation behind model users' input
+      should be evaluated carefully, and banks should also solicit constructive suggestions and
+      criticism from sources independent of the line of business using the model.
+      Reports used for business decision making play a critical role in model risk management.
+      Such reports should be clear and comprehensible and take into account the fact that
+      decision makers and modelers often come from quite different backgrounds and may
+      interpret the contents in different ways. Reports that provide a range of estimates for
+      different input-value scenarios and assumption values can give decision makers important [Page Break]
+      indications of the model's accuracy, robustness, and stability as well as information on
+      model limitations.
+      An understanding of model uncertainty and inaccuracy and a demonstration that the bank
+      is accounting for them appropriately are important outcomes of effective model
+      development, implementation, and use. Because they are by definition imperfect
+      representations of reality, all models have some degree of uncertainty and inaccuracy.
+      These can sometimes be quantified, for example, by an assessment of the potential
+      impact of factors that are unobservable or not fully incorporated in the model, or by the
+      confidence interval around a statistical model's point estimate. Indeed, using a range of
+      outputs, rather than a simple point estimate, can be a useful way to signal model
+      uncertainty and avoid spurious precision. At other times, only a qualitative assessment of
+      model uncertainty and inaccuracy is possible. In either case, it can be prudent for banks
+      to account for model uncertainty by explicitly adjusting model inputs or calculations to
+      produce more severe or adverse model output in the interest of conservatism. Accounting
+      for model uncertainty can also include judgmental conservative adjustments to model
+      output, placing less emphasis on that model's output, or ensuring that the model is only
+      used when supplemented by other models or approaches. [Footnote 5
+      - To the extent that models are used to generate amounts included in public financial statements, any
+      adjustments for model uncertainty must comply with generally accepted accounting principles. End of Footnote 5.]
+      While conservative use of models is prudent in general, banks should be careful in
+      applying conservatism broadly or claiming to make conservative adjustments or add-ons
+      to address model risk, because the impact of such conservatism in complex models may
+      not be obvious or intuitive. Model aspects that appear conservative in one model may not
+      be truly conservative compared with alternative methods. For example, simply picking an
+      extreme point on a given modeled distribution may not be conservative if the distribution
+      was misestimated or misspecified in the first place. Furthermore, initially conservative
+      assumptions may not remain conservative over time. Therefore, banks should justify and
+      substantiate claims that model outputs are conservative with a definition and
+      measurement of that conservatism that is communicated to model users. In some cases,
+      sensitivity analysis or other types of stress testing can be used to demonstrate that a
+      model is indeed conservative. Another way in which banks may choose to be
+      conservative is to hold an additional cushion of capital to protect against potential losses
+      associated with model risk. However, conservatism can become an impediment to proper
+      model development and application if it is seen as a solution that dissuades the bank from
+      making the effort to improve the model; in addition, excessive conservatism can lead
+      model users to discount the model outputs.
+      As this section has explained, robust model development, implementation, and use is
+      important to model risk management. But it is not enough for model developers and users
+      to understand and accept the model. Because model risk is ultimately borne by the bank
+      as a whole, the bank should objectively assess model risk and the associated costs and
+      benefits using a sound model-validation process. [Page Break]
+
+      ---
+
+      An effective development process begins with a clear statement of purpose to ensure that
+      model development is aligned with the intended use. The design, theory, and logic [Page Break]
+      underlying the model should be well documented and generally supported by published
+      research and sound industry practice. The model methodologies and processing
+      components that implement the theory, including the mathematical specification and the
+      numerical techniques and approximations, should be explained in detail with particular
+      attention to merits and limitations. Developers should ensure that the components work
+      as intended, are appropriate for the intended business purpose, and are conceptually
+      sound and mathematically and statistically correct. Comparison with alternative theories
+      and approaches is a fundamental component of a sound modeling process.
+      The data and other information used to develop a model are of critical importance; there
+      should be rigorous assessment of data quality and relevance, and appropriate
+      documentation. Developers should be able to demonstrate that such data and information
+      are suitable for the model and that they are consistent with the theory behind the
+      approach and with the chosen methodology. If data proxies are used, they should be
+      carefully identified, justified, and documented. If data and information are not
+      representative of the bank's portfolio or other characteristics, or if assumptions are made
+      to adjust the data and information, these factors should be properly tracked and analyzed
+      so that users are aware of potential limitations. This is particularly important for external
+      data and information (from a vendor or outside party), especially as they relate to new
+      products, instruments, or activities.
+      An integral part of model development is testing, in which the various components of a
+      model and its overall functioning are evaluated to determine whether the model is
+      performing as intended. Model testing includes checking the model's accuracy,
+      demonstrating that the model is robust and stable, assessing potential limitations, and
+      evaluating the model's behavior over a range of input values. It should also assess the
+      impact of assumptions and identify situations where the model performs poorly or
+      becomes unreliable. Testing should be applied to actual circumstances under a variety of
+      market conditions, including scenarios that are outside the range of ordinary expectations,
+      and should encompass the variety of products or applications for which the model is
+      intended. Extreme values for inputs should be evaluated to identify any boundaries of
+      model effectiveness. The impact of model results on other models that rely on those
+      results as inputs should also be evaluated. Included in testing activities should be the
+      purpose, design, and execution of test plans, summary results with commentary and
+      evaluation, and detailed analysis of informative samples. Testing activities should be
+      appropriately documented.
+      The nature of testing and analysis will depend on the type of model and will be judged by
+      different criteria depending on the context. For example, the appropriate statistical tests
+      depend on specific distributional assumptions and the purpose of the model. Furthermore,
+      in many cases statistical tests cannot unambiguously reject false hypotheses or accept true
+      ones based on sample information. Different tests have different strengths and
+      weaknesses under different conditions. Any single test is rarely sufficient, so banks
+      should apply a variety of tests to develop a sound model. [Page Break]
+      Banks should ensure that the development of the more judgmental and qualitative aspects
+      of their models is also sound. In some cases, banks may take statistical output from a
+      model and modify it with judgmental or qualitative adjustments as part of model
+      development. While such practices may be appropriate, banks should ensure that any
+      such adjustments made as part of the development process are conducted in an
+      appropriate and systematic manner, and are well documented.
+      Models typically are embedded in larger information systems that manage the flow of
+      data from various sources into the model and handle the aggregation and reporting of
+      model outcomes. Model calculations should be properly coordinated with the capabilities
+      and requirements of information systems. Sound model risk management depends on
+      substantial investment in supporting systems to ensure data and reporting integrity,
+      together with controls and testing to ensure proper implementation of models, effective
+      systems integration, and appropriate use.
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    heading: '## 4. Outcomes analysis'
+    guidance_query: outcomes analysis comparing model output to actual outcomes
+    brief: |-
+      Report the outcomes analysis, discrimination before calibration. Say so in the opening, and give
+      the reason: the observed event rate on the evaluation split is at or above
+      rule.calibration_first_event_rate, the rate below which this report would lead with calibration instead.
+      Cite both the event rate and that rule for it.
+      Give a metrics-by-split table in prose, one row per metric, every cell carrying its own citation.
+      Then the train-to-test gap against its threshold, then calibration: the slope, the intercept, the
+      mean predicted probability against the observed rate and the relative gap against its tolerance.
+      Place every table directive on a line of its own.
+      Close with the developer-declared thresholds, and do **not** assemble that table yourself: write
+      the directive [[table:thresholds.evaluation]] on a line of its own. The tool computed it -- one
+      row per bound package.yaml declares, with the metric, the split, the bound, the recomputed value
+      and the outcome -- so it cannot disagree with what the rest of this report says was computed.
+      Follow the directive with at most two sentences of your own about what the table shows, and write
+      no number in them that is not in the JSON below.
+    spans:
+    - doc: SR26-2
+      section_id: V.1.b
+      heading: Outcomes Analysis
+    - doc: SR26-2
+      section_id: IV.1
+      heading: Model Development
+    - doc: SR26-2
+      section_id: IV.2
+      heading: Model Use
+    - doc: SR11-7
+      section_id: V.1.c
+      heading: Outcomes Analysis
+    - doc: SR11-7
+      section_id: IV.2
+      heading: Model Use
+    - doc: SR11-7
+      section_id: IV.1
+      heading: Model Development and Implementation
+    findings: []
+    prompt_bytes: 38748
+    rubric_sha256: 9aab524960c01a07
+    prompt_sha256: 13d9f328d4b96d63
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/drafted_section.json
+  - type: contains
+    all:
+    - '[[art:'
+    case_sensitive: true
+  - type: not_contains
+    all:
+    - ⟦unverified
+    - compliant
+    - certified
+    case_sensitive: false
+  - type: judge
+    rubric: grounding
+    threshold: 1.0
+  budget:
+    max_cost_usd: 0.96
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - drafter
+  - credit_default
+  - synthetic
+- id: draft_section.sensitivity
+  input:
+    section: sensitivity
+    artifacts_json:
+    - name: condition_number
+      hash8: e41b9562
+      kind: scalar
+      summary: Belsley's condition number of the column-standardised design
+      value: 5.547
+      citation: '[[art:e41b9562:condition_number]]'
+    - name: threshold.M1.condition_number
+      hash8: 7e52fd7a
+      kind: scalar
+      summary: 'M1: Belsley''s condition number of the design'
+      value: 30
+      citation: '[[art:7e52fd7a:threshold.M1.condition_number]]'
+    - name: threshold.M1.vif
+      hash8: aeb4f33c
+      kind: scalar
+      summary: 'M1: the variance inflation factor of any retained feature'
+      value: 10
+      citation: '[[art:aeb4f33c:threshold.M1.vif]]'
+    - name: vif.age
+      hash8: 74c06cad
+      kind: scalar
+      summary: variance inflation factor of age on train
+      value: 1.002
+      citation: '[[art:74c06cad:vif.age]]'
+    - name: vif.bill_mean_6m
+      hash8: f0a2f865
+      kind: scalar
+      summary: variance inflation factor of bill_mean_6m on train
+      value: 7.295
+      citation: '[[art:f0a2f865:vif.bill_mean_6m]]'
+    - name: vif.bill_trend_6m
+      hash8: 9356a256
+      kind: scalar
+      summary: variance inflation factor of bill_trend_6m on train
+      value: 1.201
+      citation: '[[art:9356a256:vif.bill_trend_6m]]'
+    - name: vif.delinq_count_6m
+      hash8: 38974def
+      kind: scalar
+      summary: variance inflation factor of delinq_count_6m on train
+      value: 2.561
+      citation: '[[art:38974def:vif.delinq_count_6m]]'
+    - name: vif.delinq_last
+      hash8: '48733638'
+      kind: scalar
+      summary: variance inflation factor of delinq_last on train
+      value: 1.412
+      citation: '[[art:48733638:vif.delinq_last]]'
+    - name: vif.delinq_max_6m
+      hash8: 71aaaf11
+      kind: scalar
+      summary: variance inflation factor of delinq_max_6m on train
+      value: 2.408
+      citation: '[[art:71aaaf11:vif.delinq_max_6m]]'
+    - name: vif.limit_bal
+      hash8: ddfdcc3c
+      kind: scalar
+      summary: variance inflation factor of limit_bal on train
+      value: 4.803
+      citation: '[[art:ddfdcc3c:vif.limit_bal]]'
+    - name: vif.max
+      hash8: 9ae7c45b
+      kind: scalar
+      summary: the largest variance inflation factor
+      value: 7.295
+      citation: '[[art:9ae7c45b:vif.max]]'
+    - name: vif.pay_ratio_last
+      hash8: c2de8dfe
+      kind: scalar
+      summary: variance inflation factor of pay_ratio_last on train
+      value: 7.264
+      citation: '[[art:c2de8dfe:vif.pay_ratio_last]]'
+    - name: vif.pay_ratio_mean_6m
+      hash8: e39c3e82
+      kind: scalar
+      summary: variance inflation factor of pay_ratio_mean_6m on train
+      value: 7.259
+      citation: '[[art:e39c3e82:vif.pay_ratio_mean_6m]]'
+    - name: vif.utilisation
+      hash8: 536fdb6f
+      kind: scalar
+      summary: variance inflation factor of utilisation on train
+      value: 3.215
+      citation: '[[art:536fdb6f:vif.utilisation]]'
+    candidates: []
+    guidance: |-
+      Validating conceptual soundness involves assessing and documenting model design
+      (including key modeling choices, assumptions, qualitative judgments, and data selection),
+      construction, and developmental testing. While evaluating theoretical construction may be
+      important for some models, other assessments—such as interpretability measures or
+      benchmarking to other models—may be more practical for other models. Sound practice subjects
+      modeling aspects to critical analysis by evaluating both the quality and extent of developmental
+      evidence.
+
+      ---
+
+      Sound model development activities are aligned with model purpose, business use, and
+      banking organization policy. Model development is not purely a technical exercise. The
+      developer’s judgment influences the model’s conceptual design and soundness, inputs,
+      assumptions, and methodology, all of which affect a model’s inherent risk. Because model
+      development is often multidisciplinary, tailored to actual use, and involves significant
+      subjectivity throughout its lifecycle, sound development practices are important for effective
+      model risk management.
+      An effective development process generally begins with a clear statement of purpose to
+      maximize the likelihood that model development is aligned with the intended use. This
+      fundamental step supports decision-making throughout the development lifecycle, including the
+      selection of data, methodologies, and testing approaches.
+      Input from model users can enhance model development by providing business context
+      and practical insights. Business managers affected by model outcomes may raise questions about
+      the methods or assumptions, particularly when the outcomes are unexpected. Constructive
+      engagement around model design and assumptions strengthens both model understanding and
+      model quality.
+      Model testing is a core component of model development that evaluates whether a model
+      performs as intended. Testing may include a range of activities, from out-of-sample and out-of-
+      time testing, to a comparison of alternative assumptions and methodologies, to a critical
+      assessment of data quality, relevance, and inputs. Testing may be performed by model
+      developers in collaboration with model users. The specific approach depends on the model’s
+      characteristics. The rigor of effective testing is commensurate with model complexity and
+      materiality. For models that have relatively less material impact or for banking organizations
+      with relatively less complex operations, model testing may be more limited in scope.
+
+      ---
+
+      The widespread use of customized vendor and other third-party products—including
+      data, parameter values, or complete models—can present unique challenges for validation and
+      other model risk management activities. Additionally, because certain components may be
+      proprietary, banking organizations may not receive from the vendor the underlying code, data, or
+      methodology that they would have if a model were developed internally. Nevertheless, the
+      principles of model risk management remain applicable.
+      An important element of model risk management is the validation of vendor products,
+      either by internal or outside parties. Sound practice includes developing an understanding of the
+      vendor model, including its conceptual soundness, design, development data, and performance.
+      Similarly, sound practice involves conducting ongoing monitoring and outcome analysis to
+      assess whether vendor models are accurate, remain fit for purpose, and continue to be reliable.
+      Such analysis can also be used to support any overlay or adjustment to model output. In cases
+      where vendor models are customized to fit a banking organization’s specific business needs,
+      sound practice also involves appropriately documenting, justifying, and evaluating adjustments
+      made to customize the model as part of model validation.
+
+      ---
+
+      The second core element of the validation process is ongoing monitoring. Such
+      monitoring confirms that the model is appropriately implemented and is being used and is
+      performing as intended.
+      Ongoing monitoring is essential to evaluate whether changes in products, exposures,
+      activities, clients, or market conditions necessitate adjustment, redevelopment, or
+      replacement of the model and to verify that any extension of the model beyond its
+      original scope is valid. Any model limitations identified in the development stage should
+      be regularly assessed over time, as part of ongoing monitoring. Monitoring begins when a
+      model is first implemented in production systems for actual business use. This
+      monitoring should continue periodically over time, with a frequency appropriate to the
+      nature of the model, the availability of new data or modeling approaches, and the
+      magnitude of the risk involved. Banks should design a program of ongoing testing and
+      evaluation of model performance along with procedures for responding to any problems
+      that appear. This program should include process verification and benchmarking.
+      Process verification checks that all model components are functioning as designed. It
+      includes verifying that internal and external data inputs continue to be accurate, complete,
+      consistent with model purpose and design, and of the highest quality available. Computer
+      code implementing the model should be subject to rigorous quality and change control
+      procedures to ensure that the code is correct, that it cannot be altered except by approved
+      parties, and that all changes are logged and can be audited. System integration can be a
+      challenge and deserves special attention because the model processing component often
+      draws from various sources of data, processes large amounts of data, and then feeds into
+      multiple data repositories and reporting systems. User-developed applications, such as
+      spreadsheets or ad hoc database applications used to generate quantitative estimates, are
+      particularly prone to model risk. As the content or composition of information changes
+      over time, systems may need to be updated to reflect any changes in the data or its use.
+      Reports derived from model outputs should be reviewed as part of validation to verify
+      that they are accurate, complete, and informative, and that they contain appropriate
+      indicators of model performance and limitations.
+      Many of the tests employed as part of model development should be included in ongoing
+      monitoring and be conducted on a regular basis to incorporate additional information as it
+      becomes available. New empirical evidence or theoretical research may suggest the need
+      to modify or even replace original methods. Analysis of the integrity and applicability of [Page Break]
+      internal and external information sources, including information provided by third-party
+      vendors, should be performed regularly.
+      Sensitivity analysis and other checks for robustness and stability should likewise be
+      repeated periodically. They can be as useful during ongoing monitoring as they are
+      during model development. If models only work well for certain ranges of input values,
+      market conditions, or other factors, they should be monitored to identify situations where
+      these constraints are approached or exceeded.
+      Ongoing monitoring should include the analysis of overrides with appropriate
+      documentation. In the use of virtually any model, there will be cases where model output
+      is ignored, altered, or reversed based on the expert judgment of model users. Such
+      overrides are an indication that, in some respect, the model is not performing as intended
+      or has limitations. Banks should evaluate the reasons for overrides and track and analyze
+      override performance. If the rate of overrides is high, or if the override process
+      consistently improves model performance, it is often a sign that the underlying model
+      needs revision or redevelopment.
+      Benchmarking is the comparison of a given model's inputs and outputs to estimates from
+      alternative internal or external data or models. It can be incorporated in model
+      development as well as in ongoing monitoring. For credit risk models, examples of
+      benchmarks include models from vendor firms or industry consortia and data from retail
+      credit bureaus. Pricing models for securities and derivatives often can be compared with
+      alternative models that are more accurate or comprehensive but also too time consuming
+      to run on a daily basis. Whatever the source, benchmark models should be rigorous and
+      benchmark data should be accurate and complete to ensure a reasonable comparison.
+      Discrepancies between the model output and benchmarks should trigger investigation
+      into the sources and degree of the differences, and examination of whether they are
+      within an expected or appropriate range given the nature of the comparison. The results
+      of that analysis may suggest revisions to the model. However, differences do not
+      necessarily indicate that the model is in error. The benchmark itself is an alternative
+      prediction, and the differences may be due to the different data or methods used. If the
+      model and the benchmark match well, that is evidence in favor of the model, but it should
+      be interpreted with caution so the bank does not get a false degree of comfort.
+
+      ---
+
+      This element involves assessing the quality of the model design and construction. It
+      entails review of documentation and empirical evidence supporting the methods used and
+      variables selected for the model. Documentation and testing should convey an
+      understanding of model limitations and assumptions. Validation should ensure that
+      judgment exercised in model design and construction is well informed, carefully
+      considered, and consistent with published research and with sound industry practice.
+      Developmental evidence should be reviewed before a model goes into use and also as
+      part of the ongoing validation process, in particular whenever there is a material change
+      in the model.
+      A sound development process will produce documented evidence in support of all model
+      choices, including the overall theoretical construction, key assumptions, data, and
+      specific mathematical calculations, as mentioned in Section IV. As part of model
+      validation, those model aspects should be subjected to critical analysis by both evaluating
+      the quality and extent of developmental evidence and conducting additional analysis and
+      testing as necessary. Comparison to alternative theories and approaches should be
+      included. Key assumptions and the choice of variables should be assessed, with analysis
+      of their impact on model outputs and particular focus on any potential limitations. The
+      relevance of the data used to build the model should be evaluated to ensure that it is
+      reasonably representative of the bank's portfolio or market conditions, depending on the
+      type of model. This is an especially important exercise when a bank uses external data or
+      the model is used for new products or activities.
+      Where appropriate to the particular model, banks should employ sensitivity analysis in
+      model development and validation to check the impact of small changes in inputs and
+      parameter values on model outputs to make sure they fall within an expected range.
+      Unexpectedly large changes in outputs in response to small changes in inputs can indicate
+      an unstable model. Varying several inputs simultaneously as part of sensitivity analysis
+      can provide evidence of unexpected interactions, particularly if the interactions are
+      complex and not intuitively clear. Banks benefit from conducting model stress testing to
+      check performance over a wide range of inputs and parameter values, including extreme
+      values, to verify that the model is robust. Such testing helps establish the boundaries of
+      model performance by identifying the acceptable range of inputs as well as conditions
+      under which the model may become unstable or inaccurate.
+      Management should have a clear plan for using the results of sensitivity analysis and
+      other quantitative testing. If testing indicates that the model may be inaccurate or unstable
+      in some circumstances, management should consider modifying certain model properties, [Page Break]
+      putting less reliance on its outputs, placing limits on model use, or developing a new
+      approach.
+      Qualitative information and judgment used in model development should be evaluated,
+      including the logic, judgment, and types of information used, to establish the conceptual
+      soundness of the model and set appropriate conditions for its use. The validation process
+      should ensure that qualitative, judgmental assessments are conducted in an appropriate
+      and systematic manner, are well supported, and are documented.
+
+      ---
+
+      The widespread use of vendor and other third-party products—including data, parameter
+      values, and complete models—poses unique challenges for validation and other model
+      risk management activities because the modeling expertise is external to the user and
+      because some components are considered proprietary. Vendor products should
+      nevertheless be incorporated into a bank's broader model risk management framework
+      following the same principles as applied to in-house models, although the process may be
+      somewhat modified. [Page Break]
+      As a first step, banks should ensure that there are appropriate processes in place for
+      selecting vendor models. Banks should require the vendor to provide developmental
+      evidence explaining the product components, design, and intended use, to determine
+      whether the model is appropriate for the bank's products, exposures, and risks. Vendors
+      should provide appropriate testing results that show their product works as expected.
+      They should also clearly indicate the model's limitations and assumptions and where the
+      product's use may be problematic. Banks should expect vendors to conduct ongoing
+      performance monitoring and outcomes analysis, with disclosure to their clients, and to
+      make appropriate modifications and updates over time.
+      Banks are expected to validate their own use of vendor products. External models may
+      not allow full access to computer coding and implementation details, so the bank may
+      have to rely more on sensitivity analysis and benchmarking. Vendor models are often
+      designed to provide a range of capabilities and so may need to be customized by a bank
+      for its particular circumstances. A bank's customization choices should be documented
+      and justified as part of validation. If vendors provide input data or assumptions, or use
+      them to build models, their relevance for the bank's situation should be investigated.
+      Banks should obtain information regarding the data used to develop the model and assess
+      the extent to which that data is representative of the bank's situation. The bank also
+      should conduct ongoing monitoring and outcomes analysis of vendor model performance
+      using the bank's own outcomes.
+      Systematic procedures for validation help the bank to understand the vendor product and
+      its capabilities, applicability, and limitations. Such detailed knowledge is necessary for
+      basic controls of bank operations. It is also very important for the bank to have as much
+      knowledge in-house as possible, in case the vendor or the bank terminates the contract for
+      any reason, or if the vendor is no longer in business. Banks should have contingency
+      plans for instances when the vendor model is no longer available or cannot be supported
+      by the vendor.
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    heading: '## 5. Sensitivity and scenario analysis'
+    guidance_query: sensitivity analysis stability benchmarking alternative models
+    brief: |-
+      Report sensitivity: multicollinearity among the retained features (the largest variance inflation
+      factor and the condition number, each against its threshold), stability across the declared
+      regimes where there is a regime column, and the rate-shock scenarios where the subject is a hazard
+      model -- the value change at the extreme shocks, whether the curve is monotone, and the convexity
+      against the direction the package declares. Say plainly which of these do not apply to this model
+      type; they are listed in Appendix D and must not be described as though they had been run.
+    spans:
+    - doc: SR26-2
+      section_id: V.1.a
+      heading: Conceptual Soundness
+    - doc: SR26-2
+      section_id: IV.1
+      heading: Model Development
+    - doc: SR26-2
+      section_id: VII
+      heading: Vendor and Other Third-Party Products
+    - doc: SR11-7
+      section_id: V.1.b
+      heading: Ongoing Monitoring
+    - doc: SR11-7
+      section_id: V.1.a
+      heading: Evaluation of Conceptual Soundness
+    - doc: SR11-7
+      section_id: V.2
+      heading: Validation of Vendor and Other Third-Party Products
+    findings: []
+    prompt_bytes: 22297
+    rubric_sha256: 9aab524960c01a07
+    prompt_sha256: 2c2c693b87fefe00
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/drafted_section.json
+  - type: contains
+    all:
+    - '[[art:'
+    case_sensitive: true
+  - type: not_contains
+    all:
+    - ⟦unverified
+    - compliant
+    - certified
+    case_sensitive: false
+  - type: judge
+    rubric: grounding
+    threshold: 1.0
+  budget:
+    max_cost_usd: 0.42
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - drafter
+  - credit_default
+  - synthetic
+- id: draft_section.findings
+  input:
+    section: findings
+    artifacts_json:
+    - name: challenger.auc
+      hash8: bf5be719
+      kind: scalar
+      summary: the challenger's AUC on test
+      value: 0.824
+      citation: '[[art:bf5be719:challenger.auc]]'
+    - name: challenger.delta_auc
+      hash8: c9e502ae
+      kind: scalar
+      summary: the challenger's AUC on test minus the champion's
+      value: 0.07598
+      citation: '[[art:c9e502ae:challenger.delta_auc]]'
+    - name: metrics.test.auc
+      hash8: 5c6c2bfc
+      kind: scalar
+      summary: auc on test, recomputed by quaestor
+      value: 0.748
+      citation: '[[art:5c6c2bfc:metrics.test.auc]]'
+    - name: threshold.E1.delta_auc
+      hash8: e042774c
+      kind: scalar
+      summary: 'E1: the challenger''s AUC lead over the champion'
+      value: 0.03
+      citation: '[[art:e042774c:threshold.E1.delta_auc]]'
+    candidates: []
+    guidance: |-
+      Adequate documentation helps to support effective model risk management. For
+      example, documentation can help maximize the likelihood of continuity of operations, including
+      supporting the tracking of recommendations, responses, and exceptions; it can also be used to
+      more effectively help manage any model remediation efforts.
+
+      ---
+
+      Model validation evaluates whether models perform as expected and includes an
+      assessment of a model’s reliability and its limitations. The nature and rigor of validation generally
+      align with the model’s approach, use, and materiality. Sound validation identifies model
+      limitations and errors and clarifies appropriate use and whether corrective actions may be
+      warranted.
+      Validation provides insight into the reliability of a given model, based on its underlying
+      assumptions, methods, data, and relevant theories, as appropriate. This understanding helps
+      characterize the source and extent of the model risk. Validation can reveal performance
+      deterioration over time and inform judgments about acceptable performance ranges. When
+      performance deviates meaningfully from expectations, banking organizations generally consider
+      whether model adjustments, recalibration, or redevelopment are warranted.
+      The timing, nature, and frequency of validation activities vary based on model purpose,
+      model methodology, frequency and scope of model changes, data limitations, and other practical
+      constraints. Sound practice recognizes that validation approaches may differ across models based
+      on their characteristics and use. Validation generally occurs prior to a model’s first use.
+      However, certain circumstances (e.g., an urgent business need) may necessitate using the model
+      before validation is completed. In those cases, sound practice involves greater attention to the
+      model’s limitations when considering the appropriateness of its use, informing relevant
+      stakeholders of those limitations, and determining appropriate controls (e.g., placing limits on
+      model use or more closely monitoring its performance).
+      The quality of validation process depends on the rigor and effectiveness of the review
+      rather than on organizational structure of the banking organization’s risk management function.
+      Technical knowledge and modeling expertise enable appropriate analysis, meaningful critique,
+      and sound judgment about model performance and risk.
+      Even with sound modeling practices and rigorous validation, material model risk can
+      remain. Users of model output benefit from understanding and communicating limitations,
+      monitoring performance, periodically reviewing relevance, and supplementing model output
+      with complementary analysis and information.
+
+      ---
+
+      Model risk management benefits from clear roles and responsibilities with well-defined
+      accountability, including with respect to potential conflicts of interest (e.g., misalignment of
+      incentives between different reporting lines, such as model development and validation groups).
+      Sound governance practices delineate the individual(s) responsible for key activities throughout
+      the model lifecycle, from development through validation and ongoing monitoring. In cases
+      where internal audit is part of the banking organization’s model risk management practices,
+      internal audit would generally not duplicate model risk management activities such as model
+      development or validation. Instead, internal audit’s role is generally to evaluate whether the
+      model risk management practices are rigorous and effective and whether related policies are
+      implemented accordingly. For banking organizations that use external resources to help manage
+      model risk, sound practice involves maintaining proper oversight and integrating that work into
+      broader model risk management activities. Organizations benefit from clearly defining roles and
+      responsibilities when delegating these activities.
+
+      ---
+
+      A bank's internal audit function should assess the overall effectiveness of the model risk
+      management framework, including the framework's ability to address both types of
+      model risk described in Section III, for individual models and in the aggregate. Findings
+      from internal audit related to models should be documented and reported to the board or
+      its appropriately delegated agent. Banks should ensure that internal audit operates with
+      the proper incentives, has appropriate skills, and has adequate stature in the organization
+      to assist in model risk management. Internal audit's role is not to duplicate model risk
+      management activities. Instead, its role is to evaluate whether model risk management is
+      comprehensive, rigorous, and effective. To accomplish this evaluation, internal audit staff
+      should possess sufficient expertise in relevant modeling concepts as well as their use in
+      particular business lines. If some internal audit staff perform certain validation activities,
+      then they should not be involved in the assessment of the overall model risk management
+      framework.
+      Internal audit should verify that acceptable policies are in place and that model owners
+      and control groups comply with those policies. Internal audit should also verify records
+      of model use and validation to test whether validations are performed in a timely manner
+      and whether models are subject to controls that appropriately account for any weaknesses
+      in validation activities. Accuracy and completeness of the model inventory should be
+      assessed. In addition, processes for establishing and monitoring limits on model usage
+      should be evaluated. Internal audit should determine whether procedures for updating
+      models are clearly documented, and test whether those procedures are being carried out
+      as specified. Internal audit should check that model owners and control groups are
+      meeting documentation standards, including risk reporting. Additionally, internal audit
+      should perform assessments of supporting operational systems and evaluate the reliability
+      of data used by models.
+      Internal audit also has an important role in ensuring that validation work is conducted
+      properly and that appropriate effective challenge is being carried out. It should evaluate
+      the objectivity, competence, and organizational standing of the key validation
+      participants, with the ultimate goal of ascertaining whether those participants have the
+      right incentives to discover and report deficiencies. Internal audit should review
+      validation activities conducted by internal and external parties with the same rigor to see
+      if those activities are being conducted in accordance with this guidance. [Page Break]
+
+      ---
+
+      Model validation is the set of processes and activities intended to verify that models are
+      performing as expected, in line with their design objectives and business uses. Effective
+      validation helps ensure that models are sound. It also identifies potential limitations and
+      assumptions, and assesses their possible impact. As with other aspects of effective
+      challenge, model validation should be performed by staff with appropriate incentives,
+      competence, and influence.
+      All model components, including input, processing, and reporting, should be subject to
+      validation; this applies equally to models developed in-house and to those purchased
+      from or developed by vendors or consultants. The rigor and sophistication of validation
+      should be commensurate with the bank's overall use of models, the complexity and
+      materiality of its models, and the size and complexity of the bank's operations.
+      Validation involves a degree of independence from model development and use.
+      Generally, validation should be done by people who are not responsible for development
+      or use and do not have a stake in whether a model is determined to be valid.
+      Independence is not an end in itself but rather helps ensure that incentives are aligned
+      with the goals of model validation. While independence may be supported by separation
+      of reporting lines, it should be judged by actions and outcomes, since there may be
+      additional ways to ensure objectivity and prevent bias. As a practical matter, some
+      validation work may be most effectively done by model developers and users; it is
+      essential, however, that such validation work be subject to critical review by an
+      independent party, who should conduct additional activities to ensure proper validation.
+      Overall, the quality of the process is judged by the manner in which models are subject to
+      critical review. This could be determined by evaluating the extent and clarity of
+      documentation, the issues identified by objective parties, and the actions taken by
+      management to address model issues.
+      In addition to independence, banks can support appropriate incentives in validation
+      through compensation practices and performance evaluation standards that are tied
+      directly to the quality of model validations and the degree of critical, unbiased review. In
+      addition, corporate culture plays a role if it establishes support for objective thinking and
+      encourages questioning and challenging of decisions.
+      Staff doing validation should have the requisite knowledge, skills, and expertise. A high
+      level of technical expertise may be needed because of the complexity of many models,
+      both in structure and in application. These staff also should have a significant degree of
+      familiarity with the line of business using the model and the model's intended use. A
+      model's developer is an important source of information but cannot be relied on as an
+      objective or sole source on which to base an assessment of model quality.
+      Staff conducting validation work should have explicit authority to challenge developers
+      and users and to elevate their findings, including issues and deficiencies. The individual
+      or unit to whom those staff report should have sufficient influence or stature within the [Page Break]
+      bank to ensure that any issues and deficiencies are appropriately addressed in a timely
+      and substantive manner. Such influence can be reflected in reporting lines, title, rank, or
+      designated responsibilities. Influence may be demonstrated by a pattern of actual
+      instances in which models, or the use of models, have been appropriately changed as a
+      result of validation.
+      The range and rigor of validation activities conducted prior to first use of a model should
+      be in line with the potential risk presented by use of the model. If significant deficiencies
+      are noted as a result of the validation process, use of the model should not be allowed or
+      should be permitted only under very tight constraints until those issues are resolved. If
+      the deficiencies are too severe to be addressed within the model's framework, the model
+      should be rejected. If it is not feasible to conduct necessary validation activities prior to
+      model use because of data paucity or other limitations, that fact should be documented
+      and communicated in reports to users, senior management, and other relevant parties. In
+      such cases, the uncertainty about the results that the model produces should be mitigated
+      by other compensating controls. This is particularly applicable to new models and to the
+      use of existing models in new applications.
+      Validation activities should continue on an ongoing basis after a model goes into use, to
+      track known model limitations and to identify any new ones. Validation is an important
+      check on model use during periods of benign economic and financial conditions, when
+      estimates of risk and potential loss can become overly optimistic, and when the data at
+      hand may not fully reflect more stressed conditions. Ongoing validation activities help to
+      ensure that changes in markets, products, exposures, activities, clients, or business
+      practices do not create new model limitations. For example, if credit risk models do not
+      incorporate underwriting changes in a timely manner, flawed and costly business
+      decisions could be made before deterioration in model performance becomes apparent.
+      Banks should conduct a periodic review—at least annually but more frequently if
+      warranted—of each model to determine whether it is working as intended and if the
+      existing validation activities are sufficient. Such a determination could simply affirm
+      previous validation work, suggest updates to previous validation activities, or call for
+      additional validation activities. Material changes to models should also be subject to
+      validation. It is generally good practice for banks to ensure that all models undergo the
+      full validation process, as described in the following section, at some fixed interval,
+      including updated documentation of all activities.
+      Effective model validation helps reduce model risk by identifying model errors,
+      corrective actions, and appropriate use. It also provides an assessment of the reliability of
+      a given model, based on its underlying assumptions, theory, and methods. In this way, it
+      provides information about the source and extent of model risk. Validation also can
+      reveal deterioration in model performance over time and can set thresholds for acceptable
+      levels of error, through analysis of the distribution of outcomes around expected or
+      predicted values. If outcomes fall consistently outside this acceptable range, then the
+      models should be redeveloped. [Page Break]
+
+      ---
+
+      Model risk governance is provided at the highest level by the board of directors and
+      senior management when they establish a bank-wide approach to model risk
+      management. As part of their overall responsibilities, a bank's board and senior
+      management should establish a strong model risk management framework that fits into
+      the broader risk management of the organization. That framework should be grounded in
+      an understanding of model risk—not just for individual models but also in the aggregate.
+      The framework should include standards for model development, implementation, use,
+      and validation.
+      While the board is ultimately responsible, it generally delegates to senior management
+      the responsibility for executing and maintaining an effective model risk management
+      framework. Duties of senior management include establishing adequate policies and
+      procedures and ensuring compliance, assigning competent staff, overseeing model
+      development and implementation, evaluating model results, ensuring effective challenge,
+      reviewing validation and internal audit findings, and taking prompt remedial action when
+      necessary. In the same manner as for other major areas of risk, senior management,
+      directly and through relevant committees, is responsible for regularly reporting to the
+      board on significant model risk, from individual models and in the aggregate, and on
+      compliance with policy. Board members should ensure that the level of model risk is
+      within their tolerance and direct changes where appropriate. These actions will set the
+      tone for the whole organization about the importance of model risk and the need for
+      active model risk management.
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    heading: '## 6. Findings and recommendations'
+    guidance_query: model validation findings deficiencies and remediation
+    brief: |-
+      Write the findings section. Open with one sentence anchored by a [[reg:...]] citation saying
+      how findings are ordered and what evidence each carries. Then, for each finding listed below,
+      copy its heading line exactly as given, on a line of its own, and beneath it write: a bold
+      one-sentence statement of the
+      defect, then the numbers that show it -- each with its citation -- then what the validator
+      concludes and what the developer should do. Do not invent a finding, do not merge two, and do not
+      change a severity.
+      Where no finding is listed below, say so in one sentence and stop there. Do **not** describe what
+      was reviewed, list the reviews that were carried out, or say that any review produced no defect:
+      the renderer prints the checks that ran and raised no candidate directly beneath your prose, from
+      the run's own record, and a drafted list of reviews beside it is a second account of the same fact
+      that nothing checked -- the fourth live report's own list named "input data lineage" and
+      "documentation of intended use and known limitations" on a package whose Appendix D says it has no
+      docs directory.
+      Then close the section with the heading `### Open items`, written exactly like that on a line of
+      its own, and under it the observations this validation made that are **not** defects under any
+      rule but that a developer should still answer for. One per line, each carrying the citation of
+      the artifact it rests on and each naming an owner -- write "model developer" unless the artifacts
+      name someone else. A coefficient whose fitted sign disagrees with its univariate direction, and a
+      share of test rows repeating a training feature vector that the within-train duplicate share
+      explains, are both open items rather than findings, and are the kind of thing this subsection is
+      for. So is a follow-up analysis marked below as materially worse than the headline: write it as a
+      question and not as a verdict -- conditioning on one feature also conditions on everything
+      correlated with it, so a segment selected on a delinquency count is also a segment of near-constant
+      delinquency history, and what a developer is being asked is what the model discriminates on inside
+      that segment rather than to accept that the model is defective there. Cite the slice's own value,
+      the headline it is compared with and the bound the comparison was made against.
+      If there is genuinely nothing, write one sentence under the heading saying so. Never write
+      the word finding about an open item.
+    spans:
+    - doc: SR26-2
+      section_id: VI.3
+      heading: Documentation
+    - doc: SR26-2
+      section_id: V
+      heading: Model Validation and Monitoring
+    - doc: SR26-2
+      section_id: VI.1
+      heading: Roles and Responsibilities
+    - doc: SR11-7
+      section_id: VI.4
+      heading: Internal Audit
+    - doc: SR11-7
+      section_id: V
+      heading: Model Validation
+    - doc: SR11-7
+      section_id: VI.1
+      heading: Board of Directors and Senior Management
+    findings:
+    - id: F-001
+      defect_class: E1
+      severity: low
+      suggested_severity: low
+      severity_reason: null
+      tool: challenger_compare
+      title: a hist_gradient_boosting challenger reaches an AUC of 0.8240 on test against the champion's
+        0.7480, a lead of 0.0760 against an effective-challenge threshold of 0.03
+      narrative: a hist_gradient_boosting challenger reaches an AUC of 0.8240 on test against the champion's
+        0.7480, a lead of 0.0760 against an effective-challenge threshold of 0.03
+      evidence:
+      - 5c6c2bfc
+      - bf5be719
+      - c9e502ae
+      - e042774c
+      section: conceptual_soundness
+      candidates_merged: 1
+    prompt_bytes: 21947
+    rubric_sha256: 9aab524960c01a07
+    prompt_sha256: 405694630f3c281f
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/drafted_section.json
+  - type: contains
+    all:
+    - '[[art:'
+    case_sensitive: true
+  - type: not_contains
+    all:
+    - ⟦unverified
+    - compliant
+    - certified
+    case_sensitive: false
+  - type: judge
+    rubric: grounding
+    threshold: 1.0
+  budget:
+    max_cost_usd: 0.34
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - drafter
+  - credit_default
+  - synthetic
+- id: draft_section.monitoring
+  input:
+    section: monitoring
+    artifacts_json:
+    - name: calibration_slope.test
+      hash8: b7dbb687
+      kind: scalar
+      summary: 'logistic regression of the outcome on logit(p) on test: the slope'
+      value: 1.003
+      citation: '[[art:b7dbb687:calibration_slope.test]]'
+    - name: metrics.test.auc
+      hash8: 5c6c2bfc
+      kind: scalar
+      summary: auc on test, recomputed by quaestor
+      value: 0.748
+      citation: '[[art:5c6c2bfc:metrics.test.auc]]'
+    - name: metrics.test.brier
+      hash8: bbe69430
+      kind: scalar
+      summary: brier on test, recomputed by quaestor
+      value: 0.1489
+      citation: '[[art:bbe69430:metrics.test.brier]]'
+    - name: psi.max
+      hash8: 381b2570
+      kind: scalar
+      summary: the largest train-to-test PSI, score included
+      value: 0.01095
+      citation: '[[art:381b2570:psi.max]]'
+    - name: rule.calibration_first_event_rate
+      hash8: 42f1351e
+      kind: scalar
+      summary: the event rate below which the report puts calibration before discrimination
+      value: 0.05
+      citation: '[[art:42f1351e:rule.calibration_first_event_rate]]'
+    - name: threshold.package.auc.test.min
+      hash8: 8bfd02cc
+      kind: scalar
+      summary: package.yaml declares auc min 0.7
+      value: 0.7
+      citation: '[[art:8bfd02cc:threshold.package.auc.test.min]]'
+    - name: threshold.package.brier.test.max
+      hash8: d0f98b9c
+      kind: scalar
+      summary: package.yaml declares brier max 0.2
+      value: 0.2
+      citation: '[[art:d0f98b9c:threshold.package.brier.test.max]]'
+    - name: threshold.package.calibration_slope.test.max
+      hash8: 0adb7a89
+      kind: scalar
+      summary: package.yaml declares calibration_slope max 1.2
+      value: 1.2
+      citation: '[[art:0adb7a89:threshold.package.calibration_slope.test.max]]'
+    - name: threshold.package.calibration_slope.test.min
+      hash8: 95fdb848
+      kind: scalar
+      summary: package.yaml declares calibration_slope min 0.8
+      value: 0.8
+      citation: '[[art:95fdb848:threshold.package.calibration_slope.test.min]]'
+    - name: threshold.package.psi.max
+      hash8: fbb5a9d1
+      kind: scalar
+      summary: package.yaml declares psi max 0.25
+      value: 0.25
+      citation: '[[art:fbb5a9d1:threshold.package.psi.max]]'
+    candidates: []
+    guidance: |-
+      Ongoing model monitoring involves an evaluation of the extent to which a model is
+      performing as expected given potential changes in products, exposures, activities, clients, data
+      relevance, or market conditions. A model that no longer performs as expected may warrant
+      overlays, adjustment, or redevelopment of the model depending on a banking organization’s
+      model risk management policy as it pertains to model deterioration.
+      An effective ongoing monitoring plan may also include regularly assessing any model
+      limitations at the development stage and over time, along with procedures for responding to any
+      issues that may occur, before and after a model is approved for use. The frequency and scope of
+      monitoring reports will depend on the nature of the model, the availability of new data or
+      modeling approaches, and model materiality.
+
+      ---
+
+      Model validation evaluates whether models perform as expected and includes an
+      assessment of a model’s reliability and its limitations. The nature and rigor of validation generally
+      align with the model’s approach, use, and materiality. Sound validation identifies model
+      limitations and errors and clarifies appropriate use and whether corrective actions may be
+      warranted.
+      Validation provides insight into the reliability of a given model, based on its underlying
+      assumptions, methods, data, and relevant theories, as appropriate. This understanding helps
+      characterize the source and extent of the model risk. Validation can reveal performance
+      deterioration over time and inform judgments about acceptable performance ranges. When
+      performance deviates meaningfully from expectations, banking organizations generally consider
+      whether model adjustments, recalibration, or redevelopment are warranted.
+      The timing, nature, and frequency of validation activities vary based on model purpose,
+      model methodology, frequency and scope of model changes, data limitations, and other practical
+      constraints. Sound practice recognizes that validation approaches may differ across models based
+      on their characteristics and use. Validation generally occurs prior to a model’s first use.
+      However, certain circumstances (e.g., an urgent business need) may necessitate using the model
+      before validation is completed. In those cases, sound practice involves greater attention to the
+      model’s limitations when considering the appropriateness of its use, informing relevant
+      stakeholders of those limitations, and determining appropriate controls (e.g., placing limits on
+      model use or more closely monitoring its performance).
+      The quality of validation process depends on the rigor and effectiveness of the review
+      rather than on organizational structure of the banking organization’s risk management function.
+      Technical knowledge and modeling expertise enable appropriate analysis, meaningful critique,
+      and sound judgment about model performance and risk.
+      Even with sound modeling practices and rigorous validation, material model risk can
+      remain. Users of model output benefit from understanding and communicating limitations,
+      monitoring performance, periodically reviewing relevance, and supplementing model output
+      with complementary analysis and information.
+
+      ---
+
+      Outcomes analysis compares model outputs to corresponding real-world outcomes to
+      assess model performance relative to model objectives and business use. Outcomes analysis and
+      other elements of the validation process may identify material errors or persistent deviations
+      outside of the banking organization’s established performance thresholds. In such cases, model
+      adjustment, recalibration, or redevelopment may be warranted.
+      Outcomes analysis can take many forms, including testing conducted during model
+      development, reports or analysis performed as part of ongoing monitoring, or standalone
+      activities such as back-testing or outlier analysis. A banking organization’s approach depends on
+      the model’s objectives, methodology, and data availability. As part of model validation, sound
+      practice involves reviewing outcomes analysis to evaluate the reasonableness and
+      appropriateness of the results, with additional analysis and testing, if warranted. When a model’s
+      design relies substantially on expert judgment, quantitative outcomes analysis helps to evaluate
+      the quality of that judgment.
+
+      ---
+
+      The second core element of the validation process is ongoing monitoring. Such
+      monitoring confirms that the model is appropriately implemented and is being used and is
+      performing as intended.
+      Ongoing monitoring is essential to evaluate whether changes in products, exposures,
+      activities, clients, or market conditions necessitate adjustment, redevelopment, or
+      replacement of the model and to verify that any extension of the model beyond its
+      original scope is valid. Any model limitations identified in the development stage should
+      be regularly assessed over time, as part of ongoing monitoring. Monitoring begins when a
+      model is first implemented in production systems for actual business use. This
+      monitoring should continue periodically over time, with a frequency appropriate to the
+      nature of the model, the availability of new data or modeling approaches, and the
+      magnitude of the risk involved. Banks should design a program of ongoing testing and
+      evaluation of model performance along with procedures for responding to any problems
+      that appear. This program should include process verification and benchmarking.
+      Process verification checks that all model components are functioning as designed. It
+      includes verifying that internal and external data inputs continue to be accurate, complete,
+      consistent with model purpose and design, and of the highest quality available. Computer
+      code implementing the model should be subject to rigorous quality and change control
+      procedures to ensure that the code is correct, that it cannot be altered except by approved
+      parties, and that all changes are logged and can be audited. System integration can be a
+      challenge and deserves special attention because the model processing component often
+      draws from various sources of data, processes large amounts of data, and then feeds into
+      multiple data repositories and reporting systems. User-developed applications, such as
+      spreadsheets or ad hoc database applications used to generate quantitative estimates, are
+      particularly prone to model risk. As the content or composition of information changes
+      over time, systems may need to be updated to reflect any changes in the data or its use.
+      Reports derived from model outputs should be reviewed as part of validation to verify
+      that they are accurate, complete, and informative, and that they contain appropriate
+      indicators of model performance and limitations.
+      Many of the tests employed as part of model development should be included in ongoing
+      monitoring and be conducted on a regular basis to incorporate additional information as it
+      becomes available. New empirical evidence or theoretical research may suggest the need
+      to modify or even replace original methods. Analysis of the integrity and applicability of [Page Break]
+      internal and external information sources, including information provided by third-party
+      vendors, should be performed regularly.
+      Sensitivity analysis and other checks for robustness and stability should likewise be
+      repeated periodically. They can be as useful during ongoing monitoring as they are
+      during model development. If models only work well for certain ranges of input values,
+      market conditions, or other factors, they should be monitored to identify situations where
+      these constraints are approached or exceeded.
+      Ongoing monitoring should include the analysis of overrides with appropriate
+      documentation. In the use of virtually any model, there will be cases where model output
+      is ignored, altered, or reversed based on the expert judgment of model users. Such
+      overrides are an indication that, in some respect, the model is not performing as intended
+      or has limitations. Banks should evaluate the reasons for overrides and track and analyze
+      override performance. If the rate of overrides is high, or if the override process
+      consistently improves model performance, it is often a sign that the underlying model
+      needs revision or redevelopment.
+      Benchmarking is the comparison of a given model's inputs and outputs to estimates from
+      alternative internal or external data or models. It can be incorporated in model
+      development as well as in ongoing monitoring. For credit risk models, examples of
+      benchmarks include models from vendor firms or industry consortia and data from retail
+      credit bureaus. Pricing models for securities and derivatives often can be compared with
+      alternative models that are more accurate or comprehensive but also too time consuming
+      to run on a daily basis. Whatever the source, benchmark models should be rigorous and
+      benchmark data should be accurate and complete to ensure a reasonable comparison.
+      Discrepancies between the model output and benchmarks should trigger investigation
+      into the sources and degree of the differences, and examination of whether they are
+      within an expected or appropriate range given the nature of the comparison. The results
+      of that analysis may suggest revisions to the model. However, differences do not
+      necessarily indicate that the model is in error. The benchmark itself is an alternative
+      prediction, and the differences may be due to the different data or methods used. If the
+      model and the benchmark match well, that is evidence in favor of the model, but it should
+      be interpreted with caution so the bank does not get a false degree of comfort.
+
+      ---
+
+      The widespread use of vendor and other third-party products—including data, parameter
+      values, and complete models—poses unique challenges for validation and other model
+      risk management activities because the modeling expertise is external to the user and
+      because some components are considered proprietary. Vendor products should
+      nevertheless be incorporated into a bank's broader model risk management framework
+      following the same principles as applied to in-house models, although the process may be
+      somewhat modified. [Page Break]
+      As a first step, banks should ensure that there are appropriate processes in place for
+      selecting vendor models. Banks should require the vendor to provide developmental
+      evidence explaining the product components, design, and intended use, to determine
+      whether the model is appropriate for the bank's products, exposures, and risks. Vendors
+      should provide appropriate testing results that show their product works as expected.
+      They should also clearly indicate the model's limitations and assumptions and where the
+      product's use may be problematic. Banks should expect vendors to conduct ongoing
+      performance monitoring and outcomes analysis, with disclosure to their clients, and to
+      make appropriate modifications and updates over time.
+      Banks are expected to validate their own use of vendor products. External models may
+      not allow full access to computer coding and implementation details, so the bank may
+      have to rely more on sensitivity analysis and benchmarking. Vendor models are often
+      designed to provide a range of capabilities and so may need to be customized by a bank
+      for its particular circumstances. A bank's customization choices should be documented
+      and justified as part of validation. If vendors provide input data or assumptions, or use
+      them to build models, their relevance for the bank's situation should be investigated.
+      Banks should obtain information regarding the data used to develop the model and assess
+      the extent to which that data is representative of the bank's situation. The bank also
+      should conduct ongoing monitoring and outcomes analysis of vendor model performance
+      using the bank's own outcomes.
+      Systematic procedures for validation help the bank to understand the vendor product and
+      its capabilities, applicability, and limitations. Such detailed knowledge is necessary for
+      basic controls of bank operations. It is also very important for the bank to have as much
+      knowledge in-house as possible, in case the vendor or the bank terminates the contract for
+      any reason, or if the vendor is no longer in business. Banks should have contingency
+      plans for instances when the vendor model is no longer available or cannot be supported
+      by the vendor.
+
+      ---
+
+      The third core element of the validation process is outcomes analysis, a comparison of
+      model outputs to corresponding actual outcomes. The precise nature of the comparison
+      depends on the objectives of a model, and might include an assessment of the accuracy of
+      estimates or forecasts, an evaluation of rank-ordering ability, or other appropriate tests. In
+      all cases, such comparisons help to evaluate model performance, by establishing expected
+      ranges for those actual outcomes in relation to the intended objectives and assessing the
+      reasons for observed variation between the two. If outcomes analysis produces evidence
+      of poor performance, the bank should take action to address those issues. Outcomes
+      analysis typically relies on statistical tests or other quantitative measures. It can also [Page Break]
+      include expert judgment to check the intuition behind the outcomes and confirm that the
+      results make sense. When a model itself relies on expert judgment, quantitative outcomes
+      analysis helps to evaluate the quality of that judgment. Outcomes analysis should be
+      conducted on an ongoing basis to test whether the model continues to perform in line
+      with design objectives and business uses.
+      A variety of quantitative and qualitative testing and analytical techniques can be used in
+      outcomes analysis. The choice of technique should be based on the model's
+      methodology, its complexity, data availability, and the magnitude of potential model risk
+      to the bank. Outcomes analysis should involve a range of tests because any individual test
+      will have weaknesses. For example, some tests are better at checking a model's ability to
+      rank-order or segment observations on a relative basis, whereas others are better at
+      checking absolute forecast accuracy. Tests should be designed for each situation, as not
+      all will be effective or feasible in every circumstance, and attention should be paid to
+      choosing the appropriate type of outcomes analysis for a particular model.
+      Models are regularly adjusted to take into account new data or techniques, or because of
+      deterioration in performance. Parallel outcomes analysis, under which both the original
+      and adjusted models' forecasts are tested against realized outcomes, provides an
+      important test of such model adjustments. If the adjusted model does not outperform the
+      original model, developers, users, and reviewers should realize that additional changes—
+      or even a wholesale redesign—are likely necessary before the adjusted model replaces
+      the original one.
+      Back-testing is one form of outcomes analysis; specifically, it involves the comparison of
+      actual outcomes with model forecasts during a sample time period not used in model
+      development and at an observation frequency that matches the forecast horizon or
+      performance window of the model. The comparison is generally done using expected
+      ranges or statistical confidence intervals around the model forecasts. When outcomes fall
+      outside those intervals, the bank should analyze the discrepancies and investigate the
+      causes that are significant in terms of magnitude or frequency. The objective of the
+      analysis is to determine whether differences stem from the omission of material factors
+      from the model, whether they arise from errors with regard to other aspects of model
+      specification such as interaction terms or assumptions of linearity, or whether they are
+      purely random and thus consistent with acceptable model performance. Analysis of in-
+      sample fit and of model performance in holdout samples (data set aside and not used to
+      estimate the original model) are important parts of model development but are not
+      substitutes for back-testing.
+      A well-known example of back-testing is the evaluation of value-at-risk (VaR), in which
+      actual profit and loss is compared with a model forecast loss distribution. Significant
+      deviation in expected versus actual performance and unexplained volatility in the profits
+      and losses of trading activities may indicate that hedging and pricing relationships are not
+      adequately measured by a given approach. Along with measuring the frequency of losses
+      in excess of a single VaR percentile estimator, banks should use other tests, such as [Page Break]
+      assessing any clustering of exceptions and checking the distribution of losses against
+      other estimated percentiles.
+      Analysis of the results of even high-quality and well-designed back-testing can pose
+      challenges, since it is not a straightforward, mechanical process that always produces
+      unambiguous results. The purpose is to test the model, not individual forecast values.
+      Back-testing may entail analysis of a large number of forecasts over different conditions
+      at a point in time or over multiple time periods. Statistical testing is essential in such
+      cases, yet such testing can pose challenges in both the choice of appropriate tests and the
+      interpretation of results; banks should support and document both the choice of tests and
+      the interpretation of results.
+      Models with long forecast horizons should be back-tested, but given the amount of time it
+      would take to accumulate the necessary data, that testing should be supplemented by
+      evaluation over shorter periods. Banks should employ outcomes analysis consisting of
+      "early warning" metrics designed to measure performance beginning very shortly after
+      model introduction and trend analysis of performance over time. These outcomes analysis
+      tools are not substitutes for back-testing, which should still be performed over the longer
+      time period, but rather very important complements.
+      Outcomes analysis and the other elements of the validation process may reveal significant
+      errors or inaccuracies in model development or outcomes that consistently fall outside the
+      bank's predetermined thresholds of acceptability. In such cases, model adjustment,
+      recalibration, or redevelopment is warranted. Adjustments and recalibration should be
+      governed by the principle of conservatism and should undergo independent review.
+      Material changes in model structure or technique, and all model redevelopment, should
+      be subject to validation activities of appropriate range and rigor before implementation.
+      At times banks may have a limited ability to use key model validation tools like back-
+      testing or sensitivity analysis for various reasons, such as lack of data or of price
+      observability. In those cases, even more attention should be paid to the model's
+      limitations when considering the appropriateness of model usage, and senior management
+      should be fully informed of those limitations when using the models for decision making.
+      Such scrutiny should be applied to individual models and models in the aggregate.
+  metadata:
+    package: credit_default
+    version: '1.0'
+    synthetic_n: 5000
+    seed: 20260901
+    heading: '## 7. Ongoing monitoring recommendations'
+    guidance_query: ongoing monitoring model performance over time
+    brief: |-
+      Recommend ongoing monitoring: which quantities to track, at what frequency, and against which
+      bound -- citing the same threshold artifacts the checks used rather than inventing new numbers --
+      and name anything this validation could not cover that monitoring should watch instead.
+      Section 4 of this report reported **discrimination before calibration**, because the observed event rate on the evaluation split is at or above rule.calibration_first_event_rate. You may recommend that a monitoring report lead with calibration for a future cohort whose rate falls below that bound, but do **not** write that this report led with calibration: it did not.
+      A challenger model was compared with the champion in this validation and section 2 reports the comparison, so do not write that benchmarking against an alternative model was not part of it. What monitoring adds is a comparison the development data cannot give: a benchmark against an external or vendor reference, or against the challenger refitted on production vintages. Say which of those you mean.
+    spans:
+    - doc: SR26-2
+      section_id: V.2
+      heading: Ongoing Model Monitoring
+    - doc: SR26-2
+      section_id: V
+      heading: Model Validation and Monitoring
+    - doc: SR26-2
+      section_id: V.1.b
+      heading: Outcomes Analysis
+    - doc: SR11-7
+      section_id: V.1.b
+      heading: Ongoing Monitoring
+    - doc: SR11-7
+      section_id: V.2
+      heading: Validation of Vendor and Other Third-Party Products
+    - doc: SR11-7
+      section_id: V.1.c
+      heading: Outcomes Analysis
+    findings: []
+    prompt_bytes: 25846
+    rubric_sha256: 9aab524960c01a07
+    prompt_sha256: 96677de5b67be6cd
+  assertions:
+  - type: schema_valid
+    schema_file: tests/probatio/schemas/drafted_section.json
+  - type: contains
+    all:
+    - '[[art:'
+    case_sensitive: true
+  - type: not_contains
+    all:
+    - ⟦unverified
+    - compliant
+    - certified
+    case_sensitive: false
+  - type: judge
+    rubric: grounding
+    threshold: 1.0
+  budget:
+    max_cost_usd: 0.56
+    max_latency_ms: 480000.0
+  snapshot: scores
+  tags:
+  - drafter
+  - credit_default
+  - synthetic

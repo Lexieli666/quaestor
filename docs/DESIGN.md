@@ -1417,3 +1417,93 @@ exactly — produced no report either (D-126). Both are now facts the report can
 `challenger.missing_values` record and a skipped ablation in the first case, an absent slope, a
 `calibration.separable.<split>` flag and a "not evaluated" threshold row in the second. Neither
 changes anything about the clean controls, which have no missing cell and no separable split.
+
+## Phase 11 — The Probatio test layer, and what four record sittings cost to learn
+
+Spec section 6 fixes three case families and what each asserts. It does not say where a case's
+input comes from, and that turned out to be the load-bearing question. A Probatio case is committed
+data, and committed data drifts: a `draft_section` case whose artifacts no longer match the store
+still drafts *something*, and a `contains` needle that is no longer a claim of the live report
+still passes as long as the model writes the digits. Neither failure shows in a green suite, and
+both would be replayed from a tape for as long as the tape lived.
+
+So nothing in `tests/probatio/cases/` is typed by hand. `casebuilder.py` runs the pipeline once,
+offline, with `OfflineLLM`, and **spies on the two collaborators that decide what a model is
+shown** — `pipeline._draft_inputs` and `pipeline.follow_up_plan` — rather than re-deriving their
+answers. What a case carries is the object the drafter and the loop were actually passed,
+serialised. `test_inputs_pinned.py` then asserts that every committed file is byte-identical to
+what the builder produces now, and, the assertion that matters, that **the prompt a case builds is
+the prompt the pipeline sent, to the byte**. Rejected alternative: hand-written YAML reviewed once,
+which is the drift this arrangement exists to prevent; and a spot check over a few artifact names,
+which passes on exactly the changes that invalidate a tape.
+
+A byte count is not a pin, and this was learned the expensive way. Correcting one word pair in
+`_LOOP_INSTRUCTION` (D-146) changed every planning tape's cassette key and not one byte of any case
+file, one command before a recording. Each case therefore carries `metadata.prompt_sha256`, the
+digest of the prompt its system under test really sends — `structured()`'s appended schema
+included, because that is what a cassette key hashes — computed by running the case's own system
+under test against a recorder, so no composition is restated. After the third sitting a second
+door appeared: a rubric is part of every *judge* prompt, and editing it strands the judge half of
+every drafting tape without touching the system-under-test prompt at all. Hence
+`metadata.rubric_sha256` beside it. Rejected alternative: committing the whole prompt beside each
+case, which is 190 KB of a second copy of what the builder can produce.
+
+**No adapter sits between Probatio's `Provider` and Quaestor's `LLM`.** The protocols were written
+to be structurally identical for exactly this phase, and they are: the `provider` fixture goes
+straight into `Drafter`, `extract` and `structured`. The one wrapper the suite adds, `_LastAnswer`,
+is not an adapter — it passes the call through and remembers the answer's text, because a case
+asserts on *what the model returned* and all three systems under test return something parsed.
+Asserting `schema_valid` on a re-serialisation of the parsed object would be a statement about
+pydantic; and an answer `structured()` refused twice would arrive as an exception where the suite
+needs a failing assertion.
+
+Two relations needed an encoding rather than a field name. `@format_jitter` reformats a **string**
+and `@distractor_robust` inserts **strings**, while the drafter needs six typed spans and a list of
+typed artifacts. So `input.guidance` is the spans' bodies joined by a separator with their
+identities in `metadata` — which puts the jitter on the only part of a span that is prose, and
+never on the `[[reg:...]]` citation an upper-casing transform would destroy — and the distractor is
+one artifact of the *other* subject carried as a JSON string. What the distractor relation cannot
+see is recorded rather than claimed: the distractor is in the variant's own artifact list, so a
+drafter that cited it would still satisfy the case's assertions.
+
+### What the four record sittings actually found
+
+The layer cost about $71 across four sittings and found four defects. Exactly one is in
+`src/quaestor`, and it is small: `_LOOP_INSTRUCTION`'s degenerate-slice example named a rule that
+D-122 had already made impossible, so the prompt's own first clause falsified its own example
+(D-146). The other three were in the test layer, and the two rubric defects are the interesting
+ones because of *how* they failed.
+
+The first asked the judge to quote the sentence that decided its verdict — inside a JSON string
+field. **80% of judge replies came back unparseable**, every one of them carrying a verdict the
+model had got right, and because a discarded verdict fails its assertion and a variant's verdict is
+compared with the original's, **every relation violation the first two recordings measured was a
+formatting failure in the grader rather than a change in the application** (D-148, D-152). The
+second was subtler and is the one worth remembering: criterion 5 forbade a section to say that a
+quantity is absent — and collapsed *quantity* into *activity*, so it failed sections 5 and 7 for
+saying that a cross-regime comparison is undefined without a regime column and that no post-sample
+outcomes exist yet. Both sections were doing exactly what their own briefs ask, and D-114 had
+already drawn that line: D-100's prohibition "is about numbers … it could not stop a section
+calling an entire activity absent" (D-153). The grader was wrong and the drafter was right, on two
+of seven sections, on the first recording where the replies parsed at all.
+
+The progression across the three graded recordings is **80% → 25% → 0%** unparseable. Only the
+criterion-5 rewrite is a permanent correction; the four bullets the rubric now spends on JSON
+syntax are a stopgap for Probatio issue 1 (`notes/probatio-issues.md`), and when a parser that
+reads the first balanced object lands upstream they can go.
+
+Two measurement lessons are recorded because they change what a future phase should trust. The
+**cost** model fitted from the Phase 9 trace held: it predicted a whole record run's spend to
+within 6%. The **latency** model from the same eighteen calls did not — it was out by a factor of
+6.6 on one section — because wall clock on this provider is dominated by service variance and not
+by how much the model writes. So per-case cost ceilings are estimated and per-case latency is one
+uniform generous number, and D-150 says which of the two earned the right to a per-section figure.
+Rejected alternative: re-fitting the latency model on two sittings of a quantity that varied
+6.6-fold within one of them.
+
+Finally, the layer is exercised offline in a way that cannot poison it. An offline
+`--probatio-provider fake --cassette=off` run fails every content assertion by design — that is
+what proves the cases load, the systems under test are wired and the relations expand — and
+`BaselineStore.compare` records a baseline when a case has none, so such a run silently stamped the
+fake's failures as the reference for three cases and made a clean live recording report drift
+(D-154). Every fake invocation now passes `--baseline-dir $(mktemp -d)`.

@@ -73,7 +73,26 @@ exclude = ["tests", "eval", "subjects", "examples"]
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-addopts = "-ra"
+# The two Probatio directories are configured here rather than on the command line, so that the
+# runbook's record and replay commands -- which pass neither -- read and write the committed
+# tapes. Probatio resolves both against rootdir and defaults them to `cassettes/` and
+# `.probatio/baseline/` there; `tests/probatio/` is where `.gitignore` says the tapes live
+# (DECISIONS D-079, D-140).
+# `--probatio-timeout` raises the Claude CLI provider's hung-process ceiling from its 120 s
+# default, which killed three drafting cases of the second record run mid-call. Probatio 0.1.0 has
+# no per-case timeout, so this is the only place it can be set (DECISIONS D-150).
+# `--probatio-model` names the model the committed tapes were recorded against. An
+# interaction key includes the resolved model, so a session that names none keys on the
+# fake provider's own `fake-1` and cannot hit a tape -- which would make gate 1 and gate 6
+# fail on every case. The provider itself stays `fake` and replay never calls it
+# (DECISIONS D-151).
+addopts = """
+  -ra
+  --cassette-dir tests/probatio/cassettes
+  --baseline-dir tests/probatio/baseline
+  --probatio-timeout 600
+  --probatio-model "claude-opus-5[1m]"
+"""
 
 [tool.ruff]
 line-length = 100

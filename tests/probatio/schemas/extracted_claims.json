@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "Comparison": {
+      "description": "What the claimed value is asserted to equal.\n\n``delta`` and ``ratio`` are cited by two adjacent ``[[art:...]]`` tokens, in order (D-012).\nThe enum is not nullable: ``eq`` is the explicit default, so \"this number equals its artifact\"\nhas one spelling and not two (D-018).\n\nAttributes:\n    eq: The value matches the cited artifact.\n    delta: The value matches ``second - first``.\n    ratio: The value matches ``second / first``.",
+      "enum": [
+        "eq",
+        "delta",
+        "ratio"
+      ],
+      "title": "Comparison",
+      "type": "string"
+    },
+    "ExtractedClaim": {
+      "additionalProperties": false,
+      "description": "One claim as the model returns it: the grammar minus the fields the caller already knows.\n\n``text``, ``section``, ``id`` and ``source`` are not asked for. The caller knows which section\nit passed in, the id is a hash of the other three fields, the source of an extraction is\nalways ``report``, and the text is the line the model named -- which the caller has in front\nof it, so asking for it back costs output tokens and adds a way for the answer to disagree\nwith the prose (D-063, D-085).\n\nAttributes:\n    line: The 1-based number of the line the number appears on, as the prompt printed it.\n    value: The number as written, separators and per cent sign removed.\n    unit: How it is written.\n    metric: What it measures, or ``None``.\n    split: Which split it is about, or ``None``.\n    comparison: ``eq``, ``delta`` or ``ratio``.\n    citation: The citation the number carries, or ``None``.\n    rounding: Decimals the prose used, or ``None``.",
+      "properties": {
+        "citation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Citation"
+        },
+        "comparison": {
+          "$ref": "#/$defs/Comparison",
+          "default": "eq"
+        },
+        "line": {
+          "minimum": 1,
+          "title": "Line",
+          "type": "integer"
+        },
+        "metric": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric"
+        },
+        "rounding": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rounding"
+        },
+        "split": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SplitName"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unit": {
+          "$ref": "#/$defs/Unit",
+          "default": "ratio"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "line",
+        "value"
+      ],
+      "title": "ExtractedClaim",
+      "type": "object"
+    },
+    "SplitName": {
+      "description": "The splits a claim may be stated on, exactly as ``CLAIMS_SCHEMA.json`` enumerates them.\n\nAttributes:\n    train: The development split.\n    test: The held-out split.\n    out_of_time: A later-period split; hazard subjects.\n    vintage_holdout: One origination year held out; hazard subjects.",
+      "enum": [
+        "train",
+        "test",
+        "out_of_time",
+        "vintage_holdout"
+      ],
+      "title": "SplitName",
+      "type": "string"
+    },
+    "Unit": {
+      "description": "How a number is written, which decides how it is normalised before matching.\n\nAttributes:\n    ratio: Every dimensionless quantity not written with a ``%`` -- AUC, PSI, VIF, a\n        coefficient, a lift.\n    percent: Written with a ``%``; normalised against a unit-interval artifact by dividing\n        by 100.\n    count: A number of rows, features or events. Matched to half a unit, so integers match\n        exactly.\n    currency: A money amount.\n    bp: Basis points, as a rate shock is written.\n    months: A horizon.",
+      "enum": [
+        "ratio",
+        "percent",
+        "count",
+        "currency",
+        "bp",
+        "months"
+      ],
+      "title": "Unit",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The JSON object the extractor is asked for: a list of claims under one key.\n\nA bare JSON array is a shape more models get wrong than a single-key object, and\n:func:`~quaestor.llm.structured.structured` validates a ``BaseModel``, not a list.\n\nAttributes:\n    claims: The claims, in the order the numbers appear.",
+  "properties": {
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/ExtractedClaim"
+      },
+      "title": "Claims",
+      "type": "array"
+    }
+  },
+  "title": "ExtractedClaims",
+  "type": "object"
+}

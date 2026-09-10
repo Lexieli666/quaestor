@@ -1,0 +1,35 @@
+{
+  "additionalProperties": false,
+  "description": "One action of the bounded loop, exactly as spec section 3.12 writes it.\n\nAttributes:\n    tool: The tool to call, or ``None`` when stopping.\n    args: Its arguments.\n    why: Why this call is worth making.\n    stop: ``True`` to end the loop.",
+  "properties": {
+    "args": {
+      "additionalProperties": true,
+      "title": "Args",
+      "type": "object"
+    },
+    "stop": {
+      "default": false,
+      "title": "Stop",
+      "type": "boolean"
+    },
+    "tool": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool"
+    },
+    "why": {
+      "default": "",
+      "title": "Why",
+      "type": "string"
+    }
+  },
+  "title": "FollowUpAction",
+  "type": "object"
+}
