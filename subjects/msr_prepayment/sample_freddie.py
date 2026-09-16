@@ -8,20 +8,28 @@ runs this script, pastes the printed manifest into `package.yaml`, and from then
 runs.
 
 **What it expects under `--raw`.** The Freddie Mac Single-Family Loan-Level Dataset *sample*
-files, one pair per origination year, unzipped in place, with the names the distribution gives
-them:
+files, one pair per origination year, unzipped in place, **with the names the distribution gives
+them** -- this script never renames a downloaded file. The performance member has been called two
+things across distributions, and either is accepted, per vintage:
 
-```
-sample_orig_2014.txt   sample_svcg_2014.txt      (from sample_2014.zip)
-sample_orig_2017.txt   sample_svcg_2017.txt      (from sample_2017.zip)
-sample_orig_2019.txt   sample_svcg_2019.txt      (from sample_2019.zip)
-```
+| from | origination file | performance file, either name |
+| --- | --- | --- |
+| `sample_2014.zip` | `sample_orig_2014.txt` | `sample_svcg_2014.txt`, `sample_perf_2014.txt` |
+| `sample_2017.zip` | `sample_orig_2017.txt` | `sample_svcg_2017.txt`, `sample_perf_2017.txt` |
+| `sample_2019.zip` | `sample_orig_2019.txt` | `sample_svcg_2019.txt`, `sample_perf_2019.txt` |
 
-Both are pipe-delimited with no header row, so the layouts are positional and are written out in
-:data:`ORIGINATION_LAYOUT` and :data:`PERFORMANCE_LAYOUT` below. Freddie Mac revises the layout
-between publications; the two here are the ones the *2024 user guide* documents, and the reader
-checks the field count and says so rather than silently mapping the wrong column
-(DECISIONS D-048).
+`sample_svcg_YYYY.txt` is looked for first, because that is what the archived distributions of
+these three vintages carry; `sample_perf_YYYY.txt` is what the July 2026 distribution writes
+(DECISIONS D-159).
+
+Both files are pipe-delimited with no header row, so the layouts are positional and **two
+publications of each are written out below**: the *2024 user guide*'s (32 origination fields, 32
+performance fields) and *Release 47, July 2026*'s (31 and 35). The reader picks the layout by the
+field count it counts, prints the release it read the file as, and refuses any other count rather
+than silently mapping the wrong column -- which is D-048's rule, unchanged, now with a second
+layout to choose between. The Release 47 sources are the July 2026 general user guide, its
+disclosure-changes summary and its file-layout workbook, all under
+<https://www.freddiemac.com/fmac-resources/research/>.
 
 **What it expects at `--fred`.** The FRED series `MORTGAGE30US` exported as CSV -- by default
 `~/code/data-raw/fred/MORTGAGE30US.csv`. It is weekly, so the **first observation of each month**
@@ -83,7 +91,7 @@ DEFAULT_SEED = 20260901
 DEFAULT_FRED_PATH = "~/code/data-raw/fred/MORTGAGE30US.csv"
 """Where the operator keeps the FRED export; `--fred` overrides it."""
 
-ORIGINATION_LAYOUT = (
+ORIGINATION_LAYOUT_2024 = (
     "credit_score",
     "first_payment_date",
     "first_time_homebuyer_flag",
@@ -117,9 +125,11 @@ ORIGINATION_LAYOUT = (
     "interest_only_indicator",
     "mi_cancellation_indicator",
 )
-"""`sample_orig_YYYY.txt`, pipe-delimited, no header: the 2024 user guide's field order."""
+"""`sample_orig_YYYY.txt` as the **2024 user guide** orders it: 32 fields, pipe-delimited,
+no header. `servicer_name` (25) and `mi_cancellation_indicator` (32) are origination fields here
+and performance fields in Release 47."""
 
-PERFORMANCE_LAYOUT = (
+PERFORMANCE_LAYOUT_2024 = (
     "loan_sequence_number",
     "monthly_reporting_period",
     "current_actual_upb",
@@ -153,15 +163,141 @@ PERFORMANCE_LAYOUT = (
     "current_month_modification_cost",
     "interest_bearing_upb",
 )
-"""`sample_svcg_YYYY.txt`, pipe-delimited, no header: the 2024 user guide's field order."""
+"""`sample_svcg_YYYY.txt` as the **2024 user guide** orders it: 32 fields, pipe-delimited,
+no header."""
+
+ORIGINATION_LAYOUT_2026 = (
+    "credit_score",
+    "first_payment_date",
+    "first_time_homebuyer_flag",
+    "maturity_date",
+    "msa",
+    "mi_percent",
+    "number_of_units",
+    "occupancy_status",
+    "ocltv",
+    "dti",
+    "orig_upb",
+    "oltv",
+    "orig_interest_rate",
+    "channel",
+    "ppm_flag",
+    "amortization_type",
+    "property_state",
+    "property_type",
+    "postal_code",
+    "loan_sequence_number",
+    "loan_purpose",
+    "orig_loan_term",
+    "number_of_borrowers",
+    "seller_name",
+    "super_conforming_flag",
+    "pre_relief_refinance_loan_sequence_number",
+    "program_indicator",
+    "relief_refinance_indicator",
+    "property_valuation_method",
+    "interest_only_indicator",
+    "vantagescore_4",
+)
+"""`sample_orig_YYYY.txt` as **Release 47, July 2026** orders it: 31 fields.
+
+Against the 2024 layout: **positions 1 to 24 are identical**, `servicer_name` (25) and
+`mi_cancellation_indicator` (32) have moved to the performance file, and `VantageScore 4.0` is new
+at 31. The guide renames field 20 to *Loan Identifier* and field 1 to *Classic FICO*; this tuple
+keeps `loan_sequence_number` and `credit_score`, because the quantity is unchanged and renaming
+them here would rename them in `to_raw_panel`, in `code/features.py` and in `package.yaml` for no
+reason a reader of the report could see (DECISIONS D-048, amended).
+"""
+
+PERFORMANCE_LAYOUT_2026 = (
+    "loan_sequence_number",
+    "monthly_reporting_period",
+    "current_actual_upb",
+    "current_loan_delinquency_status",
+    "loan_age",
+    "remaining_months_to_legal_maturity",
+    "defect_settlement_date",
+    "modification_flag",
+    "zero_balance_code",
+    "zero_balance_effective_date",
+    "current_interest_rate",
+    "current_deferred_upb",
+    "ddlpi",
+    "mi_recoveries",
+    "net_sale_proceeds",
+    "non_mi_recoveries",
+    "expenses",
+    "legal_costs",
+    "maintenance_and_preservation_costs",
+    "taxes_and_insurance",
+    "miscellaneous_expenses",
+    "actual_loss_calculation",
+    "cumulative_modification_cost",
+    "step_modification_flag",
+    "payment_deferral",
+    "estimated_loan_to_value",
+    "zero_balance_removal_upb",
+    "delinquent_accrued_interest",
+    "delinquency_due_to_disaster",
+    "borrower_assistance_status_code",
+    "current_month_modification_cost",
+    "interest_bearing_upb",
+    "mi_cancellation_indicator",
+    "servicer_name",
+    "bankruptcy_cramdown_costs",
+)
+"""`sample_perf_YYYY.txt` as **Release 47, July 2026** orders it: 35 fields.
+
+Against the 2024 layout: **positions 1 to 32 are the same quantities in the same order**, and nine
+of them are renamed by the guide without changing what they hold -- *Loan Identifier* (1), *Period*
+(2), *Underwriting Defect and Major Servicing Defect Settlement Date* (7), *Current Non-Interest
+Bearing UPB* (12), *Interest Rate Step Indicator* (24), *Payment Deferral Flag* (25), *Borrower
+Assistance Plan* (30), *Current Period Modification Costs* (31) and *Current Interest Bearing UPB*
+(32). This tuple keeps the sampler's own names for all nine, for the reason
+:data:`ORIGINATION_LAYOUT_2026` gives. Three fields are appended: *Mortgage Insurance Cancellation
+Indicator* (33) and *Servicer Name* (34), both of which were origination fields in 2024, and
+*Bankruptcy Cramdown Costs* (35), which is new.
+"""
+
+RELEASE_2024 = "the 2024 user guide"
+RELEASE_2026 = "Release 47, July 2026"
+"""What the reader prints when it says which publication it read a file as."""
+
+ORIGINATION_LAYOUTS = {
+    len(ORIGINATION_LAYOUT_2024): (RELEASE_2024, ORIGINATION_LAYOUT_2024),
+    len(ORIGINATION_LAYOUT_2026): (RELEASE_2026, ORIGINATION_LAYOUT_2026),
+}
+PERFORMANCE_LAYOUTS = {
+    len(PERFORMANCE_LAYOUT_2024): (RELEASE_2024, PERFORMANCE_LAYOUT_2024),
+    len(PERFORMANCE_LAYOUT_2026): (RELEASE_2026, PERFORMANCE_LAYOUT_2026),
+}
+"""Field count to (publication, layout). The count is the only discriminator a header-less file
+offers, and it separates these two publications cleanly: 32 against 31 for the origination file and
+32 against 35 for the performance one. Any other count is refused (D-048)."""
+
+PERFORMANCE_FILE_STEMS = ("sample_svcg_{year}.txt", "sample_perf_{year}.txt")
+"""The two names the performance member has been distributed under, in the order they are tried.
+
+`svcg` first: the archived distributions of the 2014, 2017 and 2019 vintages are what an operator
+building this panel actually has, and a directory holding both should be read as the archive it is.
+The file is never renamed on disk (DECISIONS D-159)."""
 
 VOLUNTARY_PAYOFF_CODE = "01"
 """The only zero-balance code that is the event: "Prepaid or Matured (Voluntary Payoff)"."""
 
-CENSORING_CODES = ("02", "03", "06", "09", "15", "96", "97", "98")
+CENSORING_CODES = ("02", "03", "06", "09", "15", "16", "96", "97", "98")
 """Every other zero-balance code: a third-party sale, a short sale, a repurchase, an REO
-disposition, a note sale or a non-credit removal. None of them is a voluntary payoff, so the loan
-is censored at that month rather than counted as a survivor of it."""
+disposition, a note sale, a reperforming-loan sale or a non-credit removal. None of them is a
+voluntary payoff, so the loan is censored at that month rather than counted as a survivor of it.
+
+Read against the **July 2026** guide's enumeration -- 01, 02, 03, 09, 15, 16, 96 -- this list is a
+superset by three and a subset by none. `16` is **added**: a reperforming-loan sale is a
+disposition, the loan leaves the dataset without paying off, and counting that month as one the
+loan survived would put a competing exit in the hazard's denominator. `06`, `97` and `98` are
+**kept** although the current guide no longer lists them: this script reads the *archived*
+distributions of the 2014, 2017 and 2019 vintages, which were published under earlier guides and
+still carry them, and a retired code that never appears costs nothing while a code that appears and
+is not listed here is silently treated as a month survived (DECISIONS D-048, amended)."""
 
 DEFAULT_DELINQUENCY_MONTHS = 6
 """Six months past due is the default definition used here; the loan is censored from then on."""
@@ -226,7 +362,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--raw",
         required=True,
-        help="a directory holding sample_orig_YYYY.txt and sample_svcg_YYYY.txt for each vintage",
+        help=(
+            "a directory holding sample_orig_YYYY.txt and sample_svcg_YYYY.txt (or "
+            "sample_perf_YYYY.txt) for each vintage"
+        ),
     )
     parser.add_argument("--out", required=True, help="where to write the four splits and rates.csv")
     parser.add_argument(
@@ -256,22 +395,60 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def _read_pipe_delimited(path: Path, layout: tuple[str, ...]) -> pd.DataFrame:
-    """Read one pipe-delimited Freddie Mac file, checking the field count against the layout."""
+def _read_pipe_delimited(
+    path: Path, layouts: dict[int, tuple[str, tuple[str, ...]]], constants: str
+) -> pd.DataFrame:
+    """Read one pipe-delimited Freddie Mac file, picking its layout by the field count it has.
+
+    Args:
+        path: The file to read.
+        layouts: Field count to `(publication, layout)`; :data:`ORIGINATION_LAYOUTS` or
+            :data:`PERFORMANCE_LAYOUTS`.
+        constants: The names of the tuples to check against, for the refusal message.
+
+    Returns:
+        The frame, with the chosen layout's names as its columns.
+
+    Raises:
+        SystemExit: The file is missing, or its field count is neither publication's.
+    """
     if not path.is_file():
         raise SystemExit(
             f"{path} is missing; unzip the Freddie Mac sample files into --raw keeping their "
             "published names"
         )
     frame = pd.read_csv(path, sep="|", header=None, dtype=str, keep_default_na=False)
-    if frame.shape[1] != len(layout):
+    chosen = layouts.get(frame.shape[1])
+    if chosen is None:
+        known = ", ".join(f"{count} = {release}" for count, (release, _) in sorted(layouts.items()))
         raise SystemExit(
-            f"{path} has {frame.shape[1]} fields where the layout this script implements has "
-            f"{len(layout)}; Freddie Mac has revised the file layout, so check the current user "
-            f"guide against {'ORIGINATION_LAYOUT' if 'orig' in path.name else 'PERFORMANCE_LAYOUT'}"
+            f"{path} has {frame.shape[1]} fields where the layouts this script implements have "
+            f"{known}; Freddie Mac has revised the file layout, so check the current user guide "
+            f"against {constants}"
         )
+    release, layout = chosen
+    print(f"read {path.name} as {release} ({frame.shape[1]} fields)")
     frame.columns = pd.Index(layout)
     return frame
+
+
+def _performance_path(raw_dir: Path, year: int) -> Path:
+    """Return the vintage's performance file under whichever published name is present.
+
+    `sample_svcg_YYYY.txt` is tried first and `sample_perf_YYYY.txt` second. Neither file is
+    renamed: a downloaded artefact keeps the name its distribution gave it, so that the digest an
+    operator records and the file a reader looks for are the same thing (DECISIONS D-159).
+
+    Args:
+        raw_dir: The unzip directory.
+        year: The origination year.
+
+    Returns:
+        The first of the two names that exists, or the first name when neither does, so that the
+        missing-file message in :func:`_read_pipe_delimited` names the one to look for.
+    """
+    candidates = [raw_dir / stem.format(year=year) for stem in PERFORMANCE_FILE_STEMS]
+    return next((path for path in candidates if path.is_file()), candidates[0])
 
 
 def read_raw(raw_dir: Path, years: list[int]) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -285,11 +462,19 @@ def read_raw(raw_dir: Path, years: list[int]) -> tuple[pd.DataFrame, pd.DataFram
         raise SystemExit(f"{raw_dir} is not a directory; pass --raw <the unzip directory>")
     originations, performances = [], []
     for year in years:
-        origination = _read_pipe_delimited(raw_dir / f"sample_orig_{year}.txt", ORIGINATION_LAYOUT)
+        origination = _read_pipe_delimited(
+            raw_dir / f"sample_orig_{year}.txt",
+            ORIGINATION_LAYOUTS,
+            "ORIGINATION_LAYOUT_2024 and ORIGINATION_LAYOUT_2026",
+        )
         origination["origination_year"] = year
         originations.append(origination)
         performances.append(
-            _read_pipe_delimited(raw_dir / f"sample_svcg_{year}.txt", PERFORMANCE_LAYOUT)
+            _read_pipe_delimited(
+                _performance_path(raw_dir, year),
+                PERFORMANCE_LAYOUTS,
+                "PERFORMANCE_LAYOUT_2024 and PERFORMANCE_LAYOUT_2026",
+            )
         )
     return (
         pd.concat(originations, ignore_index=True),
@@ -400,7 +585,8 @@ def to_raw_panel(
     if merged.empty:
         raise SystemExit(
             "no loan appears in both the origination and the performance files; check that "
-            "--raw holds the matching sample_orig_YYYY.txt and sample_svcg_YYYY.txt pair"
+            "--raw holds the matching sample_orig_YYYY.txt and sample_svcg_YYYY.txt (or "
+            "sample_perf_YYYY.txt) pair"
         )
     merged["orig_period"] = np.array(
         [

@@ -1058,6 +1058,50 @@ here and recorded.
   as a prepayment would fit beautifully for a reason no reader could see. Rejected alternative:
   reading the layout from the published Excel file dictionary at run time, which is a download
   inside a data-building step and a second file to keep.
+- **Amended 2026-09-15 (Phase 11, before the first real MSR run): the same decision, with a second
+  layout to choose between.** The operator's files are **Release 47, July 2026**, whose origination
+  file has **31** fields and whose performance file has **35**, against the 32 and 32 this script
+  encoded. So both 2024 tuples are kept, two more are written out beside them
+  (`ORIGINATION_LAYOUT_2026`, `PERFORMANCE_LAYOUT_2026`), and `_read_pipe_delimited` **selects the
+  layout by the field count it counts** -- 32 or 31 for an origination file, 32 or 35 for a
+  performance one -- prints the release it read the file as, and raises the same `SystemExit` for
+  any other count, now naming both constants and both widths. Nothing else in the sampler changes,
+  and the Release 47 tuples keep **this script's own column names** wherever the quantity is
+  unchanged: the guide renames field 1 to *Classic FICO*, field 20 to *Loan Identifier*, and nine
+  performance fields including *Period* and *Current Non-Interest Bearing UPB*, and adopting those
+  spellings here would rename them in `to_raw_panel`, in `code/features.py` and in `package.yaml`
+  for a change no reader of the report could see.
+  **What the field count cannot answer, measured rather than assumed.** A count says the file is
+  one of two shapes; it does not say the fields this script reads are where it left them, and
+  `oltv` and `ocltv` are adjacent and both plausible. So `tests/test_msr_sample_freddie.py` asserts
+  the **position** of every column read downstream of `read_raw` in both layouts -- origination
+  `credit_score`, `first_payment_date`, `orig_upb`, `oltv`, `orig_interest_rate`,
+  `loan_sequence_number`, `orig_loan_term`; performance `loan_sequence_number`,
+  `monthly_reporting_period`, `current_actual_upb`, `current_loan_delinquency_status`, `loan_age`,
+  `remaining_months_to_legal_maturity`, `zero_balance_code`, `zero_balance_effective_date`,
+  `current_interest_rate` -- and **every one of them is at the same index in both**. The origination
+  columns all fall in positions 1-24, which the two publications share exactly; the performance ones
+  all fall in 1-32, where Release 47 changes names and not order. The whole mapping suite is
+  parameterised over the two releases, and one test builds the panel through each and asserts the
+  two frames are equal.
+  **`CENSORING_CODES` against the July 2026 enumeration**, which lists `01`, `02`, `03`, `09`, `15`,
+  `16` and `96`. The list here is now a superset of it by three and a subset by none. **`16`
+  (Reperforming) is added**, because a reperforming-loan sale is a disposition -- the loan leaves
+  the dataset without paying off -- and treating that month as one the loan survived would put a
+  competing exit in the hazard's denominator. **`06`, `97` and `98` are kept** although the guide
+  no longer lists them, because this script reads the *archived* distributions of the 2014, 2017 and
+  2019 vintages, which were published under earlier guides and still carry them; a retired code that
+  never appears costs nothing, and a code that appears and is not listed is silently read as a month
+  survived, which is the error this whole entry exists to prevent. `VOLUNTARY_PAYOFF_CODE` stays
+  `01`. Delinquency status is two characters wide in Release 47 (`00`, `01`, ..., with `RA` and
+  `XX`); `_months_past_due` already converts before it compares, so the padded and unpadded forms
+  agree, and a test now pins that on the exact tokens the July 2026 files carry -- a status compared
+  as a string would make `"06"` differ from `"6"` and censor nothing.
+  Rejected alternatives for this amendment: replacing the 2024 tuples rather than keeping both,
+  which makes every archived distribution unreadable by a script whose whole job is to read them;
+  selecting the layout from a `--release` flag, which asks an operator to know something the file
+  already says and fails silently when they get it wrong; and adopting the guide's new field names,
+  above.
 
 ## D-049. The tool contract: nested `Args`, a frozen context, and thresholds keyed by their names
 
@@ -4819,3 +4863,34 @@ here and recorded.
   replaces and would have missed all eleven re-asks; and adding a `probatio prune-cassettes`
   command, which is a patch to a dev dependency for a one-off and belongs upstream with the other
   five issues if it belongs anywhere.
+
+## D-159. The performance file is read under either published name and renamed under neither
+
+- **Date:** 2026-09-15 (Phase 11, before the first real MSR run)
+- **Q:** `sample_freddie.py` looks for `sample_svcg_YYYY.txt`. The operator's July 2026 download
+  writes `sample_perf_YYYY.txt`. Which name does the script expect, and what happens to the file on
+  disk?
+- **A:** **Both names are accepted, per vintage, and no file is renamed.** `_performance_path`
+  tries `sample_svcg_{year}.txt` first and `sample_perf_{year}.txt` second, returning the first
+  that exists; when neither does it returns the first, so the missing-file message names
+  `sample_svcg_YYYY.txt`, which is the spelling an operator of the archived vintages should be
+  looking for. The order is deliberate rather than alphabetical: the 2014, 2017 and 2019 sample
+  files are **archived** distributions, `svcg` is what those archives carry, and a directory
+  holding both should be read as the archive it is. The docstring's file table and the subject
+  README both show the two names side by side; `--raw`'s help text names both.
+- **Why:** The alternative the `HANDOFF` note rules out, and rightly, is renaming the download.
+  A downloaded artefact keeps the name its distribution gave it, for three reasons that all bite
+  here. The digest an operator records in `package.yaml`'s `data.manifest` is of the files *this
+  script writes*, but the provenance trail a reader follows starts at the file they downloaded, and
+  a renamed input breaks the one link in that chain nobody can reconstruct. A rename is a
+  hand-edit performed once and forgotten, so the next operator on the next machine meets a
+  missing-file error whose fix is undocumented. And a script that renames its inputs writes to the
+  raw data directory, which is exactly the directory `CLAUDE.md` says never enters this repository
+  and which nothing here should be modifying.
+  Accepting two names rather than one is the smallest change that makes the script read what the
+  operator actually has, and it costs one `next()` over two paths. Rejected alternatives: a
+  `--performance-name` flag, which asks the operator to describe a file the script can simply look
+  for and adds an argument that will be wrong in someone's shell history; globbing
+  `sample_*_{year}.txt` and taking whatever is not `orig`, which would silently read a stray file a
+  human left in the directory; and switching the expected name to `perf` outright, which breaks
+  every archived distribution and is the mirror of the mistake this entry avoids.

@@ -43,6 +43,25 @@ run that was not committed.
 
 ### Changed
 
+- **`subjects/msr_prepayment/sample_freddie.py` reads Release 47 (July 2026) as well as the 2024
+  layouts.** The operator's files have 31 origination fields and 35 performance fields against the
+  32 and 32 this script encoded. Both 2024 tuples are kept, two more are written out beside them,
+  and the reader **selects the layout by the field count it counts**, prints the release it read
+  the file as, and refuses any other count with a message naming both constants and both widths —
+  which is D-048's rule unchanged, now with a second layout to choose between. The Release 47
+  tuples keep this script's own column names wherever the quantity is unchanged, so nothing
+  downstream of `read_raw` moves. **Every column the sampler reads downstream sits at the same
+  position in both layouts**, asserted by name rather than assumed; the whole mapping suite is
+  parameterised over the two releases, and one test builds the panel through each and asserts the
+  two frames are equal. `CENSORING_CODES` gains `16` — a reperforming-loan sale is a disposition
+  and not a payoff — and keeps `06`, `97` and `98`, which the July 2026 guide no longer lists but
+  the archived vintages still carry; `VOLUNTARY_PAYOFF_CODE` stays `01`, and `_months_past_due` is
+  pinned on Release 47's two-character statuses `00`, `01`, `RA` and `XX` (D-048, amended).
+- **The performance file is read under either published name** — `sample_svcg_YYYY.txt` first,
+  because that is what the archived 2014, 2017 and 2019 distributions carry, then
+  `sample_perf_YYYY.txt`, which is what the July 2026 distribution writes. Neither is renamed on
+  disk: a downloaded artefact keeps the name its distribution gave it, so the provenance trail a
+  reader follows is unbroken and nothing here writes to the raw data directory (D-159).
 - `_LOOP_INSTRUCTION`'s degenerate-slice example. It named `above_median` on a column whose median
   is its minimum, which D-122 had already made impossible — under `> median` that rule selects at
   most half a split. It now names `below_median` on a column whose median is its maximum, which is

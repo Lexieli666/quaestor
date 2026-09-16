@@ -35,25 +35,60 @@ identifying a loan.
 year** — so about 6,667 from each of 2014, 2017 and 2019, drawn over each vintage's sorted loan
 sequence numbers so that the draw does not depend on the order the files happen to be in.
 
-`sample_freddie.py` expects the sample files unzipped in place under `--raw`, with the names the
-distribution gives them:
+`sample_freddie.py` expects the sample files unzipped in place under `--raw`, **with the names the
+distribution gives them** — it never renames a downloaded file. The performance member has been
+distributed under two names, and either is accepted, per vintage:
 
-```
-sample_orig_2014.txt   sample_svcg_2014.txt      (from sample_2014.zip)
-sample_orig_2017.txt   sample_svcg_2017.txt      (from sample_2017.zip)
-sample_orig_2019.txt   sample_svcg_2019.txt      (from sample_2019.zip)
-```
+| from | origination file | performance file, either name |
+|---|---|---|
+| `sample_2014.zip` | `sample_orig_2014.txt` | `sample_svcg_2014.txt`, `sample_perf_2014.txt` |
+| `sample_2017.zip` | `sample_orig_2017.txt` | `sample_svcg_2017.txt`, `sample_perf_2017.txt` |
+| `sample_2019.zip` | `sample_orig_2019.txt` | `sample_svcg_2019.txt`, `sample_perf_2019.txt` |
 
-Both are pipe-delimited with no header row, so the field order is positional and is written out in
-`ORIGINATION_LAYOUT` and `PERFORMANCE_LAYOUT` (32 fields each, the order the 2024 user guide
-documents). The reader compares the file's field count with the layout's and says so if Freddie Mac
-has revised it, rather than mapping `ocltv` where `oltv` should be (`DECISIONS.md` D-048).
+`sample_svcg_YYYY.txt` is looked for first, because that is what the archived distributions of
+these three vintages carry; `sample_perf_YYYY.txt` is what the July 2026 distribution writes
+(`DECISIONS.md` D-159).
+
+**Two layouts, chosen by field count.** The files are pipe-delimited with no header row, so the
+field order is positional and two publications of each are written out:
+
+| | origination | performance | written out as |
+|---|---:|---:|---|
+| the 2024 user guide | 32 fields | 32 fields | `ORIGINATION_LAYOUT_2024`, `PERFORMANCE_LAYOUT_2024` |
+| Release 47, July 2026 | 31 fields | 35 fields | `ORIGINATION_LAYOUT_2026`, `PERFORMANCE_LAYOUT_2026` |
+
+Release 47 moves `Servicer Name` and `Mortgage Insurance Cancellation Indicator` out of the
+origination file and into the performance file, adds `VantageScore 4.0` to the first and
+`Bankruptcy Cramdown Costs` to the second, and renames a number of fields — nine of the
+performance file's thirty-two among them — without changing what they hold. The reader counts the fields, picks the layout, **prints which release it read the file as**,
+and refuses any other count rather than mapping `ocltv` where `oltv` should be — which is D-048's
+rule unchanged, now with a second layout to choose between.
+
+Nothing this subject reads moved: **every column the sampler uses downstream sits at the same
+position in both layouts** — `credit_score`, `first_payment_date`, `orig_upb`, `oltv`,
+`orig_interest_rate`, `loan_sequence_number` and `orig_loan_term` in the origination file (all
+within positions 1–24, which the two publications share exactly), and `loan_sequence_number`,
+`monthly_reporting_period`, `current_actual_upb`, `current_loan_delinquency_status`, `loan_age`,
+`remaining_months_to_legal_maturity`, `zero_balance_code`, `zero_balance_effective_date` and
+`current_interest_rate` in the performance file (all within 1–32, where Release 47 changes names
+and not order). `tests/test_msr_sample_freddie.py` asserts the positions, and asserts separately
+that the same three loans map to the same panel through either layout.
 
 **The event is a voluntary payoff: zero-balance code `01`.** Every other zero-balance code — a
 third-party sale (`02`), a short sale (`03`), a repurchase (`06`), an REO disposition (`09`), a
-note sale (`15`), a non-credit removal (`96`–`98`) — censors the loan at that month, as do six
-months past due and legal maturity. The month a loan exits for one of those reasons is dropped
-rather than counted as a month it survived, because what happened in it was a competing exit.
+note sale (`15`), a reperforming-loan sale (`16`), a non-credit removal (`96`–`98`) — censors the
+loan at that month, as do six months past due and legal maturity. The month a loan exits for one of
+those reasons is dropped rather than counted as a month it survived, because what happened in it
+was a competing exit. Read against the July 2026 guide's own enumeration — `01`, `02`, `03`, `09`,
+`15`, `16`, `96` — that list is a superset by three: `16` is **added**, because a reperforming-loan
+sale is a disposition and not a payoff, and `06`, `97` and `98` are **kept** although the current
+guide no longer lists them, because the archived distributions of these three vintages still carry
+them and an unlisted code would be read as a month the loan survived.
+
+Delinquency status is two characters wide in Release 47 — `00` for current, `01` for one month past
+due, with `RA` for a payment plan and `XX` for unknown. The count is taken numerically, so the
+padded and unpadded forms agree and a non-numeric status is treated as not past due: censoring a
+loan on a status the servicer could not report would silently drop the months in question.
 
 **The rate series.** `MORTGAGE30US` is weekly, so the **first observation of each month** is that
 month's month-start rate — and it is stored as the close of the month *before* it, because every

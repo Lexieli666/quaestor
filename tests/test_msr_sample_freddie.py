@@ -3,15 +3,22 @@
 `CLAUDE.md` forbids a test that downloads data or trains on real data, and spec section 4 says the
 real-sample scripts are covered for argument handling only. So `main` is never called here: what
 is covered is which arguments the script takes, how it turns the weekly FRED series into the
-month-close rate calendar, how it draws its stratified sample, and how it maps the two Freddie Mac
-layouts onto the raw loan-month schema. The three-loan pipe-delimited frames the mapping tests use
-are written by the tests themselves and are not the Freddie Mac dataset.
+month-close rate calendar, how it draws its stratified sample, and how it maps the origination and
+performance files onto the raw loan-month schema. The three-loan pipe-delimited frames the mapping
+tests use are written by the tests themselves and are not the Freddie Mac dataset.
+
+**Every mapping assertion is made against both publications.** The script implements the 2024 user
+guide's layouts (32 origination fields, 32 performance fields) and Release 47 of July 2026's (31
+and 35), and the `mapped_panel` fixture is parameterised over the two, so each test below runs once
+on each. Three checks are about the pair rather than about either: that every column the sampler
+reads downstream sits at the same position in both, that the same three loans map to the same panel
+through either, and that a width neither release has is refused rather than mapped by position.
 
 The mapping is covered rather than left to the one human run because it is the only place this
 project ever interprets a zero-balance code. Code `01` is a voluntary payoff and is the event;
-every other code is a competing exit and censors the loan. A subject that counted a repurchase or
-an REO disposition as a prepayment would report a prepayment model that fitted beautifully for a
-reason no reader of the report could see.
+every other code is a competing exit and censors the loan. A subject that counted a repurchase, a
+reperforming-loan sale or an REO disposition as a prepayment would report a prepayment model that
+fitted beautifully for a reason no reader of the report could see.
 """
 
 from __future__ import annotations
@@ -23,15 +30,57 @@ import numpy as np
 import pandas as pd
 import pytest
 
-ORIGINATION_FIELDS = 32
-PERFORMANCE_FIELDS = 32
-"""The two layouts the script implements, checked against the constants it exports."""
+RELEASES = ("2024", "2026")
+"""The two publications `sample_freddie.py` implements, by the suffix of its layout constants."""
+
+FIELD_COUNTS = {"2024": (32, 32), "2026": (31, 35)}
+"""(origination, performance) field counts per release; the only discriminator a header-less file
+offers. The 2024 user guide has 32 and 32; Release 47 of July 2026 has 31 and 35."""
+
+DOWNSTREAM_ORIGINATION = (
+    "credit_score",
+    "first_payment_date",
+    "orig_upb",
+    "oltv",
+    "orig_interest_rate",
+    "loan_sequence_number",
+    "orig_loan_term",
+)
+DOWNSTREAM_PERFORMANCE = (
+    "loan_sequence_number",
+    "monthly_reporting_period",
+    "current_actual_upb",
+    "current_loan_delinquency_status",
+    "loan_age",
+    "remaining_months_to_legal_maturity",
+    "zero_balance_code",
+    "zero_balance_effective_date",
+    "current_interest_rate",
+)
+"""Every column the sampler reads downstream of `read_raw`, by name.
+
+`zero_balance_effective_date` and `current_interest_rate` are not read by `to_raw_panel` today and
+are listed all the same: they are the two fields a servicing-value model reaches for next, and the
+whole value of a position check is that it is made before the column is needed."""
+
+
+def origination_layout(msr_sample: ModuleType, release: str) -> tuple[str, ...]:
+    """The origination field order of one release, as the script writes it out."""
+    layout: tuple[str, ...] = getattr(msr_sample, f"ORIGINATION_LAYOUT_{release}")
+    return layout
+
+
+def performance_layout(msr_sample: ModuleType, release: str) -> tuple[str, ...]:
+    """The performance field order of one release, as the script writes it out."""
+    layout: tuple[str, ...] = getattr(msr_sample, f"PERFORMANCE_LAYOUT_{release}")
+    return layout
 
 
 def origination_row(
     msr_sample: ModuleType,
     sequence: str,
     *,
+    release: str = "2024",
     credit_score: str = "740",
     first_payment: str = "201403",
     orig_upb: str = "200000",
@@ -39,9 +88,9 @@ def origination_row(
     note_rate: str = "4.250",
     term: str = "360",
 ) -> list[str]:
-    """One origination record in the published field order, filled with placeholders."""
-    row = [""] * len(msr_sample.ORIGINATION_LAYOUT)
-    layout = list(msr_sample.ORIGINATION_LAYOUT)
+    """One origination record in one release's published field order, filled with placeholders."""
+    layout = list(origination_layout(msr_sample, release))
+    row = [""] * len(layout)
     row[layout.index("credit_score")] = credit_score
     row[layout.index("first_payment_date")] = first_payment
     row[layout.index("maturity_date")] = "204402"
@@ -60,13 +109,14 @@ def performance_row(
     period: str,
     balance: str,
     age: str,
+    release: str = "2024",
     delinquency: str = "0",
     zero_balance: str = "",
     remaining_term: str = "300",
 ) -> list[str]:
-    """One monthly performance record in the published field order."""
-    row = [""] * len(msr_sample.PERFORMANCE_LAYOUT)
-    layout = list(msr_sample.PERFORMANCE_LAYOUT)
+    """One monthly performance record in one release's published field order."""
+    layout = list(performance_layout(msr_sample, release))
+    row = [""] * len(layout)
     row[layout.index("loan_sequence_number")] = sequence
     row[layout.index("monthly_reporting_period")] = period
     row[layout.index("current_actual_upb")] = balance
@@ -82,58 +132,132 @@ def write_pipe(path: Path, rows: list[list[str]]) -> None:
     path.write_text("\n".join("|".join(row) for row in rows) + "\n", encoding="utf-8")
 
 
-def three_loan_files(msr_sample: ModuleType, raw_dir: Path, year: int = 2014) -> None:
+def three_loan_files(
+    msr_sample: ModuleType,
+    raw_dir: Path,
+    year: int = 2014,
+    *,
+    release: str = "2024",
+    performance_name: str = "sample_svcg_{year}.txt",
+) -> None:
     """Write one vintage's pair of files for three loans, each exiting a different way.
 
     * `F14Q1000001` pays off voluntarily in its fourth month (zero-balance code `01`);
     * `F14Q1000002` is repurchased in its third month (code `06`), so it is censored there;
     * `F14Q1000003` runs six months past due, so it is censored at the sixth.
+
+    Delinquency statuses are written with the leading zeros Release 47 prints -- `00` for current,
+    `01` for one month past due -- because that is the form the real files carry and a status read
+    as a string is the one thing `_months_past_due` has to get right.
     """
     raw_dir.mkdir(parents=True, exist_ok=True)
     write_pipe(
         raw_dir / f"sample_orig_{year}.txt",
         [
-            origination_row(msr_sample, "F14Q1000001"),
+            origination_row(msr_sample, "F14Q1000001", release=release),
             origination_row(
-                msr_sample, "F14Q1000002", credit_score="700", orig_upb="150000", oltv="90"
+                msr_sample,
+                "F14Q1000002",
+                release=release,
+                credit_score="700",
+                orig_upb="150000",
+                oltv="90",
             ),
             origination_row(
-                msr_sample, "F14Q1000003", credit_score="780", orig_upb="300000", oltv="65"
+                msr_sample,
+                "F14Q1000003",
+                release=release,
+                credit_score="780",
+                orig_upb="300000",
+                oltv="65",
             ),
         ],
     )
     write_pipe(
-        raw_dir / f"sample_svcg_{year}.txt",
+        raw_dir / performance_name.format(year=year),
         [
-            performance_row(msr_sample, "F14Q1000001", period="201402", balance="199900", age="1"),
-            performance_row(msr_sample, "F14Q1000001", period="201403", balance="199800", age="2"),
-            performance_row(msr_sample, "F14Q1000001", period="201404", balance="199700", age="3"),
+            performance_row(
+                msr_sample,
+                "F14Q1000001",
+                period="201402",
+                balance="199900",
+                age="1",
+                release=release,
+                delinquency="00",
+            ),
+            performance_row(
+                msr_sample,
+                "F14Q1000001",
+                period="201403",
+                balance="199800",
+                age="2",
+                release=release,
+                delinquency="00",
+            ),
+            performance_row(
+                msr_sample,
+                "F14Q1000001",
+                period="201404",
+                balance="199700",
+                age="3",
+                release=release,
+                delinquency="00",
+            ),
             performance_row(
                 msr_sample,
                 "F14Q1000001",
                 period="201405",
                 balance="0",
                 age="4",
+                release=release,
+                delinquency="00",
                 zero_balance="01",
             ),
-            performance_row(msr_sample, "F14Q1000002", period="201402", balance="149900", age="1"),
-            performance_row(msr_sample, "F14Q1000002", period="201403", balance="149800", age="2"),
+            performance_row(
+                msr_sample,
+                "F14Q1000002",
+                period="201402",
+                balance="149900",
+                age="1",
+                release=release,
+                delinquency="00",
+            ),
+            performance_row(
+                msr_sample,
+                "F14Q1000002",
+                period="201403",
+                balance="149800",
+                age="2",
+                release=release,
+                delinquency="00",
+            ),
             performance_row(
                 msr_sample,
                 "F14Q1000002",
                 period="201404",
                 balance="0",
                 age="3",
+                release=release,
+                delinquency="00",
                 zero_balance="06",
             ),
-            performance_row(msr_sample, "F14Q1000003", period="201402", balance="299900", age="1"),
+            performance_row(
+                msr_sample,
+                "F14Q1000003",
+                period="201402",
+                balance="299900",
+                age="1",
+                release=release,
+                delinquency="00",
+            ),
             performance_row(
                 msr_sample,
                 "F14Q1000003",
                 period="201403",
                 balance="299800",
                 age="2",
-                delinquency="1",
+                release=release,
+                delinquency="01",
             ),
             performance_row(
                 msr_sample,
@@ -141,7 +265,8 @@ def three_loan_files(msr_sample: ModuleType, raw_dir: Path, year: int = 2014) ->
                 period="201404",
                 balance="299700",
                 age="3",
-                delinquency="6",
+                release=release,
+                delinquency="06",
             ),
         ],
     )
@@ -210,8 +335,10 @@ def test_the_declared_sample_rule_is_the_one_package_yaml_states(msr_sample: Mod
     assert msr_sample.DEFAULT_SEED == 20260901
     assert msr_sample.VOLUNTARY_PAYOFF_CODE == "01"
     assert "01" not in msr_sample.CENSORING_CODES
-    assert len(msr_sample.ORIGINATION_LAYOUT) == ORIGINATION_FIELDS
-    assert len(msr_sample.PERFORMANCE_LAYOUT) == PERFORMANCE_FIELDS
+    for release in RELEASES:
+        origination, performance = FIELD_COUNTS[release]
+        assert len(origination_layout(msr_sample, release)) == origination
+        assert len(performance_layout(msr_sample, release)) == performance
 
 
 # --- the files it looks for -----------------------------------------------------------------------
@@ -229,12 +356,84 @@ def test_a_missing_sample_file_is_named_with_its_published_name(
         msr_sample.read_raw(tmp_path, [2014])
 
 
-def test_a_revised_layout_is_refused_rather_than_mapped_by_position(
+@pytest.mark.parametrize("fields", [3, 30, 33, 34, 36])
+def test_a_layout_of_an_unknown_width_is_refused_rather_than_mapped_by_position(
+    msr_sample: ModuleType, tmp_path: Path, fields: int
+) -> None:
+    """D-048's refusal, unchanged by the second layout: a count neither release has is an exit."""
+    write_pipe(tmp_path / "sample_orig_2014.txt", [[str(n) for n in range(fields)]])
+    with pytest.raises(SystemExit, match="revised the file layout") as raised:
+        msr_sample.read_raw(tmp_path, [2014])
+    message = str(raised.value)
+    assert "ORIGINATION_LAYOUT_2024 and ORIGINATION_LAYOUT_2026" in message
+    assert "31 = Release 47, July 2026" in message and "32 = the 2024 user guide" in message
+
+
+@pytest.mark.parametrize("release", RELEASES)
+def test_the_reader_picks_the_layout_by_field_count_and_names_the_release(
+    msr_sample: ModuleType, tmp_path: Path, release: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A header-less file offers one discriminator, and the reader says which one it read."""
+    three_loan_files(msr_sample, tmp_path, release=release)
+    origination, performance = msr_sample.read_raw(tmp_path, [2014])
+    assert list(origination.columns)[:-1] == list(origination_layout(msr_sample, release))
+    assert list(performance.columns) == list(performance_layout(msr_sample, release))
+    named = {"2024": "the 2024 user guide", "2026": "Release 47, July 2026"}[release]
+    printed = capsys.readouterr().out
+    assert f"read sample_orig_2014.txt as {named}" in printed
+    assert f"read sample_svcg_2014.txt as {named}" in printed
+
+
+@pytest.mark.parametrize("name", ["sample_svcg_{year}.txt", "sample_perf_{year}.txt"])
+def test_either_published_name_of_the_performance_file_is_read(
+    msr_sample: ModuleType, tmp_path: Path, name: str
+) -> None:
+    """D-159: the file is found under whichever name its distribution gave it, never renamed."""
+    three_loan_files(msr_sample, tmp_path, performance_name=name)
+    _, performance = msr_sample.read_raw(tmp_path, [2014])
+    assert len(performance) == 10
+    assert (tmp_path / name.format(year=2014)).is_file()
+    other = {"sample_svcg_{year}.txt", "sample_perf_{year}.txt"} - {name}
+    assert not (tmp_path / other.pop().format(year=2014)).is_file()
+
+
+def test_the_archived_name_wins_when_a_directory_holds_both(
     msr_sample: ModuleType, tmp_path: Path
 ) -> None:
-    write_pipe(tmp_path / "sample_orig_2014.txt", [["a", "b", "c"]])
-    with pytest.raises(SystemExit, match="revised the file layout"):
+    """`svcg` is tried first, because that is what the archived vintages carry."""
+    three_loan_files(msr_sample, tmp_path, performance_name="sample_svcg_{year}.txt")
+    write_pipe(tmp_path / "sample_perf_2014.txt", [["not", "read"]])
+    _, performance = msr_sample.read_raw(tmp_path, [2014])
+    assert len(performance) == 10
+    assert msr_sample._performance_path(tmp_path, 2014).name == "sample_svcg_2014.txt"
+
+
+def test_a_missing_performance_file_names_the_archived_spelling(
+    msr_sample: ModuleType, tmp_path: Path
+) -> None:
+    write_pipe(tmp_path / "sample_orig_2014.txt", [origination_row(msr_sample, "F14Q1000001")])
+    with pytest.raises(SystemExit, match="sample_svcg_2014.txt is missing"):
         msr_sample.read_raw(tmp_path, [2014])
+
+
+@pytest.mark.parametrize("names", [DOWNSTREAM_ORIGINATION, DOWNSTREAM_PERFORMANCE])
+def test_every_column_read_downstream_sits_at_the_same_position_in_both_layouts(
+    msr_sample: ModuleType, names: tuple[str, ...]
+) -> None:
+    """The load-bearing check: a layout change that moved one of these would be a silent defect.
+
+    `oltv` and `ocltv` are adjacent and both are plausible loan-to-value numbers (D-048), so the
+    question a field count cannot answer is whether the fields this script actually reads are where
+    it left them. For these two releases they all are, and this is where that is asserted rather
+    than believed.
+    """
+    which = "origination" if names is DOWNSTREAM_ORIGINATION else "performance"
+    layout_for = origination_layout if which == "origination" else performance_layout
+    for name in names:
+        positions = {
+            release: list(layout_for(msr_sample, release)).index(name) for release in RELEASES
+        }
+        assert len(set(positions.values())) == 1, f"{name} moved between releases: {positions}"
 
 
 def test_the_origination_year_comes_from_the_file_name(
@@ -243,8 +442,6 @@ def test_the_origination_year_comes_from_the_file_name(
     three_loan_files(msr_sample, tmp_path)
     origination, performance = msr_sample.read_raw(tmp_path, [2014])
     assert set(origination["origination_year"]) == {2014}
-    assert list(origination.columns)[:-1] == list(msr_sample.ORIGINATION_LAYOUT)
-    assert list(performance.columns) == list(msr_sample.PERFORMANCE_LAYOUT)
     assert len(origination) == 3
     assert len(performance) == 10
 
@@ -345,13 +542,21 @@ def test_the_draw_ignores_the_order_the_files_happen_to_be_in(msr_sample: Module
 # --- the column map -------------------------------------------------------------------------------
 
 
-@pytest.fixture
-def mapped_panel(msr_sample: ModuleType, tmp_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """The raw loan-month panel and the rate calendar the three-loan frames map onto."""
+@pytest.fixture(params=RELEASES)
+def mapped_panel(
+    msr_sample: ModuleType, tmp_path: Path, request: pytest.FixtureRequest
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """The raw loan-month panel and the rate calendar the three-loan frames map onto.
+
+    Parameterised over both releases, so every assertion below about the column map is made twice:
+    once on a 32/32 file pair and once on a 31/35 one. That is what turns the position-invariance
+    check into a claim about the mapping and not only about two tuples.
+    """
     fred = tmp_path / "MORTGAGE30US.csv"
     fred_csv(fred)
     rates = msr_sample.read_fred(fred)
-    three_loan_files(msr_sample, tmp_path / "raw")
+    name = "sample_svcg_{year}.txt" if request.param == "2024" else "sample_perf_{year}.txt"
+    three_loan_files(msr_sample, tmp_path / "raw", release=request.param, performance_name=name)
     origination, performance = msr_sample.read_raw(tmp_path / "raw", [2014])
     return msr_sample.to_raw_panel(origination, performance, rates), rates
 
@@ -417,6 +622,52 @@ def test_a_non_numeric_delinquency_status_is_not_a_default(msr_sample: ModuleTyp
     assert msr_sample.DEFAULT_DELINQUENCY_MONTHS == 6
 
 
+def test_a_leading_zero_delinquency_status_counts_as_the_months_it_names(
+    msr_sample: ModuleType,
+) -> None:
+    """Release 47 prints the status two characters wide: `00`, `01`, ..., with `RA` and `XX`.
+
+    A status read as a string and compared as one would make `"06"` not equal `"6"` and censor
+    nothing; `_months_past_due` converts before it compares, so the two forms agree, and this
+    asserts that they do on the exact tokens the July 2026 files carry.
+    """
+    padded = pd.Series(["00", "01", "02", "03", "06", "12", "RA", "XX", ""])
+    counted = msr_sample._months_past_due(padded)
+    assert counted.tolist() == [0.0, 1.0, 2.0, 3.0, 6.0, 12.0, 0.0, 0.0, 0.0]
+    assert (counted >= msr_sample.DEFAULT_DELINQUENCY_MONTHS).tolist() == [
+        False,
+        False,
+        False,
+        False,
+        True,
+        True,
+        False,
+        False,
+        False,
+    ]
+    unpadded = pd.Series(["0", "1", "2", "3", "6", "12", "RA", "XX", ""])
+    assert counted.tolist() == msr_sample._months_past_due(unpadded).tolist()
+
+
+def test_the_censoring_codes_read_against_the_july_2026_enumeration(
+    msr_sample: ModuleType,
+) -> None:
+    """D-048, amended. The guide lists 01, 02, 03, 09, 15, 16, 96; this list is a superset by three.
+
+    `16`, a reperforming-loan sale, is a disposition and is now censored. `06`, `97` and `98` are
+    kept although the current guide no longer lists them, because the archived distributions of the
+    2014, 2017 and 2019 vintages still carry them and an unlisted code would silently be read as a
+    month the loan survived.
+    """
+    listed = {"01", "02", "03", "09", "15", "16", "96"}
+    censoring = set(msr_sample.CENSORING_CODES)
+    assert msr_sample.VOLUNTARY_PAYOFF_CODE == "01"
+    assert listed - {msr_sample.VOLUNTARY_PAYOFF_CODE} <= censoring
+    assert censoring - listed == {"06", "97", "98"}
+    assert "16" in censoring
+    assert len(msr_sample.CENSORING_CODES) == len(censoring) == 9
+
+
 def test_sato_is_the_note_rate_minus_the_rate_at_origination(
     mapped_panel: tuple[pd.DataFrame, pd.DataFrame], msr_features: ModuleType
 ) -> None:
@@ -446,6 +697,28 @@ def test_the_mapped_panel_feeds_the_subjects_own_panel_builder(
     ]
     assert built[msr_features.TARGET_COLUMN].sum() == 1
     assert not built.isna().to_numpy().any()
+
+
+def test_the_two_layouts_produce_the_same_panel_from_the_same_loans(
+    msr_sample: ModuleType, tmp_path: Path
+) -> None:
+    """The whole point of the second layout: the same three loans map to the same panel.
+
+    The files differ in width (32/32 against 31/35), in field names and in which member carries
+    `servicer_name` and `mi_cancellation_indicator`. Nothing the sampler reads moved, so the raw
+    loan-month panel is byte-for-byte the same frame -- which is the claim the position check makes
+    about names, made here about values.
+    """
+    fred = tmp_path / "MORTGAGE30US.csv"
+    fred_csv(fred)
+    rates = msr_sample.read_fred(fred)
+    panels = []
+    for release, name in (("2024", "sample_svcg_{year}.txt"), ("2026", "sample_perf_{year}.txt")):
+        raw = tmp_path / release
+        three_loan_files(msr_sample, raw, release=release, performance_name=name)
+        origination, performance = msr_sample.read_raw(raw, [2014])
+        panels.append(msr_sample.to_raw_panel(origination, performance, rates))
+    pd.testing.assert_frame_equal(panels[0], panels[1])
 
 
 def test_loans_in_only_one_of_the_two_files_are_dropped_with_a_message(
