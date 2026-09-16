@@ -13,6 +13,7 @@ test copies that output and perturbs its copy.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -24,9 +25,11 @@ from quaestor.errors import ToolError
 from quaestor.findings import DefectClass, Severity
 from quaestor.tools import Thresholds, ToolContext, ToolResult, default_registry
 from quaestor.tools.collinearity import sign_of
+from quaestor.tools.frames import declared_features, scored_frame
 from quaestor.tools.leakage import DUPLICATE_MULTIPLE, FEATURE_OVERLAP_BOUND, duplicate_share
 from quaestor.tools.metrics import THRESHOLD_TABLE, subpopulation_expression
 from quaestor.tools.run import MAX_SECONDS_NAME
+from quaestor.tools.stats import logistic_standard_errors
 from quaestor.tools.thresholds import EFFECTIVE_SUFFIX, effective_name
 from toolsupport import context, read_json, variant_package, write_csv, write_json
 
@@ -636,6 +639,166 @@ def test_r1_does_not_fire_on_the_clean_hazard_subject(tmp_path: Path, msr_run_di
     )
     # psi_over_time is reported and never a candidate.
     assert len(ctx.store.load("stability.psi_over_time")) > 1
+
+
+def _newton_logistic(design: np.ndarray, truth: np.ndarray) -> np.ndarray:
+    """Fit an unpenalised logistic regression by Newton's method, with no scikit-learn in it.
+
+    The step is the one :func:`quaestor.tools.stats.calibration_slope_intercept` writes out, and
+    the stopping rule is on the coefficient step rather than on the gradient, so this is an
+    independent answer to the same question the tool asks scikit-learn.
+    """
+    beta = np.zeros(design.shape[1], dtype=float)
+    for _ in range(200):
+        mu = 1.0 / (1.0 + np.exp(-(design @ beta)))
+        weights = np.clip(mu * (1.0 - mu), 1e-12, None)
+        step = np.linalg.solve(design.T @ (design * weights[:, None]), design.T @ (truth - mu))
+        beta = beta + step
+        if float(np.max(np.abs(step))) < 1e-12:
+            return beta
+    raise AssertionError("the independent Newton fit did not converge")
+
+
+def test_the_per_regime_fit_agrees_with_an_independent_converged_newton_fit(
+    tmp_path: Path, msr_run_dir: Path
+) -> None:
+    # What `C = np.inf, tol = 1e-10` buys: the tool's per-regime coefficients are the maximum
+    # likelihood estimates, to the last five decimals, of a fit that shares no code with them.
+    # The tolerance is on the **absolute** difference and not the relative one, deliberately. On
+    # the rising regime's fifty events the likelihood is nearly flat, and lbfgs stops on the
+    # gradient where this routine stops on the coefficient step, so the two land a few parts in a
+    # million apart on a coefficient near zero -- an absolute agreement of 1e-5 and a relative one
+    # of only 1e-3. That is the shape of the optimum and not a defect in either fit (D-163).
+    ctx = context(tmp_path, MSR, msr_run_dir)
+    run("check_stability", ctx)
+    frame = scored_frame(ctx, "train")
+    features = declared_features(ctx, frame)
+    for regime in ("falling", "rising"):
+        part = frame[frame["rate_regime"].astype(str) == regime]
+        values = part[features].to_numpy(dtype=float)
+        standardised = (values - values.mean(axis=0)) / values.std(axis=0)
+        design = np.column_stack([np.ones(len(standardised)), standardised])
+        beta = _newton_logistic(design, part["y_true"].to_numpy(dtype=float))
+        errors = logistic_standard_errors(design, 1.0 / (1.0 + np.exp(-(design @ beta))))
+        for position, name in enumerate(features):
+            stored = next(
+                row
+                for row in ctx.store.load(f"stability.{name}.coef_or_importance_by_regime")
+                if row["regime"] == regime
+            )
+            coefficient, error = float(stored["coefficient"]), float(stored["se"])
+            assert coefficient == pytest.approx(beta[position + 1], abs=1e-5)
+            assert error == pytest.approx(errors[position + 1], abs=1e-5)
+            assert float(stored["z"]) == pytest.approx(coefficient / error, rel=1e-9)
+
+
+# The 2x2 table the precision gate is tested on, per regime: (x, y, how many rows). At x = 0 the
+# odds are 1000 / 1000 and at x = 1 they are 1500 / 500, so the odds ratio is 3 in the `early`
+# cohort and 1/3 in the `late` one -- a sign flip of exactly +-ln(3) on the indicator, and half
+# that once the column is standardised, since x is balanced and its standard deviation is 0.5.
+_FLIP_CELLS: dict[str, tuple[tuple[float, int, int], ...]] = {
+    "early": ((0.0, 1, 1000), (0.0, 0, 1000), (1.0, 1, 1500), (1.0, 0, 500)),
+    "late": ((0.0, 1, 1500), (0.0, 0, 500), (1.0, 1, 1000), (1.0, 0, 1000)),
+}
+_FLIP_COEFFICIENT = math.log(3.0) / 2.0
+"""What each regime's standardised `utilisation` coefficient is, in closed form: +-0.5493061443."""
+
+_FLIP_ERROR = math.sqrt(1 / 1000 + 1 / 1000 + 1 / 1500 + 1 / 500) / 2.0
+"""Its standard error at the counts above, in closed form: sqrt(1/a + 1/b + 1/c + 1/d) / 2."""
+
+
+def _flip_run(directory: Path, divisor: int) -> Path:
+    """Write a run whose one feature flips sign across the cohort, on 1/`divisor` of the rows."""
+    rows = [
+        (regime, indicator, outcome)
+        for regime, cells in _FLIP_CELLS.items()
+        for indicator, outcome, count in cells
+        for _ in range(count // divisor)
+    ]
+    frame = pd.DataFrame(rows, columns=["cohort", "utilisation", "default_next_month"])
+    frame.insert(0, "client_id", range(len(frame)))
+    directory.mkdir(parents=True, exist_ok=True)
+    write_csv(directory / "data_train.csv", frame)
+    scores = frame[["client_id"]].copy()
+    scores["y_true"] = frame["default_next_month"]
+    # Every event scores 0.9 and every non-event 0.1 in both cohorts, so the AUC is 1.0 in each
+    # and R1's other arm, the AUC gap, is silent; this test is about the sign-flip arm alone.
+    scores["y_score"] = scores["y_true"].map({1: 0.9, 0: 0.1})
+    write_csv(directory / "predictions_train.csv", scores)
+    return directory
+
+
+def test_the_sign_flip_gate_reads_the_precision_of_a_coefficient_and_not_only_its_size(
+    tmp_path: Path,
+) -> None:
+    # The same flip twice, on 4,000 rows per cohort and on 40. Every cell keeps its proportions,
+    # so the coefficients are identical to the last digit -- +-0.5493, ten times the 0.05
+    # materiality gate either way -- and only the standard errors move, by exactly the square root
+    # of a hundred. |z| falls from 16.1 to 1.6, and the finding goes with it. That is the whole of
+    # DECISIONS D-164: a coefficient that cannot be told from zero is not a regime effect, however
+    # large it is (DECISIONS D-047's `burnout` is the instance that provoked the rule).
+    def declare_a_cohort(spec: dict[str, object]) -> None:
+        spec["regime"] = {"column": "cohort"}
+
+    package = variant_package(tmp_path, CREDIT, declare_a_cohort, name="cohort_package")
+    expected = {
+        "precise": (1, _FLIP_ERROR, ["R1"], 1),
+        "imprecise": (100, _FLIP_ERROR * 10.0, [], 0),
+    }
+    for label, (divisor, error, classes_expected, flip) in expected.items():
+        ctx = context(
+            tmp_path / f"ctx_{label}", package, _flip_run(tmp_path / f"run_{label}", divisor)
+        )
+        result = run("check_stability", ctx)
+        assert classes(result) == classes_expected
+        assert ctx.store.value("stability.utilisation.sign_flip") == flip
+        table = ctx.store.load("stability.utilisation.coef_or_importance_by_regime")
+        for row, sign in zip(table, (1.0, -1.0), strict=True):
+            assert float(row["coefficient"]) == pytest.approx(sign * _FLIP_COEFFICIENT, abs=1e-9)
+            assert float(row["se"]) == pytest.approx(error, abs=1e-9)
+            assert float(row["z"]) == pytest.approx(sign * _FLIP_COEFFICIENT / error, abs=1e-6)
+            assert abs(float(row["coefficient"])) > 0.05
+    assert (
+        abs(_FLIP_COEFFICIENT / (_FLIP_ERROR * 10.0)) < 2.0 <= abs(_FLIP_COEFFICIENT / _FLIP_ERROR)
+    )
+
+
+def test_a_feature_that_does_not_vary_inside_a_regime_has_no_standard_error(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    # A package whose regime column is one of its own features leaves that feature constant inside
+    # every regime, so the regime's data identify no coefficient for it and there is nothing for a
+    # standard error to be the standard error of. The cells are empty rather than a large finite
+    # stand-in, and the feature cannot clear the precision gate (DECISIONS D-164).
+    def add_a_regime(spec: dict[str, object]) -> None:
+        spec["regime"] = {"column": "delinq_max_6m"}
+
+    ctx = context(tmp_path, variant_package(tmp_path, CREDIT, add_a_regime), credit_run_dir)
+    run("check_stability", ctx)
+    rows = ctx.store.load("stability.delinq_max_6m.coef_or_importance_by_regime")
+    assert rows and all(row["se"] == "" and row["z"] == "" for row in rows)
+    assert all(float(row["coefficient"]) == 0.0 for row in rows)
+    assert ctx.store.value("stability.delinq_max_6m.sign_flip") == 0
+    # Every other feature does vary, and keeps both.
+    other = ctx.store.load("stability.utilisation.coef_or_importance_by_regime")
+    assert all(float(row["se"]) > 0.0 for row in other)
+
+
+def test_a_regime_whose_varying_features_are_exactly_collinear_is_refused(
+    tmp_path: Path,
+) -> None:
+    # Two declared features carrying the same column is a singular information matrix that no
+    # constant-column rule explains, and it is reported rather than regularised away.
+    def declare_a_cohort(spec: dict[str, object]) -> None:
+        spec["regime"] = {"column": "cohort"}
+
+    package = variant_package(tmp_path, CREDIT, declare_a_cohort, name="collinear_package")
+    directory = _flip_run(tmp_path / "run_collinear", 1)
+    frame = pd.read_csv(directory / "data_train.csv")
+    frame["utilisation_mean_6m"] = frame["utilisation"]
+    write_csv(directory / "data_train.csv", frame)
+    with pytest.raises(ToolError, match="singular information matrix"):
+        run("check_stability", context(tmp_path / "ctx_collinear", package, directory))
 
 
 def test_check_stability_refuses_a_package_with_no_regime_column(

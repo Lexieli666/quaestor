@@ -43,6 +43,20 @@ run that was not committed.
 
 ### Changed
 
+- **`R1`'s sign-flip rule reads the flipping coefficient's precision as well as its size.** A
+  feature now flips only when, in **every** regime, `|coef|` clears `threshold.R1.sign_flip_coef`
+  (unchanged, 0.05) **and** `|coef / s.e.|` reaches the new `threshold.R1.sign_flip_z` (2.0). The
+  standard errors come from each per-regime fit's own observed information matrix, computed by the
+  new `stats.logistic_standard_errors` and tested against the 2x2 closed form
+  `sqrt(1/a + 1/b + 1/c + 1/d)`; `stability.<f>.coef_or_importance_by_regime` gains `se` and `z`
+  columns, and `threshold.R1.sign_flip_z` is stored whether or not the rule fires, so a report that
+  says the signs held can cite both halves of what "held" meant. Measured offline: the seeded
+  `credit__R1__regime_flip` still fires at z +7.77 / −11.13, and four collateral `R1`s on
+  coefficients between z 0.17 and 1.97 stop firing — on the clean synthetic hazard control, on
+  `msr__L2__contamination`, on `msr__S1__vintage_shift` and on the seeded variant itself. No
+  baseline in `eval/taxonomy.yaml` moves. The tightening was decided on 2026-09-09 for the
+  collateral cases and only its landing date moved (D-164). The AUC-gap arm of `R1` is unchanged.
+
 - **`subjects/msr_prepayment/sample_freddie.py` reads Release 47 (July 2026) as well as the 2024
   layouts.** The operator's files have 31 origination fields and 35 performance fields against the
   32 and 32 this script encoded. Both 2024 tuples are kept, two more are written out beside them,
@@ -87,6 +101,19 @@ run that was not committed.
   match (D-140, D-150, D-151).
 
 ### Fixed
+
+- **`tools/stability.py` fits the unpenalised, converged per-regime regression its docstring always
+  claimed.** It called `LogisticRegression(max_iter=_MAX_ITERATIONS)` — scikit-learn's penalised
+  default at lbfgs's default `tol = 1e-4` — under a module docstring reading "a plain unpenalised
+  logistic regression is fitted within each regime": the last release's defect, in our code rather
+  than a subject's, left open in D-160 because changing it "would move the golden report and every
+  committed run's `stability.*` artifacts". Both halves of that reason are false — the golden and
+  `credit_default` declare no regime column, and none of the six committed runs under
+  `eval/results/` holds a `stability.*` artifact — and the fix is `C = np.inf, tol = 1e-10`, the
+  spelling and the tolerance D-160 fixed for the calibration slope. The per-regime coefficients now
+  agree with an independent Newton fit to **1e-5 absolute**, where the old estimator differed from
+  the same fit by up to **0.314**; `stability.auc_by_regime` and `stability.psi_over_time` do not
+  move, because that arm refits nothing (D-163).
 
 - Two things in `src/quaestor`: the loop-prompt example above, and section 6's self-contradicting
   prompt under **Changed** (D-156), which reading the recorded drafts found and which no offline

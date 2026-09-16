@@ -9,11 +9,24 @@ model that was shipped.
 
 *Does a feature mean the same thing in each regime?* cannot be answered from the champion at all,
 because the champion is one fit and has one coefficient per feature. So a plain unpenalised
-logistic regression is fitted **within each regime** on the standardised retained features, and it
+logistic regression is fitted **within each regime** on the standardised retained features -- at
+``C = np.inf`` and a stopping tolerance of 1e-10, because a diagnostic that compares coefficients
+across regimes must not be reading a penalty or an unfinished descent (DECISIONS D-163) -- and it
 is those coefficients that are compared. The feature ranking is taken from the same fits -- the
 ten largest mean absolute coefficients across the regimes -- rather than from the champion's, whose
 design may expand a feature into a spline basis under names no regime fit shares (DECISIONS
 D-053).
+
+A sign flip is read through **two** gates, because a coefficient that disagrees with itself across
+regimes has to be both large enough to matter and precise enough to be a coefficient at all:
+``threshold.R1.sign_flip_coef`` is the materiality gate on ``|coef|`` and
+``threshold.R1.sign_flip_z`` is the precision gate on ``|coef / s.e.|``, and both must hold in
+every regime. The standard errors come from each regime fit's own observed information
+(:func:`~quaestor.tools.stats.logistic_standard_errors`) and are stored beside the coefficients,
+so a reader can see how far from zero a flipping coefficient actually was (DECISIONS D-164). A
+feature that is constant inside a regime -- the case of a package whose regime column is one of
+its own features -- is not estimated there at all, so its standard error and its ``z`` are empty
+cells and it cannot clear the precision gate.
 
 ``stability.psi_over_time`` is reported and never a candidate: the score distribution of a later
 period differs from the fitting window's by the same construction that keeps ``S1`` on
@@ -22,7 +35,7 @@ train-against-test (DECISIONS D-046).
 
 from __future__ import annotations
 
-from typing import Any, Final
+from typing import Any, Final, NamedTuple
 
 import numpy as np
 import pandas as pd
@@ -35,13 +48,43 @@ from . import stats
 from .frames import declared_features, require_split, scored_frame
 from .registry import Tool, ToolArgs, ToolContext, ToolResult
 
-__all__ = ["CheckStabilityTool"]
+__all__ = ["CheckStabilityTool", "RegimeFit"]
 
 TOP_FEATURES: Final = 10
 """How many features the sign-flip rule looks at, as spec section 3.7 states it."""
 
+
+class RegimeFit(NamedTuple):
+    """One feature's coefficient in one regime, with the precision of that estimate.
+
+    A feature that does not vary inside a regime -- which is what every feature that is *also* the
+    regime column is -- has no coefficient there to estimate and no standard error either, so both
+    it and :attr:`z` are ``None`` and the table's cells are empty. The alternative was a large
+    finite stand-in on the pattern of :data:`~quaestor.tools.stats.VIF_CAP`, which would print a
+    precision for a parameter the regime's data never identified (DECISIONS D-164).
+
+    Attributes:
+        coefficient: The standardised coefficient of the regime's own unpenalised fit.
+        standard_error: Its standard error, from that fit's observed information matrix, or
+            ``None`` when the feature is constant within the regime.
+    """
+
+    coefficient: float
+    standard_error: float | None
+
+    @property
+    def z(self) -> float | None:
+        """The coefficient in units of its own standard error, which is ``R1``'s precision gate."""
+        if self.standard_error is None:
+            return None
+        return self.coefficient / self.standard_error
+
+
 _MAX_ITERATIONS: Final = 1000
 """Iterations for the per-regime fits; the same cap both shipped subjects use for the champion."""
+
+_TOLERANCE: Final = 1e-10
+"""Where the per-regime fits stop, which is where ``stats.calibration_slope_intercept`` stops."""
 
 
 class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
@@ -120,22 +163,24 @@ class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
         artifacts += coefficient_artifacts
         artifacts += self._psi_over_time(ctx, split)
 
-        # Both thresholds are stored whether or not the rule fires, so that a report saying the
-        # coefficients held their signs can cite what "held" meant.
+        # All three thresholds are stored whether or not the rule fires, so that a report saying
+        # the coefficients held their signs can cite what "held" meant -- both halves of it.
         coefficient_threshold = ctx.thresholds.artifact(ctx.store, "threshold.R1.sign_flip_coef")
+        z_threshold = ctx.thresholds.artifact(ctx.store, "threshold.R1.sign_flip_z")
         auc_threshold = ctx.thresholds.artifact(ctx.store, "threshold.R1.auc_gap")
-        artifacts += [coefficient_threshold, auc_threshold]
+        artifacts += [coefficient_threshold, z_threshold, auc_threshold]
 
         candidates: list[FindingCandidate] = []
         spread = max(auc_by_regime.values()) - min(auc_by_regime.values())
         auc_limit = ctx.thresholds["threshold.R1.auc_gap"]
         coefficient_limit = ctx.thresholds["threshold.R1.sign_flip_coef"]
+        z_limit = ctx.thresholds["threshold.R1.sign_flip_z"]
         if flips or spread > auc_limit:
             evidence: list[str] = []
             detail: list[str] = []
             if flips:
                 evidence += (
-                    [coefficient_threshold.hash]
+                    [coefficient_threshold.hash, z_threshold.hash]
                     + [ctx.store.artifact(f"stability.{name}.sign_flip").hash for name in flips]
                     + [
                         ctx.store.artifact(f"stability.{name}.coef_or_importance_by_regime").hash
@@ -144,7 +189,7 @@ class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
                 )
                 detail.append(
                     f"{sorted(flips)} change sign across {column} with a coefficient above "
-                    f"{coefficient_limit} in every regime"
+                    f"{coefficient_limit} and a |z| of at least {z_limit} in every regime"
                 )
             if spread > auc_limit:
                 evidence += [
@@ -211,9 +256,25 @@ class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
         column: str,
         regimes: list[str],
         features: list[str],
-    ) -> dict[str, dict[str, float]]:
-        """Fit one unpenalised logistic regression per regime on the standardised features."""
-        coefficients: dict[str, dict[str, float]] = {}
+    ) -> dict[str, dict[str, RegimeFit]]:
+        """Fit one unpenalised logistic regression per regime and return coefficients and errors.
+
+        The fit is ``C = np.inf`` at ``tol = 1e-10`` so that it is the maximum likelihood estimate
+        this docstring has always claimed and is converged to the same place as
+        :func:`~quaestor.tools.stats.calibration_slope_intercept`'s own Newton iteration, whose
+        tolerance that is; scikit-learn's defaults are a penalty and a stopping rule that leaves
+        the optimum by more than the quantity compared here (DECISIONS D-163).
+
+        Each coefficient comes back with the standard error of that same converged fit, taken from
+        its observed information ``(X'WX)^-1`` on the standardised design with the intercept column
+        the fit used. ``R1``'s precision gate reads them, and a regime whose information matrix is
+        singular is refused here rather than given a standard error of convenience (D-164).
+
+        Raises:
+            ToolError: A regime holds a non-numeric or missing feature value, or its fit's
+                information matrix is singular.
+        """
+        coefficients: dict[str, dict[str, RegimeFit]] = {}
         for regime in regimes:
             part = frame[frame[column].astype(str) == regime]
             matrix = part[features].apply(pd.to_numeric, errors="coerce")
@@ -225,11 +286,31 @@ class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
             values = matrix.to_numpy(dtype=float)
             spread = values.std(axis=0)
             standardised = (values - values.mean(axis=0)) / np.where(spread == 0.0, 1.0, spread)
-            fitted = LogisticRegression(max_iter=_MAX_ITERATIONS).fit(
+            fitted = LogisticRegression(C=np.inf, max_iter=_MAX_ITERATIONS, tol=_TOLERANCE).fit(
                 standardised, part["y_true"].to_numpy(dtype=int)
             )
+            identified = [position for position, width in enumerate(spread) if width != 0.0]
+            design = np.column_stack([np.ones(len(standardised)), standardised[:, identified]])
+            try:
+                errors = stats.logistic_standard_errors(
+                    design, fitted.predict_proba(standardised)[:, 1]
+                )
+            except ToolError as exc:
+                raise ToolError(
+                    f"the per-regime fit of regime {regime!r} has a singular information matrix "
+                    f"over {len(part)} rows of features that do vary, so its coefficients have no "
+                    f"standard error and R1's precision gate cannot be applied to them: "
+                    f"{exc.message}"
+                ) from exc
+            by_position = dict(zip(identified, errors[1:], strict=True))
             coefficients[regime] = {
-                name: float(value) for name, value in zip(features, fitted.coef_[0], strict=True)
+                name: RegimeFit(
+                    float(value),
+                    None if position not in by_position else float(by_position[position]),
+                )
+                for position, (name, value) in enumerate(
+                    zip(features, fitted.coef_[0], strict=True)
+                )
             }
         return coefficients
 
@@ -238,23 +319,38 @@ class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
         ctx: ToolContext,
         regimes: list[str],
         features: list[str],
-        coefficients: dict[str, dict[str, float]],
+        coefficients: dict[str, dict[str, RegimeFit]],
     ) -> tuple[list[str], list[Artifact]]:
-        """Store each feature's coefficients by regime and its sign flip, and return the flips."""
+        """Store each feature's coefficients by regime and its sign flip, and return the flips.
+
+        A feature flips when it is among the top :data:`TOP_FEATURES` by mean absolute
+        coefficient, its coefficients have opposite signs across the regimes, and in **every**
+        regime the coefficient clears both gates: ``|coef|`` above
+        ``threshold.R1.sign_flip_coef``, which asks whether the disagreement is large enough to
+        matter, and ``|coef / s.e.|`` at least ``threshold.R1.sign_flip_z``, which asks whether
+        either coefficient can be told from zero at all. They are different questions and both are
+        kept: a precisely estimated 0.001 is not a regime effect, and neither is a 0.09 with a
+        standard error of 0.29 (DECISIONS D-164).
+        """
         limit = ctx.thresholds["threshold.R1.sign_flip_coef"]
+        z_limit = ctx.thresholds["threshold.R1.sign_flip_z"]
         magnitude = {
-            name: float(np.mean([abs(coefficients[regime][name]) for regime in regimes]))
+            name: float(
+                np.mean([abs(coefficients[regime][name].coefficient) for regime in regimes])
+            )
             for name in features
         }
         top = sorted(features, key=lambda name: -magnitude[name])[:TOP_FEATURES]
         artifacts: list[Artifact] = []
         flips: list[str] = []
         for name in features:
-            values = [coefficients[regime][name] for regime in regimes]
+            fits = [coefficients[regime][name] for regime in regimes]
+            values = [fit.coefficient for fit in fits]
             flipped = (
                 name in top
                 and min(values) < 0.0 < max(values)
-                and all(abs(value) > limit for value in values)
+                and all(abs(fit.coefficient) > limit for fit in fits)
+                and all(fit.z is not None and abs(fit.z) >= z_limit for fit in fits)
             )
             if flipped:
                 flips.append(name)
@@ -262,11 +358,19 @@ class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
                 ctx.store.put(
                     f"stability.{name}.coef_or_importance_by_regime",
                     [
-                        {"regime": regime, "coefficient": coefficients[regime][name]}
+                        {
+                            "regime": regime,
+                            "coefficient": coefficients[regime][name].coefficient,
+                            "se": coefficients[regime][name].standard_error,
+                            "z": coefficients[regime][name].z,
+                        }
                         for regime in regimes
                     ],
                     ArtifactKind.table,
-                    f"{name}'s coefficient in a per-regime refit, standardised",
+                    (
+                        f"{name}'s coefficient in a per-regime refit, standardised, with the "
+                        "standard error and z of each"
+                    ),
                 ),
                 ctx.store.put(
                     f"stability.{name}.sign_flip",
@@ -274,7 +378,8 @@ class CheckStabilityTool(Tool["CheckStabilityTool.Args"]):
                     ArtifactKind.scalar,
                     (
                         f"1 when {name} is among the top {TOP_FEATURES} features and changes sign "
-                        f"across regimes with a coefficient above {limit} in each"
+                        f"across regimes with a coefficient above {limit} and a |z| of at least "
+                        f"{z_limit} in each"
                     ),
                 ),
             ]

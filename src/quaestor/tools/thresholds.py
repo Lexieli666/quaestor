@@ -124,6 +124,7 @@ DEFAULT_THRESHOLDS: Final[Mapping[str, float]] = {
     "threshold.O1.slice_min_share": 0.10,
     "threshold.R1.auc_gap": 0.10,
     "threshold.R1.sign_flip_coef": 0.05,
+    "threshold.R1.sign_flip_z": 2.0,
     "threshold.S1.psi": 0.25,
     "rule.calibration_first_event_rate": 0.05,
 }
@@ -153,6 +154,7 @@ THRESHOLD_SUMMARIES: Final[Mapping[str, str]] = {
     ),
     "threshold.R1.auc_gap": "R1: the AUC difference across regimes",
     "threshold.R1.sign_flip_coef": "R1: the coefficient a sign flip must exceed in both regimes",
+    "threshold.R1.sign_flip_z": "R1: the |z| a sign flip's coefficient must reach in both regimes",
     "threshold.S1.psi": "S1: the population stability index, train against test",
     "rule.calibration_first_event_rate": (
         "the event rate below which the report puts calibration before discrimination"

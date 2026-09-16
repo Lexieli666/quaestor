@@ -1045,6 +1045,16 @@ here and recorded.
   about the synthetic panel alone. **See D-161**, which generalises it: every control carries a
   measured baseline finding set per data mode, and a baseline finding on a control is not a false
   alarm.
+- **Consequence, added 2026-09-16 (Phase 9, the `R1` precision commit).** The converged per-regime
+  estimator of D-163 and the precision gate of D-164 land together, and this entry's two `R1`
+  sentences both survive them: **the recorded regime AUCs do not move** — 0.7227144937 falling and
+  0.7237965727 rising, the same `stability.auc_by_regime` content hash as before, because that arm
+  reads the champion's own scores and refits nothing — and **the "no coefficient sign flip" clause
+  still holds**, now for a stated reason rather than by accident. Converged, `burnout`'s rising
+  coefficient is −0.0943 rather than −0.0008 and does clear the 0.05 materiality gate; it is the
+  new precision gate, `|coef / s.e.| >= 2`, that it fails at z = −0.32 on fifty events. This
+  entry's own warning — that `R1`'s sign-flip rule sits close to the noise on this subject, with
+  one weak coefficient flipping at each of four other seeds tried — is what D-164 acts on.
 
 ## D-048. The Freddie Mac layouts are positional, written out, and checked by field count
 
@@ -5021,6 +5031,12 @@ here and recorded.
   subject's. It is not fixed in this commit because the per-regime coefficients feed `R1` and
   changing the estimator would move the golden report and every committed run's `stability.*`
   artifacts, which is a change that needs its own commit and its own re-measurement.
+- **Correction, 2026-09-16 (the `R1` precision commit):** that last sentence is wrong, and the
+  open instance is now closed. The golden report declares no regime column, `credit_default`
+  declares `regime.column: null`, and none of the six committed runs under `eval/results/` holds a
+  single `stability.*` artifact, so the change moves neither the golden nor any committed run. It
+  is made in **D-163**, in this entry's own spelling — `C = np.inf` at `tol = 1e-10` — and the only
+  thing it did move is recorded there and in **D-164**.
 
 ## D-161. Every control carries a measured baseline finding set per data mode; a baseline finding is not a false alarm
 
@@ -5106,3 +5122,161 @@ here and recorded.
   which turns the appendix of what did *not* run into a mixed ledger and makes its one job
   ambiguous; and keying the row on `data_mode == "real"` rather than on the artifact, which would
   print "verified" for a package that declares no manifest at all.
+
+## D-163. The per-regime fit converges, and the deferral reason that held it back was wrong
+
+- **Date:** 2026-09-16 (Phase 9, the `R1` precision commit)
+- **Q:** D-160's last paragraph left one instance of its own defect open: `tools/stability.py`
+  documents itself as fitting "one unpenalised logistic regression per regime" and calls
+  `LogisticRegression(max_iter=_MAX_ITERATIONS)`, which is scikit-learn's penalised default at
+  lbfgs's default stopping tolerance of 1e-4. It was deferred because changing it "would move the
+  golden report and every committed run's `stability.*` artifacts". Is that true, and what does
+  the converged estimator actually move?
+- **A:** **The deferral reason is dead on both counts, and the fix lands.**
+  `_regime_coefficients` now fits `LogisticRegression(C=np.inf, max_iter=_MAX_ITERATIONS,
+  tol=_TOLERANCE)` with `_TOLERANCE = 1e-10`, which is where
+  `stats.calibration_slope_intercept`'s own Newton iteration stops, so the two routines are
+  converged to the same place by construction rather than by luck — D-160's spelling, for
+  D-160's reasons, including `C=np.inf` over `penalty=None` because 1.9 emits a `FutureWarning`
+  for the latter and a subject's stderr is a stored artifact.
+  **Neither half of the deferral reason survives checking.** The golden report declares no regime
+  (`examples/golden_report/report.md:120` and `:339`: "Regime stability was not assessed because
+  the package declares no regime column", and Appendix D's `check_stability (R1) | package
+  declares no regime.column`); `subjects/credit_default/package.yaml` declares `regime: column:
+  null`, so `check_stability` never runs on it; and **no committed run holds a `stability.*`
+  artifact** — 0 of the 192, 124, 124, 121, 258 and 250 names in the six `eval/results/**/index.json`
+  begin `stability.`. `git status --short examples/` is empty after the change.
+  **Convergence, measured.** All four regime fits of the two MSR runs converge well inside the cap
+  and **no `ConvergenceWarning` is emitted** under `PYTHONWARNINGS=always`: synthetic falling
+  16 → 27 iterations, synthetic rising 11 → 25, real falling 14 → 28, real rising 18 → 31, against
+  a cap of 1000 that was never approached and is not raised.
+  **What moves.** On the **real** panel the largest absolute move is `burnout` falling, 0.0342
+  (−0.104120123 → −0.138303264), and the largest relative one is `rate_change_12m` falling, 125.0%
+  (−0.010870683 → +0.002716470) — a sign change that gives that feature opposite signs across the
+  regimes without raising `R1`, because +0.0027 does not clear the 0.05 materiality gate. On the
+  **synthetic** panel the largest absolute move is `note_rate` rising, 0.3136 (−0.226697682 →
+  −0.540305863), and the largest relative one is `burnout` rising, 12,316% (−0.000759889 →
+  −0.094344680); no synthetic cell changes sign. **`stability.auc_by_regime` and
+  `stability.psi_over_time` are byte-identical before and after on both runs and on all three
+  variants re-measured here** — nothing is refitted for the AUC arm, which reads the champion's
+  own scores. The real MSR finding set is unchanged: exactly one `C1` at medium on the same nine
+  evidence hashes. Credit is untouched, because it declares no regime and stores no `stability.*`.
+  **The converged fit is the maximum likelihood estimate, checked against a fit sharing no code
+  with it.** `test_the_per_regime_fit_agrees_with_an_independent_converged_newton_fit`, in
+  `tests/test_tool_rules.py`, fits the same per-regime designs by the IRLS step written out in
+  `stats.calibration_slope_intercept` and asserts agreement to **1e-5 absolute**. The tolerance is
+  absolute and not relative on purpose: measured, the two agree to 1.31e-7 / 6.52e-6 (synthetic
+  falling), 2.81e-6 / **9.06e-4** (synthetic rising), 6.22e-7 / 1.49e-5 (real falling) and
+  4.22e-7 / 1.12e-5 (real rising) absolute / relative, so a relative bound of 1e-6 would fail on
+  the fifty-event rising regime. scikit-learn's `tol` is a gradient tolerance where the Newton
+  routine's is a coefficient-step tolerance, and on a near-flat likelihood the two stop at
+  different points of a very shallow optimum. For scale, the **old** estimator differs from the
+  same Newton fit by up to 0.314 absolute and 40x relative, which is the case for the change.
+- **Why:** A diagnostic whose whole content is a comparison of coefficients across regimes must
+  not be reading a penalty nobody declared or a descent nobody finished; and a docstring that says
+  "unpenalised" over code that is penalised is the exact defect D-160 found in a subject and fixed
+  there, so leaving our own instance open was the harder position to defend. The deferral reason
+  was checked rather than trusted because it was the only thing standing in the way, and it was
+  wrong — which is worth recording on its own, since a reason that is never re-checked outlives
+  the fact it was about. Rejected alternatives: raising `_MAX_ITERATIONS` instead, which addresses
+  a cap that was never reached; and fixing only the penalty, which D-160's own decomposition shows
+  is the smaller of the two effects and would have moved almost nothing.
+- **Consequence:** the converged estimator raised a new `R1` on the clean synthetic hazard control
+  and the whole of the reason is in **D-164**, which lands in the same commit. The control's
+  baseline in `eval/taxonomy.yaml` does **not** move, and that is the point.
+
+## D-164. `R1`'s sign flip must clear a precision gate as well as a materiality one
+
+- **Date:** 2026-09-16 (Phase 9, the `R1` precision commit; **decided 2026-09-09**, see below)
+- **Q:** With the converged estimator of D-163, the clean synthetic hazard control's `burnout`
+  coefficient in the rising regime moves from −0.000759889 to −0.094344680, clears
+  `threshold.R1.sign_flip_coef` of 0.05, disagrees in sign with the falling regime's +0.223546677,
+  and raises `R1` at medium on a control D-047 fixes at exactly `{}`. Its standard error is
+  **0.290452**, nearly six times the gate it cleared, on **fifty events for ten features**; its
+  **z is −0.32** and its 95 % interval, [−0.6636, +0.4749], covers zero and both signs. Is a point
+  estimate that cannot be told from zero a regime instability?
+- **A:** **No, and the rule now says so.** A feature flips when it is in the top `TOP_FEATURES`
+  by mean |coef|, its coefficients have opposite signs, `|coef| > threshold.R1.sign_flip_coef`
+  (unchanged, 0.05) in **every** regime, **and** `|coef / s.e.| >= threshold.R1.sign_flip_z` (new,
+  default **2.0**) in every regime. Each regime fit's standard errors come from its own observed
+  information, `(X'WX)^-1` with `W = mu(1 - mu)` on the standardised design plus the intercept
+  column the fit used — the algebra `stats.calibration_slope_intercept` already writes out,
+  factored into `stats.logistic_standard_errors` and tested against the 2x2 closed form
+  `sqrt(1/a + 1/b + 1/c + 1/d)`. `stability.<f>.coef_or_importance_by_regime` gains `se` and `z`
+  columns, the `sign_flip` scalar's description names both gates, the candidate's `detail` names
+  both, and **`threshold.R1.sign_flip_z` is stored beside `threshold.R1.sign_flip_coef` whether or
+  not the rule fires**, so a report that says the signs held can cite both halves of what "held"
+  meant. The AUC-gap arm of `R1` is untouched.
+  **The order this landed in is not the order it reads as, and the record matters.** The
+  tightening was **decided on 2026-09-09**, in the Phase 12 pre-flight list of the `docs/STUDY.md`
+  draft, §4 item (ii) — *"R1 requires the flipping coefficient to be distinguishable from zero in
+  both regimes"* — for the collateral `R1`s that `msr__L2__contamination` and
+  `msr__S1__vintage_shift` raise on `burnout` and `sato`, which D-047 had already placed at
+  seed-to-seed noise and D-136 recorded as collateral. Today's measurement on the control is one
+  more instance of the same failure mode, found before the rule shipped. **What changed on
+  2026-09-16 is only *when* the rule lands** — before the MSR live run instead of in the
+  pre-flight — so that §5 of the MSR excerpt is computed by the rule the study will use. A reader
+  who sees a rule change land the day a control failed will assume the reverse order, so it is
+  written down here: the rule was not invented to make a control pass.
+  **Measured, offline, on this machine (Python 3.12.14, scikit-learn 1.9.0, numpy 2.5.3,
+  pandas 3.0.5), every run `--llm fake`:**
+  - **clean synthetic MSR** (`--synthetic 2000`): findings **`{}`**, as D-047 and D-161 require —
+    measured, not assumed. `burnout` falling +0.223546677 (s.e. 0.113799, z **+1.96**), rising
+    −0.094344680 (s.e. 0.290452, z **−0.32**); neither regime reaches |z| 2, and the rising one is
+    the coefficient the estimator fix moved across the materiality gate. 45 claims, 272 artifacts,
+    grounding precision 1.0000.
+  - **real MSR** (`--data`): findings exactly the one **`C1` at medium** on the same nine evidence
+    hashes as before. Its largest per-regime |z| among features whose signs disagree is
+    `rate_change_12m`, +0.09 falling and −2.36 rising, which the materiality gate stops first.
+    51 claims, 273 artifacts.
+  - **synthetic credit**: `{E1 low}`, **zero** `stability.*` artifacts, 168 artifacts — the package
+    declares `regime.column: null`, so this rule cannot reach it.
+  - **the seeded variant still fires.** `credit__R1__regime_flip`:
+    `stability.bill_trend_6m.sign_flip` is **1** and `R1` is raised at medium, with
+    `bill_trend_6m` at +0.908915937 (s.e. 0.117038, z **+7.77**) in the 2013 cohort and
+    −1.170632298 (s.e. 0.105151, z **−11.13**) in the 2016 one. D-130's planted effect clears the
+    new gate by a factor of four, so no recipe parameter moves.
+  - **the two collateral `R1`s the rule was written for are gone.**
+    `msr__L2__contamination` raised `{L2 medium, R1 medium}` and now raises **`{L2 medium}`**:
+    `burnout` +0.222939081 (z **+1.97**) falling against −0.048147452 (z **−0.17**) rising.
+    `msr__S1__vintage_shift` raised `{T1 high, S1 medium, C1 medium, R1 medium}` and now raises
+    **`{T1 high, S1 medium, C1 medium}`**: `sato` −0.062575844 (z **−0.70**) falling against
+    +0.210835407 (z **+1.11**) rising. Both cleared the 0.05 materiality gate in both regimes and
+    neither comes near |z| 2, which is exactly the case the rule was decided for.
+  - **D-130's own collateral flips go with them.** On `credit__R1__regime_flip`,
+    `delinq_max_6m` (z +0.69 / −0.68) and `pay_ratio_last` (z −1.84 / +1.07) had
+    `sign_flip` 1 and now have 0; the entry records them as "near-zero coefficients that the
+    cohort split resolves differently", which is the same thing this gate measures.
+  **A feature that does not vary inside a regime has no standard error and no `z`**, and its cells
+  are left empty rather than filled with a large finite stand-in on the pattern of `VIF_CAP`: a
+  package whose regime column is one of its own features identifies no coefficient for it, and
+  printing a precision for a parameter that was never estimated is worse than printing nothing. It
+  cannot clear the precision gate, which is the right answer anyway. A regime whose *varying*
+  features leave the information matrix singular is refused with a message naming the regime — the
+  one case this must not paper over.
+- **Why:** Materiality and precision are different questions and both are worth asking, so both
+  gates stay. A coefficient of 0.001 estimated to four decimals is not a regime effect; neither is
+  a coefficient of 0.09 with a standard error of 0.29. `threshold.R1.sign_flip_coef` is an
+  absolute bound on a quantity whose precision varies by two orders of magnitude between the
+  regimes of the same panel — 0.066 against 0.290 on the synthetic hazard control — so on its own
+  it decides a finding by where a point estimate happens to land, which is what D-047 warned about
+  when it recorded that one weak coefficient flips at each of four other seeds tried. **`z = 2.0`
+  is the conventional two-standard-error reading and is deliberately not tuned**: it was not
+  chosen by trying values against the control, and the seeded variant clears it by a factor of
+  four while the three collateral cases miss it by factors of two to twelve, so nothing here sits
+  near the bound.
+  Rejected alternatives. **(i) Re-baselining the control to `{R1 medium}`** in
+  `eval/taxonomy.yaml` under D-161: honest bookkeeping, but it publishes as the hazard control's
+  baseline a finding whose entire evidence is a coefficient with z = −0.32, and the published
+  false-alarm rate then rests on a control that is not clean for a reason nobody can defend.
+  **(ii) Replacing the absolute gate with the z gate alone**: a precisely estimated 0.001 is not a
+  regime effect either, and dropping materiality would make `R1` fire on large samples for
+  arbitrarily small disagreements. **(iii) Leaving the rule and reverting D-163**: that keeps a
+  control clean by means of an under-converged fit pinning a coefficient near zero, which is
+  suppressing a finding by accident rather than by argument.
+- **Consequence:** **no baseline in `eval/taxonomy.yaml` moves, and that is the point** — D-161's
+  four measured baselines are re-measured and unchanged: real `msr_prepayment` `{C1 medium}`,
+  synthetic `msr_prepayment` `{}`, synthetic `credit_default` `{E1 low}`, real `credit_default`
+  `{}` (not re-run here; no `stability.*` artifact exists in it). `eval/taxonomy.yaml` is not
+  edited. The Phase 12 pre-flight list in the `docs/STUDY.md` draft loses its §4 item (ii), which
+  is Cowork's to move.

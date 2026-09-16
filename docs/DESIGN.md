@@ -1587,3 +1587,66 @@ carries one positive row. The guard is the artifact's presence rather than the d
 synthetic runs and the golden report do not move (D-162). Rejected alternative: a renderer sentence
 in section 3, which is prose no claim can be checked against — the point of the artifact is that
 the digest check now lives under the same grounding contract as every other number in the report.
+
+## Phase 9 follow-up 8 — A converged comparison, and a rule that reads how well it is estimated
+
+The instance of the previous follow-up's defect that it left open was our own.
+`tools/stability.py` documented "a plain unpenalised logistic regression is fitted within each
+regime" and called `LogisticRegression(max_iter=_MAX_ITERATIONS)` — the penalised default at
+lbfgs's default stopping tolerance — and it was deferred on the ground that changing it would move
+the golden report and every committed run's `stability.*` artifacts. That ground was checked
+rather than trusted, and it is false on both counts: the golden report and `credit_default`
+declare no regime column, so `check_stability` never runs on either, and **not one of the six
+committed runs under `eval/results/` holds a single `stability.*` artifact**. A reason that is
+never re-checked outlives the fact it was about, which is why the correction is a dated line on
+D-160 rather than a silent fix. Converged at `C = np.inf` and `tol = 1e-10` (D-163), the
+per-regime coefficients agree with an independent Newton fit sharing no code with them to **1e-5
+absolute**, where the old estimator differed from the same fit by up to **0.314** — and the regime
+AUCs do not move by a byte, because that arm reads the champion's own scores and refits nothing.
+
+**The agreement test asserts an absolute difference and not a relative one**, which looks like a
+weakened bound and is not. scikit-learn's `tol` is a gradient tolerance where the Newton routine's
+is a coefficient-step tolerance, so on the fifty-event rising regime of the synthetic hazard panel
+— a near-flat likelihood — the two land 2.8e-6 apart on a coefficient near zero, which is 9.1e-4
+in relative terms. A relative bound would be asserting that a shallow optimum has a sharp one's
+properties. Rejected alternative: running the test on the falling regime only, which would leave
+the regime where the estimator matters most untested.
+
+**What the converged fit exposed is the more interesting half.** On the clean synthetic hazard
+control, `burnout`'s rising-regime coefficient goes from −0.0008 to −0.0943, crosses
+`threshold.R1.sign_flip_coef` of 0.05, disagrees in sign with the falling regime, and raises `R1`
+on a control D-047 fixes at exactly `{}`. Its standard error is **0.290** on fifty events for ten
+features; its **z is −0.32**. The under-converged fit had been suppressing the finding by pinning a
+coefficient near zero rather than by getting its sign right — an accident, not an argument. So
+`R1`'s sign-flip arm now asks two questions instead of one: `|coef| > threshold.R1.sign_flip_coef`
+(materiality, unchanged at 0.05) **and** `|coef / s.e.| >= threshold.R1.sign_flip_z` (precision,
+new, 2.0), in **every** regime. The standard errors come from each regime fit's own observed
+information, `(X'WX)^-1` with `W = mu(1 - mu)`, which is the matrix
+`stats.calibration_slope_intercept`'s Newton step already forms — factored out as
+`stats.logistic_standard_errors` and tested against the 2x2 table's closed form
+`sqrt(1/a + 1/b + 1/c + 1/d)`, so the number a report cites has arithmetic behind it and not
+another routine.
+
+Three alternatives were rejected. **Re-baselining the control to `{R1 medium}`** would publish, as
+the hazard control's baseline, a finding whose entire evidence is a coefficient indistinguishable
+from zero — and the study's headline false-alarm rate would then rest on it. **Replacing the
+absolute gate with the z gate alone** fails the mirror-image case: a precisely estimated 0.001 is
+not a regime effect either, and on a large enough panel every arbitrarily small disagreement
+clears two standard errors. **Reverting the estimator** keeps the control clean by means of a fit
+that did not finish. Materiality and precision are different questions, and a rule that asks only
+one of them decides findings by sample size.
+
+The order matters more than usual here and is recorded in D-164 in so many words: the tightening
+was decided on **2026-09-09**, in the Phase 12 pre-flight list, for the collateral `R1`s that
+`msr__L2__contamination` and `msr__S1__vintage_shift` raise on `burnout` and `sato`. What
+2026-09-16 changed is only *when* it ships. A reader who finds a detector rule tightened on the
+day a control failed will assume the reverse order, and the defence against that is not a clean
+result but a dated record of the decision that preceded it.
+
+One smaller choice. A feature that does not vary inside a regime — every feature of a package whose
+regime column is one of its own features — has no coefficient there to estimate, so its `se` and
+`z` cells are **empty** rather than a large finite stand-in on the pattern of `VIF_CAP`. Printing a
+precision for a parameter the data never identified is worse than printing nothing, and an empty
+cell cannot clear the precision gate, which is the right answer. A regime whose *varying* features
+still leave the information matrix singular is refused by name: that one is a real degeneracy and
+regularising it away would be inventing the number the whole rule depends on.

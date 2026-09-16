@@ -998,3 +998,49 @@ a measurement of this sample and not a property of mortgage prepayment models; a
 fake-LLM run, so nothing here is evidence about drafting, repair or a model's judgement — the
 `msr_prepayment` live run remains outstanding and will be the first live run with a finding to
 write about.
+
+### 2026-09-16 — `R1`'s sign-flip rule reads a coefficient's precision, and a control stays clean
+
+No live call and no new run of anything: this is the offline `--llm fake` suite plus five
+re-measured validates, recorded because a detector rule changed and the number it changed is the
+false-alarm rate the Phase 12 study will publish. `tools/stability.py` fitted its per-regime
+comparison with scikit-learn's **penalised** default at lbfgs's default stopping tolerance, under a
+docstring that said "unpenalised" — the same defect D-160 found in a subject, in our own code, and
+left open there for a reason that turned out to be false. Converged at `C = np.inf` and
+`tol = 1e-10` (D-163), the coefficients move by up to 0.31 on the synthetic hazard panel, the
+regime AUCs do not move at all, and the real MSR finding set is untouched.
+
+**What the fix exposed is the useful part.** On the clean synthetic hazard control the converged
+`burnout` coefficient in the rising regime goes from −0.0008 to **−0.0943**, crosses
+`threshold.R1.sign_flip_coef` of 0.05, disagrees in sign with the falling regime's +0.2235, and
+raises `R1` at medium on a control D-047 and D-161 fix at exactly `{}`. Its standard error is
+**0.290** — nearly six times the gate it cleared — on **fifty events for ten features**, its
+**z is −0.32**, and its 95 % interval covers zero and both signs. An absolute gate on a quantity
+whose precision varies by two orders of magnitude between the regimes of the same panel decides a
+finding by where a point estimate happens to land; D-047 had already recorded that one weak
+coefficient flips at each of four other seeds tried, which is the same observation from the other
+side.
+
+So `R1` now asks both questions. A flip must clear `threshold.R1.sign_flip_coef` (unchanged, 0.05,
+materiality) **and** `threshold.R1.sign_flip_z` (new, 2.0, precision) in **every** regime, with the
+standard errors coming from each regime fit's own observed information and stored beside the
+coefficients so a reader can see them (D-164). The tightening was decided on **2026-09-09** for a
+different pair of cases, and 2026-09-16 moved only *when* it ships — before the MSR live run
+rather than in the Phase 12 pre-flight — so that the live run's §5 is computed by the rule the
+study will use. Measured offline afterwards: the clean synthetic hazard control is **`{}`**, the
+real MSR control is the same one `C1` at medium on the same nine evidence artifacts, synthetic
+credit is `{E1 low}` with no `stability.*` artifact at all, and the seeded
+`credit__R1__regime_flip` still fires with `bill_trend_6m` at **z = +7.77 and −11.13** — a factor
+of four clear of the new gate, so no recipe parameter moves. The two collateral `R1`s D-136
+recorded — `burnout` on `msr__L2__contamination` (z **+1.97 / −0.17**) and `sato` on
+`msr__S1__vintage_shift` (z **−0.70 / +1.11**) — are gone, as are D-130's two collateral flips on
+the seeded variant (`delinq_max_6m` at z +0.69 / −0.68, `pay_ratio_last` at z −1.84 / +1.07).
+**No baseline in `eval/taxonomy.yaml` moves**, which is the result rather than a side effect: the
+detector stopped reporting four findings it could not have defended, and kept the one it could.
+
+**What this entry does not show.** `z = 2.0` is a convention and not a measured optimum; nothing
+here establishes how many true regime instabilities a two-standard-error gate would miss, and the
+only positive case it has been exercised against is one seeded recipe that clears it by a factor
+of four. The four cases it removed were all on synthetic panels. Whether the gate is right on a
+real panel with a real regime effect is a question for the Phase 12 study and the MSR live run,
+neither of which has run.

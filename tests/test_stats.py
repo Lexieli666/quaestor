@@ -211,6 +211,71 @@ def test_a_separable_sample_does_not_converge_and_says_why() -> None:
         )
 
 
+# --- the standard error of a logistic coefficient, against the 2x2 closed form -------------------
+#
+# A logistic regression of y on an intercept and one 0/1 indicator is the 2x2 table written as a
+# model: the slope is the log odds ratio and its standard error is the textbook
+# sqrt(1/a + 1/b + 1/c + 1/d) over the four cell counts, while the intercept's is sqrt(1/a + 1/b)
+# over the x = 0 row. Both fall out of ``(X'WX)^-1`` and neither needs a fit, so they are the one
+# example that checks :func:`logistic_standard_errors` against arithmetic rather than against
+# another routine.
+
+_CELLS = ((200, 100), (50, 150))
+"""``((events, non-events) at x = 0, (events, non-events) at x = 1)``."""
+
+
+def _two_by_two_design() -> tuple[np.ndarray, np.ndarray]:
+    """Return the design and the fitted probabilities of the 2x2 table above, at its own MLE."""
+    rows: list[list[float]] = []
+    fitted: list[float] = []
+    for indicator, (events, non_events) in enumerate(_CELLS):
+        rate = events / (events + non_events)
+        rows += [[1.0, float(indicator)]] * (events + non_events)
+        fitted += [rate] * (events + non_events)
+    return np.array(rows, dtype=float), np.array(fitted, dtype=float)
+
+
+def test_a_logistic_standard_error_is_the_two_by_two_closed_form() -> None:
+    # a = 200, b = 100, c = 50, d = 150.
+    #   se(slope)     = sqrt(1/200 + 1/100 + 1/50 + 1/150) = sqrt(0.0416666667) = 0.2041241452
+    #   se(intercept) = sqrt(1/200 + 1/100)                = sqrt(0.015)        = 0.1224744871
+    design, fitted = _two_by_two_design()
+    errors = stats.logistic_standard_errors(design, fitted)
+    inverse = sum(1.0 / count for cell in _CELLS for count in cell)
+    assert errors[1] == pytest.approx(math.sqrt(inverse), abs=1e-12)
+    assert errors[1] == pytest.approx(0.2041241452, abs=1e-9)
+    assert errors[0] == pytest.approx(math.sqrt(1 / 200 + 1 / 100), abs=1e-12)
+    assert errors[0] == pytest.approx(0.1224744871, abs=1e-9)
+
+
+def test_a_logistic_standard_error_shrinks_as_the_square_root_of_the_sample() -> None:
+    # The same table with every cell multiplied by 100 is the same fit with a hundredth of the
+    # variance, so every standard error is exactly a tenth. This is the mechanism R1's precision
+    # gate reads (DECISIONS D-164): the coefficient does not move and the z does.
+    design, fitted = _two_by_two_design()
+    errors = stats.logistic_standard_errors(design, fitted)
+    larger = stats.logistic_standard_errors(np.repeat(design, 100, axis=0), np.repeat(fitted, 100))
+    assert larger == pytest.approx(errors / 10.0, abs=1e-12)
+
+
+def test_a_singular_information_matrix_is_reported_and_not_patched_up() -> None:
+    design, fitted = _two_by_two_design()
+    duplicated = np.column_stack([design, design[:, 1]])
+    with pytest.raises(ToolError, match="singular"):
+        stats.logistic_standard_errors(duplicated, fitted)
+
+
+def test_a_logistic_standard_error_refuses_a_design_and_a_fit_of_different_lengths() -> None:
+    design, fitted = _two_by_two_design()
+    with pytest.raises(ToolError, match="not the same fit"):
+        stats.logistic_standard_errors(design, fitted[:-1])
+
+
+def test_a_logistic_standard_error_needs_a_two_dimensional_design() -> None:
+    with pytest.raises(ToolError, match="two-dimensional design"):
+        stats.logistic_standard_errors(np.array([1.0, 1.0, 1.0]), [0.5, 0.5, 0.5])
+
+
 # --- VIF, on a three-column example with a known linear dependency -------------------------------
 
 

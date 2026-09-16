@@ -23,7 +23,16 @@ The conventions, once, because they are the part that varies between shops:
 * The **calibration slope and intercept** come from a logistic regression of the outcome on
   ``logit(p)``, fitted by the Newton iterations in :func:`calibration_slope_intercept` rather than
   by scikit-learn, whose ``LogisticRegression`` is penalised by default and would return a slope
-  shrunk by a regularisation constant nobody declared.
+  shrunk by a regularisation constant nobody declared. Measured on the real ``msr_prepayment``
+  panel, the penalty is the smaller of the two differences: at these sample sizes ``C = 1.0`` is
+  worth about 4e-5 of slope, and lbfgs's default stopping tolerance of 1e-4 is worth 0.05
+  (DECISIONS D-160).
+* A **coefficient's standard error** is the square root of the matching diagonal entry of
+  ``(X'WX)^-1``, the inverse observed information at the fitted coefficients, which is the same
+  ``W = mu(1 - mu)`` matrix the calibration fit's Newton step already forms.
+  :func:`logistic_standard_errors` computes it from a design and a set of fitted probabilities the
+  caller passes, so it puts a precision on a fit somebody else made rather than making one of its
+  own; ``R1``'s precision gate is its only caller (DECISIONS D-164).
 * **VIF** is ``1 / (1 - R^2)`` of each column on the others, from an unpenalised least squares
   fit, capped at :data:`VIF_CAP` so that an exactly dependent column gives a large finite number
   instead of an infinity the artifact store cannot hold.
@@ -62,6 +71,7 @@ __all__ = [
     "deciles_table",
     "gini",
     "ks",
+    "logistic_standard_errors",
     "logloss",
     "psi",
     "psi_bin_edges",
@@ -259,6 +269,9 @@ def calibration_slope_intercept(
     scikit-learn's ``LogisticRegression`` is not used, and not only because spec section 3.7 says
     to write it: its default ``C = 1.0`` penalises the coefficient, so a perfectly calibrated
     sample would come back with a slope short of 1 by an amount that depends on the sample size.
+    The penalty is not the larger effect, though: decomposed on the real ``msr_prepayment`` splits,
+    it moves the slope by about 4e-5, where stopping at lbfgs's default ``tol = 1e-4`` instead of
+    the 1e-10 used here moves it by 0.05 (DECISIONS D-160).
 
     Args:
         y_true: The outcomes, 0 or 1.
@@ -306,6 +319,68 @@ def calibration_slope_intercept(
         f"the calibration slope did not converge in {max_iterations} Newton steps; the sample is "
         "separable, which means no finite maximum likelihood estimate exists"
     )
+
+
+def logistic_standard_errors(design: Any, probabilities: Any) -> Vector:
+    """Return the standard errors of a fitted logistic regression's coefficients.
+
+    The observed information of a logistic regression at its maximum is ``X'WX`` with
+    ``W = mu(1 - mu)`` -- the same matrix :func:`calibration_slope_intercept`'s Newton step
+    already writes out -- and the asymptotic covariance of the coefficients is its inverse, so
+    each coefficient's standard error is the square root of the matching diagonal entry. Written
+    here for the same reason as everything else in this module: a report that says a coefficient
+    is two standard errors from zero has to be able to point at the ten lines that computed the
+    standard error.
+
+    The fit itself is not redone. The caller passes the design the coefficients belong to --
+    intercept column included, or the standard errors are those of a model that has none -- and
+    the probabilities the fit predicts on it, so the information is evaluated at the fitted
+    coefficients rather than at a re-estimate of them.
+
+    Args:
+        design: The design matrix, one row per observation and one column per coefficient,
+            including whatever intercept column the fit used.
+        probabilities: The fitted probabilities, one per row of the design.
+
+    Returns:
+        One standard error per column of the design, in the design's column order.
+
+    Raises:
+        ToolError: The design is not a matrix, the design and the probabilities disagree on the
+            number of rows, or the information matrix is singular -- which means the data do not
+            identify every coefficient and no standard error for them exists. A singular
+            information matrix is reported rather than regularised away, because the number that
+            would come back from a patched-up inverse is not a standard error.
+    """
+    matrix = np.asarray(design, dtype=float)
+    if matrix.ndim != 2 or matrix.shape[1] == 0:
+        raise ToolError(
+            "a logistic standard error needs a two-dimensional design with at least one column, "
+            f"and this one has shape {matrix.shape}"
+        )
+    fitted = _check_probabilities(_as_vector(probabilities))
+    if fitted.size != matrix.shape[0]:
+        raise ToolError(
+            f"the design has {matrix.shape[0]} rows and {fitted.size} fitted probabilities were "
+            "given, so they are not the same fit"
+        )
+    weights = np.clip(fitted * (1.0 - fitted), _EPS, None)
+    information = matrix.T @ (matrix * weights[:, None])
+    # The information matrix of an identified logistic fit is positive definite, so a Cholesky
+    # factorisation is the test for identification and not merely a way to invert: it fails on an
+    # exactly singular matrix and on one that is singular to working precision, where a plain
+    # ``inv`` on the second would return a diagonal of large numbers or of negative ones. The
+    # variances then come from the factor -- with ``information = L L'`` the inverse is
+    # ``inv(L)' inv(L)``, whose diagonal is the column sums of squares of ``inv(L)`` -- so they are
+    # positive by construction rather than by a second check.
+    try:
+        factor = np.linalg.inv(np.linalg.cholesky(information))
+    except np.linalg.LinAlgError as exc:
+        raise ToolError(
+            "the fit's information matrix is singular, so at least one coefficient is not "
+            f"identified by these data and has no standard error: {exc}"
+        ) from exc
+    return np.sqrt(np.square(factor).sum(axis=0)).astype(float)
 
 
 def psi_bin_edges(expected: Any, *, bins: int = PSI_BINS) -> Vector:
