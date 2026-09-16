@@ -636,6 +636,16 @@ def _appendix_c(inputs: ReportInputs) -> str:
         ("model", inputs.model_id or "none: no model answered"),
         ("run id", inputs.run_id),
     ]
+    # Only under `--data`: `pipeline.py` writes `data.manifest` when the loader verified one, and
+    # a synthetic run has nothing to say here that Appendix D's negative row does not (D-162).
+    if "data.manifest" in inputs.store:
+        files = len(inputs.store.load("data.manifest"))
+        rows.append(
+            (
+                "data manifest",
+                f"verified: {files} file(s) against package.yaml (see data.manifest)",
+            )
+        )
     return "\n".join(
         [APPENDICES[2], "", "| quantity | value |", "|---|---|"]
         + [f"| {name} | {_cell(value)} |" for name, value in rows]

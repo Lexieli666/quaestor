@@ -494,6 +494,31 @@ def _draft_inputs(
     return inputs
 
 
+def _record_manifest(package: ModelPackage, store: ArtifactStore) -> None:
+    """Record the data manifest the loader verified, so the check is citable and not merely done.
+
+    Under ``--data`` the loader has already verified every digest in ``data.manifest`` -- a
+    mismatch is a ``PackageError`` and there is no run -- but nothing in the report said so, and a
+    check the reader cannot see is a check the reader cannot rely on. The digests are already
+    public in ``package.yaml``, so the artifact publishes nothing that is not committed; it makes
+    the verification citable in section 3 and visible in Appendix B (DECISIONS D-162). Under
+    ``--synthetic`` nothing was verified, ``package.data_dir`` is ``None``, and Appendix D's
+    existing negative row is still the whole story.
+    """
+    if package.data_dir is None or package.spec.data.manifest is None:
+        return
+    rows = [
+        {"file": filename, "sha256": digest, "verified": True}
+        for filename, digest in sorted(package.spec.data.manifest.items())
+    ]
+    store.put(
+        "data.manifest",
+        rows,
+        ArtifactKind.table,
+        "the files data.manifest declares, each verified against its SHA-256 before the run",
+    )
+
+
 def _not_checked(
     package: ModelPackage,
     config: ConfigSpec,
@@ -692,6 +717,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     run_id = _run_id(loaded, spec_config, data_mode, synthetic, seed, started)
     trace = TraceWriter(out_dir / TRACE_FILE, run_id=run_id)
     store = ArtifactStore(out_dir / "artifacts")
+    _record_manifest(loaded, store)
     ctx = ToolContext(
         package=loaded,
         store=store,

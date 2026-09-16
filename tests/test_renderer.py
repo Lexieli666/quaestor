@@ -349,6 +349,36 @@ def test_appendix_c_is_computed_from_the_trace(store: ArtifactStore, tmp_path: P
     assert "[[art:" not in appendix
 
 
+def test_appendix_c_carries_the_manifest_row_only_when_a_manifest_was_verified(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """The row is guarded on the artifact, not on the data mode, so synthetic reports do not move.
+
+    `pipeline._record_manifest` writes `data.manifest` when and only when the loader verified one
+    (D-162), so a store without it is every `--synthetic` run and every package that declares
+    none, and neither may print a "verified" line it did not earn.
+    """
+    silent = render_report(inputs_for(store, tmp_path)).split(APPENDICES[2], 1)[1]
+    assert "data manifest" not in silent.split(APPENDICES[3], 1)[0]
+
+    store.put(
+        "data.manifest",
+        [
+            {"file": "train.csv", "sha256": "a" * 64, "verified": True},
+            {"file": "test.csv", "sha256": "b" * 64, "verified": True},
+        ],
+        ArtifactKind.table,
+        "the files data.manifest declares, each verified against its SHA-256 before the run",
+    )
+    appendix = render_report(inputs_for(store, tmp_path)).split(APPENDICES[2], 1)[1]
+    appendix = appendix.split(APPENDICES[3], 1)[0]
+    assert (
+        "| data manifest | verified: 2 file(s) against package.yaml (see data.manifest) |"
+        in appendix
+    )
+    assert "[[art:" not in appendix
+
+
 def test_appendix_d_says_what_did_not_run(store: ArtifactStore, tmp_path: Path) -> None:
     rows = (NotChecked("`run_scenarios` (X1)", "not applicable to `binary_classification`"),)
     report = render_report(inputs_for(store, tmp_path, not_checked=rows))

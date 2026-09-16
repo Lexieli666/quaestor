@@ -648,6 +648,9 @@ SECTION_BRIEFS: Final[Mapping[ReportSection, SectionBrief]] = {
             "threshold.S1.",
             "threshold.package.psi.",
         ),
+        # Only a `--data` run holds this one, and it is the one place in the report where the
+        # digest check the loader already performed becomes something the prose can cite (D-162).
+        tables=("data.manifest",),
     ),
     ReportSection.outcomes: SectionBrief(
         section=ReportSection.outcomes,

@@ -945,9 +945,10 @@ per data mode**, measured with `--llm fake` and written into `eval/taxonomy.yaml
 runs, and a baseline finding on a control is **not** a false alarm. Detection of a baseline class on
 a seeded variant of the same subject and data mode then requires evidence *outside* the baseline —
 for `msr__C1__oversampled_hazard` on real data, a `C1` whose evidence includes a **test-split**
-artifact, since the clean control's test slope is 0.966 and its test mean-ratio gap about 4 %. The
-two alternatives were refused in writing: re-scoping `C1` to the test split is choosing the scoping
-that makes the control pass after seeing the control, and refitting the subject until the validator
+artifact, since the clean control's test slope is 0.966 — **1.0168** from the estimator fix
+recorded below onward — and its test mean-ratio gap about 4 %. The two alternatives were refused
+in writing: re-scoping `C1` to the test split is choosing the scoping that makes the control pass
+after seeing the control, and refitting the subject until the validator
 has nothing to say inverts the roles the study depends on. The four measured baselines are in the
 taxonomy; the two perturbed controls are `null` until the Phase 12 pre-flight measures them.
 
@@ -961,6 +962,36 @@ four splits' sizes and event rates the two estimators differ by −0.005 to +0.0
 is the estimator and not the panel. The claim is dropped rather than restated at the validator's
 number, for the reason D-160 gives, and the package ships two claims: `auc test 0.655` and
 `brier test 0.00906`, both verified.
+
+**Closed by `fix(msr): the subject reports the unpenalised calibration slope, and a real run
+records its manifest check` (2026-09-16).** The defect was ours and not the developer's, so the fix
+is in the subject rather than in the claim list:
+`subjects/msr_prepayment/code/run.py::_calibration_slope` now fits the maximum likelihood slope
+the way `calibration_slope_intercept` does — unpenalised at `C = np.inf`, and converged at
+`tol = 1e-10` rather than lbfgs's default 1e-4 — and the two now agree to about 1e-9 on all four
+splits.
+
+**The diagnosis in the paragraph above was wrong about which half mattered**, and the decomposition
+is the useful part of this entry. Penalised / unpenalised at the default tolerance / unpenalised and
+converged, on the real splits: test **0.965971 / 0.966011 / 1.016836**, train 0.957077 / 0.957093 /
+0.997101, out-of-time 0.432127 / 0.432172 / 0.432126, vintage holdout 0.850647 / 0.850950 /
+0.850199. The penalty moves the test slope by **4e-5** — at 135,060 rows and two parameters
+`C = 1.0` is nearly no prior — and the entire **0.0508** gap was lbfgs stopping on the gradient
+short of the optimum. Removing the penalty was still right, because spec 3.7 means the maximum
+likelihood estimate, but a fix that had removed only the penalty would have re-run the panel, moved
+nothing, and left the two estimators exactly as far apart. The gap appears only where the slope is
+near 1: at 0.43 out-of-time the default tolerance is already converged to 5e-5, which is why it read
+as a shrinkage effect.
+
+The four `calibration_slope` values in `artifacts/real/metrics.json` are the only four numbers the
+re-run moves — test 0.966 → 1.0168, train 0.957 → 0.9971, out-of-time 0.4321272 → 0.4321258,
+vintage holdout 0.8506 → 0.8502 — and AUC, Brier, CPR, the coefficients, the splits, the features
+and the projection are byte-identical. The claim is back as `calibration slope test 1.017`, at four
+significant figures rather than three so that `tolerance_for`'s half-a-last-decimal rule admits it,
+and the `--data --llm fake` re-run verifies all three developer claims and still raises exactly the
+one `C1` at medium on the same nine evidence artifacts. An offline test now asserts the two
+estimators agree to 1e-6, which is what stops the pair drifting apart a second time (D-160's
+consequence paragraph).
 
 **What this entry does not show.** One panel, one seed and one fit, so the baseline it measures is
 a measurement of this sample and not a property of mortgage prepayment models; and it is a

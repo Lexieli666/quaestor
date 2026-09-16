@@ -102,12 +102,13 @@ def test_the_msr_prepayment_package_loads_with_the_scenarios_of_d037() -> None:
     assert spec.scenarios.servicing_fee_bp == pytest.approx(25.0)
     assert spec.scenarios.discount_rate_annual == pytest.approx(0.08)
     assert spec.scenarios.convexity_expectation is ConvexityExpectation.negative
-    # Filled from the real run of 2026-09-16 (D-160). Two claims and not three: the subject's own
-    # calibration slope comes from a penalised fit and quaestor recomputes the unpenalised MLE, so
-    # a slope claim would be checked against a different estimator.
+    # Filled from the real run of 2026-09-16 (D-160). Three claims: the slope one is checkable
+    # because the subject and `quaestor.tools.stats` now fit the same unpenalised estimator, and
+    # it is written to four significant figures so `tolerance_for` admits it.
     assert [(claim.metric, claim.split) for claim in spec.claims] == [
         ("auc", "test"),
         ("brier", "test"),
+        ("calibration_slope", "test"),
     ]
     assert spec.claims[0].value == pytest.approx(0.655)
     assert spec.claims[1].value == pytest.approx(0.00906)

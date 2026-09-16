@@ -270,8 +270,10 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   0.0084 against the 0.0105 the intercept is solved for on the uncensored schedule; splits 36,013
   / 15,382 / 12,257 / 32,177 loan-months; ten of twelve features retained (`rate_change_12m` at
   VIF 12.4 and then `bom_balance_log` at 40,090 removed, worst retained VIF 4.98, Belsley kappa
-  4.94); champion test AUC 0.7753, Brier 0.007894, calibration slope 0.959, train 0.7883,
-  out-of-time 0.7846, vintage holdout 0.7718; challenger (`HistGradientBoostingClassifier`,
+  4.94); champion test AUC 0.7753, Brier 0.007894, calibration slope 0.959 (**0.937** from
+  2026-09-16 on, when D-160's estimator fix made the subject report the converged unpenalised
+  slope; nothing else in this line moves), train 0.7883, out-of-time 0.7846, vintage holdout
+  0.7718; challenger (`HistGradientBoostingClassifier`,
   defaults, seed 20260901) test AUC 0.7337, so the challenger-minus-champion gap is **−0.0415**
   against the `E1` threshold of +0.03 — the opposite sign to the credit subject, by design;
   projection over 511 loans and 96.6 million of balance as of 2024-01, value change **−1,297,986**

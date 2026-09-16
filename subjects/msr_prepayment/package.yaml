@@ -66,13 +66,17 @@ thresholds:
 # Developer-declared numbers about the real fit, copied from the committed real-sample run
 # (never from memory); verified like report claims when --data is given.
 claims:                               # from artifacts/real/metrics.json (run of 2026-09-16), rounded to three
-                                      # significant figures; evaluated only under --data (D-016). No
-                                      # calibration_slope claim: the subject reports a penalised fit and
-                                      # quaestor recomputes the unpenalised MLE, so the two differ by 0.051
-                                      # on test and a claim of either would be checked against the other
-                                      # (D-160). No CPR claim: no artifact holds an annualised CPR level.
-  - {text: "AUC on the test split is 0.655",           metric: auc,   split: test, value: 0.655}
-  - {text: "Brier score on the test split is 0.00906", metric: brier, split: test, value: 0.00906}
+                                      # significant figures; evaluated only under --data (D-016). Three
+                                      # claims. The calibration_slope one is checkable from 2026-09-16 on:
+                                      # the subject now fits the same unpenalised, converged MLE quaestor
+                                      # recomputes, so the two agree to ~1e-9 (D-160). It is written to four significant
+                                      # figures, not three, because verifier/match.py::tolerance_for allows
+                                      # half a unit of the last decimal written: "1.02" would be checked to
+                                      # 0.0005 against 1.0168 and fail, "1.017" differs by 0.00016 and
+                                      # verifies. No CPR claim: no artifact holds an annualised CPR level.
+  - {text: "AUC on the test split is 0.655",                 metric: auc,               split: test, value: 0.655}
+  - {text: "Brier score on the test split is 0.00906",       metric: brier,             split: test, value: 0.00906}
+  - {text: "Calibration slope on the test split is 1.017",   metric: calibration_slope, split: test, value: 1.017}
 
 scenarios:
   rate_shocks_bp: [-300, -200, -100, 0, 100, 200, 300]

@@ -36,6 +36,7 @@ from sklearn.metrics import roc_auc_score
 from quaestor import ArtifactStore, load_package, run_model
 from quaestor.package import ConvexityExpectation
 from quaestor.sandbox import RunResult, read_contract
+from quaestor.tools.stats import calibration_slope_intercept
 
 MSR_PREPAYMENT = Path(__file__).resolve().parent.parent / "subjects" / "msr_prepayment"
 
@@ -547,10 +548,45 @@ def test_the_champion_passes_every_threshold_package_yaml_declares(
 
 
 def calibration_slope(truth: np.ndarray, scores: np.ndarray) -> float:
-    """Spec 3.7's definition: a logistic regression of the outcome on the predicted log odds."""
+    """Spec 3.7's definition: a logistic regression of the outcome on the predicted log odds.
+
+    Unpenalised and converged, exactly as the subject's own `_calibration_slope` fits it: the
+    default `C = 1.0` is a prior where spec 3.7 means the maximum likelihood estimate, and lbfgs's
+    default `tol = 1e-4` stops short of the optimum by 0.05 wherever the slope is near 1. A
+    reference estimator that did either would test the declared threshold against a different
+    quantity from the one the subject reports (D-160).
+    """
     clipped = np.clip(scores, 1e-9, 1.0 - 1e-9)
     logit = np.log(clipped / (1.0 - clipped)).reshape(-1, 1)
-    return float(LogisticRegression(max_iter=1000).fit(logit, truth).coef_[0][0])
+    fitted = LogisticRegression(C=np.inf, max_iter=1000, tol=1e-10).fit(logit, truth)
+    return float(fitted.coef_[0][0])
+
+
+def test_the_subjects_slope_is_the_same_estimator_quaestor_recomputes(
+    msr_files: dict[str, Path],
+) -> None:
+    """The subject's `calibration_slope` agrees with `calibration_slope_intercept` on every split.
+
+    Both are the unpenalised maximum likelihood slope of `logit(P(y = 1)) = a + b logit(p)`,
+    reached by two different routes: the subject runs scikit-learn's lbfgs at `C = np.inf` and
+    `tol = 1e-10`, `quaestor.tools.stats` runs its own Newton iteration to a 1e-10 step. They
+    agree to about 1e-9 relative, so the 1e-6 asserted here leaves three orders of headroom for
+    platform arithmetic while still failing on either way the two had already drifted apart: a
+    penalty, or lbfgs's default tolerance, which between them left the subject reporting 0.9660 on
+    the real test split where the Newton iteration read 1.0168. This test is what stops that
+    happening again (DECISIONS D-160).
+    """
+    metrics = read_json(msr_files["metrics.json"])
+    for split in SPLITS:
+        predictions = pd.read_csv(msr_files[f"predictions_{split}.csv"])
+        expected, _ = calibration_slope_intercept(
+            predictions["y_true"].to_numpy(), predictions["y_score"].to_numpy()
+        )
+        reported = metrics[split]["calibration_slope"]
+        assert reported == pytest.approx(expected, rel=1e-6), (
+            f"{split}: the subject reports {reported!r} and quaestor recomputes {expected!r}; "
+            "the two estimators have drifted apart again"
+        )
 
 
 def worst_psi(msr_files: dict[str, Path], features: list[str]) -> float:

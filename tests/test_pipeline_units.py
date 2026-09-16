@@ -31,6 +31,7 @@ from quaestor.pipeline import (
     _profile_for_baseline,
     _promote,
     _quaestor_version,
+    _record_manifest,
     _run_id,
     _split_sections,
     _title_and_narrative,
@@ -228,6 +229,43 @@ def test_appendix_d_says_which_configuration_left_a_check_out() -> None:
         load_package(CREDIT), config_for(Configuration.rules_only), ["run_model"], None
     )
     assert any("calls no model" in row.reason for row in template)
+
+
+# --- the manifest the loader verified, put on the record (D-162) ---------------------------------
+
+
+def test_the_verified_manifest_becomes_a_table_artifact(tmp_path: Path) -> None:
+    """A `--data` run records the digests the loader checked, one row per declared file."""
+    package = load_package(CREDIT).model_copy(update={"data_dir": tmp_path / "data"})
+    assert package.spec.data.manifest is not None
+    store = ArtifactStore(tmp_path / "artifacts")
+    _record_manifest(package, store)
+    rows = store.load("data.manifest")
+    assert [row["file"] for row in rows] == sorted(package.spec.data.manifest)
+    assert {row["verified"] for row in rows} == {"true"}
+    assert [row["sha256"] for row in rows] == [
+        package.spec.data.manifest[row["file"]] for row in rows
+    ]
+    assert "verified against its SHA-256" in store.entry("data.manifest").summary
+
+
+def test_nothing_is_recorded_when_nothing_was_verified(tmp_path: Path) -> None:
+    """Both ways the check does not happen leave the store empty, so Appendix C stays silent.
+
+    Under `--synthetic` the loader is given no data directory and `data_dir` is `None`; a package
+    that declares `manifest: null` has nothing to verify even under `--data`. Appendix D already
+    carries a negative row for each, and a positive row for either would be a lie.
+    """
+    store = ArtifactStore(tmp_path / "artifacts")
+    _record_manifest(load_package(CREDIT), store)
+    assert "data.manifest" not in store
+
+    package = load_package(CREDIT)
+    spec = package.spec.model_copy(
+        update={"data": package.spec.data.model_copy(update={"manifest": None})}
+    )
+    _record_manifest(package.model_copy(update={"spec": spec, "data_dir": tmp_path}), store)
+    assert "data.manifest" not in store
 
 
 # --- what a run is called, and what wrote it (D-093) --------------------------------------------

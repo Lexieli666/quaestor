@@ -1535,3 +1535,55 @@ exists (D-156). Rejected alternative: editing the committed case's `input.candid
 that the case stopped contradicting itself — which is precisely the drift D-138 exists to prevent,
 and would have left every future run's prompt exactly as wrong while making the layer report it
 fixed.
+
+## Phase 9 follow-up 7 — An honest subject, and the check that nothing said had happened
+
+Two things the first real MSR sample left behind, fixed together because both are about the gap
+between what the run did and what the record shows.
+
+**The subject's own calibration slope was not the estimator it claimed to be, and nothing said so.**
+`run.py` computed it with `sklearn.linear_model.LogisticRegression(max_iter=1000)` — the default
+`C = 1.0`, the default `tol = 1e-4` — where `quaestor.tools.stats.calibration_slope_intercept`
+computes the unpenalised maximum likelihood estimate by its own Newton iteration and says in its
+docstring that it avoids scikit-learn for the penalty's sake. The first real run had the developer
+reporting 0.966 where the validator recomputed 1.017, and the first draft of the package answered
+it by dropping the claim. That was the wrong repair. These subjects are honest developers whose
+every deliberate structure is documented (D-017, D-045); an undocumented estimator quirk that moves
+a headline diagnostic by 0.05 is neither, and the disagreement it produces is our artefact rather
+than a finding about the model. `_calibration_slope` now fits the
+maximum likelihood estimate, the claim is back at 1.017, and an offline test asserts that the
+subject and the tool agree to 1e-6 on every synthetic split so that the pair cannot drift apart
+again (D-160's consequence paragraph).
+
+**The diagnosis was right about the disagreement and wrong about its cause**, which is the part
+worth writing down. Decomposing the real splits into penalised, unpenalised at lbfgs's default
+`tol = 1e-4`, and unpenalised and converged gives test 0.965971 / 0.966011 / 1.016836 and train
+0.957077 / 0.957093 / 0.997101: the penalty is worth **4e-5**, because at 135,060 rows and two
+parameters `C = 1.0` is nearly no prior, and the whole **0.0508** gap is lbfgs stopping on the
+gradient short of the optimum. Removing the penalty was still necessary — spec 3.7 means the
+maximum likelihood estimate — but a commit that had removed only the penalty would have re-run the
+panel, moved nothing, and left the two estimators as far apart as they started. What made the
+effect look like shrinkage is that it appears only where the slope is near 1: at 0.43 out-of-time
+the default tolerance is already converged to 5e-5, and the two splits that disagreed were the two
+whose model is roughly calibrated. The lesson generalises past this subject — **two implementations
+of one estimator can differ by more than the quantity being measured purely through convergence
+criteria**, and neither one is wrong in a way its own tests would catch.
+
+The spelling is `C = np.inf` rather than `penalty=None` because scikit-learn deprecated `penalty`
+in 1.8 and 1.9 emits a `FutureWarning` naming `C=np.inf` as the replacement — and the subject's
+standard error is stored as the `run.stderr` artifact, so a warning there is a content-addressed
+change to every run rather than noise on a terminal. `tol` is set to the 1e-10 the tool's own
+Newton iteration uses, so the two are converged to the same place by construction. Rejected
+alternative: relaxing the agreement test to the 1e-2 the default tolerance can actually hold, which
+would have passed while leaving a headline diagnostic 0.05 short and the drift the test exists to
+catch invisible.
+
+**The manifest check was performed and unreported.** Under `--data` the loader verifies every
+SHA-256 in `data.manifest` before anything else happens, and a report of a run that got as far as
+being written is a report in which that check passed — but only its *absence* was ever printed, as
+an Appendix D row when no data directory was read. `pipeline.validate` now writes a `data.manifest`
+table artifact when and only when the loader verified one, section 3 may cite it, and Appendix C
+carries one positive row. The guard is the artifact's presence rather than the data mode, so
+synthetic runs and the golden report do not move (D-162). Rejected alternative: a renderer sentence
+in section 3, which is prose no claim can be checked against — the point of the artifact is that
+the digest check now lives under the same grounding contract as every other number in the report.

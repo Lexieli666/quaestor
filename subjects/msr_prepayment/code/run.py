@@ -67,6 +67,9 @@ FLOAT_FORMAT = "%.10g"
 BASELINE_HAZARD_MAX_AGE = 120
 """How far the reported baseline hazard by loan age runs: ten years, whatever the panel holds."""
 
+CALIBRATION_FIT_TOL = 1e-10
+"""The lbfgs tolerance of the calibration-slope fit; the default 1e-4 stops 0.05 short."""
+
 RATE_SHOCKS_BP = [-300, -200, -100, 0, 100, 200, 300]
 HORIZON_MONTHS = 180
 SERVICING_FEE_BP = 25.0
@@ -370,10 +373,21 @@ def _metrics(truth: np.ndarray, scores: np.ndarray) -> dict[str, float]:
 
 
 def _calibration_slope(truth: np.ndarray, scores: np.ndarray) -> float:
-    """Spec section 3.7: a logistic regression of the outcome on the predicted log odds."""
+    """Spec section 3.7: a logistic regression of the outcome on the predicted log odds.
+
+    Both non-default arguments matter, and the second one matters more (DECISIONS D-160).
+    `C = np.inf` -- scikit-learn 1.9's spelling of no penalty -- because spec section 3.7 means the
+    maximum likelihood estimate and the default `C = 1.0` is a prior; on a panel this size that is
+    worth about 4e-5, so it is a correctness point rather than a numerical one. `tol = 1e-10`
+    because lbfgs's default 1e-4 stops on the gradient well short of the optimum wherever the slope
+    is near 1: on the real test split it reads 0.9660 against the converged 1.0168. Together they
+    make this the same estimator a validator recomputing the slope by Newton iteration arrives at,
+    which is the point -- a diagnostic two honest routines disagree about by 0.05 is not a
+    diagnostic.
+    """
     clipped = np.clip(scores, 1e-9, 1.0 - 1e-9)
     logit = np.log(clipped / (1.0 - clipped)).reshape(-1, 1)
-    fitted = LogisticRegression(max_iter=1000).fit(logit, truth)
+    fitted = LogisticRegression(C=np.inf, max_iter=1000, tol=CALIBRATION_FIT_TOL).fit(logit, truth)
     return float(fitted.coef_[0][0])
 
 

@@ -1003,7 +1003,9 @@ here and recorded.
   loan-months over 2,000 loans in three cohorts; monthly payoff rate 0.0084 observed against the
   0.0105 the intercept is solved for on the uncensored schedule (censoring removes the fast
   payers' later months); 40.3% of loans pay off inside the window. The screen removes two of
-  twelve features (D-045); champion test AUC **0.7753**, Brier 0.0079, calibration slope 0.959;
+  twelve features (D-045); champion test AUC **0.7753**, Brier 0.0079, calibration slope 0.959
+  (**0.937** from 2026-09-16 on: the slope, and only the slope, moves with D-160's unpenalised
+  estimator; the fit, the splits and every other number in this entry are untouched);
   train 0.7883, out-of-time 0.7846, vintage holdout 0.7718; largest single-feature AUC 0.724;
   worst retained VIF 4.98 and Belsley kappa 4.94; PSI train-to-test 0.065 (D-046); regime AUCs
   0.7227 falling and 0.7238 rising and no coefficient sign flip; a default
@@ -4971,6 +4973,54 @@ here and recorded.
   is a tool change made to fit a claim; adding a `cpr_mae` threshold at whatever the run produced,
   which is the moved floor in a new metric; and recalibrating or refitting the subject so that the
   real control comes out clean, which D-161 rejects at length.
+- **Consequence (2026-09-16, the follow-up commit):** the answer above was right that the two
+  numbers are two estimators and wrong about where the defect lived, and it is reversed here. The
+  disagreement is **our** artefact, not the developer's: D-017 and D-045 make these subjects honest
+  developers whose every deliberate structure is documented, and `run.py` reported a headline
+  diagnostic 0.05 away from the estimator spec 3.7 names, with nothing in its docstring saying so.
+  That is neither honest nor documented, so `_calibration_slope` now fits the unpenalised maximum
+  likelihood estimate to convergence and the claim returns. Before against after, on the same fit
+  and the same four splits:
+  train **0.9570768542841445 → 0.9971012403150885**, test **0.9659710007447115 →
+  1.0168355099200166**, out_of_time **0.4321272469586856 → 0.4321257819341887**, vintage_holdout
+  **0.8506474891789182 → 0.8501990160137237**. Nothing else in `artifacts/real/` moves: the
+  champion fit, the splits, the features, the coefficients and the projection are byte-identical,
+  and the four slopes are the only four values `metrics.json` changes. `claims` carries three
+  entries again, the third `calibration slope test 1.017` — **four** significant figures, because
+  `verifier/match.py::tolerance_for` allows half a unit of the last decimal written and "1.02"
+  would be checked to 0.0005 against 1.0168 and fail by 0.003, where "1.017" differs by 0.00016
+  and verifies. The open question the entry above named — *whether the subject should report a
+  penalised slope at all* — is therefore answered no, and closed.
+  **The diagnosis above is wrong about the cause, and the measurement that proves it is worth
+  recording.** Removing the penalty is necessary — spec 3.7 means the MLE and `C = 1.0` is not it
+  — but on this panel it is not what moved the number. Decomposed on the real splits, penalised /
+  unpenalised at lbfgs's default `tol = 1e-4` / unpenalised and converged: test **0.965971 /
+  0.966011 / 1.016836**, train 0.957077 / 0.957093 / 0.997101, out_of_time 0.432127 / 0.432172 /
+  0.432126, vintage_holdout 0.850647 / 0.850950 / 0.850199. The penalty is worth **4e-5** on the
+  test split — at 135,060 rows and two parameters, `C = 1.0` is nearly no prior at all — and the
+  whole **0.0508** gap the last commit attributed to it is lbfgs stopping on the gradient before
+  the optimum. Both are fixed here, but only the tolerance ever moved the number, and a commit that
+  had removed the penalty alone would have re-run the panel, moved nothing, and left the two
+  estimators as far apart as before. The reason the disagreement looked like a penalty is that it
+  appears only where the slope is near 1: at 0.43 out-of-time the default tolerance is already
+  converged to 5e-5.
+  Two details of the spelling. It says `C = np.inf`, not `penalty=None`: scikit-learn deprecated
+  `penalty` in 1.8 and 1.9 emits a `FutureWarning` naming `C=np.inf` as the replacement, and the
+  subject's stderr is stored as the `run.stderr` artifact, so a warning there would be a
+  content-addressed change to every run of every subject rather than a cosmetic one. And `tol` is
+  set to **1e-10**, which is the tolerance `calibration_slope_intercept`'s own Newton iteration
+  uses, so the two routines are converged to the same place by construction rather than by luck.
+  Unpenalised *and* converged, the subject and
+  `quaestor.tools.stats.calibration_slope_intercept` agree to about 1e-9, and
+  `tests/test_subject_msr_prepayment.py::test_the_subjects_slope_is_the_same_estimator_quaestor_recomputes`
+  asserts 1e-6 on all four synthetic splits so that they cannot drift apart again.
+  **One instance of the same defect is left open, named here so it is not rediscovered.**
+  `tools/stability.py::_coefficients` documents itself as fitting "one unpenalised logistic
+  regression per regime" and calls `LogisticRegression(max_iter=_MAX_ITERATIONS)`, which is the
+  penalised default — the same docstring-against-code mismatch, in our code rather than a
+  subject's. It is not fixed in this commit because the per-regime coefficients feed `R1` and
+  changing the estimator would move the golden report and every committed run's `stability.*`
+  artifacts, which is a change that needs its own commit and its own re-measurement.
 
 ## D-161. Every control carries a measured baseline finding set per data mode; a baseline finding is not a false alarm
 
@@ -4985,8 +5035,9 @@ here and recorded.
   **a baseline finding on a control is not a false alarm**. Detection of a baseline class on a
   seeded variant of the same subject and the same data mode requires **evidence outside the
   baseline**: for `msr__C1` on real data, a `C1` whose evidence includes a **test-split** artifact,
-  since the clean control's test slope is 0.966 and its test mean-ratio gap about 4 %, so the seed
-  has to move the test split to count.
+  since the clean control's test slope is 0.966 — **1.0168 from the estimator fix of D-160's
+  consequence paragraph onward** — and its test mean-ratio gap about 4 %, so the seed has to move
+  the test split to count.
   The values, measured: **real `msr_prepayment`** = {`C1` medium, splits `out_of_time` and
   `vintage_holdout`, evidence `calibration_slope.out_of_time`,
   `calibration.mean_rel_gap.out_of_time`, `calibration.mean_rel_gap.vintage_holdout`};
@@ -5026,3 +5077,32 @@ here and recorded.
   `msr` control from the study, which discards the only real hazard panel this project has; and
   scoring detection of a seeded `C1` on this subject without the evidence rule, which would credit
   the detector for a finding it would have raised with no seed at all.
+
+## D-162. The verified data manifest becomes an artifact, so a `--data` report can cite the check
+
+- **Date:** 2026-09-16 (Phase 9, the MSR follow-up commit; approved in Cowork)
+- **Q:** Under `--data` the loader verifies every digest in `data.manifest` before anything runs —
+  a mismatch is a `PackageError` and there is no report at all — but no report says so. Appendix D
+  carries a negative row when the manifest was *not* verified and nothing carries a positive row
+  when it was, so a reader of a real-data report cannot tell the check from its absence. Where
+  does the positive go, and what stops it leaking into synthetic reports and the golden?
+- **A:** `pipeline.validate` writes one table artifact, `data.manifest`, immediately after the
+  store is opened and only when `package.data_dir` is not `None` — that is, only when the loader
+  actually verified something. Its rows are `{file, sha256, verified: true}`, one per declared
+  file, sorted by name. Section 3's brief gains `tables=("data.manifest",)`, which is what makes
+  the check citable in prose rather than merely recorded, and `renderer._appendix_c` gains one row,
+  `("data manifest", "verified: N file(s) against package.yaml (see data.manifest)")`, guarded on
+  the artifact being in the store. Appendix D's two existing negative rows are untouched: a
+  package that declares no manifest, and a run that read no data directory, still say so there.
+  Nothing is conditional on the data mode itself — the guard is the artifact's presence — so a
+  `--synthetic` run writes no artifact, offers section 3 nothing, renders no Appendix C row, and
+  the golden report is byte-identical, which the gate checks.
+- **Why:** The digests are already committed in `package.yaml`, so the artifact publishes nothing
+  the repository does not already hold; what it adds is a content-addressed hash of the verified
+  set that a claim can cite, which is the whole grounding contract applied to the one check that
+  had been exempt from it. Rejected alternatives: a sentence in the renderer's section 3 template,
+  which would be prose no claim can be checked against and would have to be written twice, once
+  for the drafter and once for the template; putting the row in Appendix D as a "verified" row,
+  which turns the appendix of what did *not* run into a mixed ledger and makes its one job
+  ambiguous; and keying the row on `data_mode == "real"` rather than on the artifact, which would
+  print "verified" for a package that declares no manifest at all.

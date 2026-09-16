@@ -166,6 +166,15 @@ natural cubic spline basis on `loan_age`, five knots at the fitting split's 5th,
 beyond its boundary knots and the 180-month projection cannot extrapolate a cubic ramp
 (`DECISIONS.md` D-039) → `StandardScaler` → `LogisticRegression`, `class_weight=None`, `lbfgs`,
 `max_iter=1000`, one row per loan-month. Coefficients are reported on the standardised scale.
+The `calibration_slope` in `metrics.json` is the **unpenalised and converged** maximum likelihood
+slope of the outcome on the predicted log odds, fitted at `C = np.inf` and `tol = 1e-10`. Neither
+argument is decoration. `C = 1.0` is a prior where spec 3.7 means the MLE, though on a panel this
+size it is worth only about 4e-5; lbfgs's default `tol = 1e-4` is worth **0.05**, because it stops
+on the gradient well short of the optimum wherever the slope is near 1 — at the defaults this
+subject reported 0.966 on the real test split where the maximum likelihood estimate is 1.017. That
+is the estimator and not the model, and this is the one quantity the subject reports that a
+validator recomputes by a different route, so the two are made the same estimator deliberately
+(`DECISIONS.md` D-160).
 `model_summary.json` also carries `baseline_hazard`: the fitted monthly hazard by loan age from 0
 to 120 months at zero incentive and zero burnout, every other feature at its mean over the fitting
 split, which is the seasoning curve the champion learned and cannot be read off a spline's
@@ -242,7 +251,7 @@ Seed 20260901, `--synthetic 2000`, this machine (Python 3.12.14, scikit-learn 1.
 | worst retained VIF, Belsley condition number | 4.98, 4.94 |
 | age spline knots | 1, 10, 19, 31, 53 months |
 | champion AUC — test / train / out-of-time / vintage | **0.7753** / 0.7883 / 0.7846 / 0.7718 |
-| champion test Brier, calibration slope | 0.007894, 0.959 |
+| champion test Brier, calibration slope | 0.007894, 0.937 |
 | largest single-feature AUC | 0.724 (`incentive`) |
 | worst PSI, train vs test | 0.065 (`credit_score`) |
 | AUC by regime (falling / rising) | 0.7227 / 0.7238, no coefficient sign flip |
@@ -270,8 +279,12 @@ Run of **2026-09-16** on this machine (Python 3.12.14, scikit-learn 1.9.0, numpy
 declared 20,000 loans and seed 20260901, then `python -m code.run --data`. Every number below is
 copied from `artifacts/real/metrics.json`, `splits.json`, `model_summary.json` and
 `projection.json`, which are the committed record of that run; `package.yaml`'s three developer
-`claims` are the same file rounded to three significant figures. The two wall-clocks are the
-operator's `time` of that afternoon and are the only rows here no committed artifact holds.
+`claims` are the same file rounded to three significant figures, except the calibration slope,
+which is written to four so that the verifier's half-a-last-decimal tolerance admits it. The two
+wall-clocks are the operator's `time` of that afternoon and are the only rows here no committed
+artifact holds. The four `calibration_slope` values were re-measured on 2026-09-16 after the
+estimator fix of `DECISIONS.md` D-160; every other number in this table is from the original run
+and is byte-identical on the re-run.
 
 | | |
 |---|---|
@@ -285,11 +298,11 @@ operator's `time` of that afternoon and are the only rows here no committed arti
 | — out-of-time | 283,343 / 7,954 / 0.01868 |
 | — vintage holdout | 221,779 / 6,123 / 0.01948 |
 | features retained | 10 of 12 (`bom_balance_log` at VIF 16.50 and then `note_rate` at 18.07 removed) |
-| champion test AUC / Brier / calibration slope | **0.6549** / 0.00906 / 0.966 |
+| champion test AUC / Brier / calibration slope | **0.6549** / 0.00906 / 1.017 |
 | champion test CPR, actual vs predicted | 0.1047 vs 0.1094 |
-| champion train AUC / calibration slope | 0.6504 / 0.957 |
+| champion train AUC / calibration slope | 0.6504 / 0.997 |
 | out-of-time AUC / slope / CPR actual vs predicted | 0.690 / **0.432** / 0.203 vs 0.114 |
-| vintage-holdout AUC / slope / CPR actual vs predicted | 0.739 / 0.851 / 0.210 vs 0.112 |
+| vintage-holdout AUC / slope / CPR actual vs predicted | 0.739 / 0.850 / 0.210 vs 0.112 |
 | projection book | 3,946 loans, $560.9M of beginning balance, as of 202603 |
 | base servicing value | $9,498,507 |
 | value change at −300bp / +300bp | **−$1,077,724** (−11.35%) / **+$167,117** (+1.76%); convexity −910,607, realised negative as declared |
