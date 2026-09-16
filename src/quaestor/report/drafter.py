@@ -249,8 +249,38 @@ where the drafter reads it, in the words a reader of the prompt cannot mistake.
 """
 
 
-def _candidates_block(candidates: Sequence[FindingCandidate]) -> str:
-    """Render the candidate findings a section is asked to account for, or say there are none."""
+def _candidates_block(
+    candidates: Sequence[FindingCandidate], findings: Sequence[Finding] = ()
+) -> str:
+    """Render what a section may call a finding, from the one list it is also asked to write.
+
+    A prompt that lists findings for the drafter to write about derives this block from **those
+    findings** rather than from ``candidates``, and that is the whole of DECISIONS D-156. Section 6
+    is never handed a candidate of its own -- no defect class maps to
+    :attr:`~quaestor.vocab.ReportSection.findings` in ``SECTION_FOR_CLASS``, because ``section`` on
+    a finding names the material it rests on and not where it is printed -- so a section-6 prompt
+    built from ``candidates`` alone said "candidates raised for this section: none -- describe
+    nothing as a finding" immediately above the findings it was ordered to describe. Both halves
+    now come from one object, so the two cannot disagree.
+    """
+    if findings:
+        lines = [
+            f"findings raised by this validation: {len(findings)}, listed in full below with the "
+            "heading to copy"
+        ]
+        lines += [
+            f"- {finding.id} {finding.defect_class.value} "
+            f"({DEFECT_CLASS_NAMES[finding.defect_class]}, severity "
+            f"{finding.severity.value}, from {finding.tool})"
+            for finding in findings
+        ]
+        lines.append(
+            "Those are the findings this section reports, and it reports every one of them. Do "
+            "not write that no finding was raised, and do not move one to the open items: an open "
+            "item is an observation no rule fired on, and each of these is a finding this "
+            "validation published."
+        )
+        return "\n".join(lines)
     if not candidates:
         return NO_CANDIDATES
     lines = [f"candidates raised for this section: {len(candidates)}"]
@@ -436,7 +466,7 @@ class Drafter:
             brief=brief.brief,
             artifacts=_artifacts_block(artifacts),
             guidance=_guidance_block(spans),
-            candidates=_candidates_block(candidates),
+            candidates=_candidates_block(candidates, findings),
             extra=extra,
         )
 

@@ -1,0 +1,13 @@
+{
+  "agreement": 0.95,
+  "created": "2026-09-16T00:00:59Z",
+  "judge_model": null,
+  "kappa": 0.7714285714285712,
+  "labels_file": "tests/probatio/labels/grounding.labels.csv",
+  "labels_hash": "24207e063dcc56c6",
+  "method": "columns",
+  "n": 40,
+  "rows_reasked": 0,
+  "rubric": "grounding",
+  "rubric_hash": "9aab524960c01a07"
+}

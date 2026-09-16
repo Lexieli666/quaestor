@@ -24,6 +24,17 @@ run that was not committed.
   asserts the committed files are byte-identical to what the builder produces now, that each case
   rebuilds the pipeline's own prompt to the byte, and that each case pins the SHA-256 of the prompt
   and of the rubric its tape is keyed on (D-138, D-147, D-148).
+- **The grounding judge's validation record, kappa 0.771.** The operator labelled 40 drafter
+  outputs against the committed rubric — all five live judge fails plus a round-robin across the
+  seven sections, shuffled, the judge column hidden until the labels were in — and
+  `probatio validate-judge` measured **n=40, agreement 0.950 (38/40), Cohen's kappa 0.771**, with
+  both label distributions at 35 pass / 5 fail and a 2x2 of 34 / 1 / 1 / 4.
+  `.probatio/judges/grounding.validation.json` and the 40 labelled rows
+  (`tests/probatio/labels/grounding.labels.csv`) are committed, which clears the seven "rubric has
+  no validation record" warnings every replay printed. The rubric is **not** revised on the
+  strength of these labels — that would tune the judge to the sample it is measured on — and both
+  boundary questions the two disagreements raise go to the Phase 12 pre-flight, to be validated on
+  a fresh label set (D-157).
 - `notes/probatio-issues.md`: five issues found in `probatio-llm` 0.1.0 while building the layer,
   each reproduced from the committed tapes — a judge parser that discards repairable replies, a
   `--max-cost` that sees 58% of the spend and cannot stop a run, a replay that cannot match a tape
@@ -36,6 +47,20 @@ run that was not committed.
   is its minimum, which D-122 had already made impossible — under `> median` that rule selects at
   most half a split. It now names `below_median` on a column whose median is its maximum, which is
   a rule the D-121 ceiling can actually refuse (D-146).
+- **Section 6's prompt no longer contradicts itself.** `Drafter.prompt` built
+  `candidates raised for this section: none -- describe nothing as a finding` and
+  `Findings to write about, in this order` from two different objects, and because
+  `SECTION_FOR_CLASS` maps no defect class to the findings section, the first was empty on every
+  run while the second was not — so every section-6 prompt ever built for a package with a finding
+  said both. All eight recorded drafts resolved it by writing "no findings" and moving the `E1`
+  finding into `### Open items`, fully cited, judge-passed 8 of 8 at 1.0: **silent demotion with
+  perfect grounding**, which nothing in this project can detect. The two blocks are now derived
+  from one list (D-156), and `draft_section.findings` was re-recorded against the corrected prompt.
+- **Every tape is pruned to the interactions a replay reads**: 64 removed across six drafting
+  tapes, 53 of them judge calls keyed on a superseded rubric and 11 `structured()` re-ask prompts
+  whose first-call answer was later re-recorded. The live keys were measured by logging every key a
+  replay requests, not inferred. 7.5 MB to 4.9 MB; the published layer cost does not move, because
+  those calls were made and paid for (D-158).
 - `pyproject.toml` `addopts` carries the four Probatio settings the runbook's commands do not pass:
   the cassette and baseline directories, `--probatio-timeout 600` (the CLI adapter's 120 s default
   killed three cases mid-recording and has no per-case override), and `--probatio-model`, without
@@ -44,8 +69,9 @@ run that was not committed.
 
 ### Fixed
 
-- Nothing in `src/quaestor` beyond the loop-prompt example above. The three defects the four record
-  sittings found were in the test layer itself: a grounding rubric that asked the judge to quote
+- Two things in `src/quaestor`: the loop-prompt example above, and section 6's self-contradicting
+  prompt under **Changed** (D-156), which reading the recorded drafts found and which no offline
+  test could have. The other three defects the record sittings found were in the test layer itself: a grounding rubric that asked the judge to quote
   what it judged, which made **80% of judge replies unparseable JSON** and discarded verdicts the
   model had got right (D-148); the same rubric's criterion 5, which forbade a section to say that
   an analysis does not apply to this model type — the thing sections 5 and 7 are asked for by their

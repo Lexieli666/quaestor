@@ -4397,6 +4397,12 @@ here and recorded.
   `claude-cli`; passing the flag in each of the three commands, which puts a fact about the
   committed tapes in three places that can disagree; and `--probatio-provider claude-cli` in
   `addopts`, which would make every offline session construct a live adapter it must never call.
+  **The consequence for anyone changing the recorded model.** Its name now lives in exactly two
+  places -- inside every interaction key on every tape, and in `pyproject.toml`'s `addopts` -- and
+  they move together: recording against a different model means re-recording every tape and
+  editing that one line in the same commit, because a tape whose key names one model and an
+  `addopts` that names another is a suite that fails every case at once with a message about
+  prompt drift.
 
 ## D-152. A quarter of the judge's replies still do not parse, and every relation violation is one
 
@@ -4591,3 +4597,225 @@ here and recorded.
   in the harness and would spend money without saying so; recording everything in one sitting with
   a longer ceiling, which is what made the loss expensive the first time; and asserting the
   stderr text in a test, which would pin a message this repository does not own.
+
+## D-156. Section 6's candidate line and its findings list are one object, not two
+
+- **Date:** 2026-09-15 (Phase 11, found reading the `draft_section.findings` tape)
+- **Q:** The `draft_section.findings` case's prompt carries
+  `candidates raised for this section: none -- describe nothing as a finding` (D-091) and, eleven
+  lines below it, `Findings to write about, in this order` with `### F-001 · E1 effective
+  challenge · severity **low**` and its four evidence hashes. All eight recorded drafts resolved
+  the contradiction the same way and the judge passed all eight. Is that the case's defect or the
+  pipeline's?
+- **A:** The pipeline's, and the state is not merely reachable live -- it is the **only** state a
+  run with a finding can produce. `_candidates_block` read `candidates` and `_findings_block` read
+  `findings`, two arguments of `Drafter.prompt` filled from two objects in `_draft_inputs`:
+  `candidates_by_section.get(brief.section, [])` and the promoted `findings`. And
+  `SECTION_FOR_CLASS` maps **no** defect class to `ReportSection.findings` -- `section` on a
+  finding names the material it rests on and not where it is printed, which D-103's entry spells
+  out -- so `candidates_by_section[findings]` is empty on every run that has ever been made, while
+  the findings list beneath it is not. Every section-6 prompt this project has built for a package
+  with a finding has told the drafter to describe nothing as a finding and then ordered it to
+  describe one.
+  The two are now **one source**. `_candidates_block(candidates, findings)` derives the line from
+  `findings` whenever the prompt also lists them, and falls back to the candidate list and then to
+  `NO_CANDIDATES` when it does not; `Drafter.prompt` passes both. A section-6 prompt with a finding
+  now reads `findings raised by this validation: 1, listed in full below with the heading to copy`,
+  names each by id, class, severity and tool, and adds the two prohibitions the recording earned:
+  do not write that no finding was raised, and do not move one to the open items.
+  `test_a_prompt_that_lists_a_finding_never_says_there_are_none` asserts, for **every** section and
+  a listed finding, that `NO_CANDIDATES` is absent and the heading is present; two more assert the
+  empty case still says none, and that a candidate handed to section 6 does not produce a second
+  account of the same list. The same fix makes `DRAFT_INSTRUCTION`'s own standing rule true of
+  section 6 for the first time: "Call something a finding only if it is in the candidate list at
+  the end of this prompt" was a rule section 6's prompt broke.
+- **A, continued -- what the drafter did under the contradiction, which is why this is a defect
+  and not a wording complaint.** All eight drafts wrote a sentence saying no finding was raised
+  ("This validation raised no findings against this model package at version 1.0"; "This validation
+  raised no candidate defects, so this section reports no findings") and moved `E1` into
+  `### Open items`, phrased as a question for the model developer. Every number in all eight is
+  cited and correct -- 0.824 `challenger.auc`, 0.748 `metrics.test.auc`, 0.07598
+  `challenger.delta_auc`, 0.03 `threshold.E1.delta_auc` -- and the grounding judge passed 8 of 8 at
+  1.0. So the failure is **silent demotion with perfect grounding**: a published finding of
+  severity low disappears from the findings section of the report, the severity counts and anything
+  that reads them, and not one check in this project can see it. The verifier measures whether a
+  number is what the store says; it has no opinion about whether a finding was reported. The judge
+  measures grounding; the prose was grounded. The renderer prints `FindingsDocument`'s own
+  headings, so a reader gets `### F-001` from the renderer and "no findings were raised" from the
+  drafter in the same section, which is D-091's two-contradictory-sentences failure in a new place.
+  The drafter was obeying the more specific of two instructions it was given, and it chose the one
+  that understates the report's own conclusions, which is the safer of the two ways to be wrong and
+  is still wrong.
+- **Why:** D-091 fixed this shape once already, and fixed it in the prompt's *words*: the Phase 8
+  line stated a fact without its consequence, so it was rewritten to state the consequence. What it
+  did not do is remove the second copy of the fact, and a year of live runs later the second copy
+  is what failed. Two renderings of "what may this section call a finding" are two chances to
+  disagree, which is D-084's rule and the same argument D-100 makes about a selector that fell
+  behind `package.yaml`. Putting the fix in `Drafter.prompt` rather than in `_draft_inputs` is
+  deliberate: the contradiction is assembled where the two blocks meet, so that is where it is made
+  unassemblable, and a future caller of `Drafter.prompt` -- `rules_only`, a repair round, a study
+  configuration not yet written -- cannot reproduce it either.
+  **The cost is one tape and the operator was told before it was spent.** The edit changes the
+  section-6 prompt, so `draft_section.findings`'s tape is stranded and nothing else is:
+  `prompt_bytes` 21,947 -> 22,296 and `prompt_sha256` `405694630f3c281f` -> `2747cbbb12cc5043` on
+  that case alone, with the other six drafting cases, both planning cases and the extraction case
+  byte-identical, which is D-147's pin doing exactly the job it was added for. The re-record is
+  `pytest tests/probatio -q -k "draft_section.findings" --probatio-provider claude-cli
+  --probatio-model "claude-opus-5[1m]" --cassette=record`, one case, 16 calls, measured at **$2.36
+  on the stranded tape** ($1.31 drafting over eight calls at $0.163 each, against the case's $0.34
+  ceiling, and $1.05 of judge calls that `--max-cost` cannot see, D-149).
+  Rejected alternatives: editing the case's `input.candidates` by hand to carry the `E1` candidate,
+  which is the one thing D-138 forbids -- a case input is generated by running the pipeline, never
+  typed, and a hand-typed candidate would make this case the only one in the layer that describes a
+  state no run produces while leaving every future run's prompt contradictory; giving section 6 its
+  candidates in `_draft_inputs` by matching promoted candidates back to findings, which is a second
+  derivation of the promotion `FindingsDocument` already performed and would disagree with it the
+  first time a merge changed (`candidates_merged` is 1 here and need not be); mapping some defect
+  class to `ReportSection.findings` so that `candidates_by_section` is non-empty, which breaks what
+  `section` means on a finding and every cross-reference the report builds from it; and adding a
+  renderer check that section 6's prose does not say "no finding" while `findings.json` holds one,
+  which is D-091's and D-103's rejected alternative for the third time -- a grep over natural
+  language standing in for a fact the prompt can simply carry.
+
+## D-157. The grounding judge's kappa is 0.771, recorded as it stands, and the rubric is not revised here
+
+- **Date:** 2026-09-15 (Phase 11, labelled by the operator, decided in Cowork)
+- **Q:** Every graded judge assertion in this layer printed "1 judge verdict(s) from a rubric with
+  no validation record", seven warnings on every replay. What does the rubric measure against human
+  judgement, and what follows from the disagreements?
+- **A:** **Cohen's kappa 0.771 over 40 labelled drafter outputs, agreement 38/40 (0.950).**
+  Cowork built the labelling packet from the committed tapes -- all five live judge fails plus a
+  round-robin across the seven sections, shuffled, the judge column hidden until the human's labels
+  were in -- and `probatio validate-judge --labels tests/probatio/labels/grounding.labels.csv
+  --rubric <abs>/tests/probatio/rubrics/grounding.md --judge-column judge --human-column human`
+  reports `n=40 agreement=0.950 kappa=0.771`, which is the operator's own figure to three decimals,
+  so there are not two numbers to reconcile. Both label distributions are **35 pass / 5 fail**, and
+  the 2x2 of (human, judge) is pass/pass **34**, pass/fail **1**, fail/pass **1**, fail/fail **4**.
+  The record is written to `.probatio/judges/grounding.validation.json`, which is where
+  `ProbatioSettings.validation_dir` reads it from -- `<rootdir>/.probatio/judges`, fixed, with no
+  flag to move it -- and both it and the 40 labelled rows are committed. The seven warnings are
+  gone. `test_the_grounding_judge_has_a_validation_record_for_the_rubric_it_grades_with` and
+  `test_the_validation_record_names_the_committed_labels_it_was_measured_on` pin the kappa, the n,
+  the 2x2, the rubric hash and the labels hash, so an edit to the rubric makes the judge
+  unvalidated again -- which is the mechanism's whole point -- and an edit to the labels is caught
+  rather than absorbed.
+  **The CSV is safe to commit and was checked rather than assumed.** Its `answer` column is prose
+  the drafter wrote, its `context` column is the artifact briefs the drafter was shown, and the 141
+  distinct artifact names in it are all from the synthetic `credit_default` run at seed 20260901
+  plus `projection.convexity`, which is the synthetic hazard subject's artifact used as D-141's
+  distractor. No data row, no identifier, no credential, nothing proprietary.
+- **A, continued -- the two disagreements, and what each one is about.**
+  **(i) `conceptual_soundness-03`: human pass, judge fail at 0.60**, on "Criteria 1 and 3: uncited
+  word-numbers like ten, seven, two and a half". The human read criterion 1's "every number" as
+  meaning digits -- which is the tokenizer's reading, and therefore the reading under which the
+  whole verifier operates -- and the judge read spelled-out words as numbers. Neither is careless.
+  The sentence at issue is "roughly two and a half times that bound", which is a **derived ratio of
+  two artifacts** (0.07598 against 0.03) that exists nowhere in the store, so on the judge's
+  reading it is exactly what criterion 1 is for, and on the human's it is not a number at all. The
+  rubric is silent on words, and two careful graders split on it.
+  **(ii) `summary-03`: human fail, judge pass at 1.00.** The human failed "No findings were raised
+  for this section, so no severity is assigned here" as a criterion-5 absence statement. The judge
+  passed it -- while having **failed** `summary-07`'s near-identical "no severity counts exist to
+  report in this section" at 0.80 for exactly that criterion. So this row is not a boundary the two
+  graders drew differently; it is the judge being **inconsistent at its own criterion-5 boundary**,
+  and the human's label is the defensible one on at least one of the two rows.
+- **A, continued -- the decision.** **0.771 is recorded as it stands and the rubric is NOT revised
+  in this commit.** Both boundary questions go to the Phase 12 pre-flight, beside the
+  `DRAFT_INSTRUCTION` change D-156 and the distractor observation call for, and a revised rubric is
+  validated on a **fresh label set**, not on these 40. The two questions, stated so that the
+  pre-flight has them in one place:
+  1. **Do spelled-out words count as numbers?** The verifier's answer today is no -- nothing
+     tokenises "two and a half" -- which is why the cheapest fix is at the other end, forbidding
+     the drafter to write them at all.
+  2. **Where is criterion 5's boundary, in D-103's terms?** "No findings were raised" is a
+     statement about *the run* and is allowed -- it is the sentence section 6's own brief asks for
+     when nothing fired. "No severity counts exist to report" asserts the *absence of a quantity*
+     and is not, which is D-100's rule as D-114 reads it.
+- **Why:** Revising a rubric after reading the human labels and re-grading the same 40 rows would
+  tune the judge to the labels, and the resulting kappa would measure nothing except how well the
+  edit was fitted to the sample it was made from. That is the same error as choosing a threshold on
+  a test set, it is the error this whole project exists to catch other people making, and a number
+  produced that way could not honestly be published beside a claim about grounding precision. So
+  the sequence is the one that costs a second label set: publish what the committed rubric scored,
+  say which two rows it split on and why, change the rubric once in the pre-flight where it can be
+  changed alongside `DRAFT_INSTRUCTION`, and measure the new one on rows nobody has seen.
+  The kappa itself is worth reading with its width in mind and the entry says so rather than
+  leaving it to be inferred: 0.771 over 40 rows with 5 failures in each margin is a **substantial**
+  agreement by the usual convention and a thin one arithmetically -- moving a single cell of that
+  2x2 moves the kappa by roughly 0.1 -- so what the measurement supports is "this judge is usable
+  and its two error modes are named", not a comparison against any other judge's number.
+  Rejected alternatives: revising criterion 5 now because disagreement (ii) is plainly the judge's
+  fault, which is the tuning above wearing a better argument -- the judge is inconsistent, but the
+  fix is a rubric edit, and a rubric edit re-grades all seven tapes at about $29 (D-153) to produce
+  a kappa nobody could trust; dropping the two disagreeing rows and reporting agreement on 38,
+  which is publishing a measurement with its failures removed; treating the human's labels as
+  ground truth and reporting an error rate instead of a kappa, which throws away the fact that two
+  competent graders can disagree about criterion 1 and hides boundary question 1 entirely; and
+  waiting for a second labelling before recording anything, which leaves the layer shipping seven
+  "no validation record" warnings on every run and the kappa unpublished for a phase.
+
+## D-158. Every tape is pruned to the interactions a replay reads, and the costs stay as spent
+
+- **Date:** 2026-09-15 (Phase 11)
+- **Q:** Four record sittings, two of which died part way (D-155), and two rubric revisions
+  (D-148, D-153) left each drafting tape carrying interactions no replay can reach. What happens
+  to them?
+- **A:** They are pruned. The keys a replay actually reads were **measured**, not reasoned about --
+  a session-scoped patch over `CassetteStore.replay` logged every key requested during
+  `pytest tests/probatio --cassette=replay`, and an interaction whose key is not in that set is
+  removed; each tape is then rewritten through `CassetteStore.write`, whose sorted-key output is
+  byte-identical to a no-op round trip, so the diff is deletions only. **64 interactions pruned
+  across six tapes:**
+
+  | tape | before | pruned | kept | of which dead judge calls | dead drafting calls |
+  | --- | ---: | ---: | ---: | ---: | ---: |
+  | `draft_section.summary` | 27 | 9 | 18 | 8 | 1 |
+  | `draft_section.conceptual_soundness` | 27 | 9 | 18 | 8 | 1 |
+  | `draft_section.data_integrity` | 28 | 12 | 16 | 9 | 3 |
+  | `draft_section.outcomes` | 29 | 11 | 18 | 8 | 3 |
+  | `draft_section.sensitivity` | 25 | 9 | 16 | 8 | 1 |
+  | `draft_section.findings` | 16 | 0 | 16 | 0 | 0 |
+  | `draft_section.monitoring` | 30 | 14 | 16 | 12 | 2 |
+  | `extract_claims.conceptual_soundness` | 1 | 0 | 1 | 0 | 0 |
+  | `plan_followup.first_step` | 1 | 0 | 1 | 0 | 0 |
+  | `plan_followup.after_refusal` | 1 | 0 | 1 | 0 | 0 |
+  | **total** | **185** | **64** | **121** | **53** | **11** |
+
+  The tapes go from **7.5 MB to 4.9 MB**. `draft_section.findings` prunes nothing because D-156's
+  re-record was made into a moved-aside file rather than over the old tape, which is D-155's rule
+  doing exactly what it is for -- a tape recorded that way never accumulates a dead interaction in
+  the first place.
+  **What the 64 were.** Fifty-three are judge calls keyed on a superseded rubric: D-148's quoting
+  prohibition and D-153's criterion-5 rewrite each changed `Rubric.content_hash`, which enters
+  every judge interaction key, so each revision stranded a tape's whole judge half. Eleven are
+  `structured()` **re-ask** prompts whose first-call answer was later re-recorded: a re-ask prompt
+  quotes the answer it is correcting, so once a re-recording replaced that first answer with one
+  that parsed, the old re-ask became unreachable. Those eleven are worth naming because of what
+  they contain -- the Claude CLI answering a drafting prompt with an attempted
+  `<invoke name="Bash">` tool call listing its own `~/.claude/projects/.../memory/` directory
+  instead of the JSON object it was asked for. Three such first-call answers are still *live*
+  interactions on `summary`, `conceptual_soundness` and `outcomes`, because the re-ask that
+  followed each is a call the replay makes, so those three tapes still carry the operator's home
+  path; that is unchanged from the previous commit, carries no credential, and is a fact about the
+  provider rather than about this suite.
+  **The published layer cost does not move.** `docs/EVALUATION.md` keeps **~$73** for Phase 11:
+  the pruned interactions were paid for, in sittings that happened, and the cost figure is a record
+  of what the phase spent and not an inventory of what the repository still stores. The replay's
+  own per-case cost column, which sums the tapes, is a different number and always was -- it is
+  what these calls would cost to make again.
+- **Why:** A dead interaction is committed data that nothing checks. It is keyed on a prompt no
+  code builds any more, so no test can ever fail because of it, no reader can tell it apart from a
+  live one without running the measurement above, and it makes the next stale-tape diagnosis harder
+  by putting near-miss prompts in the file a human greps. Two thirds of these tapes were answers to
+  a rubric this project has decided twice over was wrong, and keeping them reads as evidence when
+  it is residue. Doing it after the re-record rather than before is deliberate: the set of live keys
+  is only knowable once the tapes are the ones the suite will ship with, and pruning against a
+  measurement taken before D-156's re-record would have deleted the wrong eight.
+  Rejected alternatives: re-recording every case from scratch so that no tape has ever held a dead
+  interaction, which is about $29 (D-153's measurement) to buy tidiness and would discard four
+  sittings' worth of evidence for three published defect classes; leaving them, which is the status
+  quo and costs a reader's time on every future stale-tape failure; deleting by hand from the
+  visible pattern -- short judge replies, old rubric wording -- which is the guess this measurement
+  replaces and would have missed all eleven re-asks; and adding a `probatio prune-cassettes`
+  command, which is a patch to a dev dependency for a one-off and belongs upstream with the other
+  five issues if it belongs anywhere.

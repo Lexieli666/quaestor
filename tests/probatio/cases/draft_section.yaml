@@ -2861,9 +2861,9 @@
       - e042774c
       section: conceptual_soundness
       candidates_merged: 1
-    prompt_bytes: 21947
+    prompt_bytes: 22296
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: 405694630f3c281f
+    prompt_sha256: 2747cbbb12cc5043
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json

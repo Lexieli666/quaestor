@@ -1507,3 +1507,31 @@ what proves the cases load, the systems under test are wired and the relations e
 `BaselineStore.compare` records a baseline when a case has none, so such a run silently stamped the
 fake's failures as the reference for three cases and made a clean live recording report drift
 (D-154). Every fake invocation now passes `--baseline-dir $(mktemp -d)`.
+
+### What the fifth sitting found: a prompt that contradicted itself on every run ever made
+
+The tapes are not only a regression fixture; they are eight samples of what a live model does with
+a real prompt, and reading them found a defect that no amount of reading the code had. Section 6's
+prompt carried `candidates raised for this section: none -- describe nothing as a finding` and,
+eleven lines lower, the finding it was ordered to write about. The two lines came from two
+arguments of `Drafter.prompt` filled from two objects, and because `SECTION_FOR_CLASS` maps no
+defect class to the findings section — a finding's `section` names the material it rests on, not
+where it is printed — the first was empty on **every run this project has ever made** while the
+second was not.
+
+What makes it worth a paragraph is the shape of the failure rather than the wording bug. All eight
+recorded drafts obeyed the more specific instruction, wrote "this validation raised no findings",
+and moved the `E1` finding into `### Open items` — with every number cited, every value matching the
+store, and the grounding judge passing all eight at 1.0. **Grounding precision cannot see a missing
+finding.** Neither can the claims appendix, the severity counts or the renderer, which prints
+`FindingsDocument`'s own headings and would have put `### F-001` two lines below the drafter's
+sentence saying nothing was raised. This project's whole verification apparatus measures whether
+what the report *says* is true of the store; it has no instrument for what the report *omits*, and
+that is a limitation worth stating plainly rather than discovering again.
+
+The fix single-sources the two blocks in `Drafter.prompt` rather than in `pipeline._draft_inputs`,
+so the contradiction is unassemblable for every caller and not merely unreached by the one that
+exists (D-156). Rejected alternative: editing the committed case's `input.candidates` by hand so
+that the case stopped contradicting itself — which is precisely the drift D-138 exists to prevent,
+and would have left every future run's prompt exactly as wrong while making the layer report it
+fixed.

@@ -268,3 +268,60 @@ def test_a_section_six_prompt_with_no_finding_still_asks_for_the_open_items(
     assert "No finding was raised." in prompt
     assert "'### Open items'" in prompt
     assert "still owes the developer the observations it made" in prompt
+
+
+def _promoted(store: ArtifactStore) -> Finding:
+    """The one finding the clean synthetic credit subject raises, as section 6 is handed it."""
+    return Finding.from_candidates(
+        [
+            FindingCandidate(
+                defect_class=DefectClass.E1,
+                evidence=[store.artifact("metrics.test.auc").hash],
+                detail="a challenger reaches 0.8240 against the champion's 0.7480",
+                suggested_severity=Severity.low,
+                tool="challenger_compare",
+            )
+        ],
+        store=store,
+    ).numbered(1)
+
+
+def test_a_prompt_that_lists_a_finding_never_says_there_are_none(store: ArtifactStore) -> None:
+    """D-156: section 6's candidate line and its findings list are one object, so they agree.
+
+    `SECTION_FOR_CLASS` maps no defect class to `ReportSection.findings` -- a finding's `section`
+    names the material it rests on, not where it is printed -- so `candidates_by_section` is empty
+    for section 6 on every run, and a prompt that took this line from it said "candidates raised
+    for this section: none -- describe nothing as a finding" directly above the finding it ordered
+    the drafter to write. All eight recorded drafts of `draft_section.findings` resolved the
+    contradiction the same way: "no findings", with `E1` moved into `### Open items`.
+    """
+    finding = _promoted(store)
+    for section in ReportSection:
+        prompt = drafter(FakeLLM()).prompt(brief_for(section), findings=[finding])
+        assert finding_heading(finding) in prompt, section
+        assert NO_CANDIDATES not in prompt, section
+        assert "none -- describe nothing as a finding" not in prompt, section
+        assert "findings raised by this validation: 1" in prompt, section
+        assert "- F-001 E1 (effective challenge, severity low, from challenger_compare)" in prompt
+        assert "do not move one to the open items" in prompt, section
+
+
+def test_a_section_six_prompt_with_no_finding_still_says_none(store: ArtifactStore) -> None:
+    """The agreement runs both ways: nothing listed, and the line that says nothing was raised."""
+    del store
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.findings))
+    assert NO_CANDIDATES in prompt
+    assert "No finding was raised." in prompt
+
+
+def test_the_findings_line_is_built_from_the_findings_and_not_from_the_candidates(
+    store: ArtifactStore, candidate: FindingCandidate
+) -> None:
+    """A candidate that reached section 6 would be a second account of the same list."""
+    prompt = drafter(FakeLLM()).prompt(
+        brief_for(ReportSection.findings), candidates=[candidate], findings=[_promoted(store)]
+    )
+    assert "candidates raised for this section: 1" not in prompt
+    assert candidate.detail not in prompt
+    assert "findings raised by this validation: 1" in prompt

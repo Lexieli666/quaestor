@@ -385,3 +385,58 @@ def test_the_guidance_separator_survives_every_format_jitter() -> None:
         for transform in JITTER_TRANSFORMS.values():
             jittered = transform(text)
             assert jittered.count(casebuilder.GUIDANCE_SEPARATOR) == expected - 1
+
+
+# -- the judge's own validation record ------------------------------------------------------------
+
+
+def test_the_grounding_judge_has_a_validation_record_for_the_rubric_it_grades_with() -> None:
+    """D-157. `probatio validate-judge` measured this judge against 40 human labels.
+
+    The record lives where the plugin reads it -- `<rootdir>/.probatio/judges/`, which
+    `ProbatioSettings.validation_dir` fixes and no flag moves -- and it is pinned to the rubric's
+    content hash, so an edit to `rubrics/grounding.md` makes the judge unvalidated again and the
+    seven "rubric has no validation record" warnings come back. That is the mechanism, and this is
+    the assertion that says the record on disk is the one this suite's rubric was measured with.
+    """
+    from probatio.judge import resolve_rubric, rubric_is_validated
+    from probatio.judge.validation import load_validation_record
+
+    validation_dir = casebuilder.REPO_ROOT / ".probatio" / "judges"
+    rubric = resolve_rubric("grounding", rubric_dirs=[casebuilder.RUBRICS_DIR])
+    record = load_validation_record("grounding", validation_dir=validation_dir)
+    assert record is not None, "tests/probatio/rubrics/grounding.md has no validation record"
+    assert rubric_is_validated(rubric, validation_dir=validation_dir)
+    assert record.rubric_hash == rubric.content_hash == casebuilder.rubric_digest("grounding")
+    assert record.method == "columns"
+    assert record.n == 40
+    assert round(record.kappa, 3) == 0.771
+    assert round(record.agreement, 3) == 0.95
+
+
+def test_the_validation_record_names_the_committed_labels_it_was_measured_on() -> None:
+    """The 40 labelled rows are committed beside the rubric, and the record's hash is theirs."""
+    import csv
+
+    from probatio.judge.validation import hash_labels_file, load_validation_record
+
+    validation_dir = casebuilder.REPO_ROOT / ".probatio" / "judges"
+    record = load_validation_record("grounding", validation_dir=validation_dir)
+    assert record is not None
+    labels = casebuilder.REPO_ROOT / record.labels_file
+    assert labels.is_file(), f"{record.labels_file} is named by the record but not committed"
+    assert record.labels_hash == hash_labels_file(labels)
+
+    with labels.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == record.n
+    pairs = [(row["human"], row["judge"]) for row in rows]
+    assert pairs.count(("pass", "pass")) == 34
+    assert pairs.count(("pass", "fail")) == 1
+    assert pairs.count(("fail", "pass")) == 1
+    assert pairs.count(("fail", "fail")) == 4
+    assert sum(1 for human, judge in pairs if human == judge) == 38
+    assert [human for human, _ in pairs].count("pass") == 35
+    assert [judge for _, judge in pairs].count("pass") == 35
+    disagreed = {row["id"] for row in rows if row["human"] != row["judge"]}
+    assert disagreed == {"conceptual_soundness-03", "summary-03"}

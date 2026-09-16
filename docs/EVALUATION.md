@@ -6,7 +6,11 @@ where the number is used. `tests/test_live_credit_attempt1.py`,
 `tests/test_live_credit_attempt4.py` and `tests/test_live_credit_attempt5.py` re-derive each
 figure of section 1 from the trace it claims to come from, and `tests/test_archive_fixtures.py`
 re-derives the figures of the last entry from the three archived runs together, so a number that
-drifts from its run fails the suite rather than sitting in a document. Where a figure was computed from a file the repository deliberately
+drifts from its run fails the suite rather than sitting in a document. The Probatio entry's figures
+come from the committed tapes under `tests/probatio/cassettes/` and from
+`.probatio/judges/grounding.validation.json`, which `pytest tests/probatio --cassette=replay` and
+`tests/probatio/test_inputs_pinned.py` re-derive with no provider call; the one figure that is the
+operator's observation across sittings rather than a committed artefact says so where it is used. Where a figure was computed from a file the repository deliberately
 does *not* hold — a real sample's rows — it says so at the point of use.
 
 This document is not yet the evaluation the project is for. The seeded-defect study of
@@ -760,3 +764,156 @@ All four ship in one commit, which cannot cite its own hash; the run-log line un
 
 **Still outstanding.** The `msr_prepayment` live run of `03-RUNBOOK.md` §3, and a `credit_default`
 attempt on a build carrying D-109 to D-119. Both are the operator's, and neither has happened.
+
+### 2026-09-15 — the Probatio test layer: five record sittings, a judge measured against a human, and three classes a clean relation table found
+
+No validation run. This entry is about `tests/probatio/` — ten cases, ten committed tapes, and what
+five live recording sittings against `claude-opus-5[1m]` cost and found. The tapes are the record;
+`pytest tests/probatio --cassette=replay` re-derives every figure below from them with zero
+provider calls, and `.probatio/judges/grounding.validation.json` carries the judge's own
+measurement.
+
+**What the layer cost, against what it was estimated to cost.** D-145 estimated one record run at
+**119 provider calls, $25.69 and 62 minutes**, from a least-squares fit over the eighteen calls of
+the first committed live run. The four sittings that built the layer cost about **$71** — the
+operator's figure across the sittings — and the fifth, the one-case re-record D-156 forced, cost
+**$2.46 over 16 calls**, which is the only sitting whose whole spend survives as a tape. About
+**$73** in all, against $25.69 for one run. The committed tapes account for **$28.95** of it, and
+the gap is not waste that pruning created: two sittings died part way (D-155) and two rubric
+revisions stranded what earlier ones had bought, so the calls were made and paid for and the tapes
+they wrote are gone. D-158's pruning removes 64 interactions that no replay can reach and does not
+move this figure by a cent. Three causes, none of them the cost model, which predicted the whole
+of the first run's spend to within 6%:
+
+* **The 120 s provider timeout.** The second sitting lost `data_integrity`, `sensitivity` and
+  `monitoring` to `ClaudeCLIProvider`'s default hung-process ceiling, which was acting as a budget:
+  a drafting call writing seven thousand tokens over a 39 KB prompt exceeds two minutes often
+  enough to lose three cases in ten. Raised to 600 s in `addopts`, with a uniform 480 s per-case
+  `max_latency_ms` beneath it, so a slow case now fails a verdict and only a hung subprocess errors
+  (D-150). The latency regression that produced the old per-case ceilings was abandoned rather than
+  re-fitted: it predicted `findings` at 15.1 s and one of its variants took **100.2 s**, out by a
+  factor of 6.6.
+* **Criterion 5 of the grounding rubric, over-tightened.** It collapsed "a quantity is absent from
+  the store" into "an activity was not performed", and so failed sections 5 and 7 for writing
+  exactly what their briefs ask for and what D-114 sanctions. Two of seven sections, independently,
+  on the first recording whose judge replies parsed — and the grader was wrong and the drafter was
+  right on both (D-153). The rewrite cost a re-record of seven tapes.
+* **Judge replies that were not JSON.** Below.
+
+**The judge's replies: 80% → 25% → 0 of 60.** The first rubric asked the judge to quote the
+sentence that decided its verdict, inside the JSON string field the same prompt demanded, and
+**16 of 20 replies (80%) stopped parsing at the first unescaped quotation mark** — every one of
+them carrying a verdict Probatio then discarded, most of them passes (D-148). After that
+prohibition, **8 of 32 (25%)** still failed, six by omitting the closing quote of a 250–450
+character `rationale` and two by emitting a second, corrected object after the first (D-152). After
+D-153's rewrite, which capped the rationale at fifteen words and forbade anything after the closing
+brace, **0 of 60**. The fifth sitting's eight judge replies also all parse.
+
+**The consequence for the relation rates, stated because it is the reason two recordings' figures
+are not published.** A case's verdict is its original run's assertions, and all four complete
+drafting cases of the second recording passed 4 of 4. The eight malformed replies were all on
+metamorphic *variants*, so each one made a variant's verdict differ from its original's, which
+Probatio reports as a relation violation. The counts matched exactly — `distractor_robust` 1 of 4,
+`format_jitter` 3 of 12, `order_invariant` 4 of 12, **8 violations against 8 malformed replies**.
+So on the first two recordings **every observed relation violation was a JSON formatting failure in
+the grader**, not a change in the application: those relation rates measured the grader, and they
+are not this layer's published numbers.
+
+**The relation table as committed**, from the tapes as they now stand — six flips over 49 variant
+runs, every one of them a judge assertion and none of them a parse failure:
+
+| relation | cases | violations | mean rate | worst case | worst rate |
+|---|---:|---:|---:|---|---:|
+| `distractor_robust` | 7 | 1/7 | 0.14 | `draft_section.summary` | 1.00 |
+| `format_jitter` | 7 | 2/21 | 0.10 | `draft_section.findings` | 0.33 |
+| `order_invariant` | 7 | 3/21 | 0.14 | `draft_section.conceptual_soundness` | 0.33 |
+
+`extract_claims.conceptual_soundness` runs under `@flaky_tolerant(p=0.8, n=5)` and passes **5 of 5,
+a rate of 1.00 with a 95% Wilson interval of [0.57, 1.00]** against its 0.8 floor — an interval
+that wide is a statement about five runs and not about the extractor, which is D-144's point and is
+repeated here rather than left to be misread.
+
+**The judge measured against a human: kappa 0.771.** The operator labelled **40 drafter outputs**
+against the committed rubric — all five live judge fails plus a round-robin across the seven
+sections, shuffled, the judge column hidden until the labels were in — and
+`probatio validate-judge` reports **n=40, agreement 0.950 (38/40), Cohen's kappa 0.771**. Both label
+distributions are 35 pass / 5 fail. The 2×2 of (human, judge):
+
+| | judge pass | judge fail |
+|---|---:|---:|
+| **human pass** | 34 | 1 |
+| **human fail** | 1 | 4 |
+
+The two disagreements are the interesting rows and both are boundary questions the rubric does not
+answer (D-157):
+
+* **`conceptual_soundness-03`, human pass / judge fail at 0.60**, on "uncited word-numbers like
+  ten, seven, two and a half". The human read criterion 1's "every number" as digits — the
+  tokenizer's reading, and therefore the reading the whole verifier operates under — and the judge
+  read spelled-out words as numbers. The sentence at issue, "roughly two and a half times that
+  bound", is a **derived ratio of two artifacts that exists nowhere in the store**. The rubric is
+  silent on words and two careful graders split on it.
+* **`summary-03`, human fail / judge pass at 1.00.** The human failed "No findings were raised for
+  this section, so no severity is assigned here" as a criterion-5 absence statement. The judge
+  passed it — while having **failed** `summary-07`'s near-identical "no severity counts exist to
+  report in this section" at 0.80 on that same criterion. This row is the judge being inconsistent
+  at its own boundary, not two readings of one rule.
+
+**0.771 is recorded as it stands and the rubric is not revised on the strength of these labels.**
+Revising a rubric after reading the human's labels and re-grading the same 40 rows would tune the
+judge to the labels, which is choosing a threshold on a test set. Both boundary questions —
+whether spelled-out words count as numbers, and where criterion 5's line falls in D-103's terms
+("no findings were raised" is a statement about the run and is allowed; "no counts exist to report"
+asserts a quantity's absence and is not) — go to the Phase 12 pre-flight alongside the
+`DRAFT_INSTRUCTION` change, and a revised rubric is validated on a **fresh** label set.
+
+#### Three classes the clean relation table found, each with the tape it came from
+
+These are what the layer was built for: defects visible only because a live model was shown a real
+prompt eight times.
+
+**1. Section 6 was told to describe nothing as a finding and then ordered to describe one —
+`draft_section.findings`, the tape recorded 2026-09-09.** The prompt carried `candidates raised for
+this section: none -- describe nothing as a finding` (D-091) and, eleven lines below it, `Findings
+to write about, in this order` with `### F-001 · E1 effective challenge · severity **low**`. Not an
+accident of the case: `SECTION_FOR_CLASS` maps no defect class to the findings section, so
+`candidates_by_section` is empty for section 6 on **every** run, and every section-6 prompt this
+project has ever built for a package with a finding said both things. **All eight recorded drafts
+resolved it the same way**: a sentence saying no finding was raised, and `E1` moved into
+`### Open items` as a question for the developer. Every number in all eight is cited and correct —
+0.824, 0.748, 0.07598, 0.03 — and the grounding judge passed 8 of 8 at 1.0. So the failure mode is
+**silent demotion with perfect grounding**: a published finding disappears from the findings
+section, from the severity counts and from anything that reads them, and nothing in this project can
+see it, because the verifier measures whether numbers match the store and the judge measures
+grounding, and both were satisfied. The prompt's two halves are now one object (D-156), the tape
+was re-recorded, and all eight new drafts write `F-001` under its own heading.
+
+**2. The drafter writes about any artifact it is shown — `draft_section.summary` and
+`draft_section.findings`, the `@distractor_robust` variants.** The distractor is one artifact of the
+*other* subject, `projection.convexity`, a mortgage-servicing rate-shock number with no place in a
+credit report (D-141). Section 1 wrote it into its prose — "a change in servicing value under a plus
+or minus 300 basis point parallel shock of -168055 dollars
+`[[art:0d15720c:projection.convexity]]`" — and section 6 made it an **open item**, a question for
+the model developer about a model the package does not contain. The citation resolves and the value
+matches, so the judge passed section 6's version at 1.0 and failed section 1's **only** for the
+incidental `300` carrying no citation of its own. Nothing else caught either. That is why **open
+items become rule-minted in the Phase 12 pre-flight**: an open item is currently the one thing in
+the report a model may invent from whatever it was handed, and a selector bug is enough to hand it
+anything.
+
+**3. Spelled-out quantities walk past the verifier — `draft_section.conceptual_soundness` under one
+artifact ordering, and `draft_section.findings` under one ordering and one jitter.** "which exceeds
+the effective-challenge threshold of 0.03 `[[art:e042774c:threshold.E1.delta_auc]]` by roughly a
+factor of **two and a half**" is a ratio the drafter computed from two artifacts; it is in no store,
+it carries no citation, and the extractor's tokenizer does not see it at all, because nothing
+tokenises a number written in words. It reached the reports only because the judge happened to read
+words as numbers — inconsistently, which is disagreement (i) above. Three of the 49 variant runs
+wrote one. This is why `DRAFT_INSTRUCTION` gains a **no-spelled-out-quantities** rule in the Phase
+12 pre-flight: the drafter can be told not to write them far more cheaply than the verifier can be
+taught to read them, and the rule is checkable offline.
+
+**What this entry does not show.** One recording of each case, so every rate here has n = 8 at best
+and n = 1 at worst; the relation violations are all judge assertions, so what they measure is a
+grader's stability as much as a drafter's; the kappa rests on 40 rows with five failures in each
+margin, where moving one cell of the 2×2 moves it by about 0.1; and the three classes above are
+three that eight samples of seven prompts happened to surface, not an enumeration.

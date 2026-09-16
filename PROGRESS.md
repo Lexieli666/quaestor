@@ -106,7 +106,16 @@ are named in brackets.
     on exactly the data a seeded defect produces, and the refusal ending the whole validation
     instead of being reported: `challenger_compare` on a missing value (D-125) and
     `compute_metrics` on a separable split (D-126). Both are fixed; neither changes a control
-- [ ] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
+- [x] **Phase 11** — Probatio test layer with recorded cassettes and judge validation (spec §6)
+  - shipped in **two commits**: the layer and its ten tapes, then the judge's kappa, the tape
+    pruning and the one defect reading the recorded drafts found (D-156)
+  - the grounding judge is **validated**: kappa **0.771** over 40 human-labelled drafter outputs,
+    agreement 38/40, the record committed at `.probatio/judges/grounding.validation.json` and the
+    labels beside the rubric (D-157). The rubric is deliberately **not** revised on these labels
+  - the layer's one defect in `src/quaestor`: section 6's prompt told the drafter to describe
+    nothing as a finding and then ordered it to describe one, on **every run ever made**, and all
+    eight recorded drafts silently demoted the finding to an open item with grounding precision
+    1.0 (D-156)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
   (`04` §3–5)
 - [ ] **Phase 13** — Verifier component eval on FinQA / TAT-QA (`04` §6)
@@ -1019,3 +1028,102 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   credit `R1`, credit `M1` and the hazard `L1` — because each needs a column the real samples do
   not build; the list is D-137 and the work is Phase 12's. No test calls a live model, downloads
   data, trains on real data or reads an API key. No push.
+- 2026-09-15 — **Phase 11** — gate green on **all six** conditions, condition 6 for the first time:
+  `pytest -q` **1529 passed**, 0 failed, 0 skipped, 0 xfailed (5 new); coverage of `src/quaestor`
+  **100%** (`coverage run -m pytest`, 6,102 statements) against the 85% floor; `ruff check` and
+  `ruff format --check` clean on `src tests eval subjects` (148 files); `mypy --strict src/quaestor`
+  clean (60 source files). Gate condition **5a** passes — `examples/golden_report/` is untouched by
+  both Phase 11 commits and `tests/test_golden_spec.py`'s 13 checks pass. Gate condition **5b**
+  passes: **`credit_default` grounding precision 1.0000 pre- and post-repair over 49 claims, 168
+  artifacts, one finding (`E1 low`, D-017); `msr_prepayment` 1.0000 and 1.0000 over 45 claims, 271
+  artifacts, no finding (D-047)** — unchanged by D-156, which edits a prompt no fake provider
+  reads. Gate condition **6**: `pytest tests/probatio --cassette=replay` **40 passed**, and the
+  zero-provider-call half is *measured* rather than asserted — a session plugin that raises on any
+  `FakeProvider.complete` reports **0 calls**.
+  **This is the phase's second commit.** The first shipped the layer, the ten tapes and DECISIONS
+  D-138 to D-155; this one ships the judge's kappa, the tape pruning, and the one defect that
+  reading the recorded drafts found.
+  **The defect, and why it matters more than its size.** Section 6's prompt carried `candidates
+  raised for this section: none -- describe nothing as a finding` (D-091) and, eleven lines below
+  it, `Findings to write about, in this order` with `### F-001 · E1 effective challenge · severity
+  **low**`. The two lines came from two arguments of `Drafter.prompt` filled from two objects, and
+  because `SECTION_FOR_CLASS` maps **no** defect class to the findings section — a finding's
+  `section` names the material it rests on, not where it is printed — `candidates_by_section` is
+  empty for section 6 on every run, so **every section-6 prompt this project has ever built for a
+  package with a finding said both things**. All eight recorded drafts resolved it identically:
+  "this validation raised no findings", with `E1` moved into `### Open items` as a question for the
+  developer. Every number in all eight is cited and correct and the grounding judge passed 8 of 8
+  at 1.0 — **silent demotion with perfect grounding**. Nothing in this project can see it: the
+  verifier measures whether a number matches the store, the judge measures grounding, and the
+  renderer would have printed `### F-001` two lines under the drafter's sentence saying nothing was
+  raised. Fixed by deriving both blocks from one list in `Drafter.prompt` rather than in
+  `_draft_inputs`, so the state is unassemblable for every caller (D-156); three new checks in
+  `tests/test_drafter.py`, the load-bearing one asserting for *every* section that a listed finding
+  never appears beside `NO_CANDIDATES`. The edit stranded exactly one tape —
+  `prompt_bytes` 21,947 → 22,296 and `prompt_sha256` `405694630f3c281f` → `2747cbbb12cc5043` on
+  `draft_section.findings` alone, every other case byte-identical, which is D-147's pin doing the
+  job it was added for — and the operator re-recorded that one case in a **fifth** sitting for
+  **$2.46 over 16 calls**, into a moved-aside file per D-155. All eight new drafts write `F-001`
+  under its own heading.
+  **The kappa.** `probatio validate-judge --labels tests/probatio/labels/grounding.labels.csv
+  --rubric <abs>/tests/probatio/rubrics/grounding.md --judge-column judge --human-column human`
+  reports **n=40, agreement 0.950, kappa 0.771** — the operator's own figure to three decimals, so
+  there are not two numbers to reconcile. Both label distributions 35 pass / 5 fail; the 2×2 of
+  (human, judge) is 34 / 1 / 1 / 4. The record goes to `.probatio/judges/grounding.validation.json`,
+  which `ProbatioSettings.validation_dir` fixes at `<rootdir>/.probatio/judges` with no flag to
+  move it, and the seven "rubric has no validation record" warnings are gone. The merged CSV is
+  committed after checking what is in it: its 141 distinct artifact names are all from the
+  synthetic `credit_default` run at seed 20260901 plus the hazard subject's `projection.convexity`
+  (D-141's distractor), and there is no data row, no identifier and no credential in it. **The two
+  disagreements** (D-157): `conceptual_soundness-03`, human pass / judge fail, where the human read
+  criterion 1's "every number" as digits — the tokenizer's reading — and the judge read "two and a
+  half" as a number, on a derived ratio of two artifacts that is in no store; and `summary-03`,
+  human fail / judge pass, where the judge passed "no severity is assigned here" having failed
+  `summary-07`'s near-identical "no severity counts exist to report" on the same criterion, so that
+  row is the judge inconsistent at its own boundary. **0.771 is recorded as it stands and the
+  rubric is not revised in this commit**: revising it after reading the labels and re-grading the
+  same 40 rows is choosing a threshold on a test set. Both boundary questions go to the Phase 12
+  pre-flight with the `DRAFT_INSTRUCTION` change, and a revised rubric is validated on a fresh
+  label set.
+  **The pruning.** **64 interactions removed across six drafting tapes** — summary 9,
+  conceptual_soundness 9, data_integrity 12, outcomes 11, sensitivity 9, monitoring 14, findings 0,
+  and nothing on the three non-drafting tapes; 185 interactions to 121, 7.5 MB to 4.9 MB (D-158).
+  Fifty-three are judge calls keyed on a superseded rubric (D-148's and D-153's revisions each
+  strand a tape's whole judge half, since a rubric is part of every judge prompt) and eleven are
+  `structured()` re-ask prompts whose first-call answer was later re-recorded. The live key set was
+  **measured** — a session plugin logged every key a replay requests — and not inferred from the
+  visible pattern, which would have missed all eleven re-asks. `draft_section.findings` prunes
+  nothing, because D-155's move-aside rule means a tape recorded that way never accumulates one.
+  **`docs/EVALUATION.md` keeps the ~$73 layer cost**: the pruned calls were made and paid for, and
+  the tapes account for $28.95 of it because two sittings died and two rubric revisions stranded
+  what they had bought.
+  Also shipped: the dated `docs/EVALUATION.md` §1 entry for the layer — the five sittings against
+  the $25.69 estimate with its three causes (the 120 s timeouts, the criterion-5 over-tightening,
+  the judge-JSON noise); the judge-parse progression **80% → 25% → 0 of 60** and the statement that
+  the relation rates of the first two recordings measured the grader and are therefore not
+  published; **the relation table as committed** — `distractor_robust` 1/7, `format_jitter` 2/21,
+  `order_invariant` 3/21, six flips over 49 variant runs, every one a judge assertion and none a
+  parse failure — with `extract_claims` at 5 of 5, rate 1.00, Wilson [0.57, 1.00] against its 0.8
+  floor; the kappa with its 2×2 and both disagreements; and **the three classes the clean relations
+  found**, each named with the tape it came from: the findings contradiction and silent demotion
+  above; **the drafter writing about any artifact it is shown** — the hazard subject's
+  `projection.convexity` distractor became a sentence in section 1 and an *open item* in section 6,
+  a question to the developer about a model the package does not contain, which the judge passed at
+  1.0 and failed only for an incidental uncited `300`, and which is why **open items become
+  rule-minted in the Phase 12 pre-flight**; and **spelled-out quantities walking past the
+  verifier** — "by roughly a factor of two and a half", a ratio of two artifacts that is in no store
+  and that nothing tokenises, in three of the 49 variant runs, which is why `DRAFT_INSTRUCTION`
+  gains a no-spelled-out-quantities rule in the same pre-flight. D-151 gains the sentence that the
+  recorded model's name lives in two places — the tapes' interaction keys and `pyproject.toml`'s
+  `addopts` — and that they move together. DECISIONS **D-156 to D-158**, the Phase 11 second section
+  of `docs/DESIGN.md`, and the `CHANGELOG.md` entries.
+  **What this phase does not show, said rather than left to be inferred.** One recording of each
+  case, so the relation rates have n = 8 at best; every flip is a judge assertion, so they measure a
+  grader's stability as much as a drafter's; the kappa rests on 40 rows with five failures in each
+  margin, where moving one cell of the 2×2 moves it by about 0.1; and the three classes are three
+  that eight samples of seven prompts happened to surface, not an enumeration. Three tapes still
+  carry the operator's home path inside a recorded completion — the Claude CLI answering a drafting
+  prompt with an attempted `<invoke name="Bash">` listing its own memory directory — because the
+  re-ask that followed each is a call the replay makes; unchanged from the previous commit, and no
+  credential is in them. No test calls a live model, downloads data, trains on real data or reads
+  an API key; the only live calls of this phase are the operator's five record sittings. No push.
