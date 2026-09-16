@@ -8,7 +8,8 @@
 # available at the start of month t (beginning-of-month lagging): balance, age, incentive and burnout
 # use the prior month's closing values, and the outcome is the payoff observed during month t.
 # Origination years, cut dates and the servicing assumptions below are declarations, decided in
-# Cowork before Phase 4; the developer `claims` are filled from the first committed real run.
+# Cowork before Phase 4; the developer `claims` were filled on 2026-09-16 from the first committed
+# real run, whose aggregates are in artifacts/real/.
 name: msr_prepayment
 version: "1.0"
 model_type: discrete_time_hazard
@@ -21,7 +22,13 @@ data:
     2019 (20,000 loans, seed 20260901, built by sample_freddie.py); FRED MORTGAGE30US (Freddie Mac
     PMMS, weekly, month-start value). Synthetic mode: synthetic.py. No loan-level rows are
     redistributed.
-  manifest: null                      # set after the real panel is built (Phase 4)
+  manifest:                           # SHA-256 of the five files sample_freddie.py wrote on 2026-09-16 (Release 47 sample files,
+                                      # 20,000 loans, seed 20260901); verified only under --data (D-022); aggregates in artifacts/real/
+    train.csv:           "1f220f505e5b5d6478ae4e88bd732bccff793c114172680d8b99e930679ca196"
+    test.csv:            "c92f126e77f406fff90bf7792c646fe2fea3973754104759090f93a2431cd0e0"
+    out_of_time.csv:     "176dfd7382fdb40c1aeab5a57c9450975780e0d092cc34dbeeed6082465c7c23"
+    vintage_holdout.csv: "597f3e894c8cce066624ae325799a60a5a0f82ac9b096586b9633976489364b4"
+    rates.csv:           "45bef524be2dcef44deebbef04c5abc8af42823c2ef740cb9f0cb130e8562c7b"
   target: prepaid
   event_definition: "1 if the loan paid off voluntarily (zero balance code 01) during month t; loan-months after default, repurchase or maturity are censored"
   time_column: period                 # loan-month index, YYYYMM
@@ -56,7 +63,16 @@ thresholds:
   - {metric: calibration_slope, split: test, min: 0.80, max: 1.20}
   - {metric: psi,               features: all, max: 0.25}
 
-claims: []                            # filled from the first committed real run (Phase 4, by hand)
+# Developer-declared numbers about the real fit, copied from the committed real-sample run
+# (never from memory); verified like report claims when --data is given.
+claims:                               # from artifacts/real/metrics.json (run of 2026-09-16), rounded to three
+                                      # significant figures; evaluated only under --data (D-016). No
+                                      # calibration_slope claim: the subject reports a penalised fit and
+                                      # quaestor recomputes the unpenalised MLE, so the two differ by 0.051
+                                      # on test and a claim of either would be checked against the other
+                                      # (D-160). No CPR claim: no artifact holds an annualised CPR level.
+  - {text: "AUC on the test split is 0.655",           metric: auc,   split: test, value: 0.655}
+  - {text: "Brier score on the test split is 0.00906", metric: brier, split: test, value: 0.00906}
 
 scenarios:
   rate_shocks_bp: [-300, -200, -100, 0, 100, 200, 300]

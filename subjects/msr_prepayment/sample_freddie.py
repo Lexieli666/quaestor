@@ -296,8 +296,10 @@ disposition, the loan leaves the dataset without paying off, and counting that m
 loan survived would put a competing exit in the hazard's denominator. `06`, `97` and `98` are
 **kept** although the current guide no longer lists them: this script reads the *archived*
 distributions of the 2014, 2017 and 2019 vintages, which were published under earlier guides and
-still carry them, and a retired code that never appears costs nothing while a code that appears and
-is not listed here is silently treated as a month survived (DECISIONS D-048, amended)."""
+may carry them, and a retired code that never appears costs nothing while a code that appears and
+is not listed here is silently treated as a month survived (DECISIONS D-048, amended). Measured on
+the Release 47 `sample_perf_2014.txt` of the 2026-09-16 run they do not appear: the codes present
+are 01 (40,813), 16 (141), 96 (95), 09 (82), 02 (61), 15 (41) and 03 (28) (DECISIONS D-160)."""
 
 DEFAULT_DELINQUENCY_MONTHS = 6
 """Six months past due is the default definition used here; the loan is censored from then on."""

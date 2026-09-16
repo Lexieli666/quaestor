@@ -94,7 +94,13 @@ are named in brackets.
     edited, and the excerpt's five wording edits live outside it (D-120). Attempts 1 to 5 are
     archived beside it. The one deterministic defect reading found — a loop step whose
     `above_median` rule resolved to the whole split — is fixed in the sixth follow-up below. The
-    **`msr_prepayment` live run remains outstanding**, on the Freddie Mac download
+    **`msr_prepayment` real sample is built and committed** as of 2026-09-16: the five manifest
+    digests, the three developer claims and `subjects/msr_prepayment/artifacts/real/` come from one
+    `python -m code.run --data` on the Release 47 sample files, and the offline
+    `--data … --llm fake` validate of that panel raises exactly one finding, `C1` at medium on the
+    out-of-time and vintage-holdout splits, which D-161 records as the control's measured baseline
+    rather than a false alarm (D-160 carries the fit). The **`msr_prepayment` live run remains
+    outstanding**, on that panel
 - [x] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
   - **nothing was dropped**: all fourteen seeded recipes produce their `expected_signal` on the
     synthetic subjects and all fourteen are detected at severity ≥ medium by `rules_only`, and the

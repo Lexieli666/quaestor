@@ -3,10 +3,22 @@
 A mortgage prepayment model with a servicing-value projection, rebuilt from scratch as a
 **validation subject**: something for Quaestor to validate, not a model anyone should use. It is
 the second clean control of the seeded defect study (`DECISIONS.md` D-047), and the one that is
-expected to yield **no finding at all** — its champion is the correct functional form for its
-generating process, where the credit subject's is deliberately misspecified and must yield an
-`E1`. Which is why what it does and does not contain is written down here rather than left in the
-code.
+expected to yield **no finding at all on the synthetic panel** — its champion is the correct
+functional form for that generating process, where the credit subject's is deliberately
+misspecified and must yield an `E1`. Which is why what it does and does not contain is written
+down here rather than left in the code.
+
+**On the real panel it yields one finding**, and that is not a defect in the rule: `C1` at
+severity medium, on the two period splits, from a calibration slope of 0.432 out-of-time against
+the declared [0.80, 1.20] band and mean predicted-to-observed gaps of 0.4618 out-of-time and
+0.4932 on the vintage holdout against a 0.25 threshold. A hazard fitted through 2019
+under-predicts the 2020–21 refinancing wave by about half — out-of-time CPR **0.203** observed
+against **0.114** predicted, vintage holdout **0.210** against **0.112** — and `C1` is scoped to
+every split by `metrics.py`'s own docstring, for the reason D-046's train-against-test scoping of
+`psi` does not transfer to calibration. The real control is therefore not clean, the number is a
+fact about the model rather than about the check, and `DECISIONS.md` **D-161** records what the
+study does about it: each control carries a measured baseline finding set per data mode, and a
+baseline finding on a control is not a false alarm.
 
 Two data modes, one pipeline. `--synthetic N` draws N loans over 60 months from a known hazard and
 is what every test, CI and the demo use. `--data DIR` fits the panel that `sample_freddie.py`
@@ -20,7 +32,7 @@ any.
 | loan data | Freddie Mac **Single-Family Loan-Level Dataset**, the *sample* files for origination years **2014, 2017 and 2019** |
 | rate series | FRED **`MORTGAGE30US`** (Freddie Mac Primary Mortgage Market Survey, 30-year fixed, weekly) |
 | terms | Freddie Mac's terms of use permit analysis of the loan-level records but **not their redistribution**. FRED's series is public |
-| what is committed | **nothing from the loan-level files: not a row, not a per-loan digest, not a loan sequence number.** `package.yaml`'s `data.manifest` records the SHA-256 of the five files `sample_freddie.py` writes, and `artifacts/real/` will hold the aggregates of the real run — coefficients, metrics, split sizes and split digests — and nothing else |
+| what is committed | **nothing from the loan-level files: not a row, not a per-loan digest, not a loan sequence number.** `package.yaml`'s `data.manifest` records the SHA-256 of the five files `sample_freddie.py` writes, and `artifacts/real/` holds the aggregates of the real run — coefficients, metrics, split sizes and split digests, the fitted seasoning curve and the rate-shock projection — and nothing else |
 
 That is the whole of the difference from the sibling subject: UCI's CC BY 4.0 lets
 `credit_default` commit a derived sample's digests and aggregates, and Freddie Mac's terms let
@@ -82,8 +94,11 @@ those reasons is dropped rather than counted as a month it survived, because wha
 was a competing exit. Read against the July 2026 guide's own enumeration — `01`, `02`, `03`, `09`,
 `15`, `16`, `96` — that list is a superset by three: `16` is **added**, because a reperforming-loan
 sale is a disposition and not a payoff, and `06`, `97` and `98` are **kept** although the current
-guide no longer lists them, because the archived distributions of these three vintages still carry
-them and an unlisted code would be read as a month the loan survived.
+guide no longer lists them, because the archived distributions of these three vintages may carry
+them and an unlisted code would be read as a month the loan survived. Measured on the Release 47
+`sample_perf_2014.txt` of the 2026-09-16 run, they do not: the codes that appear are `01` (40,813),
+`16` (141), `96` (95), `09` (82), `02` (61), `15` (41) and `03` (28), and a retired code that never
+appears costs nothing while an unlisted one that does appear is silent.
 
 Delinquency status is two characters wide in Release 47 — `00` for current, `01` for one month past
 due, with `RA` for a payment plan and `XX` for unknown. The count is taken numerically, so the
@@ -250,9 +265,52 @@ own coefficient is weakly identified. A validator should say so; it is not a def
 
 ## Measured on the real sample
 
-*Filled after the first real run.* Nothing in this section is quoted anywhere until a committed
-run has produced it: `package.yaml`'s `data.manifest` is `null`, its `claims` list is empty, and
-`artifacts/real/` does not exist yet.
+Run of **2026-09-16** on this machine (Python 3.12.14, scikit-learn 1.9.0, numpy 2.5.3, pandas
+3.0.5): `sample_freddie.py` over the Release 47 sample files for 2014, 2017 and 2019 at the
+declared 20,000 loans and seed 20260901, then `python -m code.run --data`. Every number below is
+copied from `artifacts/real/metrics.json`, `splits.json`, `model_summary.json` and
+`projection.json`, which are the committed record of that run; `package.yaml`'s three developer
+`claims` are the same file rounded to three significant figures. The two wall-clocks are the
+operator's `time` of that afternoon and are the only rows here no committed artifact holds.
+
+| | |
+|---|---|
+| `train.csv` SHA-256 | `1f220f505e5b5d6478ae4e88bd732bccff793c114172680d8b99e930679ca196` |
+| `test.csv` SHA-256 | `c92f126e77f406fff90bf7792c646fe2fea3973754104759090f93a2431cd0e0` |
+| `out_of_time.csv` SHA-256 | `176dfd7382fdb40c1aeab5a57c9450975780e0d092cc34dbeeed6082465c7c23` |
+| `vintage_holdout.csv` SHA-256 | `597f3e894c8cce066624ae325799a60a5a0f82ac9b096586b9633976489364b4` |
+| `rates.csv` SHA-256 | `45bef524be2dcef44deebbef04c5abc8af42823c2ef740cb9f0cb130e8562c7b` |
+| loan-months / loans / event rate — train | 313,538 / 8,596 / 0.00948 |
+| — test | 135,060 / 3,685 / 0.00917 |
+| — out-of-time | 283,343 / 7,954 / 0.01868 |
+| — vintage holdout | 221,779 / 6,123 / 0.01948 |
+| features retained | 10 of 12 (`bom_balance_log` at VIF 16.50 and then `note_rate` at 18.07 removed) |
+| champion test AUC / Brier / calibration slope | **0.6549** / 0.00906 / 0.966 |
+| champion test CPR, actual vs predicted | 0.1047 vs 0.1094 |
+| champion train AUC / calibration slope | 0.6504 / 0.957 |
+| out-of-time AUC / slope / CPR actual vs predicted | 0.690 / **0.432** / 0.203 vs 0.114 |
+| vintage-holdout AUC / slope / CPR actual vs predicted | 0.739 / 0.851 / 0.210 vs 0.112 |
+| projection book | 3,946 loans, $560.9M of beginning balance, as of 202603 |
+| base servicing value | $9,498,507 |
+| value change at −300bp / +300bp | **−$1,077,724** (−11.35%) / **+$167,117** (+1.76%); convexity −910,607, realised negative as declared |
+| wall-clock, `sample_freddie.py` | 26.97 s (`time`, total) |
+| wall-clock, `python -m code.run --data` | 10.16 s (`time`, total) |
+
+**Test AUC clears the declared floor by 0.005.** `package.yaml` declares `auc test min 0.65` and
+the fit returns 0.6549; the floor was set before the run and is not moved now that the margin is
+known, because a floor moved after seeing the number is the `T1` defect this tool exists to catch
+(`DECISIONS.md` D-160).
+
+**CPR level is reported and not tested.** No `cpr_mae` threshold is declared and no developer
+claim is made about CPR: `verifier/developer.py` resolves a claim to `metrics.<split>.<metric>`,
+`<metric>.<split>`, `<metric>` or `<metric>.max`, and no artifact holds an annualised CPR *level*
+— `cpr.<split>` is a by-period table and `cpr.<split>.mae` an error — so a CPR claim would be a
+declaration nothing could check (D-160). Nor is there an out-of-time or vintage claim: the
+developer does not get to claim drift.
+
+The panel and the run both live outside the repository, and `--data` re-verifies the five digests
+above before fitting. The finding the fake-LLM validate raises on this panel — one `C1` at medium
+— is the opening section of this file and `DECISIONS.md` D-161.
 
 ## Files
 
@@ -261,6 +319,7 @@ package.yaml       the declaration Quaestor validates against (spec 3.2)
 README.md          this file
 synthetic.py       the human-facing panel writer; re-exports the process out of code/
 sample_freddie.py  builds the four split panels and rates.csv; never run by a test
+artifacts/real/    aggregates of the committed real-sample run: metrics, coefficients, split digests, features, projection
 code/              the only directory the sandbox copies into the subprocess
   run.py           the entrypoint: python -m code.run --out DIR [--data DIR | --synthetic N]
   features.py      the raw schema, the twelve features, the four splits, the spline, the screen
