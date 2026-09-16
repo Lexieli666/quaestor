@@ -1033,6 +1033,16 @@ here and recorded.
   sentence in the report rather than a defect, and it is in the subject's `README.md`. Rejected
   alternative: strengthening `beta_burnout` until the fitted sign matched, which would optimise a
   coefficient nothing depends on and move the base rate the intercept solve is there to hold.
+- **Consequence, added 2026-09-16 (Phase 9, the first real MSR sample).** The `{}` expectation
+  above holds on the **synthetic** panel and **does not hold on the real one**. The offline
+  `--data … --llm fake` validate of the Release 47 panel raises exactly one finding, `C1` at
+  medium, on the `out_of_time` and `vintage_holdout` splits: calibration slope 0.432 out-of-time
+  against the declared [0.80, 1.20] band, and mean predicted-to-observed gaps of 0.4618 and 0.4932
+  against the 0.25 threshold. That is the model under-predicting the 2020-21 refinancing wave by
+  about half and not a defect in the rule, so this entry's expectation is now read as a statement
+  about the synthetic panel alone. **See D-161**, which generalises it: every control carries a
+  measured baseline finding set per data mode, and a baseline finding on a control is not a false
+  alarm.
 
 ## D-048. The Freddie Mac layouts are positional, written out, and checked by field count
 
@@ -4894,3 +4904,125 @@ here and recorded.
   `sample_*_{year}.txt` and taking whatever is not `orig`, which would silently read a stray file a
   human left in the directory; and switching the expected name to `perf` outright, which breaks
   every archived distribution and is the mirror of the mistake this entry avoids.
+
+## D-160. The real `msr_prepayment` fit, measured, and what of it becomes the package's word
+
+- **Date:** 2026-09-16 (Phase 9, the first real MSR sample)
+- **Q:** `sample_freddie.py` has been run over the Release 47 sample files and
+  `python -m code.run --data` has fitted the panel. Which of those numbers go into
+  `package.yaml` as the developer's own declarations, which go into the README as measurement,
+  and which of the subject's declared thresholds move now that the fit is known?
+- **A:** **The measurement.** Run of 2026-09-16 on this machine (Python 3.12.14,
+  scikit-learn 1.9.0, numpy 2.5.3, pandas 3.0.5), 20,000 loans at seed 20260901 over the 2014,
+  2017 and 2019 sample files, sampler 26.97 s and subject 10.16 s wall-clock. The five digests are
+  in `data.manifest`. Loan-months / loans / event rate: train 313,538 / 8,596 / 0.00948; test
+  135,060 / 3,685 / 0.00917; out_of_time 283,343 / 7,954 / 0.01868; vintage_holdout
+  221,779 / 6,123 / 0.01948. The VIF screen removes two of twelve, `bom_balance_log` at 16.50 and
+  then `note_rate` at 18.07. Test AUC **0.6549**, Brier 0.00906, slope 0.966, CPR 0.1047 actual
+  against 0.1094 predicted; train 0.6504 and 0.957; out_of_time AUC 0.690, slope **0.432**, CPR
+  0.203 against 0.114; vintage_holdout AUC 0.739, slope 0.851, CPR 0.210 against 0.112. The
+  projection values 3,946 loans and $560.9M of beginning balance as of 202603 at
+  **$9,498,507**, changing **−$1,077,724 (−11.35 %)** at −300 bp and **+$167,117 (+1.76 %)** at
+  +300 bp, convexity −910,607, realised negative as declared.
+  **Two developer claims, not three, and no CPR claim.** `claims` carries
+  `auc test 0.655` and `brier test 0.00906`, rounded to three significant figures from
+  `artifacts/real/metrics.json`. There is **no CPR claim** because `verifier/developer.py`
+  resolves a claim to `metrics.<split>.<metric>`, `<metric>.<split>`, `<metric>` or
+  `<metric>.max`, and no artifact holds an annualised CPR *level* — `cpr.<split>` is a by-period
+  table and `cpr.<split>.mae` an error — so the declaration would be checked by nothing. There is
+  **no `calibration_slope` claim** for a sharper version of the same reason, found by making the
+  claim and running the validate: the claim *does* resolve, to `calibration_slope.test`, and the
+  two numbers are **1.017 and 0.966**, so it came back `mismatch` and minted a `T1` at medium on
+  the clean control. The subject computes its own slope with
+  `sklearn.linear_model.LogisticRegression(max_iter=1000)`, whose default `C = 1.0` penalises the
+  coefficient; `quaestor.tools.stats.calibration_slope_intercept` computes the unpenalised maximum
+  likelihood estimate by its own Newton iteration and says in its docstring that it does not use
+  scikit-learn for exactly this reason. On four synthetic samples of the four splits' sizes and
+  event rates the two estimators differ by −0.005 to +0.059, the order of the 0.051 seen here, so
+  the gap is the estimator and not the panel. A claim checked against a differently-defined
+  artifact is not a claim, so it is dropped and the disagreement is recorded here.
+  **There is also no out-of-time or vintage claim**: the developer does not get to claim drift.
+  **No threshold moves.** `auc test min 0.65` stays where it was set before the run although the
+  fit clears it by **0.005**. No `cpr_mae` threshold is added: CPR is reported and not tested
+  until the `scenarios` block carries a claim one could sit under. `--n-loans 20000` stands.
+  The sampler's zero-balance docstring and the subject README are softened from "still carry" to
+  "may carry", with the measured enumeration beside them.
+- **Why:** A floor moved after seeing the number is the `T1` this tool exists to catch, and 0.005
+  is exactly the margin at which moving it is tempting. The floor was a declaration made before
+  the fit; if a later sampler or library change takes the fit under it, that is a real finding on
+  a real model and the control is re-cut then, with the re-cut recorded. `--n-loans 20000` is left
+  alone on the same principle and because it is adequate: 8,596 training loans give about 2,970
+  events for ten coefficients, and the whole sample costs 27 s. Dropping the slope claim rather
+  than declaring 1.017 is the same order-of-decision rule: 1.017 is the *validator's* number, and
+  writing the validator's recomputation into the package as the developer's word inverts the two
+  roles the study depends on — the subject is the developer's model, and its documentation must
+  say what its own code computed. Dropping it rather than changing `run.py` to the unpenalised
+  estimator is deliberate too: that would be tuning the subject to the validator, it would move
+  every committed number in `artifacts/real/`, and it would need a second real run. **Whether the
+  subject should report a penalised calibration slope at all is a real question about the subject
+  and is left open here**, named so the next person does not rediscover it.
+  Two numbers in this entry are worth flagging as not being artifacts. The two wall-clocks are the
+  operator's `time`, as the credit README's are; and the zero-balance enumeration —
+  `01` (40,813), `16` (141), `96` (95), `09` (82), `02` (61), `15` (41), `03` (28) on
+  `sample_perf_2014.txt` — was measured on the raw download, which this repository does not hold
+  and no test may read, so it is quoted as the operator's measurement of 2026-09-16 and is why the
+  three retired codes stay in `CENSORING_CODES` on a "may carry" rather than a "does carry".
+  Rejected alternatives: declaring the CPR level anyway and adding an artifact to hold it, which
+  is a tool change made to fit a claim; adding a `cpr_mae` threshold at whatever the run produced,
+  which is the moved floor in a new metric; and recalibrating or refitting the subject so that the
+  real control comes out clean, which D-161 rejects at length.
+
+## D-161. Every control carries a measured baseline finding set per data mode; a baseline finding is not a false alarm
+
+- **Date:** 2026-09-16 (Phase 9, decided by the human and confirmed in Cowork)
+- **Q:** The offline `--llm fake` validate of the real `msr_prepayment` panel yields `C1` at
+  medium on `out_of_time` and `vintage_holdout`. `docs/STUDY.md` §5 counts every finding at
+  severity ≥ medium on a control as a **false alarm**, and D-047 fixes this control's expectation
+  at exactly `{}`. Worse for the study: `msr__C1__oversampled_hazard` seeds `C1` on this subject,
+  so on real data its own class would be present *before* the seed. What is the rule?
+- **A:** **D-017 is generalised.** Each control × data mode has a **baseline finding set**,
+  measured with `--llm fake` and recorded in `eval/taxonomy.yaml` before the study runs, and
+  **a baseline finding on a control is not a false alarm**. Detection of a baseline class on a
+  seeded variant of the same subject and the same data mode requires **evidence outside the
+  baseline**: for `msr__C1` on real data, a `C1` whose evidence includes a **test-split** artifact,
+  since the clean control's test slope is 0.966 and its test mean-ratio gap about 4 %, so the seed
+  has to move the test split to count.
+  The values, measured: **real `msr_prepayment`** = {`C1` medium, splits `out_of_time` and
+  `vintage_holdout`, evidence `calibration_slope.out_of_time`,
+  `calibration.mean_rel_gap.out_of_time`, `calibration.mean_rel_gap.vintage_holdout`};
+  **synthetic `msr_prepayment`** = {} (D-047); **synthetic `credit_default`** = {`E1` low}
+  (D-017); **real `credit_default`** = {} (the committed excerpt run,
+  `eval/results/first-live/credit/findings.json`, and its five predecessors). The two **perturbed**
+  controls are not yet measured and carry `null` until the Phase 12 pre-flight runs them offline;
+  a perturbed control whose baseline differs from its clean control's would itself be a finding
+  about the perturbation. `score.py` reading artifact keys from `artifacts/index.json` beside
+  `findings.json`, so that "evidence includes a test-split artifact" is checkable rather than a
+  sentence, is a **Phase 12 pre-flight item, named here**. The scorer is not written in this
+  commit; the taxonomy carries the values and `eval/seed.py` parses them.
+  Also recorded: the `msr_prepayment` **live** run will be the first live run with a finding, and
+  therefore the first live exercise of the D-156 fix to section 6's prompt.
+- **Why:** Two fixes were available and both are refused. (i) **Re-scoping `C1` to the test split**,
+  as D-046 did for `psi` and `S1`, would make the control pass — and would be choosing the scoping
+  that makes the control pass *after* seeing the control, which is the exact order D-035 and D-046
+  refused when the scoping was cheap to get right. `metrics.py`'s module docstring already applies
+  `C1` to every split and gives the reason D-046's train-versus-test argument does not transfer:
+  PSI on a period split compares populations that are *defined* to differ, while a calibration
+  slope on a period split is the model's own claim about that period and is exactly what a
+  validator should read. Re-scoping would blind the outcomes analysis on every real hazard model
+  this tool is ever pointed at, which is a large price for a tidy control. (ii) **Refitting or
+  recalibrating the subject so the validator's control comes out clean** inverts the roles the
+  whole study depends on: the subject is the developer's model, the validator is the reader, and a
+  subject tuned until the reader has nothing to say measures nothing. The out-of-time
+  miscalibration is the phenomenon — a hazard fitted through 2019 under-predicts the 2020–21
+  refinancing wave by about half — and not noise.
+  What the baseline rule buys is that both readings stay true at once: the control is *not* clean
+  on real data, which is published rather than smoothed, and the study still has a false-alarm
+  rate that means something, because a false alarm is a finding the control did not already carry.
+  The cost is that it is one more measured number per control that must be re-measured whenever a
+  subject, a threshold or a tool changes, which is why it lives in the taxonomy beside the recipes
+  rather than in prose. Rejected alternatives: counting the baseline `C1` as a false alarm and
+  publishing a non-zero false-alarm rate on a control nothing is wrong with, which would make the
+  headline number a statement about the panel rather than about the detector; excluding the real
+  `msr` control from the study, which discards the only real hazard panel this project has; and
+  scoring detection of a seeded `C1` on this subject without the evidence rule, which would credit
+  the detector for a finding it would have raised with no seed at all.

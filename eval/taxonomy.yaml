@@ -1,4 +1,6 @@
-# eval/taxonomy.yaml — Phase 10, filled in Cowork on 2026-09-09 from the human's answers. Final.
+# eval/taxonomy.yaml — Phase 10, filled in Cowork on 2026-09-09 from the human's answers. Final,
+# with one addition: every control row gained a `baseline` key on 2026-09-16 under D-161, and
+# nothing else in this file changed.
 # Copy to the repo as eval/taxonomy.yaml. Class codes are fixed by 02-SPEC.md section 3.7 and are
 # the scoring keys of the study; do not rename them.
 #
@@ -12,11 +14,38 @@ subjects: [credit_default, msr_prepayment]
 study:
   variants: 18          # 14 seeded + 4 controls; exactly one seeded defect per variant
   seed: 20260901
+
+# baseline: what this control raises with `--llm fake` before any seed, per data mode, measured and
+# not expected (D-161). A baseline finding on a control is NOT a false alarm, and detection of a
+# baseline class on a seeded variant of the same subject and data mode needs evidence outside the
+# baseline. `null` means not yet measured: the two perturbed controls are a Phase 12 pre-flight item,
+# and a perturbed baseline that differs from its clean control's is itself a finding.
 controls:
-  - {id: control_credit_clean,      subject: credit_default,  recipe: none}
-  - {id: control_msr_clean,         subject: msr_prepayment,  recipe: none}
-  - {id: control_credit_perturbed,  subject: credit_default,  recipe: harmless_perturbation, params: {shuffle_rows: true, feature_prefix: "f_"}}
-  - {id: control_msr_perturbed,     subject: msr_prepayment,  recipe: harmless_perturbation, params: {shuffle_rows: true, feature_prefix: "f_"}}
+  - id: control_credit_clean
+    subject: credit_default
+    recipe: none
+    baseline:
+      synthetic:
+        - {class: E1, severity: low}              # D-017: the champion's form cannot carry the interaction
+      real: []                                    # eval/results/first-live/credit/findings.json and its five predecessors
+  - id: control_msr_clean
+    subject: msr_prepayment
+    recipe: none
+    baseline:
+      synthetic: []                               # D-047
+      real:
+        - {class: C1, severity: medium, splits: [out_of_time, vintage_holdout],
+           evidence: [calibration_slope.out_of_time, calibration.mean_rel_gap.out_of_time, calibration.mean_rel_gap.vintage_holdout]}
+  - id: control_credit_perturbed
+    subject: credit_default
+    recipe: harmless_perturbation
+    params: {shuffle_rows: true, feature_prefix: "f_"}
+    baseline: null                                # not yet measured (Phase 12 pre-flight)
+  - id: control_msr_perturbed
+    subject: msr_prepayment
+    recipe: harmless_perturbation
+    params: {shuffle_rows: true, feature_prefix: "f_"}
+    baseline: null                                # not yet measured (Phase 12 pre-flight)
 defects:
 
   # ---- L1: target leakage ------------------------------------------------------------------

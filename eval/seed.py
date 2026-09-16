@@ -100,6 +100,15 @@ class DefectSpec:
     met_where: str | None = None
     status: str = SEEDED_STATUS
     dropped_reason: str | None = None
+    baseline: Mapping[str, list[Mapping[str, Any]] | None] | None = None
+    """What this control raises before any seed, per data mode, measured rather than expected.
+
+    Controls only: a seeded row's baseline is `None`, because the question a baseline answers --
+    what does this package raise with nothing wrong with it -- is a question about a control.
+    Keyed by data mode (`synthetic`, `real`); a mode's value is a list of finding descriptions, or
+    `None` where the baseline has not been measured yet (DECISIONS D-161). Nothing here reaches
+    `SEED.yaml`: it is the scorer's input, and `eval/score.py` reads it in Phase 12.
+    """
 
     @property
     def is_control(self) -> bool:
@@ -138,6 +147,23 @@ class Taxonomy:
         return hashlib.sha256(self.path.read_bytes()).hexdigest()
 
 
+def _baseline(raw: Any) -> Mapping[str, list[Mapping[str, Any]] | None] | None:
+    """Read a control row's `baseline` block, which is absent, `null`, or a map by data mode.
+
+    Args:
+        raw: Whatever the row carried under `baseline`.
+
+    Returns:
+        The block as a plain mapping, or `None` when the row declares none.
+    """
+    if raw is None:
+        return None
+    return {
+        str(mode): None if rows is None else [dict(row) for row in rows]
+        for mode, rows in raw.items()
+    }
+
+
 def load_taxonomy(path: Path | str = TAXONOMY_PATH) -> Taxonomy:
     """Read `eval/taxonomy.yaml` into controls and defects, in file order.
 
@@ -165,6 +191,7 @@ def load_taxonomy(path: Path | str = TAXONOMY_PATH) -> Taxonomy:
                 params=dict(row.get("params") or {}),
                 status=str(row.get("status", CONTROL_STATUS)),
                 dropped_reason=row.get("dropped_reason"),
+                baseline=_baseline(row.get("baseline")),
             )
         )
     for row in raw.get("defects") or []:

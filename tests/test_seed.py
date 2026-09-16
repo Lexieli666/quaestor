@@ -244,6 +244,55 @@ def test_a_control_raises_exactly_what_the_unperturbed_subject_raises(
     assert _classes(runs[variant]) == CONTROL_EXPECTATIONS[variant]
 
 
+def test_every_control_carries_the_baseline_d161_measured(taxonomy: Any) -> None:
+    """D-161: a control's baseline is measured per data mode, and a seeded row has none."""
+    by_id = {spec.id: spec for spec in taxonomy.specs}
+
+    credit_clean = by_id["control_credit_clean"].baseline
+    assert credit_clean == {
+        "synthetic": [{"class": "E1", "severity": "low"}],  # D-017
+        "real": [],  # eval/results/first-live/credit/
+    }
+
+    msr_clean = by_id["control_msr_clean"].baseline
+    assert msr_clean is not None
+    assert msr_clean["synthetic"] == []  # D-047
+    assert msr_clean["real"] == [
+        {
+            "class": "C1",
+            "severity": "medium",
+            "splits": ["out_of_time", "vintage_holdout"],
+            "evidence": [
+                "calibration_slope.out_of_time",
+                "calibration.mean_rel_gap.out_of_time",
+                "calibration.mean_rel_gap.vintage_holdout",
+            ],
+        }
+    ]
+
+    # The perturbed pair is a Phase 12 pre-flight item and says so by carrying nothing.
+    assert by_id["control_credit_perturbed"].baseline is None
+    assert by_id["control_msr_perturbed"].baseline is None
+
+    # A baseline answers a question about a control, so no seeded row has one.
+    for spec in taxonomy.specs:
+        if not spec.is_control:
+            assert spec.baseline is None, spec.id
+
+
+def test_the_baseline_reaches_the_scorer_and_not_the_variant(tmp_path: Path, taxonomy: Any) -> None:
+    """`SEED.yaml` is unchanged by D-161: the baseline is the scorer's input, not the variant's."""
+    spec = next(row for row in taxonomy.specs if row.id == "control_msr_clean")
+    assert spec.baseline is not None
+    target = tmp_path / spec.id
+    seed_module.seed(SUBJECTS / spec.subject, spec, target, taxonomy=taxonomy)
+    payload = yaml.safe_load((target / seed_module.SEED_FILE).read_text(encoding="utf-8"))
+    assert "baseline" not in payload
+    assert "calibration_slope.out_of_time" not in (target / seed_module.SEED_FILE).read_text(
+        encoding="utf-8"
+    )
+
+
 def test_the_clean_control_is_a_byte_copy_of_the_subject(variants: dict[str, Path]) -> None:
     for control, subject in (
         ("control_credit_clean", "credit_default"),

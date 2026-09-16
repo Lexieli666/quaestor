@@ -917,3 +917,53 @@ and n = 1 at worst; the relation violations are all judge assertions, so what th
 grader's stability as much as a drafter's; the kappa rests on 40 rows with five failures in each
 margin, where moving one cell of the 2×2 moves it by about 0.1; and the three classes above are
 three that eight samples of seven prompts happened to surface, not an enumeration.
+
+### 2026-09-16 — `msr_prepayment`, the first real sample offline: the clean control is not clean
+
+The record is `subjects/msr_prepayment/artifacts/real/` and `package.yaml`'s `data.manifest`. No
+live call was made: this is `quaestor validate subjects/msr_prepayment --data … --llm fake`, run by
+a human against the Release 47 Freddie Mac sample panel, whose rows this repository does not hold.
+
+D-047 fixed this subject's expectation at **no finding at all** — the hazard subject is the control
+whose champion is the correct functional form for its process, against the credit subject's
+deliberately misspecified one. That expectation holds on the synthetic panel and **does not hold on
+the real one**. The validate raises exactly one finding: `C1` at severity **medium**, merged from
+two candidates, on the `out_of_time` and `vintage_holdout` splits — calibration slope **0.432**
+out-of-time against the declared [0.80, 1.20] band, and mean predicted-to-observed gaps of
+**0.4618** and **0.4932** against the 0.25 threshold. Grounding precision is 1.0000 pre- and
+post-repair over 51 claims and 271 artifacts, and `T1`, `O1`, `S1`, `D1`, `L1`, `L2`, `R1`, `M1`,
+`E1` and `X1` raise nothing. The finding is **correct**: a hazard fitted through 2019
+under-predicts the 2020–21 refinancing wave by about half, out-of-time CPR 0.203 observed against
+0.114 predicted and vintage holdout 0.210 against 0.112. It is a fact about the model, not a false
+alarm, and `C1` is scoped to every split deliberately (`metrics.py`'s module docstring) because a
+calibration slope on a period split is the model's own claim about that period, where PSI on one
+compares populations defined to differ (D-046).
+
+This is the first control measured on real data that carries a finding, and it changes how the
+Phase 12 study must score. **D-161** is the rule: every control carries a **baseline finding set
+per data mode**, measured with `--llm fake` and written into `eval/taxonomy.yaml` before the study
+runs, and a baseline finding on a control is **not** a false alarm. Detection of a baseline class on
+a seeded variant of the same subject and data mode then requires evidence *outside* the baseline —
+for `msr__C1__oversampled_hazard` on real data, a `C1` whose evidence includes a **test-split**
+artifact, since the clean control's test slope is 0.966 and its test mean-ratio gap about 4 %. The
+two alternatives were refused in writing: re-scoping `C1` to the test split is choosing the scoping
+that makes the control pass after seeing the control, and refitting the subject until the validator
+has nothing to say inverts the roles the study depends on. The four measured baselines are in the
+taxonomy; the two perturbed controls are `null` until the Phase 12 pre-flight measures them.
+
+One defect in the **package**, found by the same run and not by review. The first draft of this
+commit declared three developer claims, the third being the test calibration slope of 0.966 that
+the subject's `metrics.json` reports. It came back `mismatch` and minted a `T1` at medium: the
+subject computes its slope with `sklearn.linear_model.LogisticRegression` at the default `C = 1.0`,
+a penalised fit, while `quaestor.tools.stats.calibration_slope_intercept` computes the unpenalised
+maximum likelihood estimate and reads **1.017** on the same split. On four synthetic samples of the
+four splits' sizes and event rates the two estimators differ by −0.005 to +0.059, so the 0.051 gap
+is the estimator and not the panel. The claim is dropped rather than restated at the validator's
+number, for the reason D-160 gives, and the package ships two claims: `auc test 0.655` and
+`brier test 0.00906`, both verified.
+
+**What this entry does not show.** One panel, one seed and one fit, so the baseline it measures is
+a measurement of this sample and not a property of mortgage prepayment models; and it is a
+fake-LLM run, so nothing here is evidence about drafting, repair or a model's judgement — the
+`msr_prepayment` live run remains outstanding and will be the first live run with a finding to
+write about.
