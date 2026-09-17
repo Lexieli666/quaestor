@@ -5280,3 +5280,130 @@ here and recorded.
   `{}` (not re-run here; no `stability.*` artifact exists in it). `eval/taxonomy.yaml` is not
   edited. The Phase 12 pre-flight list in the `docs/STUDY.md` draft loses its §4 item (ii), which
   is Cowork's to move.
+
+## D-166. A bin label is not a claim: the `label_number` exclusion class
+
+- **Date:** 2026-09-17 (Phase 9 follow-up 7)
+- **Q:** Section 4 of the first live `msr_prepayment` run
+  (`eval/results/first-live/msr-attempt1/`) wrote "The decile separation on test, with decile 1
+  holding the highest probabilities, is shown below." The `1` was tokenised as a claim of value
+  1.0, entered grounding precision's denominator, came back `unsupported` — claim
+  `8dc85fe2b8ce10b4`, one of the run's two pre-repair failures — and was removed by a repair round
+  whose replacement reads "the first decile". Is that number a claim?
+- **A:** No. It is the **name of a bucket**, not a measurement of one. No artifact in the store
+  holds it, and none could: `deciles.test` is a table whose `decile` column is a label, and a
+  citation to it would resolve to a cell that the claim does not assert anything about. So
+  `verifier/tokens.py` gains a seventh regex exclusion class, `label_number`, on the pattern
+  `section_number` set: `decile`, `bin`, `quantile`, `quintile`, `step`, `round` or `regime`,
+  case-insensitive, immediately followed by a whole-word integer of one to three digits. It is
+  added to `_PATTERN_ORDER` directly after `section_number`, so `claims.json`'s `exclusions` lists
+  it beside the others and Appendix A prints it with its examples, and it is masked in `_masked`
+  after the two section-number passes.
+
+  **The bound is the whole of the design**, because an exclusion class is the one kind of rule that
+  fails invisibly: it lowers the denominator, which flatters the headline. Three refusals are
+  asserted rather than argued. The label word must be immediately before the integer, so "top 2
+  deciles capture 0.38" keeps both its 2 and its 0.38 and "decile event rate 0.021" keeps its
+  0.021. The integer is one to three digits and a whole word, so `decile 1000` is not a bin of any
+  partition this pipeline computes and stays a claim. And the word is the singular, so `deciles 3`
+  — a pooled range, where the number is a count of buckets — stays a claim too.
+- **Why:** The repair the pipeline made was worse than the sentence it repaired, which is the
+  signal that the rule and not the drafter was wrong. "The first decile" is a **word-number**, the
+  class `DRAFT_INSTRUCTION` already has a rule against and that the Phase 11 relations found
+  walking past the verifier three times in 49 variant runs; our own `REPAIR_INSTRUCTION` produced
+  one here by asking the drafter to remove a number it could not cite. A pipeline that converts
+  true, citation-free prose into vaguer true, citation-free prose has spent a round and bought
+  nothing. The repair instruction is **not** touched: it is right in general, and the defect is
+  that this token reached it.
+
+  Why a class of its own rather than a widening of `_SECTION_NUMBER_RE`, which already excludes
+  report numbering: it is D-116's argument on the next document. A section number numbers *this
+  report*, which the reader is holding; a bin label numbers a *partition the report computed*,
+  which Appendix A's own table resolves. Collapsing them would make the exclusion list say less
+  about what was excluded and why.
+
+  Why the six `credit_default` runs never met it, which is the part worth recording. They wrote
+  `decile 1` exactly once each, in the renderer's own caption "decile separation on test; decile 1
+  holds the highest probabilities" — inside a renderer block, and therefore already excluded as
+  `renderer_block` before any of this could apply. The tokenizer had been meeting the phrase for
+  six runs and never tokenising it, because the phrase was never in drafted prose. The hazard
+  subject's section 4 is the first to put it there.
+- **Measured:** `tests/test_verifier_extract.py` gains four cases — the live sentence, with the
+  `0.748` still a claim and `decile 1` recorded under `label_number`; one case per label word, so
+  the list cannot shrink without a failure; "top 2 deciles capture 0.38 … decile event rate
+  0.021", which keeps all three numbers and records no exclusion; and `decile 1000` /
+  `deciles 3 and 4`, which keeps all three. Offline afterwards: `credit_default --synthetic`
+  1.0000 → 1.0000 over 49 claims, 168 artifacts, `{E1 low}`; `msr_prepayment --synthetic`
+  1.0000 → 1.0000 over 45 claims, 272 artifacts, `{}`; `msr_prepayment --data … --llm fake`
+  1.0000 → 1.0000 over 51 claims, 273 artifacts, the same one `C1` at medium on the same nine
+  evidence hashes. The golden report is byte-identical, and carries no token this class would
+  have taken.
+
+## D-167. A direction verb carries the sign, and the direction is derived rather than stored
+
+- **Date:** 2026-09-17 (Phase 9 follow-up 7)
+- **Q:** Section 5 of the same run wrote "At the downward extreme the servicing value **falls by**
+  1078000 [[art:9bab8e73:scenario.value_change.-300]]". The artifact holds **-1077724.40**. The
+  matcher compared a written `+1078000` with a stored negative and recorded a `mismatch` — claim
+  `e08daa963ce63f32`, the run's other pre-repair failure — although the magnitude was 275.6 inside
+  a tolerance of 500. The repair round rewrote it to "changes by -1078000", which verifies. Where
+  does the sign of a change belong?
+- **A:** In the verb, when the prose puts it there, and the matcher now reads it. `DIRECTION_VERBS`
+  is one `Final` mapping in `verifier/match.py`: `falls`, `drops`, `declines`, `decreases`,
+  `shrinks` and `loses` to −1, and symmetrically `rises`, `gains`, `increases` and `grows` to +1.
+  `direction_of(text, value)` finds a verb governing `by` before **this claim's own token** and
+  returns its sign, or `None`. Where it returns a sign, the claim is matched on **magnitude** and
+  the verb's direction must equal the artifact's sign; where it returns `None` — "changes by
+  -1078000", "falls to 0.43" — today's signed comparison is untouched. All four quadrants are
+  tested: a `falls by` against a negative artifact verifies, a `falls by` against a positive one is
+  **still a mismatch** with a message that says the magnitude agrees and the direction does not, a
+  `rises by` against a positive verifies, and a `rises by` against a negative is a mismatch. The
+  tolerance is not relaxed: a magnitude outside it fails on the magnitude, with the artifact's
+  magnitude in the message.
+
+  Two bounds in the pattern. Only a **positive** claimed value can take a direction, because a
+  signed number states its own; and at most two lowercase words may sit between `by` and the
+  number, because the very sentence this was written for carries one — "while at the upward
+  extreme it **rises by only** 167100" — and an unbounded gap would let a verb reach across a
+  clause and attach itself to the next number.
+
+  **The matcher and not the extractor.** The extractor already returns `comparison`, so it was the
+  other candidate, and it is the wrong one: this module's own first paragraph is "the extractor may
+  be wrong about anything; the matcher is not allowed to be wrong about anything". A verb before a
+  number is a deterministic fact about a string, and a deterministic fact belongs on the
+  deterministic side, where it costs no tokens and cannot vary between two runs of one report. One
+  place, not both: the extractor is unchanged.
+- **Why:** The failure was ours and the repair made the report worse, the same shape as D-166. "The
+  servicing value changes by -1078000" is prose no validator would write and no reader wants, and
+  the pipeline produced it by refusing to read a word it had already been shown. A validation
+  report that may not say a value **fell** is less well grounded, not more: the direction is the
+  substantive half of a rate-shock sentence, and dropping it to satisfy a matcher is the report
+  improving its own headline by writing worse prose — the thing the unverified-wrapper exists to
+  prevent. And the sign is **checked**, not discarded: "falls by" against a positive artifact is
+  exactly the error a signed comparison was there to catch, and it is still caught.
+
+  Why `credit_default` could not have found it, in six live runs: a classifier's artifacts are
+  probabilities, rates, counts and AUCs, and none of them is signed. The rule needs a scenario
+  table with two ends to bite on, and only the hazard subject has one.
+
+  **The rejected alternative, which the prompt for this work asked for: a `direction` field on the
+  claim record, shown in a column of Appendix A.** It is refused, and the refusal is not a
+  judgement about taste. `examples/golden_report/CLAIMS_SCHEMA.json` was written in Phase 1, before
+  any of this code, and closes both `claim_core` and `verified_claim` with
+  `unevaluatedProperties: false`; a new field would make every `claims.json` this pipeline writes
+  fail its own schema until the schema moved, and `CLAUDE.md` makes a change to the report schema
+  after Phase 1 a **stop-and-ask**. A new column in Appendix A would move the golden report's
+  claims table, which gate condition 5 fixes byte-for-byte. Neither price buys anything: `text` is
+  already on the claim, it already carries the verb, and `direction_of` is already the one reading
+  of it. So Appendix A prints the direction **in the `cmp` cell it already has** — `eq (down)` —
+  derived by the same function the matcher calls, and the two cannot disagree because there is one
+  of them. If a later phase wants the field, the schema change is the human's to authorise and this
+  paragraph is what it should be weighed against.
+- **Measured:** `tests/test_verifier_match.py` gains seven cases: the four quadrants over a store
+  holding the live run's two scenario ends and their mirror images, the signed-number path in both
+  its verifying and its mismatching form, a magnitude outside tolerance, and `direction_of` read
+  directly on six sentences. `tests/test_renderer.py` asserts Appendix A prints `eq (down)` for the
+  live sentence and a bare `eq` for the repair round's rewrite of it. The suite goes 1573 → 1585;
+  the golden report, both synthetic validates and the real-panel fake validate are unchanged, and
+  `pytest tests/probatio --cassette=replay` still passes 40 with zero provider calls, because
+  nothing here is in a prompt.

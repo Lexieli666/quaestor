@@ -102,6 +102,30 @@ run that was not committed.
 
 ### Fixed
 
+- **A bin label is no longer a claim: the `label_number` exclusion class.** Section 4 of the first
+  live `msr_prepayment` run wrote "with decile 1 holding the highest probabilities"; the `1` went
+  into grounding precision's denominator, came back `unsupported` — nothing in the store holds a
+  bin's name, and nothing could — and a repair round removed it in favour of "the first decile", a
+  word-number our own repair instruction asked for. `decile`, `bin`, `quantile`, `quintile`,
+  `step`, `round` and `regime` immediately followed by a one-to-three-digit whole word are now
+  masked with the other exclusions and listed in `claims.json`'s `exclusions` like them. The bound
+  is the point: "top 2 deciles capture 0.38" and "decile event rate 0.021" keep every number. The
+  six `credit_default` runs never met this because their only `decile 1` is the renderer's own
+  caption, which is inside a renderer block and was already excluded (D-166).
+- **A direction verb carries its sign, and the matcher now reads it.** Section 5 of the same run
+  wrote "the servicing value falls by 1078000" against
+  `scenario.value_change.-300 = -1077724.40` — a magnitude 275.6 inside a tolerance of 500, scored
+  a `mismatch` because the matcher compared a written `+1078000` with a stored negative, and
+  rewritten by the repair round to "changes by -1078000", which verifies and reads like a machine.
+  `falls`, `drops`, `declines`, `decreases`, `shrinks` and `loses`, and symmetrically `rises`,
+  `gains`, `increases` and `grows`, governing `by` before the number, are now matched on
+  **magnitude** with the verb's direction required to agree with the artifact's sign: a "falls by"
+  against a positive artifact is still a mismatch, and a plain signed "changes by -1078000" keeps
+  the signed comparison unchanged. Appendix A's `cmp` cell prints the direction the verb implied,
+  `eq (down)`, derived from the claim's own sentence rather than stored — `claims.json`'s schema
+  is closed and the golden report's table is fixed, and the field the first draft of this fix
+  would have added is refused in writing (D-167).
+
 - **`tools/stability.py` fits the unpenalised, converged per-regime regression its docstring always
   claimed.** It called `LogisticRegression(max_iter=_MAX_ITERATIONS)` — scikit-learn's penalised
   default at lbfgs's default `tol = 1e-4` — under a module docstring reading "a plain unpenalised

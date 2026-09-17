@@ -36,6 +36,7 @@ from ..package import ModelPackage
 from ..trace import EventType, TraceEvent
 from ..verifier.claim import ClaimStatus, VerifiedClaim
 from ..verifier.claims_doc import ClaimsDocument
+from ..verifier.match import direction_of
 from ..verifier.tokens import drafted_prose, eligible_numbers
 from ..vocab import SECTION_ORDER, Configuration, ReportSection
 from .drafter import finding_heading
@@ -517,13 +518,26 @@ def _numbers_removed(events: Sequence[TraceEvent]) -> int:
 
 
 def _claim_row(number: int, claim: VerifiedClaim) -> str:
-    """Render one row of Appendix A's claims table."""
+    """Render one row of Appendix A's claims table.
+
+    The ``cmp`` cell carries the direction when the sentence's verb supplied one -- ``eq (down)``
+    for "falls by 1078000" -- because that claim was matched on magnitude against a signed
+    artifact, and a reader of the appendix should be able to see which comparison was made without
+    re-reading the truncated sentence. It is derived from the claim's text by
+    :func:`~quaestor.verifier.match.direction_of` rather than carried as a field or given a column
+    of its own: ``claims.json``'s schema is closed and the golden report's table is fixed
+    (DECISIONS D-167).
+    """
     citation = f"`{claim.citation}`" if claim.citation else ""
     artifact_value = "" if claim.artifact_value is None else _number(claim.artifact_value)
+    direction = direction_of(claim.text, claim.value)
+    comparison = claim.comparison.value
+    if direction is not None:
+        comparison = f"{comparison} ({'up' if direction > 0 else 'down'})"
     return (
         f"| {number} | {claim.section.value} | {_cell(_truncate(claim.text))} "
         f"| {_number(claim.value)} | {claim.unit.value} | {claim.metric or ''} "
-        f"| {claim.split.value if claim.split else ''} | {claim.comparison.value} "
+        f"| {claim.split.value if claim.split else ''} | {comparison} "
         f"| {_cell(citation)} | {claim.status.value} | {artifact_value} |"
     )
 

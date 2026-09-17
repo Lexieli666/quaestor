@@ -19,8 +19,9 @@ The exclusion classes are D-015's six, in D-015's order: a renderer block or a `
 directive (nothing inside was written by a model), the hex characters and the logical name inside
 an artifact citation, a regulatory section id, inline code, a finding id, section and list
 numbering -- including a cross-reference to a section of this report written in words, "Section 4"
-(D-112) -- and the package version string, plus a seventh added since: a reference to an entry of
-this project's own decision log, ``D-050`` (D-116). Masking writes spaces over each region rather
+(D-112) -- and the package version string, plus two added since: a reference to an entry of
+this project's own decision log, ``D-050`` (D-116), and an integer that labels a bin rather than
+measuring one, ``decile 1`` (D-166). Masking writes spaces over each region rather
 than deleting it, so every offset a caller computes still points where it did in the original text.
 """
 
@@ -127,6 +128,31 @@ The lookbehind refuses ``sub-section 4`` only to the extent of not matching the 
 whole word; what it exists for is to keep the pattern from firing inside a longer word.
 """
 
+_LABEL_NUMBER_RE: Final = re.compile(
+    r"\b(?:decile|bin|quantile|quintile|step|round|regime)[ \t]+\d{1,3}\b", re.IGNORECASE
+)
+"""An integer that **labels** a bin rather than measuring one: ``decile 1``, ``step 2``.
+
+Section 4 of the first live ``msr_prepayment`` run wrote "The decile separation on test, with
+decile 1 holding the highest probabilities, is shown below", and the ``1`` was tokenised as a claim
+of value 1.0, flagged unsupported -- it has no artifact, because it is a name -- and removed by a
+repair round whose replacement, "the first decile", is a word-number our own repair instruction
+asked for. The number names which bucket is meant; nothing in the store holds it, and nothing could
+(DECISIONS D-166).
+
+The credit runs never met it because the only ``decile 1`` they wrote is the renderer's own caption
+"decile separation on test; decile 1 holds the highest probabilities", which is inside a renderer
+block and already excluded. A drafter that writes the same phrase in its own prose is writing the
+same non-claim, and this is the class that says so.
+
+It is a class of its own rather than a widening of :data:`_SECTION_NUMBER_RE` for the reason
+:data:`_DECISIONS_REFERENCE_RE` is: a bin label numbers a partition the report computed, which
+Appendix A's table resolves, where a section number numbers the report itself.
+
+Bounded on both sides so that it cannot eat a measurement. The integer is one to three digits and a
+whole word, so ``decile 1000`` does not match; the label word is immediately before it, so "top 2
+deciles capture 0.38" keeps its 2 and its 0.38, and "decile event rate 0.021" keeps its 0.021."""
+
 _REG_SECTION_ID_RE: Final = re.compile(
     r"\bSR\s?\d{2}-\d+\b|\bOCC\s?\d{4}-\d+\b|\b[IVX]+(?:\.\d+)+(?:\.[a-z])?\b"
 )
@@ -135,6 +161,7 @@ _REG_SECTION_ID_RE: Final = re.compile(
 _PATTERN_ORDER: Final = (
     "renderer_block",
     "section_number",
+    "label_number",
     "inline_code",
     "citation_hash",
     "regulatory_section_id",
@@ -391,6 +418,7 @@ def _masked(markdown: str, package_version: str | None) -> tuple[str, list[Exclu
     text = _mask(text, _HEADING_RE, "section_number", found, example="token")
     text = _mask(text, _SECTION_NUMBER_RE, "section_number", found)
     text = _mask(text, _SECTION_REFERENCE_RE, "section_number", found)
+    text = _mask(text, _LABEL_NUMBER_RE, "label_number", found)
     text = _mask(text, _REG_SECTION_ID_RE, "regulatory_section_id", found)
     text = _mask_version(text, package_version, found)
     return text, found

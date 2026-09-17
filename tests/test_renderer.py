@@ -324,6 +324,37 @@ def test_appendix_a_strips_citations_out_of_the_text_column(
     assert row.count("[[art:") == 1
 
 
+def test_appendix_a_prints_the_direction_a_verb_supplied(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """D-167: a claim matched on magnitude says so in the `cmp` cell, and one matched on the
+    signed value is unchanged."""
+    store.put("scenario.value_change.-300", -1077724.403, ArtifactKind.scalar, "value change")
+    citation = store.artifact("scenario.value_change.-300").citation()
+    prose = {
+        ReportSection.summary: (
+            f"At the downward extreme the servicing value falls by 1078000 {citation}."
+        )
+    }
+    report = render_report(inputs_for(store, tmp_path, sections=prose))
+    row = [line for line in report.splitlines() if line.startswith("| 1 | summary |")][0]
+    assert "| eq (down) |" in row
+    assert "| verified |" in row
+
+    plain = {
+        ReportSection.summary: (
+            f"At the downward extreme the servicing value changes by -1078000 {citation}."
+        )
+    }
+    row = [
+        line
+        for line in render_report(inputs_for(store, tmp_path, sections=plain)).splitlines()
+        if line.startswith("| 1 | summary |")
+    ][0]
+    assert "| eq |" in row
+    assert "(down)" not in row
+
+
 def test_appendix_b_indexes_what_the_report_cites_with_its_caption(
     store: ArtifactStore, tmp_path: Path
 ) -> None:

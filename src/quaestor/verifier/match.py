@@ -29,7 +29,8 @@ D-069, amending D-014). Counts stay exact.
 
 from __future__ import annotations
 
-from collections.abc import Container, Iterable, Sequence
+import re
+from collections.abc import Container, Iterable, Mapping, Sequence
 from decimal import Decimal, InvalidOperation
 from typing import Final
 
@@ -50,12 +51,15 @@ from .claim import (
     VerifiedClaim,
 )
 from .extract import numeric_tokens, token_value
+from .tokens import NUMERIC_TOKEN_RE
 
 __all__ = [
+    "DIRECTION_VERBS",
     "Match",
+    "default_tolerance",
+    "direction_of",
     "match_claim",
     "match_claims",
-    "default_tolerance",
     "normalise",
     "normalisation_scale",
     "tolerance_for",
@@ -67,6 +71,49 @@ PERCENT_PER_UNIT: Final = 100.0
 
 BP_PER_UNIT: Final = 10_000.0
 """``25 bp`` is ``0.0025`` when the artifact it is compared to is a rate rather than a shock."""
+
+DIRECTION_VERBS: Final[Mapping[str, int]] = {
+    "falls": -1,
+    "drops": -1,
+    "declines": -1,
+    "decreases": -1,
+    "shrinks": -1,
+    "loses": -1,
+    "rises": +1,
+    "gains": +1,
+    "increases": +1,
+    "grows": +1,
+}
+"""Verbs that put the sign of a change in the prose instead of in the number (DECISIONS D-167).
+
+Section 5 of the first live ``msr_prepayment`` run wrote "At the downward extreme the servicing
+value **falls by** 1078000" against ``scenario.value_change.-300 = -1077724.40``. The magnitude was
+well inside tolerance -- 275.6 against 500 -- and the claim was recorded a ``mismatch``, because the
+matcher compared a written ``+1078000`` with a stored ``-1077724.40``. The repair round rewrote the
+sentence to "changes by -1078000", which verifies and reads like a machine.
+
+The verb is not decoration: "falls by" and "rises by" are two different assertions about the same
+magnitude, and a report that may not say which way a servicing value moved is worse grounded, not
+better. So a claim whose sentence carries one of these verbs governing ``by`` is matched on
+**magnitude**, and the verb's direction must agree with the artifact's sign -- a "falls by" against
+a positive artifact is still a mismatch, and the sign is checked rather than dropped.
+
+The credit subject could not have found this: a classifier's artifacts are probabilities, rates and
+counts, and none of them is signed. The rule needs a scenario table to bite on.
+"""
+
+_DIRECTION_RE: Final = re.compile(
+    rf"\b(?P<verb>{'|'.join(DIRECTION_VERBS)})\s+by\s+(?:[a-z]+\s+){{0,2}}"
+    rf"(?P<number>{NUMERIC_TOKEN_RE.pattern})",
+    re.IGNORECASE,
+)
+"""``falls by 1078000``, ``rises by only 167100``: the verb, ``by``, and the number it governs.
+
+Up to two intervening lowercase words, because the very sentence this rule was written for carries
+one -- "while at the upward extreme it rises by **only** 167100". The bound is two rather than
+unlimited so that the pattern cannot reach across a clause and attach a verb to a number in the
+next one; ``by`` is required, so "falls to 0.43" is not a change claim and keeps today's
+comparison."""
 
 
 class Match(BaseModel):
@@ -240,6 +287,35 @@ def tolerance_for(
         if declared is not None:
             applied = min(applied, 0.5 * 10.0**-declared * scale)
     return applied
+
+
+def direction_of(text: str, value: float) -> int | None:
+    """Return the sign a direction verb put on one number of a sentence, or ``None``.
+
+    The direction is **derived from the claim's own sentence** every time it is wanted rather than
+    stored on the claim. ``claims.json``'s schema is closed -- ``CLAIMS_SCHEMA.json`` was written
+    in Phase 1 and closes both ``claim_core`` and ``verified_claim`` with
+    ``unevaluatedProperties: false`` -- so a ``direction`` field would be a report-schema change
+    after Phase 1, which ``CLAUDE.md`` makes a stop-and-ask, and Appendix A would gain a column,
+    which moves the golden report. Neither is worth buying: ``text`` already carries the verb, this
+    function is the one reading of it, and the matcher and Appendix A both call it (DECISIONS
+    D-167).
+
+    Args:
+        text: The sentence the number was written in.
+        value: The claimed value, as parsed. A signed number states its own direction, so only a
+            positive value -- a magnitude the verb is carrying the sign of -- can have one.
+
+    Returns:
+        ``-1`` for a verb of decrease, ``+1`` for a verb of increase, ``None`` when the sentence
+        has no such verb governing this number.
+    """
+    if value <= 0:
+        return None
+    for match in _DIRECTION_RE.finditer(text):
+        if token_value(match.group("number")) == value:
+            return DIRECTION_VERBS[match.group("verb").lower()]
+    return None
 
 
 def normalise(unit: Unit, value: float, artifact_value: float) -> float:
@@ -418,22 +494,48 @@ def _match(
         claim.unit, artifact_value, claim.rounding, tolerances, decimals=decimals
     )
     written = normalise(claim.unit, claim.value, artifact_value)
-    if abs(written - artifact_value) <= tolerance:
+    direction = direction_of(claim.text, claim.value)
+    cited = " and ".join(str(citation.name) for citation in citations)
+    if direction is None:
+        if abs(written - artifact_value) <= tolerance:
+            return _verdict(
+                claim, ClaimStatus.verified, artifact_value=artifact_value, tolerance=tolerance
+            )
+        message = (
+            f"you wrote {claim.value:g} for {cited}; the artifact says {artifact_value:.10g} "
+            f"(tolerance {tolerance:.10g}); cite the right artifact, correct the number, or "
+            "remove it"
+        )
+    elif abs(abs(written) - abs(artifact_value)) > tolerance:
+        message = (
+            f"you wrote {claim.value:g} for {cited}; the artifact's magnitude is "
+            f"{abs(artifact_value):.10g} (tolerance {tolerance:.10g}); cite the right artifact, "
+            "correct the number, or remove it"
+        )
+    elif _sign(artifact_value) == direction:
         return _verdict(
             claim, ClaimStatus.verified, artifact_value=artifact_value, tolerance=tolerance
         )
-    cited = " and ".join(str(citation.name) for citation in citations)
+    else:
+        moved = "up" if direction > 0 else "down"
+        actual = "up" if artifact_value > 0 else "down" if artifact_value < 0 else "not at all"
+        message = (
+            f"your sentence says {cited} moves {moved} by {claim.value:g}, and the artifact says "
+            f"{artifact_value:.10g}, which moves {actual}; the magnitude agrees and the direction "
+            "does not, so change the verb or cite the other end of the scenario"
+        )
     return _verdict(
         claim,
         ClaimStatus.mismatch,
         artifact_value=artifact_value,
         tolerance=tolerance,
-        message=(
-            f"you wrote {claim.value:g} for {cited}; the artifact says {artifact_value:.10g} "
-            f"(tolerance {tolerance:.10g}); cite the right artifact, correct the number, or "
-            "remove it"
-        ),
+        message=message,
     )
+
+
+def _sign(value: float) -> int:
+    """Return ``-1``, ``0`` or ``+1``; a zero artifact moves in no direction and matches no verb."""
+    return (value > 0) - (value < 0)
 
 
 def _combine(

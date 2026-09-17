@@ -393,3 +393,146 @@ def test_a_verified_claim_reports_whether_it_is_counted(store: ArtifactStore) ->
     match = match_claim(claim(store, 0.7412, "metrics.test.auc"), store)
     assert match.claim.is_verified
     assert match.claim.counts_towards_grounding
+
+
+# --- Phase 9 follow-up 7: a direction verb carries the sign (D-167) ----------------------------
+
+
+@pytest.fixture
+def scenarios(tmp_path: Path) -> ArtifactStore:
+    """The two ends of the first live MSR run's rate-shock scenario, and their mirror images."""
+    store = ArtifactStore(tmp_path / "scenarios")
+    store.put("scenario.value_change.-300", -1077724.403, ArtifactKind.scalar)
+    store.put("scenario.value_change.300", 167117.0554, ArtifactKind.scalar)
+    store.put("scenario.value_up.-300", 1077724.403, ArtifactKind.scalar)
+    store.put("scenario.value_down.300", -167117.0554, ArtifactKind.scalar)
+    return store
+
+
+def _shock(store: ArtifactStore, text: str, value: float, name: str) -> Claim:
+    """One currency claim of a scenario sentence, cited to one end of the scale."""
+    return Claim(
+        text=f"{text} {store.artifact(name).citation()}.",
+        value=value,
+        unit=Unit.currency,
+        metric="value_change",
+        citation=store.artifact(name).citation(),
+        section=ReportSection.sensitivity,
+    )
+
+
+def test_a_fall_verifies_against_a_negative_artifact(scenarios: ArtifactStore) -> None:
+    """The sentence the first live MSR run wrote, and the verdict it should have had.
+
+    Magnitude 275.6 inside a tolerance of 500, and the verb agrees with the artifact's sign.
+    """
+    match = match_claim(
+        _shock(
+            scenarios,
+            "At the downward extreme the servicing value falls by 1078000",
+            1078000,
+            "scenario.value_change.-300",
+        ),
+        scenarios,
+    )
+    assert match.status is ClaimStatus.verified
+    assert match.claim.artifact_value == pytest.approx(-1077724.403)
+    assert match.claim.tolerance == pytest.approx(500.0)
+
+
+def test_a_fall_against_a_positive_artifact_is_still_a_mismatch(scenarios: ArtifactStore) -> None:
+    """The magnitude agrees and the direction does not, which is the half that must not pass."""
+    match = match_claim(
+        _shock(
+            scenarios,
+            "At the downward extreme the servicing value falls by 1078000",
+            1078000,
+            "scenario.value_up.-300",
+        ),
+        scenarios,
+    )
+    assert match.status is ClaimStatus.mismatch
+    assert "moves down by 1.078e+06" in (match.message or "")
+    assert "which moves up" in (match.message or "")
+
+
+def test_a_rise_verifies_against_a_positive_artifact(scenarios: ArtifactStore) -> None:
+    """The same run's other end, adverb included: "rises by only 167100"."""
+    match = match_claim(
+        _shock(
+            scenarios,
+            "while at the upward extreme it rises by only 167100",
+            167100,
+            "scenario.value_change.300",
+        ),
+        scenarios,
+    )
+    assert match.status is ClaimStatus.verified
+
+
+def test_a_rise_against_a_negative_artifact_is_a_mismatch(scenarios: ArtifactStore) -> None:
+    """The fourth quadrant: the verb says up and the artifact went down."""
+    match = match_claim(
+        _shock(
+            scenarios,
+            "while at the upward extreme it rises by only 167100",
+            167100,
+            "scenario.value_down.300",
+        ),
+        scenarios,
+    )
+    assert match.status is ClaimStatus.mismatch
+    assert "which moves down" in (match.message or "")
+
+
+def test_a_signed_number_keeps_the_signed_comparison(scenarios: ArtifactStore) -> None:
+    """The repair round's own rewrite: `changes by -1078000` has no verb and does not move."""
+    verified = match_claim(
+        _shock(
+            scenarios,
+            "At the downward extreme the servicing value changes by -1078000",
+            -1078000,
+            "scenario.value_change.-300",
+        ),
+        scenarios,
+    )
+    assert verified.status is ClaimStatus.verified
+    wrong_sign = match_claim(
+        _shock(
+            scenarios,
+            "At the downward extreme the servicing value changes by 1078000",
+            1078000,
+            "scenario.value_change.-300",
+        ),
+        scenarios,
+    )
+    assert wrong_sign.status is ClaimStatus.mismatch
+    assert "the artifact says -1077724.403" in (wrong_sign.message or "")
+
+
+def test_a_magnitude_outside_tolerance_fails_on_the_magnitude(scenarios: ArtifactStore) -> None:
+    """The direction rule relaxes the sign, never the tolerance."""
+    match = match_claim(
+        _shock(
+            scenarios,
+            "At the downward extreme the servicing value falls by 1090000",
+            1090000,
+            "scenario.value_change.-300",
+        ),
+        scenarios,
+    )
+    assert match.status is ClaimStatus.mismatch
+    assert "the artifact's magnitude is 1077724.403" in (match.message or "")
+
+
+def test_the_verb_must_govern_this_number_and_this_verb_must_be_a_direction() -> None:
+    """`direction_of` reads the sentence, so it is tested on the sentence alone."""
+    from quaestor.verifier.match import DIRECTION_VERBS, direction_of
+
+    assert direction_of("the value falls by 1078000 at the extreme", 1078000) == -1
+    assert direction_of("it rises by only 167100 there", 167100) == 1
+    assert direction_of("the value changes by -1078000", -1078000) is None
+    assert direction_of("the value changes by 1078000", 1078000) is None
+    assert direction_of("AUC falls to 0.43 on the split", 0.43) is None
+    assert direction_of("the value falls by 1078000", 167100) is None
+    assert set(DIRECTION_VERBS.values()) == {-1, 1}

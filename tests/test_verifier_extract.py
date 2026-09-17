@@ -514,3 +514,63 @@ def test_a_four_digit_reference_shaped_number_is_not_excluded() -> None:
     markdown = "Vintage D-1234 holds 2026 rows.\n"
     extraction = extract(SECTION, markdown, llm_returning())
     assert [claim.value for claim in extraction.claims] == [1234.0, 2026.0]
+
+
+# --- Phase 9 follow-up 7: a bin label is not a claim (D-166) -----------------------------------
+
+
+def test_a_decile_label_is_not_a_claim(store: ArtifactStore) -> None:
+    """The first live MSR report's section 4, which lost the sentence to a repair round.
+
+    "decile 1" names which bucket holds the highest probabilities. No artifact holds it, none
+    could, and the repair round's replacement -- "the first decile" -- is the word-number our own
+    repair instruction asked for.
+    """
+    citation = store.artifact("metrics.test.auc").citation()
+    markdown = (
+        "The decile separation on test, with decile 1 holding the highest probabilities, is "
+        f"shown below against an AUC of 0.748 {citation}.\n"
+    )
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [0.748]
+    patterns = {exclusion.pattern: exclusion.examples for exclusion in extraction.exclusions}
+    assert patterns["label_number"] == ["decile 1"]
+
+
+def test_every_label_word_masks_the_integer_that_follows_it() -> None:
+    """One case per word the class names, so the list cannot shrink without a failure."""
+    for phrase in (
+        "decile 1 holds",
+        "bin 3 holds",
+        "quantile 4 holds",
+        "quintile 5 holds",
+        "step 2 recomputed",
+        "round 2 recomputed",
+        "regime 1 recomputed",
+    ):
+        markdown = f"The {phrase} nothing else.\n"
+        extraction = extract(SECTION, markdown, llm_returning())
+        assert [claim.value for claim in extraction.claims] == [], phrase
+        patterns = {item.pattern: item.examples for item in extraction.exclusions}
+        assert patterns["label_number"] == [phrase.rsplit(" ", 1)[0]], phrase
+
+
+def test_a_measurement_beside_a_bin_label_is_still_a_claim(store: ArtifactStore) -> None:
+    """The bound is the whole point: the class may not eat a number a bin *measures*."""
+    citation = store.artifact("metrics.test.auc").citation()
+    markdown = (
+        f"The top 2 deciles capture 0.38 {citation} of events, and the decile event rate is "
+        "0.021 there.\n"
+    )
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [2.0, 0.38, 0.021]
+    assert not any(item.pattern == "label_number" for item in extraction.exclusions)
+
+
+def test_the_label_class_is_bounded_to_three_digits_and_a_whole_word() -> None:
+    """`decile 1000` is not a bin of any partition this report computes, and `deciles 3` is not
+    the singular the pattern names."""
+    markdown = "Decile 1000 is absent and deciles 3 and 4 are pooled.\n"
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [1000.0, 3.0, 4.0]
+    assert not any(item.pattern == "label_number" for item in extraction.exclusions)
