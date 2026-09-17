@@ -847,6 +847,16 @@ here and recorded.
   negatively convex, so the fix is the economics rather than a fudge. Rejected alternative:
   raising `discount_rate_annual` until the inequality held, which would have made the declared
   discount rate a knob for getting the sign right.
+- **Correction, 2026-09-17 (Phase 12 pre-flight):** "puts the surviving book 2 points out of the
+  money" in (3) above reads as a **level** and is not one. Two points is the size of the **move**
+  the ramp makes. Re-measured offline at the declared seed, the book's mean first-projected-month
+  incentive is **+1.288** with `rate_ramp_pp_per_year` at zero and **−0.717** at the declared 1.05
+  for two years — a move of **2.005** points, and a resulting level of −0.717, not −2. The
+  argument (3) makes is unaffected, because it is about the move and about the sign of the level:
+  the book *is* out of the money at the valuation month, which is what `h₀ < δ` needs. The
+  sentence above is left as it was recorded; **D-170**'s reconciling paragraph carries the
+  measurement, and `docs/DESIGN.md` and `subjects/msr_prepayment/README.md` are rewritten to say
+  the move in the same commit.
 
 ## D-041. Originations are spread across each cohort year, not concentrated in one month
 

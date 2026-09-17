@@ -197,8 +197,10 @@ The negative convexity is a property of the process rather than a tuned number
 (`DECISIONS.md` D-040): the base-case monthly payoff rate is around one per cent, a logit near
 −4.6, and the logistic is convex everywhere below zero, so a parallel fall in rates raises the
 hazard by more than the same rise lowers it; the `turnover_floor` bounds the upside further; and
-the rate path's late level rise leaves the surviving book about two points **out of the money** at
-the valuation month, which is the state in which a servicing right is negatively convex at all.
+the rate path's late level rise **moves** the surviving book about two points — mean
+first-projected-month incentive +1.288 without the ramp and −0.717 with it, a move of 2.005 points
+— which leaves it **out of the money** at the valuation month, the state in which a servicing right
+is negatively convex at all. Two points is the move and not the level (`DECISIONS.md` D-170).
 
 `package.yaml`'s `scenarios` block is restated as five module constants in `code/run.py`, because
 spec §3.2 hands a subject a data directory and an output directory and no path to the package it

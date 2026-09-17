@@ -7,6 +7,20 @@ run that was not committed.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Three sentences said the rate ramp leaves the MSR book two points out of the money; two points
+  is the size of the move.** `DECISIONS.md` D-040, `docs/DESIGN.md` and
+  `subjects/msr_prepayment/README.md` each read as a *level*, where the measured mean
+  first-projected-month incentive is **−0.717** — **+1.288** with `rate_ramp_pp_per_year` at zero,
+  a move of **2.005** points. No number in the projection, the subject or any report changes; the
+  book is still out of the money at the valuation month, which is the sign D-040's `h₀ < δ`
+  inequality needs. `DESIGN.md` and the subject `README.md` are rewritten to say the move and cite
+  D-170, whose reconciling paragraph carries the measurement; D-040's original sentence is left as
+  recorded and gains a dated correction paragraph instead.
+  `subjects/msr_prepayment/code/synthetic.py` says "is out of the money" without a level and is
+  correct as it stands.
+
 ### Added
 
 - **A `C1` finding carries the decile table of every split it fired on, and every sub-population

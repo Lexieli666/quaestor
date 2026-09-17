@@ -321,8 +321,10 @@ and a monthly hazard `h`, the most the down shock can take away is `V(0)` while 
 shock can add is `h₀ / (δ (δ + h₀))`, so `|down| > |up|` requires `h₀ < δ` — the base hazard below
 the monthly discount rate, which is to say a book at or out of the money. That is also the
 textbook statement of when a servicing right is negatively convex, so the fix was the economics:
-a late level rise in the rate path, the real 2022–23 move, which leaves the surviving book about
-two points out of the money at the valuation month. The rejected alternative was raising
+a late level rise in the rate path, the real 2022–23 move, which moves the surviving book about
+two points — mean first-projected-month incentive **+1.288** without the ramp and **−0.717** with
+it, a move of 2.005 points that leaves the book out of the money at the valuation month, which is
+the sign the inequality needs (D-170). The rejected alternative was raising
 `discount_rate_annual` until the inequality held, which would have made a declared valuation
 assumption a knob for getting the sign right.
 
