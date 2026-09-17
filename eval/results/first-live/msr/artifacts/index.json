@@ -1,0 +1,2553 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "ablation.baseline_auc": {
+      "hash": "ed55c31912b03b6a",
+      "kind": "scalar",
+      "value": 0.6391430546167224,
+      "summary": "AUC on test of a refit of the champion's functional form on every retained feature, the level each ablation delta is measured from",
+      "file": "ed55c31912b03b6a.json"
+    },
+    "ablation.burnout.delta_auc": {
+      "hash": "499cf97d6ee9948b",
+      "kind": "scalar",
+      "value": 0.0005738937197973248,
+      "summary": "change in test AUC when the champion's form is refitted without burnout",
+      "file": "499cf97d6ee9948b.json"
+    },
+    "ablation.credit_score.delta_auc": {
+      "hash": "9963f841031d5dd8",
+      "kind": "scalar",
+      "value": -0.00026039747516914957,
+      "summary": "change in test AUC when the champion's form is refitted without credit_score",
+      "file": "9963f841031d5dd8.json"
+    },
+    "ablation.incentive.delta_auc": {
+      "hash": "b18805189d0c7f9a",
+      "kind": "scalar",
+      "value": -0.016095808756229513,
+      "summary": "change in test AUC when the champion's form is refitted without incentive",
+      "file": "b18805189d0c7f9a.json"
+    },
+    "ablation.loan_age.delta_auc": {
+      "hash": "0b5dcaebf7560a70",
+      "kind": "scalar",
+      "value": -0.0045715784831747985,
+      "summary": "change in test AUC when the champion's form is refitted without loan_age",
+      "file": "0b5dcaebf7560a70.json"
+    },
+    "ablation.orig_ltv.delta_auc": {
+      "hash": "acb0dcd5c30d8d16",
+      "kind": "scalar",
+      "value": -0.0022332121717602016,
+      "summary": "change in test AUC when the champion's form is refitted without orig_ltv",
+      "file": "acb0dcd5c30d8d16.json"
+    },
+    "ablation.orig_upb_log.delta_auc": {
+      "hash": "d9fda2c8788ba86c",
+      "kind": "scalar",
+      "value": -0.017104278269300277,
+      "summary": "change in test AUC when the champion's form is refitted without orig_upb_log",
+      "file": "d9fda2c8788ba86c.json"
+    },
+    "ablation.rate_change_12m.delta_auc": {
+      "hash": "f472749f186c3d33",
+      "kind": "scalar",
+      "value": -0.0003635311596020818,
+      "summary": "change in test AUC when the champion's form is refitted without rate_change_12m",
+      "file": "f472749f186c3d33.json"
+    },
+    "ablation.sato.delta_auc": {
+      "hash": "f406b192153418f8",
+      "kind": "scalar",
+      "value": -0.003026491141338128,
+      "summary": "change in test AUC when the champion's form is refitted without sato",
+      "file": "f406b192153418f8.json"
+    },
+    "ablation.season_cos.delta_auc": {
+      "hash": "0931b2a0fa3762a1",
+      "kind": "scalar",
+      "value": 0.0018446273674133096,
+      "summary": "change in test AUC when the champion's form is refitted without season_cos",
+      "file": "0931b2a0fa3762a1.json"
+    },
+    "ablation.season_sin.delta_auc": {
+      "hash": "47876c72b6dcce3b",
+      "kind": "scalar",
+      "value": 0.00010800690180268191,
+      "summary": "change in test AUC when the champion's form is refitted without season_sin",
+      "file": "47876c72b6dcce3b.json"
+    },
+    "calibration.mean_rel_gap.out_of_time": {
+      "hash": "9e4c8750282cbdb3",
+      "kind": "scalar",
+      "value": 0.46178110986235155,
+      "summary": "mean predicted against observed on out_of_time, relative",
+      "file": "9e4c8750282cbdb3.json"
+    },
+    "calibration.mean_rel_gap.test": {
+      "hash": "a173f6c516726396",
+      "kind": "scalar",
+      "value": 0.04708600685631297,
+      "summary": "mean predicted against observed on test, relative",
+      "file": "a173f6c516726396.json"
+    },
+    "calibration.mean_rel_gap.train": {
+      "hash": "332fc4d956c87573",
+      "kind": "scalar",
+      "value": 0.0028969325490394516,
+      "summary": "mean predicted against observed on train, relative",
+      "file": "332fc4d956c87573.json"
+    },
+    "calibration.mean_rel_gap.vintage_holdout": {
+      "hash": "92b5a8c4dffb02f6",
+      "kind": "scalar",
+      "value": 0.49315942607250873,
+      "summary": "mean predicted against observed on vintage_holdout, relative",
+      "file": "92b5a8c4dffb02f6.json"
+    },
+    "calibration.out_of_time": {
+      "hash": "2ad00577c0e1ab2c",
+      "kind": "table",
+      "value": null,
+      "summary": "calibration by decile of predicted probability on out_of_time",
+      "file": "2ad00577c0e1ab2c.csv"
+    },
+    "calibration.test": {
+      "hash": "c8e7323f15747b0a",
+      "kind": "table",
+      "value": null,
+      "summary": "calibration by decile of predicted probability on test",
+      "file": "c8e7323f15747b0a.csv"
+    },
+    "calibration.train": {
+      "hash": "1d6570e3c81949ec",
+      "kind": "table",
+      "value": null,
+      "summary": "calibration by decile of predicted probability on train",
+      "file": "1d6570e3c81949ec.csv"
+    },
+    "calibration.vintage_holdout": {
+      "hash": "8397c8dcb2360b15",
+      "kind": "table",
+      "value": null,
+      "summary": "calibration by decile of predicted probability on vintage_holdout",
+      "file": "8397c8dcb2360b15.csv"
+    },
+    "calibration_intercept.out_of_time": {
+      "hash": "53a8d76b95654495",
+      "kind": "scalar",
+      "value": -1.7619986351843722,
+      "summary": "logistic regression of the outcome on logit(p) on out_of_time: the intercept",
+      "file": "53a8d76b95654495.json"
+    },
+    "calibration_intercept.test": {
+      "hash": "1a8280dda3cd650a",
+      "kind": "scalar",
+      "value": 0.029052983819497526,
+      "summary": "logistic regression of the outcome on logit(p) on test: the intercept",
+      "file": "1a8280dda3cd650a.json"
+    },
+    "calibration_intercept.train": {
+      "hash": "be40e0a703547ba7",
+      "kind": "scalar",
+      "value": -0.01599765113680375,
+      "summary": "logistic regression of the outcome on logit(p) on train: the intercept",
+      "file": "be40e0a703547ba7.json"
+    },
+    "calibration_intercept.vintage_holdout": {
+      "hash": "0d75b5325a43386f",
+      "kind": "scalar",
+      "value": 0.06118872124257562,
+      "summary": "logistic regression of the outcome on logit(p) on vintage_holdout: the intercept",
+      "file": "0d75b5325a43386f.json"
+    },
+    "calibration_slope.out_of_time": {
+      "hash": "d9f87bb23aa0e0e9",
+      "kind": "scalar",
+      "value": 0.4321257819576296,
+      "summary": "logistic regression of the outcome on logit(p) on out_of_time: the slope",
+      "file": "d9f87bb23aa0e0e9.json"
+    },
+    "calibration_slope.test": {
+      "hash": "9b1edaa30a5d99ac",
+      "kind": "scalar",
+      "value": 1.016835509732362,
+      "summary": "logistic regression of the outcome on logit(p) on test: the slope",
+      "file": "9b1edaa30a5d99ac.json"
+    },
+    "calibration_slope.train": {
+      "hash": "28331672e9a6a8d2",
+      "kind": "scalar",
+      "value": 0.9971012419061759,
+      "summary": "logistic regression of the outcome on logit(p) on train: the slope",
+      "file": "28331672e9a6a8d2.json"
+    },
+    "calibration_slope.vintage_holdout": {
+      "hash": "80fe61d28657c1e3",
+      "kind": "scalar",
+      "value": 0.850199016196781,
+      "summary": "logistic regression of the outcome on logit(p) on vintage_holdout: the slope",
+      "file": "80fe61d28657c1e3.json"
+    },
+    "challenger.auc": {
+      "hash": "6f81131483bd3510",
+      "kind": "scalar",
+      "value": 0.6653496434852482,
+      "summary": "the challenger's AUC on test",
+      "file": "6f81131483bd3510.json"
+    },
+    "challenger.brier": {
+      "hash": "0e7178881c8bc40e",
+      "kind": "scalar",
+      "value": 0.009118594820389478,
+      "summary": "the challenger's Brier score on test",
+      "file": "0e7178881c8bc40e.json"
+    },
+    "challenger.delta_auc": {
+      "hash": "10b988e8a65da511",
+      "kind": "scalar",
+      "value": 0.01041801897694783,
+      "summary": "the challenger's AUC on test minus the champion's",
+      "file": "10b988e8a65da511.json"
+    },
+    "challenger.name": {
+      "hash": "6941a0166a40ba18",
+      "kind": "json",
+      "value": null,
+      "summary": "the challenger model, at its library defaults",
+      "file": "6941a0166a40ba18.json"
+    },
+    "condition_number": {
+      "hash": "87b61976816e6f91",
+      "kind": "scalar",
+      "value": 4.565343745797061,
+      "summary": "Belsley's condition number of the column-standardised design",
+      "file": "87b61976816e6f91.json"
+    },
+    "cpr.out_of_time": {
+      "hash": "c3e51fc490034273",
+      "kind": "table",
+      "value": null,
+      "summary": "actual against predicted CPR by period on out_of_time",
+      "file": "c3e51fc490034273.csv"
+    },
+    "cpr.out_of_time.mae": {
+      "hash": "a467ad41422daa18",
+      "kind": "scalar",
+      "value": 0.0865638251555831,
+      "summary": "mean absolute difference between actual and predicted CPR on out_of_time",
+      "file": "a467ad41422daa18.json"
+    },
+    "cpr.test": {
+      "hash": "f76e789f11de676f",
+      "kind": "table",
+      "value": null,
+      "summary": "actual against predicted CPR by period on test",
+      "file": "f76e789f11de676f.csv"
+    },
+    "cpr.test.mae": {
+      "hash": "939c5fb98c092fe8",
+      "kind": "scalar",
+      "value": 0.02641734834146347,
+      "summary": "mean absolute difference between actual and predicted CPR on test",
+      "file": "939c5fb98c092fe8.json"
+    },
+    "cpr.train": {
+      "hash": "4726246dd7524d25",
+      "kind": "table",
+      "value": null,
+      "summary": "actual against predicted CPR by period on train",
+      "file": "4726246dd7524d25.csv"
+    },
+    "cpr.train.mae": {
+      "hash": "3487a403eaaa02df",
+      "kind": "scalar",
+      "value": 0.022016338529520455,
+      "summary": "mean absolute difference between actual and predicted CPR on train",
+      "file": "3487a403eaaa02df.json"
+    },
+    "cpr.vintage_holdout": {
+      "hash": "428c5648275e4f09",
+      "kind": "table",
+      "value": null,
+      "summary": "actual against predicted CPR by period on vintage_holdout",
+      "file": "428c5648275e4f09.csv"
+    },
+    "cpr.vintage_holdout.mae": {
+      "hash": "0cc82390fe821a77",
+      "kind": "scalar",
+      "value": 0.0785015140588122,
+      "summary": "mean absolute difference between actual and predicted CPR on vintage_holdout",
+      "file": "0cc82390fe821a77.json"
+    },
+    "csi.burnout": {
+      "hash": "e4d3e34a5ba958bf",
+      "kind": "scalar",
+      "value": 3.4300620246343725e-06,
+      "summary": "CSI of burnout: its contribution to the shift in the linear predictor",
+      "file": "e4d3e34a5ba958bf.json"
+    },
+    "csi.credit_score": {
+      "hash": "0a280759c5547751",
+      "kind": "scalar",
+      "value": 1.970189662520585e-05,
+      "summary": "CSI of credit_score: its contribution to the shift in the linear predictor",
+      "file": "0a280759c5547751.json"
+    },
+    "csi.incentive": {
+      "hash": "020f5ce27e24db89",
+      "kind": "scalar",
+      "value": 0.001102078062477685,
+      "summary": "CSI of incentive: its contribution to the shift in the linear predictor",
+      "file": "020f5ce27e24db89.json"
+    },
+    "csi.loan_age": {
+      "hash": "df52c920230c21a2",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "CSI of loan_age: its contribution to the shift in the linear predictor",
+      "file": "df52c920230c21a2.json"
+    },
+    "csi.max": {
+      "hash": "131d42dbe11d2636",
+      "kind": "scalar",
+      "value": 0.006455318229975462,
+      "summary": "the largest characteristic stability index",
+      "file": "131d42dbe11d2636.json"
+    },
+    "csi.orig_ltv": {
+      "hash": "1c9006f3d11a9677",
+      "kind": "scalar",
+      "value": 0.0005902054354984535,
+      "summary": "CSI of orig_ltv: its contribution to the shift in the linear predictor",
+      "file": "1c9006f3d11a9677.json"
+    },
+    "csi.orig_upb_log": {
+      "hash": "7561e8b0b8ca1538",
+      "kind": "scalar",
+      "value": 0.006455318229975462,
+      "summary": "CSI of orig_upb_log: its contribution to the shift in the linear predictor",
+      "file": "7561e8b0b8ca1538.json"
+    },
+    "csi.rate_change_12m": {
+      "hash": "ffdb6fdd30076231",
+      "kind": "scalar",
+      "value": 0.00022370206549944397,
+      "summary": "CSI of rate_change_12m: its contribution to the shift in the linear predictor",
+      "file": "ffdb6fdd30076231.json"
+    },
+    "csi.sato": {
+      "hash": "a54b158ea6e3f356",
+      "kind": "scalar",
+      "value": 0.0011159313460427141,
+      "summary": "CSI of sato: its contribution to the shift in the linear predictor",
+      "file": "a54b158ea6e3f356.json"
+    },
+    "csi.season_cos": {
+      "hash": "c70e3aa4976e9ad4",
+      "kind": "scalar",
+      "value": 6.190848200518676e-05,
+      "summary": "CSI of season_cos: its contribution to the shift in the linear predictor",
+      "file": "c70e3aa4976e9ad4.json"
+    },
+    "csi.season_sin": {
+      "hash": "fb3bf812dd164e2d",
+      "kind": "scalar",
+      "value": 2.1080573155885666e-05,
+      "summary": "CSI of season_sin: its contribution to the shift in the linear predictor",
+      "file": "fb3bf812dd164e2d.json"
+    },
+    "data.manifest": {
+      "hash": "4a0ccabad74137d0",
+      "kind": "table",
+      "value": null,
+      "summary": "the files data.manifest declares, each verified against its SHA-256 before the run",
+      "file": "4a0ccabad74137d0.csv"
+    },
+    "deciles.out_of_time": {
+      "hash": "7454b22a5ea2c853",
+      "kind": "table",
+      "value": null,
+      "summary": "decile separation on out_of_time; decile 1 holds the highest probabilities",
+      "file": "7454b22a5ea2c853.csv"
+    },
+    "deciles.out_of_time.top2_capture": {
+      "hash": "58f451c3b81ca20b",
+      "kind": "scalar",
+      "value": 0.43132439070470435,
+      "summary": "share of out_of_time events in the top two deciles",
+      "file": "58f451c3b81ca20b.json"
+    },
+    "deciles.test": {
+      "hash": "d98c638fd5acde97",
+      "kind": "table",
+      "value": null,
+      "summary": "decile separation on test; decile 1 holds the highest probabilities",
+      "file": "d98c638fd5acde97.csv"
+    },
+    "deciles.test.top2_capture": {
+      "hash": "1d4dff056656d351",
+      "kind": "scalar",
+      "value": 0.37691686844229216,
+      "summary": "share of test events in the top two deciles",
+      "file": "1d4dff056656d351.json"
+    },
+    "deciles.train": {
+      "hash": "d216a7c03c42628a",
+      "kind": "table",
+      "value": null,
+      "summary": "decile separation on train; decile 1 holds the highest probabilities",
+      "file": "d216a7c03c42628a.csv"
+    },
+    "deciles.train.top2_capture": {
+      "hash": "b2f9e5d81c201d4b",
+      "kind": "scalar",
+      "value": 0.3800067317401548,
+      "summary": "share of train events in the top two deciles",
+      "file": "b2f9e5d81c201d4b.json"
+    },
+    "deciles.vintage_holdout": {
+      "hash": "460953780c14db3a",
+      "kind": "table",
+      "value": null,
+      "summary": "decile separation on vintage_holdout; decile 1 holds the highest probabilities",
+      "file": "460953780c14db3a.csv"
+    },
+    "deciles.vintage_holdout.top2_capture": {
+      "hash": "3cd3b5a397ec9c19",
+      "kind": "scalar",
+      "value": 0.5115740740740741,
+      "summary": "share of vintage_holdout events in the top two deciles",
+      "file": "3cd3b5a397ec9c19.json"
+    },
+    "guidance.0a0c83585dcb95ba": {
+      "hash": "f731668622b73cd9",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'evaluation of conceptual soundness model design and variables': [[reg:SR26-2:V.1.a]], [[reg:SR26-2:VII]], [[reg:SR26-2:IV.1]], [[reg:SR11-7:V.1.a]], [[reg:SR11-7:V.1]], [[reg:SR11-7:IV]]",
+      "file": "f731668622b73cd9.json"
+    },
+    "guidance.273fd684d5a7c123": {
+      "hash": "4bee209b4de1b81b",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'data quality accuracy completeness and representativeness': [[reg:SR26-2:V.1.a]], [[reg:SR26-2:IV.1]], [[reg:SR26-2:V.1.b]], [[reg:SR11-7:VI.4]], [[reg:SR11-7:III]], [[reg:SR11-7:V.1.c]]",
+      "file": "4bee209b4de1b81b.json"
+    },
+    "guidance.688eead9b5ac7dfb": {
+      "hash": "4df234978db969bf",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'ongoing monitoring model performance over time': [[reg:SR26-2:V.2]], [[reg:SR26-2:V]], [[reg:SR26-2:V.1.b]], [[reg:SR11-7:V.1.b]], [[reg:SR11-7:V.2]], [[reg:SR11-7:V.1.c]]",
+      "file": "4df234978db969bf.json"
+    },
+    "guidance.70baba588b0eb25b": {
+      "hash": "e56123682e80fec7",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'outcomes analysis comparing model output to actual outcomes': [[reg:SR26-2:V.1.b]], [[reg:SR26-2:IV.1]], [[reg:SR26-2:IV.2]], [[reg:SR11-7:V.1.c]], [[reg:SR11-7:IV.2]], [[reg:SR11-7:IV.1]]",
+      "file": "e56123682e80fec7.json"
+    },
+    "guidance.78ef53a49ee86008": {
+      "hash": "c475c2b3bc24c11a",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'model validation elements scope and purpose': [[reg:SR26-2:V.1.b]], [[reg:SR26-2:V]], [[reg:SR26-2:VII]], [[reg:SR11-7:II]], [[reg:SR11-7:I]], [[reg:SR11-7:V.1]]",
+      "file": "c475c2b3bc24c11a.json"
+    },
+    "guidance.c8664af1d12442aa": {
+      "hash": "0b559619a04e41c4",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'model validation findings deficiencies and remediation': [[reg:SR26-2:VI.3]], [[reg:SR26-2:V]], [[reg:SR26-2:VI.1]], [[reg:SR11-7:VI.4]], [[reg:SR11-7:V]], [[reg:SR11-7:VI.1]]",
+      "file": "0b559619a04e41c4.json"
+    },
+    "guidance.cbe598ebd328c64f": {
+      "hash": "6a003148c976292c",
+      "kind": "json",
+      "value": null,
+      "summary": "guidance retrieved for 'sensitivity analysis stability benchmarking alternative models': [[reg:SR26-2:V.1.a]], [[reg:SR26-2:IV.1]], [[reg:SR26-2:VII]], [[reg:SR11-7:V.1.b]], [[reg:SR11-7:V.1.a]], [[reg:SR11-7:V.2]]",
+      "file": "6a003148c976292c.json"
+    },
+    "leakage.duplicates.train": {
+      "hash": "ce57652e7490dcbf",
+      "kind": "scalar",
+      "value": 0.00015309149130248966,
+      "summary": "share of train rows whose feature values are not unique within train",
+      "file": "ce57652e7490dcbf.json"
+    },
+    "leakage.name_screen": {
+      "hash": "b51e4964854da64e",
+      "kind": "table",
+      "value": null,
+      "summary": "feature names against the target-adjacent lexicon and the declared target",
+      "file": "b51e4964854da64e.csv"
+    },
+    "leakage.name_screen.n_matched": {
+      "hash": "407e62befaf64dd0",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "feature names matching the target-adjacent lexicon",
+      "file": "407e62befaf64dd0.json"
+    },
+    "leakage.overlap": {
+      "hash": "4c9fcd09afabfc0f",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "share of test rows whose feature values also appear in train",
+      "file": "4c9fcd09afabfc0f.json"
+    },
+    "leakage.overlap.features": {
+      "hash": "0fec804847fa7b57",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "share of test rows whose feature values also appear in train",
+      "file": "0fec804847fa7b57.json"
+    },
+    "leakage.overlap.ids": {
+      "hash": "63d37fc55b31819a",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "share of test rows whose ['loan_id', 'period'] also identify a row of train",
+      "file": "63d37fc55b31819a.json"
+    },
+    "leakage.target_corr": {
+      "hash": "f9b7db2d8c8196b6",
+      "kind": "table",
+      "value": null,
+      "summary": "each feature against the outcome on train, on its own",
+      "file": "f9b7db2d8c8196b6.csv"
+    },
+    "leakage.target_corr.max_single_feature_auc": {
+      "hash": "9e2ffad1f5d03f51",
+      "kind": "scalar",
+      "value": 0.5994570075262728,
+      "summary": "the AUC of the strongest single feature",
+      "file": "9e2ffad1f5d03f51.json"
+    },
+    "leakage.timing": {
+      "hash": "8cdad1c5db1da1b1",
+      "kind": "table",
+      "value": null,
+      "summary": "each feature's declared timing; flagged means during or after the outcome",
+      "file": "8cdad1c5db1da1b1.csv"
+    },
+    "leakage.timing.n_flagged": {
+      "hash": "742bcd2472e5774a",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "features declared during_period or after_outcome",
+      "file": "742bcd2472e5774a.json"
+    },
+    "metrics.out_of_time.auc": {
+      "hash": "cb57fe9a517b526b",
+      "kind": "scalar",
+      "value": 0.6898015085967689,
+      "summary": "auc on out_of_time, recomputed by quaestor",
+      "file": "cb57fe9a517b526b.json"
+    },
+    "metrics.out_of_time.brier": {
+      "hash": "4ddcaaea660b1ddb",
+      "kind": "scalar",
+      "value": 0.018236976454107403,
+      "summary": "brier on out_of_time, recomputed by quaestor",
+      "file": "4ddcaaea660b1ddb.json"
+    },
+    "metrics.out_of_time.event_rate": {
+      "hash": "cf3a82aa4d666791",
+      "kind": "scalar",
+      "value": 0.018680539134547175,
+      "summary": "event_rate on out_of_time, recomputed by quaestor",
+      "file": "cf3a82aa4d666791.json"
+    },
+    "metrics.out_of_time.gini": {
+      "hash": "6c5edac775f20c0a",
+      "kind": "scalar",
+      "value": 0.37960301719353784,
+      "summary": "gini on out_of_time, recomputed by quaestor",
+      "file": "6c5edac775f20c0a.json"
+    },
+    "metrics.out_of_time.ks": {
+      "hash": "c486329f41e638b5",
+      "kind": "scalar",
+      "value": 0.30207798888734605,
+      "summary": "ks on out_of_time, recomputed by quaestor",
+      "file": "c486329f41e638b5.json"
+    },
+    "metrics.out_of_time.logloss": {
+      "hash": "8d53f72c86eb0eb8",
+      "kind": "scalar",
+      "value": 0.0957624925772325,
+      "summary": "logloss on out_of_time, recomputed by quaestor",
+      "file": "8d53f72c86eb0eb8.json"
+    },
+    "metrics.out_of_time.mean_predicted": {
+      "hash": "fd777cc4af0eca73",
+      "kind": "scalar",
+      "value": 0.010054219040168889,
+      "summary": "mean_predicted on out_of_time, recomputed by quaestor",
+      "file": "fd777cc4af0eca73.json"
+    },
+    "metrics.out_of_time.n": {
+      "hash": "c164ae004606a122",
+      "kind": "scalar",
+      "value": 283343.0,
+      "summary": "n on out_of_time, recomputed by quaestor",
+      "file": "c164ae004606a122.json"
+    },
+    "metrics.out_of_time.sub.incentive_high": {
+      "hash": "8ca3a5fb0be7e63f",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the incentive above_median slice of out_of_time",
+      "file": "8ca3a5fb0be7e63f.csv"
+    },
+    "metrics.out_of_time.sub.incentive_high.auc": {
+      "hash": "a1a6fd72ac3afd24",
+      "kind": "scalar",
+      "value": 0.6045716302744226,
+      "summary": "auc on the incentive above_median slice of out_of_time",
+      "file": "a1a6fd72ac3afd24.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.auc_gap": {
+      "hash": "e7b201c8feea9ee4",
+      "kind": "scalar",
+      "value": 0.0852298783223463,
+      "summary": "how far AUC on the incentive above_median slice of out_of_time falls below AUC on all of out_of_time",
+      "file": "e7b201c8feea9ee4.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.brier": {
+      "hash": "18efc56089723717",
+      "kind": "scalar",
+      "value": 0.028625260428141595,
+      "summary": "brier on the incentive above_median slice of out_of_time",
+      "file": "18efc56089723717.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.event_rate": {
+      "hash": "f62f5a9c11b1920c",
+      "kind": "scalar",
+      "value": 0.029490862632437127,
+      "summary": "event_rate on the incentive above_median slice of out_of_time",
+      "file": "f62f5a9c11b1920c.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.gini": {
+      "hash": "cd69ca1ec628e1bd",
+      "kind": "scalar",
+      "value": 0.20914326054884524,
+      "summary": "gini on the incentive above_median slice of out_of_time",
+      "file": "cd69ca1ec628e1bd.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.ks": {
+      "hash": "13aade344853b543",
+      "kind": "scalar",
+      "value": 0.15867787404692002,
+      "summary": "ks on the incentive above_median slice of out_of_time",
+      "file": "13aade344853b543.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.logloss": {
+      "hash": "829e4105bc6f4211",
+      "kind": "scalar",
+      "value": 0.13419140314338515,
+      "summary": "logloss on the incentive above_median slice of out_of_time",
+      "file": "829e4105bc6f4211.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.mean_predicted": {
+      "hash": "b7288bbc6bd6f233",
+      "kind": "scalar",
+      "value": 0.018801799409039244,
+      "summary": "mean_predicted on the incentive above_median slice of out_of_time",
+      "file": "b7288bbc6bd6f233.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.n": {
+      "hash": "32e27ae32a65fae3",
+      "kind": "scalar",
+      "value": 141671.0,
+      "summary": "n on the incentive above_median slice of out_of_time",
+      "file": "32e27ae32a65fae3.json"
+    },
+    "metrics.out_of_time.sub.incentive_high.share": {
+      "hash": "4787f68ac3928d45",
+      "kind": "scalar",
+      "value": 0.4999982353543232,
+      "summary": "the share of out_of_time the incentive above_median slice holds",
+      "file": "4787f68ac3928d45.json"
+    },
+    "metrics.out_of_time.sub.incentive_low": {
+      "hash": "eced92cddcd95833",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the incentive below_median slice of out_of_time",
+      "file": "eced92cddcd95833.csv"
+    },
+    "metrics.out_of_time.sub.incentive_low.auc": {
+      "hash": "5f01744953d08b1d",
+      "kind": "scalar",
+      "value": 0.5198113488962922,
+      "summary": "auc on the incentive below_median slice of out_of_time",
+      "file": "5f01744953d08b1d.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.auc_gap": {
+      "hash": "379c90f97ec45b7d",
+      "kind": "scalar",
+      "value": 0.1699901597004767,
+      "summary": "how far AUC on the incentive below_median slice of out_of_time falls below AUC on all of out_of_time",
+      "file": "379c90f97ec45b7d.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.brier": {
+      "hash": "469dae2ceaeae92e",
+      "kind": "scalar",
+      "value": 0.007848765806376036,
+      "summary": "brier on the incentive below_median slice of out_of_time",
+      "file": "469dae2ceaeae92e.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.event_rate": {
+      "hash": "b87e92464282b5af",
+      "kind": "scalar",
+      "value": 0.00787029194195042,
+      "summary": "event_rate on the incentive below_median slice of out_of_time",
+      "file": "b87e92464282b5af.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.gini": {
+      "hash": "778cadcc009716d6",
+      "kind": "scalar",
+      "value": 0.03962269779258443,
+      "summary": "gini on the incentive below_median slice of out_of_time",
+      "file": "778cadcc009716d6.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.ks": {
+      "hash": "c1e0e0d10293dcef",
+      "kind": "scalar",
+      "value": 0.09045346842515822,
+      "summary": "ks on the incentive below_median slice of out_of_time",
+      "file": "c1e0e0d10293dcef.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.logloss": {
+      "hash": "dd1c61314e24ad27",
+      "kind": "scalar",
+      "value": 0.057333853263766124,
+      "summary": "logloss on the incentive below_median slice of out_of_time",
+      "file": "dd1c61314e24ad27.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.mean_predicted": {
+      "hash": "e77d973ce0f9500d",
+      "kind": "scalar",
+      "value": 0.0013067004166001377,
+      "summary": "mean_predicted on the incentive below_median slice of out_of_time",
+      "file": "e77d973ce0f9500d.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.n": {
+      "hash": "1d830b22d2d049b8",
+      "kind": "scalar",
+      "value": 141672.0,
+      "summary": "n on the incentive below_median slice of out_of_time",
+      "file": "1d830b22d2d049b8.json"
+    },
+    "metrics.out_of_time.sub.incentive_low.share": {
+      "hash": "cc116fdabd3ff470",
+      "kind": "scalar",
+      "value": 0.5000017646456768,
+      "summary": "the share of out_of_time the incentive below_median slice holds",
+      "file": "cc116fdabd3ff470.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high": {
+      "hash": "fb1754594bdeb072",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the loan_age above_median slice of out_of_time",
+      "file": "fb1754594bdeb072.csv"
+    },
+    "metrics.out_of_time.sub.loan_age_high.auc": {
+      "hash": "f9940557d67d2527",
+      "kind": "scalar",
+      "value": 0.6567747134474418,
+      "summary": "auc on the loan_age above_median slice of out_of_time",
+      "file": "f9940557d67d2527.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.auc_gap": {
+      "hash": "3375bb4a6b447239",
+      "kind": "scalar",
+      "value": 0.03302679514932716,
+      "summary": "how far AUC on the loan_age above_median slice of out_of_time falls below AUC on all of out_of_time",
+      "file": "3375bb4a6b447239.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.brier": {
+      "hash": "ca9d5a0d5fd61f98",
+      "kind": "scalar",
+      "value": 0.01215078725626515,
+      "summary": "brier on the loan_age above_median slice of out_of_time",
+      "file": "ca9d5a0d5fd61f98.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.event_rate": {
+      "hash": "90f73f7eae70a4af",
+      "kind": "scalar",
+      "value": 0.012288165638516627,
+      "summary": "event_rate on the loan_age above_median slice of out_of_time",
+      "file": "90f73f7eae70a4af.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.gini": {
+      "hash": "a805da581328e2fc",
+      "kind": "scalar",
+      "value": 0.3135494268948835,
+      "summary": "gini on the loan_age above_median slice of out_of_time",
+      "file": "a805da581328e2fc.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.ks": {
+      "hash": "7c897db3a02dfd52",
+      "kind": "scalar",
+      "value": 0.3081689262827522,
+      "summary": "ks on the loan_age above_median slice of out_of_time",
+      "file": "7c897db3a02dfd52.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.logloss": {
+      "hash": "95bf31c39857a349",
+      "kind": "scalar",
+      "value": 0.07547322304146581,
+      "summary": "logloss on the loan_age above_median slice of out_of_time",
+      "file": "95bf31c39857a349.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.mean_predicted": {
+      "hash": "432adcfd1ebd5078",
+      "kind": "scalar",
+      "value": 0.003214253156992093,
+      "summary": "mean_predicted on the loan_age above_median slice of out_of_time",
+      "file": "432adcfd1ebd5078.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.n": {
+      "hash": "4bf41e5cbdeb593f",
+      "kind": "scalar",
+      "value": 141030.0,
+      "summary": "n on the loan_age above_median slice of out_of_time",
+      "file": "4bf41e5cbdeb593f.json"
+    },
+    "metrics.out_of_time.sub.loan_age_high.share": {
+      "hash": "2ea8628a3325da73",
+      "kind": "scalar",
+      "value": 0.4977359595966726,
+      "summary": "the share of out_of_time the loan_age above_median slice holds",
+      "file": "2ea8628a3325da73.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low": {
+      "hash": "5ab8bfd34d787ed8",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the loan_age below_median slice of out_of_time",
+      "file": "5ab8bfd34d787ed8.csv"
+    },
+    "metrics.out_of_time.sub.loan_age_low.auc": {
+      "hash": "b30b38e0acfdb2b9",
+      "kind": "scalar",
+      "value": 0.6665223130715586,
+      "summary": "auc on the loan_age below_median slice of out_of_time",
+      "file": "b30b38e0acfdb2b9.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.auc_gap": {
+      "hash": "3b05548e1f84e267",
+      "kind": "scalar",
+      "value": 0.023279195525210294,
+      "summary": "how far AUC on the loan_age below_median slice of out_of_time falls below AUC on all of out_of_time",
+      "file": "3b05548e1f84e267.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.brier": {
+      "hash": "147a0c9650724f3b",
+      "kind": "scalar",
+      "value": 0.024268296590508807,
+      "summary": "brier on the loan_age below_median slice of out_of_time",
+      "file": "147a0c9650724f3b.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.event_rate": {
+      "hash": "f5c47c9d8b21c630",
+      "kind": "scalar",
+      "value": 0.025015283213761216,
+      "summary": "event_rate on the loan_age below_median slice of out_of_time",
+      "file": "f5c47c9d8b21c630.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.gini": {
+      "hash": "40ecf2edbf7ad89d",
+      "kind": "scalar",
+      "value": 0.33304462614311725,
+      "summary": "gini on the loan_age below_median slice of out_of_time",
+      "file": "40ecf2edbf7ad89d.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.ks": {
+      "hash": "94f78ce8dda89639",
+      "kind": "scalar",
+      "value": 0.24827368648047043,
+      "summary": "ks on the loan_age below_median slice of out_of_time",
+      "file": "94f78ce8dda89639.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.logloss": {
+      "hash": "2ddf02534d696089",
+      "kind": "scalar",
+      "value": 0.11586884746139049,
+      "summary": "logloss on the loan_age below_median slice of out_of_time",
+      "file": "2ddf02534d696089.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.mean_predicted": {
+      "hash": "e2794584be91b26f",
+      "kind": "scalar",
+      "value": 0.01683252030923372,
+      "summary": "mean_predicted on the loan_age below_median slice of out_of_time",
+      "file": "e2794584be91b26f.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.n": {
+      "hash": "05f9b4c2406976d6",
+      "kind": "scalar",
+      "value": 142313.0,
+      "summary": "n on the loan_age below_median slice of out_of_time",
+      "file": "05f9b4c2406976d6.json"
+    },
+    "metrics.out_of_time.sub.loan_age_low.share": {
+      "hash": "50f067384c3666c9",
+      "kind": "scalar",
+      "value": 0.5022640404033274,
+      "summary": "the share of out_of_time the loan_age below_median slice holds",
+      "file": "50f067384c3666c9.json"
+    },
+    "metrics.test.auc": {
+      "hash": "f3890b650860a9d2",
+      "kind": "scalar",
+      "value": 0.6549316245083003,
+      "summary": "auc on test, recomputed by quaestor",
+      "file": "f3890b650860a9d2.json"
+    },
+    "metrics.test.brier": {
+      "hash": "21d0b581bbf1d66d",
+      "kind": "scalar",
+      "value": 0.009062660213490932,
+      "summary": "brier on test, recomputed by quaestor",
+      "file": "21d0b581bbf1d66d.json"
+    },
+    "metrics.test.event_rate": {
+      "hash": "78206f7c1bc83027",
+      "kind": "scalar",
+      "value": 0.009173700577521102,
+      "summary": "event_rate on test, recomputed by quaestor",
+      "file": "78206f7c1bc83027.json"
+    },
+    "metrics.test.gini": {
+      "hash": "5710cba31621fb21",
+      "kind": "scalar",
+      "value": 0.3098632490166007,
+      "summary": "gini on test, recomputed by quaestor",
+      "file": "5710cba31621fb21.json"
+    },
+    "metrics.test.ks": {
+      "hash": "c35222f318bb2a75",
+      "kind": "scalar",
+      "value": 0.23752939604027812,
+      "summary": "ks on test, recomputed by quaestor",
+      "file": "c35222f318bb2a75.json"
+    },
+    "metrics.test.logloss": {
+      "hash": "048e9ca795b5a307",
+      "kind": "scalar",
+      "value": 0.05083162919610457,
+      "summary": "logloss on test, recomputed by quaestor",
+      "file": "048e9ca795b5a307.json"
+    },
+    "metrics.test.mean_predicted": {
+      "hash": "24595a04a1ab329f",
+      "kind": "scalar",
+      "value": 0.009605653505812023,
+      "summary": "mean_predicted on test, recomputed by quaestor",
+      "file": "24595a04a1ab329f.json"
+    },
+    "metrics.test.n": {
+      "hash": "629740ff29a20c49",
+      "kind": "scalar",
+      "value": 135060.0,
+      "summary": "n on test, recomputed by quaestor",
+      "file": "629740ff29a20c49.json"
+    },
+    "metrics.train.auc": {
+      "hash": "40964132f76fc9fd",
+      "kind": "scalar",
+      "value": 0.6503543409327817,
+      "summary": "auc on train, recomputed by quaestor",
+      "file": "40964132f76fc9fd.json"
+    },
+    "metrics.train.brier": {
+      "hash": "574cf8a4d3397cf7",
+      "kind": "scalar",
+      "value": 0.00935851459708758,
+      "summary": "brier on train, recomputed by quaestor",
+      "file": "574cf8a4d3397cf7.json"
+    },
+    "metrics.train.event_rate": {
+      "hash": "8ecc280943b69d49",
+      "kind": "scalar",
+      "value": 0.009475725430410349,
+      "summary": "event_rate on train, recomputed by quaestor",
+      "file": "8ecc280943b69d49.json"
+    },
+    "metrics.train.gini": {
+      "hash": "da0e7063d7134037",
+      "kind": "scalar",
+      "value": 0.3007086818655633,
+      "summary": "gini on train, recomputed by quaestor",
+      "file": "da0e7063d7134037.json"
+    },
+    "metrics.train.ks": {
+      "hash": "96e91aee919cb7e2",
+      "kind": "scalar",
+      "value": 0.2261527234737985,
+      "summary": "ks on train, recomputed by quaestor",
+      "file": "96e91aee919cb7e2.json"
+    },
+    "metrics.train.logloss": {
+      "hash": "716b9dc1a57db414",
+      "kind": "scalar",
+      "value": 0.0522562590081434,
+      "summary": "logloss on train, recomputed by quaestor",
+      "file": "716b9dc1a57db414.json"
+    },
+    "metrics.train.mean_predicted": {
+      "hash": "716b94b2b4861db6",
+      "kind": "scalar",
+      "value": 0.009503175967835465,
+      "summary": "mean_predicted on train, recomputed by quaestor",
+      "file": "716b94b2b4861db6.json"
+    },
+    "metrics.train.n": {
+      "hash": "72c7a6d240657b96",
+      "kind": "scalar",
+      "value": 313538.0,
+      "summary": "n on train, recomputed by quaestor",
+      "file": "72c7a6d240657b96.json"
+    },
+    "metrics.vintage_holdout.auc": {
+      "hash": "95f87cc7218a145b",
+      "kind": "scalar",
+      "value": 0.7388200711057835,
+      "summary": "auc on vintage_holdout, recomputed by quaestor",
+      "file": "95f87cc7218a145b.json"
+    },
+    "metrics.vintage_holdout.brier": {
+      "hash": "6a660ed9312baf0f",
+      "kind": "scalar",
+      "value": 0.01897762486314199,
+      "summary": "brier on vintage_holdout, recomputed by quaestor",
+      "file": "6a660ed9312baf0f.json"
+    },
+    "metrics.vintage_holdout.event_rate": {
+      "hash": "bab666151a0e298b",
+      "kind": "scalar",
+      "value": 0.019478850567456792,
+      "summary": "event_rate on vintage_holdout, recomputed by quaestor",
+      "file": "bab666151a0e298b.json"
+    },
+    "metrics.vintage_holdout.gini": {
+      "hash": "75ad81b122e5da52",
+      "kind": "scalar",
+      "value": 0.47764014221156703,
+      "summary": "gini on vintage_holdout, recomputed by quaestor",
+      "file": "75ad81b122e5da52.json"
+    },
+    "metrics.vintage_holdout.ks": {
+      "hash": "699a759886159883",
+      "kind": "scalar",
+      "value": 0.4110310225784579,
+      "summary": "ks on vintage_holdout, recomputed by quaestor",
+      "file": "699a759886159883.json"
+    },
+    "metrics.vintage_holdout.logloss": {
+      "hash": "630a591bdea8acab",
+      "kind": "scalar",
+      "value": 0.09344516110655995,
+      "summary": "logloss on vintage_holdout, recomputed by quaestor",
+      "file": "630a591bdea8acab.json"
+    },
+    "metrics.vintage_holdout.mean_predicted": {
+      "hash": "c12c52f7a3530c3a",
+      "kind": "scalar",
+      "value": 0.00987267180105764,
+      "summary": "mean_predicted on vintage_holdout, recomputed by quaestor",
+      "file": "c12c52f7a3530c3a.json"
+    },
+    "metrics.vintage_holdout.n": {
+      "hash": "faabc78ed23d08df",
+      "kind": "scalar",
+      "value": 221779.0,
+      "summary": "n on vintage_holdout, recomputed by quaestor",
+      "file": "faabc78ed23d08df.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high": {
+      "hash": "eac314b990aa5f02",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the incentive above_median slice of vintage_holdout",
+      "file": "eac314b990aa5f02.csv"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.auc": {
+      "hash": "1d13a424d9ac96f4",
+      "kind": "scalar",
+      "value": 0.6653722392584333,
+      "summary": "auc on the incentive above_median slice of vintage_holdout",
+      "file": "1d13a424d9ac96f4.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.auc_gap": {
+      "hash": "dfc93d0159bd6729",
+      "kind": "scalar",
+      "value": 0.07344783184735026,
+      "summary": "how far AUC on the incentive above_median slice of vintage_holdout falls below AUC on all of vintage_holdout",
+      "file": "dfc93d0159bd6729.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.brier": {
+      "hash": "d5a2f90479bb7ceb",
+      "kind": "scalar",
+      "value": 0.030701628687376924,
+      "summary": "brier on the incentive above_median slice of vintage_holdout",
+      "file": "d5a2f90479bb7ceb.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.event_rate": {
+      "hash": "7a446230351a359a",
+      "kind": "scalar",
+      "value": 0.03165368841352147,
+      "summary": "event_rate on the incentive above_median slice of vintage_holdout",
+      "file": "7a446230351a359a.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.gini": {
+      "hash": "4ae4f59c1d68a819",
+      "kind": "scalar",
+      "value": 0.3307444785168665,
+      "summary": "gini on the incentive above_median slice of vintage_holdout",
+      "file": "4ae4f59c1d68a819.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.ks": {
+      "hash": "b9f8ee6586491717",
+      "kind": "scalar",
+      "value": 0.25671251278887264,
+      "summary": "ks on the incentive above_median slice of vintage_holdout",
+      "file": "b9f8ee6586491717.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.logloss": {
+      "hash": "911c028558d575bb",
+      "kind": "scalar",
+      "value": 0.14139533912058944,
+      "summary": "logloss on the incentive above_median slice of vintage_holdout",
+      "file": "911c028558d575bb.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.mean_predicted": {
+      "hash": "1f806ffced894f0b",
+      "kind": "scalar",
+      "value": 0.016615979797772264,
+      "summary": "mean_predicted on the incentive above_median slice of vintage_holdout",
+      "file": "1f806ffced894f0b.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.n": {
+      "hash": "1daf46e399095e06",
+      "kind": "scalar",
+      "value": 110698.0,
+      "summary": "n on the incentive above_median slice of vintage_holdout",
+      "file": "1daf46e399095e06.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_high.share": {
+      "hash": "6ee6cf539382b96f",
+      "kind": "scalar",
+      "value": 0.49913652780470646,
+      "summary": "the share of vintage_holdout the incentive above_median slice holds",
+      "file": "6ee6cf539382b96f.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low": {
+      "hash": "7e722b90cfe1ecb9",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the incentive below_median slice of vintage_holdout",
+      "file": "7e722b90cfe1ecb9.csv"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.auc": {
+      "hash": "e5b67962aae5ed87",
+      "kind": "scalar",
+      "value": 0.5956133530363127,
+      "summary": "auc on the incentive below_median slice of vintage_holdout",
+      "file": "e5b67962aae5ed87.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.auc_gap": {
+      "hash": "2b9eda6275034797",
+      "kind": "scalar",
+      "value": 0.14320671806947083,
+      "summary": "how far AUC on the incentive below_median slice of vintage_holdout falls below AUC on all of vintage_holdout",
+      "file": "2b9eda6275034797.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.brier": {
+      "hash": "6e194c82aac12bd6",
+      "kind": "scalar",
+      "value": 0.00729404463488371,
+      "summary": "brier on the incentive below_median slice of vintage_holdout",
+      "file": "6e194c82aac12bd6.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.event_rate": {
+      "hash": "8cd3a2010ad508bf",
+      "kind": "scalar",
+      "value": 0.007345990763496907,
+      "summary": "event_rate on the incentive below_median slice of vintage_holdout",
+      "file": "8cd3a2010ad508bf.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.gini": {
+      "hash": "27b437ce02324f44",
+      "kind": "scalar",
+      "value": 0.19122670607262537,
+      "summary": "gini on the incentive below_median slice of vintage_holdout",
+      "file": "27b437ce02324f44.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.ks": {
+      "hash": "d69d5504857255f4",
+      "kind": "scalar",
+      "value": 0.17256359012112532,
+      "summary": "ks on the incentive below_median slice of vintage_holdout",
+      "file": "d69d5504857255f4.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.logloss": {
+      "hash": "73ea1373eb372ffc",
+      "kind": "scalar",
+      "value": 0.045660312160322174,
+      "summary": "logloss on the incentive below_median slice of vintage_holdout",
+      "file": "73ea1373eb372ffc.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.mean_predicted": {
+      "hash": "037a55347f2ade9e",
+      "kind": "scalar",
+      "value": 0.0031526142878887343,
+      "summary": "mean_predicted on the incentive below_median slice of vintage_holdout",
+      "file": "037a55347f2ade9e.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.n": {
+      "hash": "d2393856b327efb0",
+      "kind": "scalar",
+      "value": 111081.0,
+      "summary": "n on the incentive below_median slice of vintage_holdout",
+      "file": "d2393856b327efb0.json"
+    },
+    "metrics.vintage_holdout.sub.incentive_low.share": {
+      "hash": "4e4aac599fc8040d",
+      "kind": "scalar",
+      "value": 0.5008634721952935,
+      "summary": "the share of vintage_holdout the incentive below_median slice holds",
+      "file": "4e4aac599fc8040d.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high": {
+      "hash": "501301d6be711c5b",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the loan_age above_median slice of vintage_holdout",
+      "file": "501301d6be711c5b.csv"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.auc": {
+      "hash": "c882f305cd873e1d",
+      "kind": "scalar",
+      "value": 0.7102086289374402,
+      "summary": "auc on the loan_age above_median slice of vintage_holdout",
+      "file": "c882f305cd873e1d.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.auc_gap": {
+      "hash": "9ed9d4d1cce0a612",
+      "kind": "scalar",
+      "value": 0.028611442168343326,
+      "summary": "how far AUC on the loan_age above_median slice of vintage_holdout falls below AUC on all of vintage_holdout",
+      "file": "9ed9d4d1cce0a612.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.brier": {
+      "hash": "872d0ab6aa8fa82c",
+      "kind": "scalar",
+      "value": 0.011344889883885118,
+      "summary": "brier on the loan_age above_median slice of vintage_holdout",
+      "file": "872d0ab6aa8fa82c.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.event_rate": {
+      "hash": "31f03683bcacb743",
+      "kind": "scalar",
+      "value": 0.011573843295418499,
+      "summary": "event_rate on the loan_age above_median slice of vintage_holdout",
+      "file": "31f03683bcacb743.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.gini": {
+      "hash": "15946b38ffd2cb38",
+      "kind": "scalar",
+      "value": 0.4204172578748804,
+      "summary": "gini on the loan_age above_median slice of vintage_holdout",
+      "file": "15946b38ffd2cb38.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.ks": {
+      "hash": "4dc8e2398c0edc13",
+      "kind": "scalar",
+      "value": 0.3737167910179138,
+      "summary": "ks on the loan_age above_median slice of vintage_holdout",
+      "file": "4dc8e2398c0edc13.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.logloss": {
+      "hash": "dcadafc760aa3ac0",
+      "kind": "scalar",
+      "value": 0.062423155755383784,
+      "summary": "logloss on the loan_age above_median slice of vintage_holdout",
+      "file": "dcadafc760aa3ac0.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.mean_predicted": {
+      "hash": "037855d3c783d796",
+      "kind": "scalar",
+      "value": 0.005655264251446145,
+      "summary": "mean_predicted on the loan_age above_median slice of vintage_holdout",
+      "file": "037855d3c783d796.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.n": {
+      "hash": "128d16def2498b11",
+      "kind": "scalar",
+      "value": 110335.0,
+      "summary": "n on the loan_age above_median slice of vintage_holdout",
+      "file": "128d16def2498b11.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_high.share": {
+      "hash": "dbe2240567158c35",
+      "kind": "scalar",
+      "value": 0.49749976327785767,
+      "summary": "the share of vintage_holdout the loan_age above_median slice holds",
+      "file": "dbe2240567158c35.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low": {
+      "hash": "a4b42f76212ece73",
+      "kind": "table",
+      "value": null,
+      "summary": "every metric on the loan_age below_median slice of vintage_holdout",
+      "file": "a4b42f76212ece73.csv"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.auc": {
+      "hash": "9e59bba3e181fcd1",
+      "kind": "scalar",
+      "value": 0.7111696947401479,
+      "summary": "auc on the loan_age below_median slice of vintage_holdout",
+      "file": "9e59bba3e181fcd1.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.auc_gap": {
+      "hash": "69340c922da4a6af",
+      "kind": "scalar",
+      "value": 0.02765037636563561,
+      "summary": "how far AUC on the loan_age below_median slice of vintage_holdout falls below AUC on all of vintage_holdout",
+      "file": "69340c922da4a6af.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.brier": {
+      "hash": "c365bc8a3ff35c53",
+      "kind": "scalar",
+      "value": 0.026534405075053866,
+      "summary": "brier on the loan_age below_median slice of vintage_holdout",
+      "file": "c365bc8a3ff35c53.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.event_rate": {
+      "hash": "1b4716c7b39a65ec",
+      "kind": "scalar",
+      "value": 0.027305193639854994,
+      "summary": "event_rate on the loan_age below_median slice of vintage_holdout",
+      "file": "1b4716c7b39a65ec.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.gini": {
+      "hash": "597747eea3e63d08",
+      "kind": "scalar",
+      "value": 0.4223393894802958,
+      "summary": "gini on the loan_age below_median slice of vintage_holdout",
+      "file": "597747eea3e63d08.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.ks": {
+      "hash": "6b630cdb372ca7b8",
+      "kind": "scalar",
+      "value": 0.33756767325641907,
+      "summary": "ks on the loan_age below_median slice of vintage_holdout",
+      "file": "6b630cdb372ca7b8.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.logloss": {
+      "hash": "c72aefe7d0743ab9",
+      "kind": "scalar",
+      "value": 0.12415846070476193,
+      "summary": "logloss on the loan_age below_median slice of vintage_holdout",
+      "file": "c72aefe7d0743ab9.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.mean_predicted": {
+      "hash": "4e34fc228b9b66f0",
+      "kind": "scalar",
+      "value": 0.014048111142667635,
+      "summary": "mean_predicted on the loan_age below_median slice of vintage_holdout",
+      "file": "4e34fc228b9b66f0.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.n": {
+      "hash": "104ba33765d3f99f",
+      "kind": "scalar",
+      "value": 111444.0,
+      "summary": "n on the loan_age below_median slice of vintage_holdout",
+      "file": "104ba33765d3f99f.json"
+    },
+    "metrics.vintage_holdout.sub.loan_age_low.share": {
+      "hash": "38c62cb83abed465",
+      "kind": "scalar",
+      "value": 0.5025002367221423,
+      "summary": "the share of vintage_holdout the loan_age below_median slice holds",
+      "file": "38c62cb83abed465.json"
+    },
+    "profile.out_of_time.describe": {
+      "hash": "c69955b71781b3ed",
+      "kind": "table",
+      "value": null,
+      "summary": "descriptive statistics of out_of_time",
+      "file": "c69955b71781b3ed.csv"
+    },
+    "profile.out_of_time.missing": {
+      "hash": "2dbab352bd050dd9",
+      "kind": "table",
+      "value": null,
+      "summary": "missingness per feature in out_of_time",
+      "file": "2dbab352bd050dd9.csv"
+    },
+    "profile.out_of_time.missing.max": {
+      "hash": "4dafce11da3bc34e",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "the largest missing fraction in out_of_time",
+      "file": "4dafce11da3bc34e.json"
+    },
+    "profile.out_of_time.n": {
+      "hash": "a0103a066c2a6194",
+      "kind": "scalar",
+      "value": 283343.0,
+      "summary": "rows in out_of_time",
+      "file": "a0103a066c2a6194.json"
+    },
+    "profile.out_of_time.schema": {
+      "hash": "e0e45d3dbf1c8ab9",
+      "kind": "table",
+      "value": null,
+      "summary": "the columns of data_out_of_time.csv the model used",
+      "file": "e0e45d3dbf1c8ab9.csv"
+    },
+    "profile.test.describe": {
+      "hash": "3aea7da1e5ef36d4",
+      "kind": "table",
+      "value": null,
+      "summary": "descriptive statistics of test",
+      "file": "3aea7da1e5ef36d4.csv"
+    },
+    "profile.test.missing": {
+      "hash": "0c1f2c257114a2b6",
+      "kind": "table",
+      "value": null,
+      "summary": "missingness per feature in test",
+      "file": "0c1f2c257114a2b6.csv"
+    },
+    "profile.test.missing.max": {
+      "hash": "f813848de2595eef",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "the largest missing fraction in test",
+      "file": "f813848de2595eef.json"
+    },
+    "profile.test.n": {
+      "hash": "75b5b833f29dfa6a",
+      "kind": "scalar",
+      "value": 135060.0,
+      "summary": "rows in test",
+      "file": "75b5b833f29dfa6a.json"
+    },
+    "profile.test.schema": {
+      "hash": "93064dd02aca50e4",
+      "kind": "table",
+      "value": null,
+      "summary": "the columns of data_test.csv the model used",
+      "file": "93064dd02aca50e4.csv"
+    },
+    "profile.train.describe": {
+      "hash": "4a0a8776483b401a",
+      "kind": "table",
+      "value": null,
+      "summary": "descriptive statistics of train",
+      "file": "4a0a8776483b401a.csv"
+    },
+    "profile.train.missing": {
+      "hash": "b1a0ac64bf313bf7",
+      "kind": "table",
+      "value": null,
+      "summary": "missingness per feature in train",
+      "file": "b1a0ac64bf313bf7.csv"
+    },
+    "profile.train.missing.max": {
+      "hash": "050a3099cebe7bdb",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "the largest missing fraction in train",
+      "file": "050a3099cebe7bdb.json"
+    },
+    "profile.train.n": {
+      "hash": "6582e5dd99827f70",
+      "kind": "scalar",
+      "value": 313538.0,
+      "summary": "rows in train",
+      "file": "6582e5dd99827f70.json"
+    },
+    "profile.train.schema": {
+      "hash": "aae602fd194d077f",
+      "kind": "table",
+      "value": null,
+      "summary": "the columns of data_train.csv the model used",
+      "file": "aae602fd194d077f.csv"
+    },
+    "profile.vintage_holdout.describe": {
+      "hash": "46e2333e0894ead8",
+      "kind": "table",
+      "value": null,
+      "summary": "descriptive statistics of vintage_holdout",
+      "file": "46e2333e0894ead8.csv"
+    },
+    "profile.vintage_holdout.missing": {
+      "hash": "07633079f01c9567",
+      "kind": "table",
+      "value": null,
+      "summary": "missingness per feature in vintage_holdout",
+      "file": "07633079f01c9567.csv"
+    },
+    "profile.vintage_holdout.missing.max": {
+      "hash": "329bb430e32142fa",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "the largest missing fraction in vintage_holdout",
+      "file": "329bb430e32142fa.json"
+    },
+    "profile.vintage_holdout.n": {
+      "hash": "fcb7e414a47afc62",
+      "kind": "scalar",
+      "value": 221779.0,
+      "summary": "rows in vintage_holdout",
+      "file": "fcb7e414a47afc62.json"
+    },
+    "profile.vintage_holdout.schema": {
+      "hash": "23ce097a14ddecee",
+      "kind": "table",
+      "value": null,
+      "summary": "the columns of data_vintage_holdout.csv the model used",
+      "file": "23ce097a14ddecee.csv"
+    },
+    "psi.burnout": {
+      "hash": "40a3f94672ec19c9",
+      "kind": "scalar",
+      "value": 0.0015668598226846885,
+      "summary": "PSI of burnout between train and test",
+      "file": "40a3f94672ec19c9.json"
+    },
+    "psi.credit_score": {
+      "hash": "8a078965d3bbfdcd",
+      "kind": "scalar",
+      "value": 0.0037175192913625464,
+      "summary": "PSI of credit_score between train and test",
+      "file": "8a078965d3bbfdcd.json"
+    },
+    "psi.incentive": {
+      "hash": "615389829e2061aa",
+      "kind": "scalar",
+      "value": 0.00037494170530767874,
+      "summary": "PSI of incentive between train and test",
+      "file": "615389829e2061aa.json"
+    },
+    "psi.loan_age": {
+      "hash": "f548214db7fedc76",
+      "kind": "scalar",
+      "value": 8.30210249498193e-05,
+      "summary": "PSI of loan_age between train and test",
+      "file": "f548214db7fedc76.json"
+    },
+    "psi.max": {
+      "hash": "f632d5d456f41e0e",
+      "kind": "scalar",
+      "value": 0.0057032373959908685,
+      "summary": "the largest train-to-test PSI, score included",
+      "file": "f632d5d456f41e0e.json"
+    },
+    "psi.orig_ltv": {
+      "hash": "6ea40553e3a35fe5",
+      "kind": "scalar",
+      "value": 0.0057032373959908685,
+      "summary": "PSI of orig_ltv between train and test",
+      "file": "6ea40553e3a35fe5.json"
+    },
+    "psi.orig_upb_log": {
+      "hash": "4af0777049aacec1",
+      "kind": "scalar",
+      "value": 0.002752784614228088,
+      "summary": "PSI of orig_upb_log between train and test",
+      "file": "4af0777049aacec1.json"
+    },
+    "psi.out_of_time.burnout": {
+      "hash": "5316f45667b52fa6",
+      "kind": "scalar",
+      "value": 1.5513571382058675,
+      "summary": "PSI of burnout between train and out_of_time",
+      "file": "5316f45667b52fa6.json"
+    },
+    "psi.out_of_time.credit_score": {
+      "hash": "5341c0a96e0c7e78",
+      "kind": "scalar",
+      "value": 0.004578346657520882,
+      "summary": "PSI of credit_score between train and out_of_time",
+      "file": "5341c0a96e0c7e78.json"
+    },
+    "psi.out_of_time.incentive": {
+      "hash": "73dfd106afbd01bd",
+      "kind": "scalar",
+      "value": 1.7260055970105035,
+      "summary": "PSI of incentive between train and out_of_time",
+      "file": "73dfd106afbd01bd.json"
+    },
+    "psi.out_of_time.loan_age": {
+      "hash": "5f3c6bba2a869528",
+      "kind": "scalar",
+      "value": 3.0855733517984327,
+      "summary": "PSI of loan_age between train and out_of_time",
+      "file": "5f3c6bba2a869528.json"
+    },
+    "psi.out_of_time.orig_ltv": {
+      "hash": "7f6fab7a41898c17",
+      "kind": "scalar",
+      "value": 0.015978164523824553,
+      "summary": "PSI of orig_ltv between train and out_of_time",
+      "file": "7f6fab7a41898c17.json"
+    },
+    "psi.out_of_time.orig_upb_log": {
+      "hash": "abf1e02d02bd0f4c",
+      "kind": "scalar",
+      "value": 0.02135726451071599,
+      "summary": "PSI of orig_upb_log between train and out_of_time",
+      "file": "abf1e02d02bd0f4c.json"
+    },
+    "psi.out_of_time.rate_change_12m": {
+      "hash": "09e687222721376f",
+      "kind": "scalar",
+      "value": 0.8254176601947839,
+      "summary": "PSI of rate_change_12m between train and out_of_time",
+      "file": "09e687222721376f.json"
+    },
+    "psi.out_of_time.sato": {
+      "hash": "85a8a9044c595088",
+      "kind": "scalar",
+      "value": 0.014727688146575607,
+      "summary": "PSI of sato between train and out_of_time",
+      "file": "85a8a9044c595088.json"
+    },
+    "psi.out_of_time.season_cos": {
+      "hash": "8ef132e39e7ae367",
+      "kind": "scalar",
+      "value": 0.005910467488065036,
+      "summary": "PSI of season_cos between train and out_of_time",
+      "file": "8ef132e39e7ae367.json"
+    },
+    "psi.out_of_time.season_sin": {
+      "hash": "7388771e5e73be5c",
+      "kind": "scalar",
+      "value": 0.024186150903197024,
+      "summary": "PSI of season_sin between train and out_of_time",
+      "file": "7388771e5e73be5c.json"
+    },
+    "psi.out_of_time.y_score": {
+      "hash": "75370112901be770",
+      "kind": "scalar",
+      "value": 1.5398869146079637,
+      "summary": "PSI of the score between train and out_of_time",
+      "file": "75370112901be770.json"
+    },
+    "psi.rate_change_12m": {
+      "hash": "23b9e92434af5a38",
+      "kind": "scalar",
+      "value": 3.588607827599524e-05,
+      "summary": "PSI of rate_change_12m between train and test",
+      "file": "23b9e92434af5a38.json"
+    },
+    "psi.sato": {
+      "hash": "e68bfd2e69c39823",
+      "kind": "scalar",
+      "value": 0.0021922765416005074,
+      "summary": "PSI of sato between train and test",
+      "file": "e68bfd2e69c39823.json"
+    },
+    "psi.season_cos": {
+      "hash": "9db385138f7656a4",
+      "kind": "scalar",
+      "value": 3.1835250372436814e-06,
+      "summary": "PSI of season_cos between train and test",
+      "file": "9db385138f7656a4.json"
+    },
+    "psi.season_sin": {
+      "hash": "ae17ebbafce8d455",
+      "kind": "scalar",
+      "value": 3.365586451033932e-06,
+      "summary": "PSI of season_sin between train and test",
+      "file": "ae17ebbafce8d455.json"
+    },
+    "psi.vintage_holdout.burnout": {
+      "hash": "e3a3122f53e21655",
+      "kind": "scalar",
+      "value": 0.5116279641077057,
+      "summary": "PSI of burnout between train and vintage_holdout",
+      "file": "e3a3122f53e21655.json"
+    },
+    "psi.vintage_holdout.credit_score": {
+      "hash": "341abd787b9dbc1c",
+      "kind": "scalar",
+      "value": 0.007217892200574498,
+      "summary": "PSI of credit_score between train and vintage_holdout",
+      "file": "341abd787b9dbc1c.json"
+    },
+    "psi.vintage_holdout.incentive": {
+      "hash": "86f7884e93d33a0b",
+      "kind": "scalar",
+      "value": 1.2979955849169469,
+      "summary": "PSI of incentive between train and vintage_holdout",
+      "file": "86f7884e93d33a0b.json"
+    },
+    "psi.vintage_holdout.loan_age": {
+      "hash": "2de85f94a3b3d1b6",
+      "kind": "scalar",
+      "value": 0.1506849324798271,
+      "summary": "PSI of loan_age between train and vintage_holdout",
+      "file": "2de85f94a3b3d1b6.json"
+    },
+    "psi.vintage_holdout.orig_ltv": {
+      "hash": "a5066c0f150150b3",
+      "kind": "scalar",
+      "value": 0.010653781353374435,
+      "summary": "PSI of orig_ltv between train and vintage_holdout",
+      "file": "a5066c0f150150b3.json"
+    },
+    "psi.vintage_holdout.orig_upb_log": {
+      "hash": "bd074d53469dc09d",
+      "kind": "scalar",
+      "value": 0.030761505845049192,
+      "summary": "PSI of orig_upb_log between train and vintage_holdout",
+      "file": "bd074d53469dc09d.json"
+    },
+    "psi.vintage_holdout.rate_change_12m": {
+      "hash": "2575a32836a61d81",
+      "kind": "scalar",
+      "value": 0.8816315658610123,
+      "summary": "PSI of rate_change_12m between train and vintage_holdout",
+      "file": "2575a32836a61d81.json"
+    },
+    "psi.vintage_holdout.sato": {
+      "hash": "b34d2ebe41c4291c",
+      "kind": "scalar",
+      "value": 0.20020051079718526,
+      "summary": "PSI of sato between train and vintage_holdout",
+      "file": "b34d2ebe41c4291c.json"
+    },
+    "psi.vintage_holdout.season_cos": {
+      "hash": "67aee1b5a11ddc44",
+      "kind": "scalar",
+      "value": 0.0009420084002453313,
+      "summary": "PSI of season_cos between train and vintage_holdout",
+      "file": "67aee1b5a11ddc44.json"
+    },
+    "psi.vintage_holdout.season_sin": {
+      "hash": "dad1e65c90b11078",
+      "kind": "scalar",
+      "value": 0.0036587429752576272,
+      "summary": "PSI of season_sin between train and vintage_holdout",
+      "file": "dad1e65c90b11078.json"
+    },
+    "psi.vintage_holdout.y_score": {
+      "hash": "ae7b9c29ebb5eaa7",
+      "kind": "scalar",
+      "value": 0.7656434405673999,
+      "summary": "PSI of the score between train and vintage_holdout",
+      "file": "ae7b9c29ebb5eaa7.json"
+    },
+    "psi.y_score": {
+      "hash": "6e6c94e123ea2ef8",
+      "kind": "scalar",
+      "value": 0.000664088200647947,
+      "summary": "PSI of the score between train and test",
+      "file": "6e6c94e123ea2ef8.json"
+    },
+    "rule.calibration_first_event_rate": {
+      "hash": "42f1351e20d02d39",
+      "kind": "scalar",
+      "value": 0.05,
+      "summary": "the event rate below which the report puts calibration before discrimination",
+      "file": "42f1351e20d02d39.json"
+    },
+    "run.data_out_of_time": {
+      "hash": "88fdeb296e4ddd08",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's data_out_of_time.csv",
+      "file": "88fdeb296e4ddd08.csv"
+    },
+    "run.data_test": {
+      "hash": "10d0421441ad2e57",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's data_test.csv",
+      "file": "10d0421441ad2e57.csv"
+    },
+    "run.data_train": {
+      "hash": "a4564c9cfd53b104",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's data_train.csv",
+      "file": "a4564c9cfd53b104.csv"
+    },
+    "run.data_vintage_holdout": {
+      "hash": "1c1e9b0a611a81f6",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's data_vintage_holdout.csv",
+      "file": "1c1e9b0a611a81f6.csv"
+    },
+    "run.duration_s": {
+      "hash": "2242513c079a29ff",
+      "kind": "scalar",
+      "value": 9.91682287491858,
+      "summary": "subject wall-clock seconds",
+      "file": "2242513c079a29ff.json"
+    },
+    "run.features": {
+      "hash": "0849f814192611b7",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's features.json",
+      "file": "0849f814192611b7.json"
+    },
+    "run.metrics": {
+      "hash": "58be85be8e8373d2",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's metrics.json",
+      "file": "58be85be8e8373d2.json"
+    },
+    "run.model_summary": {
+      "hash": "29028ebe24138b59",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's model_summary.json",
+      "file": "29028ebe24138b59.json"
+    },
+    "run.predictions_out_of_time": {
+      "hash": "155f27bb0c58ebbe",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's predictions_out_of_time.csv",
+      "file": "155f27bb0c58ebbe.csv"
+    },
+    "run.predictions_test": {
+      "hash": "ba1971c1b5c52bc4",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's predictions_test.csv",
+      "file": "ba1971c1b5c52bc4.csv"
+    },
+    "run.predictions_train": {
+      "hash": "fb9a7b667c6c0b7d",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's predictions_train.csv",
+      "file": "fb9a7b667c6c0b7d.csv"
+    },
+    "run.predictions_vintage_holdout": {
+      "hash": "8515eee33bbdb760",
+      "kind": "table",
+      "value": null,
+      "summary": "the subject's predictions_vintage_holdout.csv",
+      "file": "8515eee33bbdb760.csv"
+    },
+    "run.projection": {
+      "hash": "15ffc17d6adf2438",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's projection.json",
+      "file": "15ffc17d6adf2438.json"
+    },
+    "run.splits": {
+      "hash": "f4b4629629a623b7",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's splits.json",
+      "file": "f4b4629629a623b7.json"
+    },
+    "run.status": {
+      "hash": "d309b36a9185a907",
+      "kind": "json",
+      "value": null,
+      "summary": "how the subject's subprocess ended",
+      "file": "d309b36a9185a907.json"
+    },
+    "run.stderr": {
+      "hash": "41728c386f27afcd",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's stderr",
+      "file": "41728c386f27afcd.json"
+    },
+    "run.stdout": {
+      "hash": "e6d3a19fbadec7a6",
+      "kind": "json",
+      "value": null,
+      "summary": "the subject's stdout",
+      "file": "e6d3a19fbadec7a6.json"
+    },
+    "runtime.max_seconds": {
+      "hash": "2ad8d1a5a0a31b49",
+      "kind": "scalar",
+      "value": 300.0,
+      "summary": "the wall-clock cap package.yaml declares for the subject",
+      "file": "2ad8d1a5a0a31b49.json"
+    },
+    "scenario.convexity": {
+      "hash": "67b742b1503d555c",
+      "kind": "scalar",
+      "value": -910607.3476701528,
+      "summary": "the value change at -300 bp plus the change at 300 bp; negative when the fall outweighs the rise",
+      "file": "67b742b1503d555c.json"
+    },
+    "scenario.value_by_shock": {
+      "hash": "9ae3b06857dd1b6d",
+      "kind": "table",
+      "value": null,
+      "summary": "servicing value, its change from the base case and first-year CPR, by shock",
+      "file": "9ae3b06857dd1b6d.csv"
+    },
+    "scenario.value_change.-100": {
+      "hash": "eb72f33ea648a868",
+      "kind": "scalar",
+      "value": -175247.1068795696,
+      "summary": "change in servicing value at -100 bp",
+      "file": "eb72f33ea648a868.json"
+    },
+    "scenario.value_change.-200": {
+      "hash": "6e96bd6b99fcbb7c",
+      "kind": "scalar",
+      "value": -499357.3913646713,
+      "summary": "change in servicing value at -200 bp",
+      "file": "6e96bd6b99fcbb7c.json"
+    },
+    "scenario.value_change.-300": {
+      "hash": "9bab8e7384404db4",
+      "kind": "scalar",
+      "value": -1077724.4030843414,
+      "summary": "change in servicing value at -300 bp",
+      "file": "9bab8e7384404db4.json"
+    },
+    "scenario.value_change.0": {
+      "hash": "1e1b0b883c832d74",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "change in servicing value at 0 bp",
+      "file": "1e1b0b883c832d74.json"
+    },
+    "scenario.value_change.100": {
+      "hash": "512132439ef173ee",
+      "kind": "scalar",
+      "value": 92917.86358586326,
+      "summary": "change in servicing value at 100 bp",
+      "file": "512132439ef173ee.json"
+    },
+    "scenario.value_change.200": {
+      "hash": "bb28ccf8fc6b8f1c",
+      "kind": "scalar",
+      "value": 141673.3672262095,
+      "summary": "change in servicing value at 200 bp",
+      "file": "bb28ccf8fc6b8f1c.json"
+    },
+    "scenario.value_change.300": {
+      "hash": "d7f60dfe44c08c36",
+      "kind": "scalar",
+      "value": 167117.05541418865,
+      "summary": "change in servicing value at 300 bp",
+      "file": "d7f60dfe44c08c36.json"
+    },
+    "sign_check.burnout.agrees": {
+      "hash": "2eec20ab93a91f55",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "1 when the fitted sign on burnout agrees with its univariate direction, 0 when it does not",
+      "file": "2eec20ab93a91f55.json"
+    },
+    "sign_check.burnout.coef_sign": {
+      "hash": "a306360807b295cf",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of the fitted coefficient on burnout",
+      "file": "a306360807b295cf.json"
+    },
+    "sign_check.burnout.univariate_direction": {
+      "hash": "bfc96bb2b864bc52",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of burnout's own single-feature AUC on train minus 0.5",
+      "file": "bfc96bb2b864bc52.json"
+    },
+    "sign_check.credit_score.agrees": {
+      "hash": "915bf8eb826face3",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "1 when the fitted sign on credit_score agrees with its univariate direction, 0 when it does not",
+      "file": "915bf8eb826face3.json"
+    },
+    "sign_check.credit_score.coef_sign": {
+      "hash": "1ec1078b5647da7d",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of the fitted coefficient on credit_score",
+      "file": "1ec1078b5647da7d.json"
+    },
+    "sign_check.credit_score.univariate_direction": {
+      "hash": "42303896f7e3f07d",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of credit_score's own single-feature AUC on train minus 0.5",
+      "file": "42303896f7e3f07d.json"
+    },
+    "sign_check.incentive.agrees": {
+      "hash": "f7b2338e4cfe2766",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "1 when the fitted sign on incentive agrees with its univariate direction, 0 when it does not",
+      "file": "f7b2338e4cfe2766.json"
+    },
+    "sign_check.incentive.coef_sign": {
+      "hash": "684cf11a6f2f00d1",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of the fitted coefficient on incentive",
+      "file": "684cf11a6f2f00d1.json"
+    },
+    "sign_check.incentive.univariate_direction": {
+      "hash": "8098d951e936b84f",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of incentive's own single-feature AUC on train minus 0.5",
+      "file": "8098d951e936b84f.json"
+    },
+    "sign_check.n_disagreements": {
+      "hash": "e223cd4a54029e85",
+      "kind": "scalar",
+      "value": 3.0,
+      "summary": "retained features whose fitted sign contradicts their univariate direction, of 9 checked",
+      "file": "e223cd4a54029e85.json"
+    },
+    "sign_check.orig_ltv.agrees": {
+      "hash": "3f64b05712b2842c",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when the fitted sign on orig_ltv agrees with its univariate direction, 0 when it does not",
+      "file": "3f64b05712b2842c.json"
+    },
+    "sign_check.orig_ltv.coef_sign": {
+      "hash": "7eec65ec4966e699",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "the sign of the fitted coefficient on orig_ltv",
+      "file": "7eec65ec4966e699.json"
+    },
+    "sign_check.orig_ltv.univariate_direction": {
+      "hash": "85aabf064c6f6755",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of orig_ltv's own single-feature AUC on train minus 0.5",
+      "file": "85aabf064c6f6755.json"
+    },
+    "sign_check.orig_upb_log.agrees": {
+      "hash": "07a9d3e6e0e53091",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "1 when the fitted sign on orig_upb_log agrees with its univariate direction, 0 when it does not",
+      "file": "07a9d3e6e0e53091.json"
+    },
+    "sign_check.orig_upb_log.coef_sign": {
+      "hash": "5aa309fc5e1efdbb",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of the fitted coefficient on orig_upb_log",
+      "file": "5aa309fc5e1efdbb.json"
+    },
+    "sign_check.orig_upb_log.univariate_direction": {
+      "hash": "b9743ecb549c4e5d",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of orig_upb_log's own single-feature AUC on train minus 0.5",
+      "file": "b9743ecb549c4e5d.json"
+    },
+    "sign_check.rate_change_12m.agrees": {
+      "hash": "61c1d5cc30ca726e",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "1 when the fitted sign on rate_change_12m agrees with its univariate direction, 0 when it does not",
+      "file": "61c1d5cc30ca726e.json"
+    },
+    "sign_check.rate_change_12m.coef_sign": {
+      "hash": "272b397eb43dcb01",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "the sign of the fitted coefficient on rate_change_12m",
+      "file": "272b397eb43dcb01.json"
+    },
+    "sign_check.rate_change_12m.univariate_direction": {
+      "hash": "35df3bf5c796e470",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "the sign of rate_change_12m's own single-feature AUC on train minus 0.5",
+      "file": "35df3bf5c796e470.json"
+    },
+    "sign_check.sato.agrees": {
+      "hash": "b3755963c87f5a49",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when the fitted sign on sato agrees with its univariate direction, 0 when it does not",
+      "file": "b3755963c87f5a49.json"
+    },
+    "sign_check.sato.coef_sign": {
+      "hash": "265915cf4afd1a15",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "the sign of the fitted coefficient on sato",
+      "file": "265915cf4afd1a15.json"
+    },
+    "sign_check.sato.univariate_direction": {
+      "hash": "c08233a6a02dee7e",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of sato's own single-feature AUC on train minus 0.5",
+      "file": "c08233a6a02dee7e.json"
+    },
+    "sign_check.season_cos.agrees": {
+      "hash": "7f18ddf7edea9e0f",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "1 when the fitted sign on season_cos agrees with its univariate direction, 0 when it does not",
+      "file": "7f18ddf7edea9e0f.json"
+    },
+    "sign_check.season_cos.coef_sign": {
+      "hash": "7dbb1ffcd086b931",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "the sign of the fitted coefficient on season_cos",
+      "file": "7dbb1ffcd086b931.json"
+    },
+    "sign_check.season_cos.univariate_direction": {
+      "hash": "03e931f0b27fbe85",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "the sign of season_cos's own single-feature AUC on train minus 0.5",
+      "file": "03e931f0b27fbe85.json"
+    },
+    "sign_check.season_sin.agrees": {
+      "hash": "74f2d0e061a83e3d",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when the fitted sign on season_sin agrees with its univariate direction, 0 when it does not",
+      "file": "74f2d0e061a83e3d.json"
+    },
+    "sign_check.season_sin.coef_sign": {
+      "hash": "761188ce3271f1fc",
+      "kind": "scalar",
+      "value": 1.0,
+      "summary": "the sign of the fitted coefficient on season_sin",
+      "file": "761188ce3271f1fc.json"
+    },
+    "sign_check.season_sin.univariate_direction": {
+      "hash": "b75f0b9c43ee3f4a",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "the sign of season_sin's own single-feature AUC on train minus 0.5",
+      "file": "b75f0b9c43ee3f4a.json"
+    },
+    "stability.auc_by_regime": {
+      "hash": "f293ebc69fd74f5b",
+      "kind": "table",
+      "value": null,
+      "summary": "the champion's AUC within each rate_regime on train",
+      "file": "f293ebc69fd74f5b.csv"
+    },
+    "stability.burnout.coef_or_importance_by_regime": {
+      "hash": "581ef667d9ce91dd",
+      "kind": "table",
+      "value": null,
+      "summary": "burnout's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "581ef667d9ce91dd.csv"
+    },
+    "stability.burnout.sign_flip": {
+      "hash": "6bc05e8276443c76",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when burnout is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "6bc05e8276443c76.json"
+    },
+    "stability.credit_score.coef_or_importance_by_regime": {
+      "hash": "50ad137e9ca07e50",
+      "kind": "table",
+      "value": null,
+      "summary": "credit_score's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "50ad137e9ca07e50.csv"
+    },
+    "stability.credit_score.sign_flip": {
+      "hash": "d956c2763949b03b",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when credit_score is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "d956c2763949b03b.json"
+    },
+    "stability.incentive.coef_or_importance_by_regime": {
+      "hash": "ba8bc4c9e66d5bbd",
+      "kind": "table",
+      "value": null,
+      "summary": "incentive's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "ba8bc4c9e66d5bbd.csv"
+    },
+    "stability.incentive.sign_flip": {
+      "hash": "0cc7a37d6a99b6f4",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when incentive is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "0cc7a37d6a99b6f4.json"
+    },
+    "stability.loan_age.coef_or_importance_by_regime": {
+      "hash": "d51d2469c73c6726",
+      "kind": "table",
+      "value": null,
+      "summary": "loan_age's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "d51d2469c73c6726.csv"
+    },
+    "stability.loan_age.sign_flip": {
+      "hash": "b719121753af7cf6",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when loan_age is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "b719121753af7cf6.json"
+    },
+    "stability.orig_ltv.coef_or_importance_by_regime": {
+      "hash": "e53d207346ac9f32",
+      "kind": "table",
+      "value": null,
+      "summary": "orig_ltv's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "e53d207346ac9f32.csv"
+    },
+    "stability.orig_ltv.sign_flip": {
+      "hash": "054d5fab2fc26edd",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when orig_ltv is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "054d5fab2fc26edd.json"
+    },
+    "stability.orig_upb_log.coef_or_importance_by_regime": {
+      "hash": "0d86c023a0ea064b",
+      "kind": "table",
+      "value": null,
+      "summary": "orig_upb_log's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "0d86c023a0ea064b.csv"
+    },
+    "stability.orig_upb_log.sign_flip": {
+      "hash": "fb1ae6c8ba3886e7",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when orig_upb_log is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "fb1ae6c8ba3886e7.json"
+    },
+    "stability.psi_over_time": {
+      "hash": "0e10910f4c48a076",
+      "kind": "table",
+      "value": null,
+      "summary": "PSI of the score in each calendar year against train; reported, not tested",
+      "file": "0e10910f4c48a076.csv"
+    },
+    "stability.rate_change_12m.coef_or_importance_by_regime": {
+      "hash": "8267af5e7cc7cac7",
+      "kind": "table",
+      "value": null,
+      "summary": "rate_change_12m's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "8267af5e7cc7cac7.csv"
+    },
+    "stability.rate_change_12m.sign_flip": {
+      "hash": "465700ff395f7c1e",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when rate_change_12m is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "465700ff395f7c1e.json"
+    },
+    "stability.sato.coef_or_importance_by_regime": {
+      "hash": "077e29f5eeb60750",
+      "kind": "table",
+      "value": null,
+      "summary": "sato's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "077e29f5eeb60750.csv"
+    },
+    "stability.sato.sign_flip": {
+      "hash": "1f302ccd90a64b01",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when sato is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "1f302ccd90a64b01.json"
+    },
+    "stability.season_cos.coef_or_importance_by_regime": {
+      "hash": "8bb84d354a6b8009",
+      "kind": "table",
+      "value": null,
+      "summary": "season_cos's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "8bb84d354a6b8009.csv"
+    },
+    "stability.season_cos.sign_flip": {
+      "hash": "1850e2ded9bd70d2",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when season_cos is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "1850e2ded9bd70d2.json"
+    },
+    "stability.season_sin.coef_or_importance_by_regime": {
+      "hash": "04b25b9ae503e26d",
+      "kind": "table",
+      "value": null,
+      "summary": "season_sin's coefficient in a per-regime refit, standardised, with the standard error and z of each",
+      "file": "04b25b9ae503e26d.csv"
+    },
+    "stability.season_sin.sign_flip": {
+      "hash": "6ba36a3b21a0148f",
+      "kind": "scalar",
+      "value": 0.0,
+      "summary": "1 when season_sin is among the top 10 features and changes sign across regimes with a coefficient above 0.05 and a |z| of at least 2.0 in each",
+      "file": "6ba36a3b21a0148f.json"
+    },
+    "threshold.C1.calibration_slope.max": {
+      "hash": "b6672579891a8332",
+      "kind": "scalar",
+      "value": 1.2,
+      "summary": "C1: the top of the calibration slope band",
+      "file": "b6672579891a8332.json"
+    },
+    "threshold.C1.calibration_slope.min": {
+      "hash": "749634ae1b5bfbfc",
+      "kind": "scalar",
+      "value": 0.8,
+      "summary": "C1: the bottom of the calibration slope band",
+      "file": "749634ae1b5bfbfc.json"
+    },
+    "threshold.C1.mean_ratio_rel": {
+      "hash": "20e93a8c41cd506f",
+      "kind": "scalar",
+      "value": 0.25,
+      "summary": "C1: mean predicted against observed, relative",
+      "file": "20e93a8c41cd506f.json"
+    },
+    "threshold.D1.missing_gap": {
+      "hash": "9cce25eac4eae11e",
+      "kind": "scalar",
+      "value": 0.1,
+      "summary": "D1: the missingness gap between splits, as a fraction",
+      "file": "9cce25eac4eae11e.json"
+    },
+    "threshold.E1.delta_auc": {
+      "hash": "e042774c838f7426",
+      "kind": "scalar",
+      "value": 0.03,
+      "summary": "E1: the challenger's AUC lead over the champion",
+      "file": "e042774c838f7426.json"
+    },
+    "threshold.L1.single_feature_auc": {
+      "hash": "c29e7a341a5d8ca0",
+      "kind": "scalar",
+      "value": 0.9,
+      "summary": "L1: the AUC one feature may reach on its own",
+      "file": "c29e7a341a5d8ca0.json"
+    },
+    "threshold.L2.overlap": {
+      "hash": "9f336eaf53e881b5",
+      "kind": "scalar",
+      "value": 0.005,
+      "summary": "L2: the fraction of test rows that may also be in train",
+      "file": "9f336eaf53e881b5.json"
+    },
+    "threshold.L2.overlap.features_effective": {
+      "hash": "1ee888c5fdc893da",
+      "kind": "scalar",
+      "value": 0.005,
+      "summary": "L2: the bound the feature-overlap rule applied, the larger of threshold.L2.overlap and 2 x leakage.duplicates.train",
+      "file": "1ee888c5fdc893da.json"
+    },
+    "threshold.M1.condition_number": {
+      "hash": "7e52fd7a23e31f0e",
+      "kind": "scalar",
+      "value": 30.0,
+      "summary": "M1: Belsley's condition number of the design",
+      "file": "7e52fd7a23e31f0e.json"
+    },
+    "threshold.M1.vif": {
+      "hash": "aeb4f33cd4d7bc1a",
+      "kind": "scalar",
+      "value": 10.0,
+      "summary": "M1: the variance inflation factor of any retained feature",
+      "file": "aeb4f33cd4d7bc1a.json"
+    },
+    "threshold.O1.auc_gap": {
+      "hash": "630f28f4d9765b36",
+      "kind": "scalar",
+      "value": 0.08,
+      "summary": "O1: the train-to-test AUC gap",
+      "file": "630f28f4d9765b36.json"
+    },
+    "threshold.O1.holdout_gap": {
+      "hash": "90f8b6d9aa0058d6",
+      "kind": "scalar",
+      "value": 0.05,
+      "summary": "O1: how far a period split's AUC may fall below test",
+      "file": "90f8b6d9aa0058d6.json"
+    },
+    "threshold.O1.slice_auc_gap": {
+      "hash": "0a827b873d3e0d51",
+      "kind": "scalar",
+      "value": 0.08,
+      "summary": "how far a sub-population's AUC may fall below the split's before the result is an open item; it raises no candidate",
+      "file": "0a827b873d3e0d51.json"
+    },
+    "threshold.O1.slice_max_share": {
+      "hash": "a928a05c58436dab",
+      "kind": "scalar",
+      "value": 0.95,
+      "summary": "the share of a split at which a sub-population is the whole split and is refused",
+      "file": "a928a05c58436dab.json"
+    },
+    "threshold.O1.slice_min_share": {
+      "hash": "9a6f1a87c85b9f80",
+      "kind": "scalar",
+      "value": 0.1,
+      "summary": "the share of a split a sub-population must hold before it can raise an open item",
+      "file": "9a6f1a87c85b9f80.json"
+    },
+    "threshold.R1.auc_gap": {
+      "hash": "b64213d7003a72ae",
+      "kind": "scalar",
+      "value": 0.1,
+      "summary": "R1: the AUC difference across regimes",
+      "file": "b64213d7003a72ae.json"
+    },
+    "threshold.R1.sign_flip_coef": {
+      "hash": "aca84377c0e4c28d",
+      "kind": "scalar",
+      "value": 0.05,
+      "summary": "R1: the coefficient a sign flip must exceed in both regimes",
+      "file": "aca84377c0e4c28d.json"
+    },
+    "threshold.R1.sign_flip_z": {
+      "hash": "2e4428c78551151e",
+      "kind": "scalar",
+      "value": 2.0,
+      "summary": "R1: the |z| a sign flip's coefficient must reach in both regimes",
+      "file": "2e4428c78551151e.json"
+    },
+    "threshold.S1.psi": {
+      "hash": "278b9016aaffa93c",
+      "kind": "scalar",
+      "value": 0.25,
+      "summary": "S1: the population stability index, train against test",
+      "file": "278b9016aaffa93c.json"
+    },
+    "threshold.package.auc.test.min": {
+      "hash": "fececac100f0c919",
+      "kind": "scalar",
+      "value": 0.65,
+      "summary": "package.yaml declares auc min 0.65",
+      "file": "fececac100f0c919.json"
+    },
+    "threshold.package.calibration_slope.test.max": {
+      "hash": "0adb7a890bfedfba",
+      "kind": "scalar",
+      "value": 1.2,
+      "summary": "package.yaml declares calibration_slope max 1.2",
+      "file": "0adb7a890bfedfba.json"
+    },
+    "threshold.package.calibration_slope.test.min": {
+      "hash": "95fdb84829b73336",
+      "kind": "scalar",
+      "value": 0.8,
+      "summary": "package.yaml declares calibration_slope min 0.8",
+      "file": "95fdb84829b73336.json"
+    },
+    "threshold.package.psi.max": {
+      "hash": "fbb5a9d16ddccacb",
+      "kind": "scalar",
+      "value": 0.25,
+      "summary": "package.yaml declares psi max 0.25",
+      "file": "fbb5a9d16ddccacb.json"
+    },
+    "thresholds.evaluation": {
+      "hash": "920227a391825625",
+      "kind": "table",
+      "value": null,
+      "summary": "every threshold package.yaml declares, with its bound, the recomputed value and the outcome",
+      "file": "920227a391825625.csv"
+    },
+    "vif.burnout": {
+      "hash": "f9a490a7fc2d4077",
+      "kind": "scalar",
+      "value": 3.748625457126308,
+      "summary": "variance inflation factor of burnout on train",
+      "file": "f9a490a7fc2d4077.json"
+    },
+    "vif.credit_score": {
+      "hash": "373087f2d1da866a",
+      "kind": "scalar",
+      "value": 1.0225635047974628,
+      "summary": "variance inflation factor of credit_score on train",
+      "file": "373087f2d1da866a.json"
+    },
+    "vif.incentive": {
+      "hash": "0c33ec655e7e8153",
+      "kind": "scalar",
+      "value": 4.628790677261147,
+      "summary": "variance inflation factor of incentive on train",
+      "file": "0c33ec655e7e8153.json"
+    },
+    "vif.loan_age": {
+      "hash": "12ee5768b46f8e28",
+      "kind": "scalar",
+      "value": 2.6898397876700137,
+      "summary": "variance inflation factor of loan_age on train",
+      "file": "12ee5768b46f8e28.json"
+    },
+    "vif.max": {
+      "hash": "82a187c7c0eade0a",
+      "kind": "scalar",
+      "value": 4.628790677261147,
+      "summary": "the largest variance inflation factor",
+      "file": "82a187c7c0eade0a.json"
+    },
+    "vif.orig_ltv": {
+      "hash": "a998810fab8c15f0",
+      "kind": "scalar",
+      "value": 1.1068752682745278,
+      "summary": "variance inflation factor of orig_ltv on train",
+      "file": "a998810fab8c15f0.json"
+    },
+    "vif.orig_upb_log": {
+      "hash": "0dde794204f7070a",
+      "kind": "scalar",
+      "value": 1.0608649949393316,
+      "summary": "variance inflation factor of orig_upb_log on train",
+      "file": "0dde794204f7070a.json"
+    },
+    "vif.rate_change_12m": {
+      "hash": "7f4d0c736dfe5d89",
+      "kind": "scalar",
+      "value": 2.204676097536083,
+      "summary": "variance inflation factor of rate_change_12m on train",
+      "file": "7f4d0c736dfe5d89.json"
+    },
+    "vif.sato": {
+      "hash": "42163c1584126ec3",
+      "kind": "scalar",
+      "value": 3.014708865392977,
+      "summary": "variance inflation factor of sato on train",
+      "file": "42163c1584126ec3.json"
+    },
+    "vif.season_cos": {
+      "hash": "2950847c95f58cad",
+      "kind": "scalar",
+      "value": 1.0055860438378237,
+      "summary": "variance inflation factor of season_cos on train",
+      "file": "2950847c95f58cad.json"
+    },
+    "vif.season_sin": {
+      "hash": "6afd05c97ff1e6b2",
+      "kind": "scalar",
+      "value": 1.0246024552672204,
+      "summary": "variance inflation factor of season_sin on train",
+      "file": "6afd05c97ff1e6b2.json"
+    }
+  }
+}

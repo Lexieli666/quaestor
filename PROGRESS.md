@@ -99,16 +99,24 @@ are named in brackets.
     `python -m code.run --data` on the Release 47 sample files, and the offline
     `--data … --llm fake` validate of that panel raises exactly one finding, `C1` at medium on the
     out-of-time and vintage-holdout splits, which D-161 records as the control's measured baseline
-    rather than a false alarm (D-160 carries the fit). The **`msr_prepayment` live run has been
-    made once**, on 2026-09-16, and is archived as `eval/results/first-live/msr-attempt1/` on
-    D-087's terms — 23 model calls, 19 tool calls, 320 artifacts, 305 claims at grounding
-    precision **0.9934 pre-repair and 1.0000 post-repair over 304**, one finding (`C1` at medium,
-    six candidates merged) and three open items, exit 0, $7.1697, 1,549.94 s, with the bounded
-    loop running the incentive 2×2 across both holdouts. Twenty row-level CSVs are outside the
-    repository. It is `attempt1` and not the bare name because its section 1 says no finding was
+    rather than a false alarm (D-160 carries the fit). The **first `msr_prepayment` live run**, of
+    2026-09-16, is archived as `eval/results/first-live/msr-attempt1/` on D-087's terms — 23 model
+    calls, 305 claims at **0.9934 → 1.0000 over 304**, one finding, three open items, $7.1697,
+    1,549.94 s. It is `attempt1` and not the bare name because its section 1 says no finding was
     raised under a scope table reading 0 / 1 / 0 / 0 (D-165); sections 4 and 5 carried one
-    tokeniser class and one matcher class each (D-166, D-167). The **`msr_prepayment` excerpt run
-    remains outstanding**, on that panel and on the build those three fixes ship in
+    tokeniser class and one matcher class each (D-166, D-167). The **`msr_prepayment` live
+    validation is now done and committed as `eval/results/first-live/msr/`**, on the **second**
+    attempt, made on the build those three fixes ship in: 21 model calls, 19 tool calls, 364
+    artifacts, 298 claims at grounding precision **0.9966 pre-repair and 1.0000 post-repair over
+    297**, one repair round, one finding (`F-001`, `C1` at medium, ten candidates merged) and two
+    open items, exit 0, $6.4858, 1,373.77 s, with the bounded loop running two complete partitions
+    — `incentive` and `loan_age` — across both forward splits. Twenty row-level CSVs are outside
+    the repository. It carries the bare name because it is **the run the README excerpts**:
+    sections 2 and 4 verified whole pre-repair (48/48 and 109/109), section 1 names `F-001`, and
+    its one pre-repair failure is in section 3 and outside the excerpt. `report.md` is committed as
+    produced and is never edited; the excerpt's four wording edits live outside it (D-168). The one
+    class it exposed — `SHA-256` tokenised as a claim of 256 — is fixed in the follow-up commit as
+    D-169. **Phase 9 is closed on both halves.**
 - [x] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
   - **nothing was dropped**: all fourteen seeded recipes produce their `expected_signal` on the
     synthetic subjects and all fourteen are detected at severity ≥ medium by `rules_only`, and the
@@ -1143,3 +1151,30 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   re-ask that followed each is a call the replay makes; unchanged from the previous commit, and no
   credential is in them. No test calls a live model, downloads data, trains on real data or reads
   an API key; the only live calls of this phase are the operator's five record sittings. No push.
+
+- 2026-09-17 — **Phase 9 follow-up 8 (the MSR excerpt run)** — the operator's **second**
+  `msr_prepayment` live run, committed as `eval/results/first-live/msr/` and **closing Phase 9 on
+  both halves**. Gate green on the four conditions that apply to a commit that adds no
+  `src/quaestor` code: `pytest -q` **1613 passed**, 0 failed, 0 skipped, 0 xfailed (1591 at HEAD,
+  plus `tests/test_live_msr.py`'s 22); `ruff check` and `ruff format --check` clean on
+  `src tests eval subjects`; `mypy --strict src/quaestor` clean and unchanged, nothing under `src/`
+  having moved; `examples/golden_report/` untouched and both `--synthetic --llm fake` validates
+  unchanged. The run: exit 0, 21 model calls (plan 4, draft 8, extract 8, reask 1), 19 tool calls
+  none of which raised, 4 plan steps all executed, 364 artifacts, 298 claims at **0.9966 pre-repair
+  → 1.0000 over 297**, one repair round in section 3, one finding (`F-001`, `C1` at medium, ten
+  candidates merged, nine evidence artifacts), two open items, 3 of 3 developer claims verified,
+  $6.4858 over 1,373.77 s. It is the **excerpt run**: sections 2 and 4 verified whole before any
+  repair, section 1 names the finding under D-165 and section 6 draws it under D-156, and the
+  single pre-repair failure — `SHA-256` read as a claim of 256 — is in section 3, outside the
+  excerpt. `report.md` is the record and is never edited; **D-168** carries the excerpt's four
+  wording edits verbatim, each asserted to quote the file exactly once and none of them changing a
+  number, together with the four things read and deliberately not edited and the two Phase 12
+  pre-flight items the run points at. D-087 sweep: twenty row-level CSVs to
+  `~/code/data-raw/credit/first-live-msr-rows/excerpt/`, 219 MB → 3.4 MB,
+  `find … -size +20k` printing nothing and `git grep --cached -i loan_sequence` finding nothing.
+  The substantive addition over attempt 1 is the `loan_age` partition: the forward-split shortfall
+  is alike in absolute terms across the two halves and about 3.8× against 1.5× in relative terms,
+  so it is neither a clean level shift nor a seasoning-shape failure, and neither half is past
+  `threshold.O1.slice_auc_gap`. `docs/EVALUATION.md` carries the dated attempt-2 entry. The one
+  class the run exposed is fixed in the next commit as **D-169**. No live model call, no download
+  and no training on real data from any test; the only live call is the operator's run. No push.

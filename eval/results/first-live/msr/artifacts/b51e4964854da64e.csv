@@ -1,0 +1,13 @@
+feature,matched,n_matched
+note_rate,,0
+orig_ltv,,0
+credit_score,,0
+orig_upb_log,,0
+sato,,0
+loan_age,,0
+incentive,,0
+burnout,,0
+bom_balance_log,,0
+rate_change_12m,,0
+season_sin,,0
+season_cos,,0

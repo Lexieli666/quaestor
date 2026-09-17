@@ -1173,3 +1173,140 @@ section 5 carried are both classes the six credit runs structurally could not ha
 here measures whether the fixes are right — that is the re-run, which is the excerpt candidate and
 which had not been made when this was written. The `msr_prepayment` **excerpt run remains
 outstanding**.
+
+### 2026-09-17 — `msr_prepayment`, `full_agent`, Claude CLI — second attempt, and the MSR excerpt run
+
+The record is `eval/results/first-live/msr/`. It carries **no `attempt` suffix** because it is the
+run the README excerpts, on the same terms `eval/results/first-live/credit/` is: committed
+byte-for-byte as produced, `report.md` never edited, and the excerpt's wording edits living in
+DECISIONS D-168 rather than in the file. It is the re-run the previous entry said was outstanding,
+made on `a87aa4a` with D-165, D-166 and D-167 in the build.
+
+**The run.** `quaestor validate subjects/msr_prepayment --data … --llm claude-cli --model
+"claude-opus-5[1m]" --config full_agent`, started 2026-09-17 04:44:53 UTC, **exit 0**, and it
+rendered. Committed: `trace.jsonl` (414 events), the 21 cassettes, `artifacts/` (364 logical names)
+and `run/*.json`. Not committed: the row-level files, which are the real sample (D-087, and the
+sweep below).
+
+| quantity | value |
+|---|---|
+| model calls | **21** — 4 plan, 8 draft, 1 re-ask, 8 extract |
+| model | `claude-opus-5[1m]`, through `ClaudeCLILLM` — on all 21 |
+| tool calls | **19** — the 15 of the rule-based plan (`run_model`, `profile_data`, `compute_metrics`, `check_leakage`, `check_stability`, `check_collinearity`, `challenger_compare`, `run_scenarios` and `retrieve_guidance` seven times), plus the loop's four `compute_metrics` calls — **30.53 s** in total, 9.92 s of it the subject's own fit, over 364 artifacts. None raised; the only candidate class raised at all is `C1`, once per `compute_metrics` call |
+| plan steps (bounded loop) | **4**, all accepted and all executed: `incentive` above and below median, then `loan_age` above and below median, **each over `out_of_time` and `vintage_holdout` at once** |
+| claim checks | **368** trace events over the two rounds — 298 pre-repair and section 3's 70 again after |
+| claims, pre-repair | **298** at **0.9966** — 297 verified, 0 mismatch, 1 unsupported, 0 dangling, 0 unattributed |
+| claims, post-repair | **297** at **1.0000**, after **one** repair round that rewrote no claim and **removed one number** |
+| findings | **1** — `F-001`, `C1 calibration` at severity **medium**, **ten candidates merged**, nine evidence artifacts; **two** open items |
+| developer claims | **3 of 3 verified** — `auc test 0.655`, `brier test 0.00906`, `calibration_slope test 1.017` |
+| output tokens | **122,054** — 1,757 plan, 46,664 draft, 6,216 re-ask, 67,417 extract |
+| input tokens | **333,584**, re-derived from the 21 tapes under D-093's three-field sum |
+| notional cost | **$6.4858** — $0.4180 the four plan steps, $3.0149 drafting, $0.6244 the one re-ask, $2.4284 extraction |
+| wall-clock | **22:54** from the first traced event to the last (1,373.77 s); the operator's shell clock read 23:12.75 |
+| report written | **yes** |
+
+**Against the two runs it should be read against.** Attempt 1 cost **$7.1697** over 1,549.94 s
+(operator's clock 26:09) for 23 model calls and 305 claims; this one cost **$6.4858** over
+1,373.77 s (operator's clock 23:12.75) for 21 calls and 298. The credit excerpt run cost
+**$3.9739** over 872.74 s (14:33) for 18 calls and 210. The MSR-to-credit gap is not drift and is
+the same gap the previous entry described: this run has a finding to draft, one re-ask the credit
+run did not need, and four loop steps whose artifacts section 4 then reports. The attempt-1-to-
+attempt-2 movement is two fewer model calls — one fewer section re-drafted, so one fewer draft and
+one fewer extraction — and it is the **first** attempt-to-attempt comparison on this subject, which
+means n = 1 on each side and nothing here establishes a trend. Per claim: **$0.0218** here,
+$0.0235 on attempt 1, $0.0189 on credit.
+
+**Per-section grounding, pre-repair, as `claims.json` records it.** summary **12/12**, conceptual
+soundness **48/48**, data integrity **70/71**, outcomes **109/109**, sensitivity **30/30**,
+findings **21/21**, monitoring **7/7**. The sections in which **every claim verified before any
+repair** are therefore **1, 2, 4, 5, 6 and 7** — six of the seven, against attempt 1's five. The
+one that did not is section 3, on claim `7a2768dcbeb4fed3`.
+
+**The one failure, and it is our tokeniser again.** Section 3 wrote "verified each one against its
+recorded **SHA-256** digest before any split was read", and the `256` was tokenised as a claim of
+value 256.0 with no artifact behind it — unsupported, because no artifact holds it and none could:
+it is the name of a hash function. The scoped repair round removed the number and the drafter wrote
+"its recorded **cryptographic** digest", which is honest and slightly worse prose. This is the third
+run of this class after D-116's `D-050` and D-166's `decile 1`, and the pattern is now clear enough
+to name: an identifier whose digits a reader does not read as a measurement. **D-169** adds the
+`algorithm_name` exclusion. The renderer's own caption two lines below writes `SHA-256` as well and
+was never a claim, because it is inside a renderer block — the same near-miss that hid `decile 1`
+until a drafter wrote it in its own prose.
+
+**Why this is the excerpt run, and attempt 1 was not.** Section 1 publishes the finding — "This
+validation published F-001, a C1 calibration finding at medium severity, which section 6 sets out
+in full." — under a scope table reading 0 / 1 / 0 / 0, which is **D-165 holding live for the first
+time**; attempt 1's section 1 said "No findings were raised at any severity." under the same table
+and that is why it was archived. Sections **2 and 4 both verified whole pre-repair**, 48 of 48 and
+109 of 109, and Cowork's read of both found no wrong number. The single pre-repair failure is in
+section 3, outside the excerpt. D-156 held in section 6 again, D-162's manifest table is cited in
+section 3 with its Appendix C row present (`verified: 5 file(s) against package.yaml`), and
+D-164's z gate is cited in section 5. **D-167 was not exercised**: section 5 wrote "the change in
+servicing value is -1078000" rather than attempt 1's "falls by 1078000", so the verb rule's live
+evidence is still nil.
+
+**The substantive result, which is this run's addition over attempt 1.** Attempt 1 spent all four
+loop steps on the incentive 2×2. This run spent two on incentive and two on `loan_age`, which is
+the partition that answers the question `F-001` raises — is the ~50% under-prediction a flat level
+shift or a failure of the seasoning shape? The answer is **neither reading survives on its own**.
+Out of time, the seasoned half predicts **0.0032** against an observed **0.0123**, and the newer
+half predicts **0.0168** against **0.0250**. The **absolute** gaps are nearly equal (0.0091 and
+0.0082), which reads as a level shift; the **relative** shortfalls are **3.8×** and **1.5×**, which
+does not. Neither loan-age half is past `threshold.O1.slice_auc_gap` on either forward split —
+0.03303 and 0.02328 out of time, 0.02861 and 0.02765 on the vintage holdout, all well inside 0.08 —
+so the seasoning partition **raised no open item**: discrimination inside each half is intact and
+only the level is wrong. The two open items are both the incentive partition's, and there are two
+rather than attempt 1's three because `vintage_holdout` high-incentive came in at a gap of 0.07345,
+inside the bound: `incentive > median` out of time (AUC **0.6046**, gap 0.08523) and
+`incentive <= median` on both forward splits (**0.5198**, gap 0.17, and **0.5956**, gap 0.1432).
+The out-of-time out-of-the-money segment ranking barely better than chance on half the split is
+still the result a reader should carry away, and it replicates.
+
+**Read and deliberately not changed.** Four wording sentences in sections 2 and 4 are edited **in
+the excerpt and not in the record**, and D-168 carries all four verbatim with the reason for each:
+"raised as C1 calibration findings" for ten candidates that merged into one finding; "the lower
+bound of 0.8" for a `C1` rule threshold sitting two lines from the developer's band of the same
+value; "the **declared** gap allowance of 0.08" for a bound `package.yaml` does not declare, which
+is the second live run to write it; and a closing clause reading the loan-age partition as "a level
+shift rather than a seasoning-shape failure", which the relative gaps above contradict. Beyond
+those: section 6's `F-001` narrative says the shortfall "widens as predicted risk rises", true of
+the absolute gap on `calibration.out_of_time` (bin 1 gap 0.009, bin 10 gap 0.015) and false of the
+relative one (bin 1 observed/predicted ≈ **37×**, bin 10 ≈ **1.45×**) — the same
+absolute-versus-relative reading, in a section the excerpt does not take. "Roughly half" (sections
+4 and 6) and "three developer-declared thresholds" (section 1) are the word-number class already on
+the Phase 12 pre-flight list, where attempt 1's "roughly six times" went.
+
+| # | what the live run exposed | kind | fixed in |
+|---|---|---|---|
+| DECISIONS D-169 | **`SHA-256` tokenised as a claim of 256.** An `algorithm_name` exclusion beside `regulatory_section_id`: a hyphenated `[A-Z]{2,}-\d{1,4}` identifier whose letters are not a regulator code already covered. `SHA-256`, `SHA-3`, `MD-5`, `ISO-8601` and `RFC-8259` mask; `SR 11-7` keeps its existing class; a shock label keeps its number | defect | follow-up commit |
+
+**Two pre-flight items this run points at, recorded and not done.** Both are artifact-shape
+questions and both are about the same missing quantity. First, a `C1` candidate's evidence should
+carry the **breached split's `calibration.<split>` decile table**: F-001's nine artifacts are two
+thresholds, one slope, two `mean_predicted`/`event_rate` pairs and the two relative gaps derived
+from them, and the table that would settle whether the shortfall widens with score is in the store
+and not among them. Second, sub-population artifacts should carry a **`mean_rel_gap`** beside
+`mean_predicted` and `event_rate`: the name exists at split level and at no `sub.<slug>` level, so
+a drafter comparing two slices has only the absolute difference to write about — which is edit 4
+and section 6's paragraph both, from one cause.
+
+**What the archive holds, on D-087's terms.** Twenty row-level CSVs are outside the repository, in
+`~/code/data-raw/credit/first-live-msr-rows/excerpt/`: the eight under `run/` and twelve under
+`artifacts/`, the same shape attempt 1 swept. Eight of the twelve are the byte-identical
+content-addressed twins of the `run/` files (`run.data_*`, `run.predictions_*`, 135,061 to 313,539
+lines each). The other four are the `cpr.*` period tables (`cpr.train` 72 lines, `cpr.test` 72,
+`cpr.out_of_time` 76, `cpr.vintage_holdout` 87) — monthly actual-against-predicted CPR with a row
+count, carrying no identifier and no per-loan value, moved because the sweep's rule is a line count
+and not a judgement about each file. Those twelve logical names resolve in `artifacts/index.json`,
+with their hash, kind and summary, and have no payload file in the repository; `cpr.test`'s rows
+are rendered in full inside section 4's renderer block in `report.md` regardless.
+`find … -name '*.csv' -size +20k` prints nothing, `git grep --cached -i loan_sequence` over the
+directory finds nothing, and the directory is **219 MB → 3.4 MB**.
+
+**What this entry does not show.** One run, one panel, one model and one seed, and the comparison
+against attempt 1 is n = 1 against n = 1 over a changed build — the two-call and $0.68 difference is
+not a measured improvement. The excerpt's four edits are Cowork's reading of two sections, not an
+enumeration of everything a reader outside this project would misread. D-167 still has no live
+evidence. And the `algorithm_name` class is a fourth instance of one pattern rather than proof the
+pattern is now closed: the next live run is the test of whether an exclusion list assembled one
+defect at a time has stopped finding new ones.

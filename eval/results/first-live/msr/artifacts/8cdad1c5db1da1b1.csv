@@ -1,0 +1,13 @@
+feature,timing,flagged
+note_rate,at_origination,false
+orig_ltv,at_origination,false
+credit_score,at_origination,false
+orig_upb_log,at_origination,false
+sato,at_origination,false
+loan_age,before_period_start,false
+incentive,before_period_start,false
+burnout,before_period_start,false
+bom_balance_log,before_period_start,false
+rate_change_12m,before_period_start,false
+season_sin,before_period_start,false
+season_cos,before_period_start,false

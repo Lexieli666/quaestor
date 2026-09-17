@@ -1,0 +1,11 @@
+feature,dtype,n,n_unique
+orig_ltv,int64,135060,117
+credit_score,int64,135060,239
+orig_upb_log,float64,135060,486
+sato,float64,135060,300
+loan_age,int64,135060,71
+incentive,float64,135060,1121
+burnout,float64,135060,6403
+rate_change_12m,float64,135060,63
+season_sin,float64,135060,8
+season_cos,float64,135060,8

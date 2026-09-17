@@ -5508,3 +5508,148 @@ here and recorded.
   the golden report, both synthetic validates and the real-panel fake validate are unchanged, and
   `pytest tests/probatio --cassette=replay` still passes 40 with zero provider calls, because
   nothing here is in a prompt.
+
+## D-168. The MSR excerpt run, and its four edits
+
+- **Date:** 2026-09-17 (Phase 9 follow-up 8, decided in Cowork)
+- **Q:** `eval/results/first-live/msr/` is the second live `msr_prepayment` run and the one the
+  README will excerpt in Phase 16 beside the credit run. It is the excerpt candidate because
+  sections 2 and 4 verified whole before any repair — 48 of 48 and 109 of 109 — section 1 names
+  `F-001` under D-165 rather than announcing no findings, and section 6 draws the finding under
+  D-156; its single pre-repair failure is in section 3 and outside the excerpt. Reading sections 2
+  and 4 against the excerpt bar found four sentences whose wording a reader outside this project
+  would misread. None of them is a wrong number. May `report.md` be edited?
+- **A:** No, on D-120's terms and for D-120's reason, which this entry does not restate and does
+  not weaken. The committed `report.md` is what the pipeline produced on `a87aa4a` and it is never
+  edited; the run is committed byte-for-byte on D-087's terms, with the row-level CSVs outside the
+  repository and `find … -name '*.csv' -size +20k` printing nothing. The **excerpt** is where the
+  four edits are applied. Phase 16 takes **§2 and §4 whole** — `### Follow-up analyses` and all of
+  the loop's four paragraphs included — applies the four edits below and nothing else, and prints
+  them as a before/after diff in `docs/PROVENANCE.md` beside the line saying the excerpt is edited
+  and the record is not. **No edit changes a number**, which
+  `tests/test_live_msr.py::test_no_excerpt_edit_changes_a_number` asserts by tokenizing both sides
+  of each pair with `eligible_numbers` and comparing the values.
+
+  The four, verbatim, so Phase 16 copies rather than reconstructs them. Each `before` is copied
+  byte-for-byte out of `report.md`, citations included — which is the thing D-120 learned the hard
+  way, its prompt having quoted two `before` strings with the citation stripped out of the middle —
+  and each is asserted to be in the committed file **exactly once**, so this entry cannot drift
+  from the file it quotes:
+
+  1. §4 `### Calibration`, line 177:
+     - `Both breaches are raised as C1 calibration findings.`
+       → `Both breaches are raised together as one C1 calibration finding.`
+
+     Ten candidates merged into one finding. The plural reads as two findings where the scope table
+     in §1, `findings.json` and §6 all say one, and a reader of the excerpt alone has no way to
+     resolve it. The same sentence in a different wording was read and left in place on attempt 1,
+     recorded there as "wording, not a number, and it stays"; the difference is that this run is
+     the one that gets excerpted.
+  2. §4 `### Calibration`, line 168:
+     - `the latter well below the lower bound of 0.8 [[art:749634ae:threshold.C1.calibration_slope.min]]`
+       → `the latter well below rule C1's floor of 0.8 [[art:749634ae:threshold.C1.calibration_slope.min]]`
+
+     The **previous** sentence's 0.8 is `threshold.package.calibration_slope.test.min`, which the
+     package declares; this one is `threshold.C1.calibration_slope.min`, which Quaestor's rule sets.
+     Same value, different artifact, and the two sit two lines apart, so "the lower bound" with no
+     owner reads as the developer's band carried forward. D-120 edit 3's class exactly.
+  3. §4 `### Discrimination`, line 308:
+     - `comfortably inside the declared gap allowance of 0.08 [[art:630f28f4:threshold.O1.auc_gap]]`
+       → `comfortably inside the gap allowance of 0.08 [[art:630f28f4:threshold.O1.auc_gap]] rule O1 sets`
+
+     `package.yaml` declares no AUC-gap bound. **Declared** attributes a number to the developer
+     that Quaestor set, which is D-120 edit 3's class over the same artifact and the same 0.08 —
+     the second live run to write it, so it is a drafting habit and not one run's slip. The `after`
+     keeps the citation immediately after the number it carries, where D-113 puts it.
+  4. §4 `### Follow-up analyses`, line 482, the `loan_age below_median` paragraph — delete the
+     closing clause:
+     - `, and across the loan-age partition the defect reads as a level shift rather than a seasoning-shape failure.`
+       → `.`
+
+     The absolute gaps across the two loan-age halves are alike — 0.0091 on seasoned loans out of
+     time against 0.0082 on newer ones — and the relative shortfalls are not: about **3.8×** on the
+     seasoned half against **1.5×** on the newer. A level shift is what the absolute reading says
+     and the relative reading denies, so the clause resolves an absolute-versus-relative ambiguity
+     in the direction the evidence does not support. Cutting it is a wording edit and leaves the
+     paragraph's own numbers standing; the replacement reading would need a derived ratio the
+     excerpt may not add, and the pre-flight item below is the way to give the drafter that
+     quantity instead of asking Phase 16 to compute it.
+
+  **Read and deliberately not edited**, named here so they are not rediscovered as defects. Each
+  is either outside §2/§4 or not a wording matter:
+
+  - **§6, `F-001`'s fourth paragraph:** "the shallow slope means the shortfall is not a constant
+    offset but widens as predicted risk rises, so predicted prepayment speeds understate realised
+    speeds most where the model scores highest". True of the **absolute** gap on the forward-split
+    decile tables — `calibration.out_of_time` bin 1 at 0.009 against bin 10 at 0.015 — and false
+    of the **relative** one, which collapses from about 37× in bin 1 to about 1.45× in bin 10, so
+    the understatement is worst where the model scores **lowest**. It is the same
+    absolute-versus-relative reading as edit 4, and it is in §6, which the excerpt does not take.
+    It is not edited because the excerpt is §2 and §4, and it is not repaired in the record because
+    the record is the record.
+  - **"Roughly half" (§4 line 178, §4 line 331, §6 line 552) and "three developer-declared
+    thresholds" (§1 line 34):** the word-number class already on the Phase 12 pre-flight list
+    against `DRAFT_INSTRUCTION`, the same list attempt 1's "roughly six times" went on. A
+    word-number is not verifiable and not a claim, so nothing flags it; whether the drafter should
+    be told to write the figure instead is a prompt question for the pre-flight, not an excerpt
+    edit.
+  - **§5 line 534:** the drafter wrote "the change in servicing value is -1078000", so **D-167's
+    verb rule was not exercised live on this run**. Attempt 1 wrote "falls by 1078000" against the
+    same negative artifact and that is what D-167 was built for; this run chose the neutral verb
+    and the signed path never ran. D-167 therefore still has no live evidence, only
+    `tests/test_verifier_match.py`'s seven cases, and the next run that writes a direction verb
+    over a scenario end is its first.
+
+  **Two pre-flight items this points at, stated and not done here.** Both are artifact-shape
+  changes rather than prompt changes, and both would give the drafter the quantity it reached for
+  and had to approximate:
+
+  1. A `C1` candidate's evidence should carry the **breached split's `calibration.<split>` decile
+     table**. F-001's nine evidence artifacts are the two `C1` thresholds, the out-of-time
+     calibration slope, the `mean_predicted`/`event_rate` pair on each forward split, and the two
+     `calibration.mean_rel_gap.<split>` figures derived from those pairs. The decile table that
+     shows whether the shortfall widens or narrows **with score** is in the store and is not among
+     them, which is why §6's fourth paragraph asserts a shape from a slope alone.
+  2. Sub-population artifacts should carry a **`mean_rel_gap` beside `mean_predicted` and
+     `event_rate`**. `calibration.mean_rel_gap.<split>` exists at split level — F-001 cites two of
+     them — and no `metrics.<split>.sub.<slug>.*` name carries it, which
+     `tests/test_live_msr.py::test_the_loan_age_partition_is_a_level_shift_only_in_absolute_terms`
+     asserts. The relative gap is the quantity a prepayment reader uses, and a drafter that has
+     only `mean_predicted` and `event_rate` per slice will keep writing the absolute reading, which
+     is edit 4 and §6's paragraph both.
+
+  **With this commit the MSR half of Phase 9 is closed, and Phase 9 with it.** This run is the
+  **first live run with a finding** in a report the README can excerpt, and four decisions were
+  exercised live for the first time on it or its predecessor: **D-156** (section 6 draws the
+  finding it is handed and moves nothing to the open items), **D-162** (the verified data manifest
+  is cited in §3 and carries its Appendix C row), **D-164** (`R1`'s z gate is cited in §5) and
+  **D-165** (§1 names `F-001` instead of asking for a count it is never given). D-165 had no live
+  evidence at all before this run, because attempt 1 is the run that exposed it.
+- **Why:** The reason is D-120's and it has not changed: a report's value in a README is that a
+  reader can be told "this is what the pipeline wrote, unedited, and here are the trace, the
+  cassettes and the artifact store it wrote it from", and an edited `report.md` cannot be told that
+  about however small the edit. What is new here is that this excerpt has a **finding** in it, so
+  the four sentences matter more than the credit run's five did. A reader who sees §4 alone is
+  reading the section that raises `F-001`, and three of the four edits are about who owns a number
+  or how many findings there are — precisely the things a validation report exists to be exact
+  about. Edit 4 is the different one: it removes a sentence rather than rewording one, because the
+  sentence's error is a **conclusion** and the honest excerpt is the one that stops at the evidence.
+
+  Rejected alternatives. Editing `report.md` and noting it here, which makes every future citation
+  of this run's 0.9966 a citation of a file a human touched — refused for D-120's reason. Excerpting
+  §2 and §4 unedited, which publishes "raised as C1 calibration findings" beside a scope table
+  reading one finding. Rewriting edit 4's clause into a relative reading, which would put a ratio
+  the artifacts do not hold into an excerpt whose whole claim is that every number in it is cited —
+  the pre-flight item is the fix, and the excerpt waits for it. Excerpting §6 as well, so the
+  finding's own narrative is in the excerpt: refused, because §6's fourth paragraph carries the
+  absolute-versus-relative error above and would then need a fifth edit, which is an edit to a
+  **conclusion** rather than to wording and past what D-120 licenses. And re-running the pipeline
+  for better wording, which is $6.49 and twenty-three minutes for a different four sentences, and
+  would throw away the first run whose §2 and §4 both verified whole.
+- **Measured:** `tests/test_live_msr.py`, 22 checks, every figure re-derived from the committed
+  `trace.jsonl`, `claims.json`, `findings.json`, the 21 cassettes and `artifacts/index.json`. The
+  four `before` strings are each in `report.md` exactly once and no `after` changes a number under
+  `eligible_numbers`; the excerpt is asserted to be §2 and §4 whole, with all four edits inside §4
+  and none in §2. The suite goes 1591 → 1613. `docs/EVALUATION.md` carries the dated attempt-2
+  entry with the per-section pre-repair counts and the loop's loan-age result; `PROGRESS.md` ticks
+  Phase 9 closed on both halves.
