@@ -9,6 +9,21 @@ run that was not committed.
 
 ### Added
 
+- **A `C1` finding carries the decile table of every split it fired on, and every sub-population
+  carries its relative calibration gap.** `_calibration_rule` opens each firing split's candidate
+  with `calibration.<split>`, so on the real `msr_prepayment` panel F-001's evidence goes from
+  **9 keys to 11**, gaining `calibration.out_of_time` and `calibration.vintage_holdout` and
+  nothing else — the tables were already stored, so the candidate cites rather than mints, and the
+  store still holds 273 artifacts at grounding precision 1.0000 over 51 claims. Each slice now
+  stores `metrics.<split>.sub.<slug>.mean_rel_gap` beside its `mean_predicted` and `event_rate`
+  and carries the row in its metrics table, computed by the new module-level `relative_gap()` that
+  the split level calls too, so the two are one arithmetic under two names. The means alone read a
+  level error as uniform where the relative quantity says it is concentrated — out of time the
+  absolute gap widens across the deciles while the relative one collapses from about 37 times to
+  about 1.5 — and a slice quotient has to be an artifact before a prompt may forbid the drafter
+  from dividing. `control_msr_clean`'s measured baseline in `eval/taxonomy.yaml` goes from three
+  evidence keys to five with it, and D-161 is amended rather than rewritten (D-171).
+
 - **The Probatio test layer (`tests/probatio/`), with recorded cassettes.** Ten cases over the
   three families spec section 6 fixes: seven `draft_section` cases, one per section the drafter
   writes, each carrying `schema_valid` on the JSON wrapper, `contains ["[[art:"]`, `not_contains`

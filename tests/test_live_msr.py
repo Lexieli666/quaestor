@@ -36,9 +36,11 @@ import pytest
 
 from quaestor import TraceReader
 from quaestor.artifacts.store import ArtifactStore
+from quaestor.tools import default_registry
 from quaestor.tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
 from quaestor.trace import EventType, TraceEvent
 from quaestor.verifier.tokens import eligible_numbers
+from toolsupport import context
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 RUN: Final = REPO_ROOT / "eval" / "results" / "first-live" / "msr"
@@ -505,8 +507,41 @@ def test_the_loan_age_partition_is_a_level_shift_only_in_absolute_terms() -> Non
     assert gaps["loan_age_high"][1] == pytest.approx(3.82, abs=0.01)
     assert gaps["loan_age_low"][1] == pytest.approx(1.49, abs=0.01)
     assert gaps["loan_age_high"][1] > 2 * gaps["loan_age_low"][1]
-    assert "mean_rel_gap" not in "".join(name for name in _index() if ".sub." in name), (
-        "no sub-population artifact carries the relative quantity (pre-flight)"
+
+
+def test_the_relative_gap_is_stored_by_the_build_after_this_run_and_not_by_this_one(
+    tmp_path: Path, msr_run_dir: Path
+) -> None:
+    """D-171: the run above had to divide by hand, and a slice computed today does not.
+
+    Two runs, one assertion each. The first half reads the **committed** run of 2026-09-17 in
+    `eval/results/first-live/msr/`, whose artifact index carries no `.sub.*.mean_rel_gap`: the
+    ratios the test above derives -- about 3.8 against 1.5 times -- were computed in the test
+    from two stored scalars because the run that produced them predates D-171, which is exactly
+    why the report could not state them. The second half reads a **fresh** offline run of the
+    synthetic hazard subject (`msr_run_dir`, no model and no real data), sliced today by the same
+    `loan_age` partition, and the quotient is in its store as an artifact a sentence can cite.
+
+    The committed half keeps passing for as long as the run stays committed, because it is a
+    statement about that run and not about the code.
+    """
+    committed = [name for name in _index() if ".sub." in name]
+    assert committed, "the committed run did slice, so the absence below is a fact about it"
+    assert not [name for name in committed if name.endswith(".mean_rel_gap")], (
+        "the run of 2026-09-17 predates D-171, so no sub-population artifact of it is relative"
+    )
+
+    ctx = context(tmp_path, REPO_ROOT / "subjects" / "msr_prepayment", msr_run_dir)
+    default_registry().call(
+        "compute_metrics",
+        {"splits": ["test"], "subpopulation": {"column": "loan_age", "rule": "above_median"}},
+        ctx,
+    )
+    stem = "metrics.test.sub.loan_age_high"
+    predicted = ctx.store.value(f"{stem}.mean_predicted")
+    observed = ctx.store.value(f"{stem}.event_rate")
+    assert ctx.store.value(f"{stem}.mean_rel_gap") == pytest.approx(
+        abs(predicted - observed) / observed
     )
 
 

@@ -1,6 +1,7 @@
 # eval/taxonomy.yaml — Phase 10, filled in Cowork on 2026-09-09 from the human's answers. Final,
-# with one addition: every control row gained a `baseline` key on 2026-09-16 under D-161, and
-# nothing else in this file changed.
+# with two additions and nothing else: every control row gained a `baseline` key on 2026-09-16
+# under D-161, and on 2026-09-17 `control_msr_clean`'s measured evidence went from three keys to
+# five under D-171, because each breached split's decile table joined the candidate.
 # Copy to the repo as eval/taxonomy.yaml. Class codes are fixed by 02-SPEC.md section 3.7 and are
 # the scoring keys of the study; do not rename them.
 #
@@ -35,7 +36,8 @@ controls:
       synthetic: []                               # D-047
       real:
         - {class: C1, severity: medium, splits: [out_of_time, vintage_holdout],
-           evidence: [calibration_slope.out_of_time, calibration.mean_rel_gap.out_of_time, calibration.mean_rel_gap.vintage_holdout]}
+           evidence: [calibration_slope.out_of_time, calibration.mean_rel_gap.out_of_time, calibration.mean_rel_gap.vintage_holdout,
+                      calibration.out_of_time, calibration.vintage_holdout]}   # the two tables: D-171
   - id: control_credit_perturbed
     subject: credit_default
     recipe: harmless_perturbation

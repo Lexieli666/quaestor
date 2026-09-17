@@ -1178,3 +1178,23 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   `threshold.O1.slice_auc_gap`. `docs/EVALUATION.md` carries the dated attempt-2 entry. The one
   class the run exposed is fixed in the next commit as **D-169**. No live model call, no download
   and no training on real data from any test; the only live call is the operator's run. No push.
+- 2026-09-17 — **Phase 12 pre-flight, commit A** — **no live run, no live data beyond the
+  operator's own `--data` path**: the two artifact-side items of the pre-flight inventory, which
+  D-171 records as one decision. A `C1` candidate now cites `calibration.<split>` for every split
+  it fires on, and each sub-population stores `metrics.<split>.sub.<slug>.mean_rel_gap` beside its
+  `mean_predicted` and `event_rate`, both levels calling the new module-level `relative_gap()`.
+  Measured offline with `quaestor validate subjects/msr_prepayment --data /tmp/msr_data --llm
+  fake`, the five `package.yaml` digests verified first: F-001's evidence **9 → 11**, gaining
+  `calibration.out_of_time` and `calibration.vintage_holdout` and nothing else; 273 artifacts,
+  51 claims, grounding precision 1.0000, the report differing from its predecessor only in the two
+  rendered tables, the appendix count 50 → 52 and the run id. `control_msr_clean`'s baseline
+  evidence in `eval/taxonomy.yaml` goes three keys → five and `tests/test_seed.py` with it; D-161
+  is amended with a dated consequence paragraph, not rewritten. The `(pre-flight)` assertion at
+  `tests/test_live_msr.py` is discharged into a test that reads two runs and says which is which.
+  Gate green: `pytest -q` **1,622 passed**, 0 failed, 0 skipped, 0 xfailed (1,618 → 1,622, four
+  added and one expectation amended); coverage of `src/quaestor` **99%**; `ruff check` and
+  `ruff format --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean over
+  60 source files; both `--synthetic --llm fake` validates unchanged at `{E1 low}` and `{}`;
+  `examples/golden_report/` untouched; `pytest tests/probatio --cassette=replay` **40 passed** with
+  zero provider calls, because this commit touches no prompt. No live model call, no download, no
+  training on real data from any test. No push.

@@ -647,7 +647,7 @@ def test_the_loop_is_shown_the_columns_it_can_slice_on(tmp_path: Path) -> None:
 def test_a_follow_up_reports_its_metrics_as_a_table_and_interprets_them_in_prose(
     tmp_path: Path,
 ) -> None:
-    """D-115: the nine metrics are a rendered table, and the gap and the share stay cited prose."""
+    """D-115: the ten metrics are a rendered table, and the gap and the share stay cited prose."""
     run = run_validate(
         CREDIT,
         tmp_path / "out",
@@ -657,7 +657,7 @@ def test_a_follow_up_reports_its_metrics_as_a_table_and_interprets_them_in_prose
     table = "metrics.test.sub.limit_bal_low"
     assert run.store.entry(table).kind is ArtifactKind.table
     rows = run.store.load(table)
-    assert [str(row["metric"]) for row in rows] == [*SCALAR_METRICS, "share"]
+    assert [str(row["metric"]) for row in rows] == [*SCALAR_METRICS, "mean_rel_gap", "share"]
     outcomes = _section(run.report, "## 4. Outcomes analysis")
     assert f"<!-- quaestor:renderer:begin table {table} -->" in outcomes
     assert f"[[table:{table}]]" not in outcomes, "the directive is expanded, not left standing"

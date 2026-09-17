@@ -266,6 +266,10 @@ def test_every_control_carries_the_baseline_d161_measured(taxonomy: Any) -> None
                 "calibration_slope.out_of_time",
                 "calibration.mean_rel_gap.out_of_time",
                 "calibration.mean_rel_gap.vintage_holdout",
+                # D-171: each breached split's decile table joined the candidate's evidence, so
+                # the measured baseline is five keys of the eleven, not three of the nine.
+                "calibration.out_of_time",
+                "calibration.vintage_holdout",
             ],
         }
     ]

@@ -53,6 +53,7 @@ __all__ = [
     "ComputeMetricsTool",
     "Subpopulation",
     "metric_artifact_name",
+    "relative_gap",
     "sub_metrics_table_name",
     "subpopulation_expression",
 ]
@@ -69,6 +70,30 @@ the subject's wall-clock cap as a performance threshold. A table the tool comput
 only points at cannot disagree with the rest of the report, which is D-013's argument applied to
 the one table a validation report is most often read for (DECISIONS D-092).
 """
+
+
+def relative_gap(mean_predicted: float, event_rate: float) -> float:
+    """Return how far a mean predicted probability sits from an observed rate, relative.
+
+    One definition with two callers: the split level stores it as
+    ``calibration.mean_rel_gap.<split>`` and the ``C1`` rule reads it against
+    ``threshold.C1.mean_ratio_rel``, and each sub-population stores it as
+    ``metrics.<split>.sub.<slug>.mean_rel_gap``. They have to be the same number under the same
+    name, because a report that compares a slice's gap with its split's is comparing them, and two
+    copies of a formula are two chances to disagree (DECISIONS D-171).
+
+    Args:
+        mean_predicted: The mean of the predicted probabilities.
+        event_rate: The observed rate, which is the denominator.
+
+    Returns:
+        ``|mean_predicted - event_rate| / event_rate``, or ``0.0`` where the observed rate is
+        zero. The guard is unreachable through the tool -- :func:`~quaestor.tools.stats.auc`
+        refuses a sample with no event before any gap is computed, on a split and on a slice
+        alike -- and is kept so that the quantity is defined wherever it is asked for rather than
+        raising a ``ZeroDivisionError`` from inside a metric.
+    """
+    return abs(mean_predicted - event_rate) / event_rate if event_rate > 0.0 else 0.0
 
 
 def sub_metrics_table_name(split: str, slug: str) -> str:
@@ -319,9 +344,8 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
             for metric in SCALAR_METRICS
         ]
 
-        rate = values["event_rate"]
-        relative_gap = abs(values["mean_predicted"] - rate) / rate if rate > 0.0 else 0.0
-        values["mean_rel_gap"] = relative_gap
+        gap = relative_gap(values["mean_predicted"], values["event_rate"])
+        values["mean_rel_gap"] = gap
         artifacts += [
             ctx.store.put(
                 f"calibration.{split}",
@@ -331,7 +355,7 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
             ),
             ctx.store.put(
                 f"calibration.mean_rel_gap.{split}",
-                relative_gap,
+                gap,
                 ArtifactKind.scalar,
                 f"mean predicted against observed on {split}, relative",
             ),
@@ -465,7 +489,19 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
     ) -> list[Artifact]:
         """Compute the scalar metrics on one slice of each split, and how it reads.
 
-        Besides the eight scalars, each slice stores two numbers and the two bounds they are read
+        Besides the eight scalars, each slice stores ``metrics.<split>.sub.<slug>.mean_rel_gap``,
+        the mean predicted probability against the observed rate *relative*, by the formula the
+        split level uses for ``calibration.mean_rel_gap.<split>`` and with the same guard against
+        a zero denominator. A slice's absolute shortfall is read against a rate that differs from
+        the split's, so the absolute number alone cannot say whether a level error is uniform or
+        concentrated -- out of time on the real MSR panel the two halves of ``loan_age`` are
+        0.0091 and 0.0082 apart in absolute terms and about 3.8 against 1.5 times in relative
+        ones, which is the opposite reading (DECISIONS D-171, D-168). The quotient is stored
+        rather than left to the sentence that reports it, because the drafter is forbidden to
+        compute: a number in prose needs an artifact behind it, and dividing two cited numbers
+        would mint a third that nothing verifies.
+
+        Besides those, each slice stores two numbers and the two bounds they are read
         against: ``metrics.<split>.sub.<slug>.auc_gap``, the split's own AUC minus the slice's, and
         ``metrics.<split>.sub.<slug>.share``, the slice's share of the split. They decide **where**
         the result is reported -- a slice materially worse than the headline and large enough to
@@ -503,6 +539,7 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                 "logloss": stats.logloss(truth, scores),
                 "mean_predicted": float(scores.mean()),
             }
+            values["mean_rel_gap"] = relative_gap(values["mean_predicted"], values["event_rate"])
             artifacts += [
                 ctx.store.put(
                     f"metrics.{split}.sub.{slice_.slug}.{metric}",
@@ -512,6 +549,15 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                 )
                 for metric in SCALAR_METRICS
             ]
+            artifacts.append(
+                ctx.store.put(
+                    f"metrics.{split}.sub.{slice_.slug}.mean_rel_gap",
+                    values["mean_rel_gap"],
+                    ArtifactKind.scalar,
+                    f"mean predicted against observed on the {slice_.column} {slice_.rule} "
+                    f"slice of {split}, relative",
+                )
+            )
             artifacts += self._slice_reading(ctx, split, slice_, frame, values)
         return artifacts
 
@@ -568,13 +614,14 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
     ) -> list[Artifact]:
         """Store how one slice reads against its split, and the slice's metrics as a table.
 
-        The eight scalars and the share are also stored as ``metrics.<split>.sub.<slug>``, one row
-        per metric, so that the section reporting the slice can point at a table instead of
-        enumerating nine cited numbers per split. That is D-092's argument about the threshold
-        table, applied to the family the bounded loop generates: on the fifth live run four slices
-        wrote 72 of the report's 285 claims and most of its 417 claim checks, all of them
-        transcription of numbers a table renders from the store, and a table's cells are excluded
-        from extraction because the renderer and not a model wrote them (D-013, DECISIONS D-115).
+        The eight scalars, the relative gap and the share are also stored as
+        ``metrics.<split>.sub.<slug>``, one row per metric, so that the section reporting the
+        slice can point at a table instead of enumerating ten cited numbers per split. That is
+        D-092's argument about the threshold table, applied to the family the bounded loop
+        generates: on the fifth live run four slices wrote 72 of the report's 285 claims and most
+        of its 417 claim checks, all of them transcription of numbers a table renders from the
+        store, and a table's cells are excluded from extraction because the renderer and not a
+        model wrote them (D-013, DECISIONS D-115).
         The AUC gap and the share stay scalars as well: they are what the interpreting sentences
         cite, and a number in prose needs an artifact behind it.
         """
@@ -600,6 +647,7 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
                 )
             )
         rows = [{"metric": metric, "value": values[metric]} for metric in SCALAR_METRICS]
+        rows.append({"metric": "mean_rel_gap", "value": values["mean_rel_gap"]})
         rows.append({"metric": "share", "value": share})
         stored.append(
             ctx.store.put(
@@ -729,7 +777,13 @@ class ComputeMetricsTool(Tool["ComputeMetricsTool.Args"]):
             adrift = gap > relative
             if not (outside or adrift):
                 continue
-            evidence: list[str] = []
+            # The decile table of the breached split, on every branch: the absolute gaps the
+            # detail sentences quote are the split's means, and the table is where the reader
+            # sees the *relative* reading they hide -- on the real MSR panel out of time it
+            # falls from about 37 times in bin 1 to about 1.5 in bin 10 while the absolute gap
+            # widens (DECISIONS D-171, D-168). It is already stored for every split computed,
+            # so citing it produces nothing new.
+            evidence: list[str] = [ctx.store.artifact(f"calibration.{split}").hash]
             detail: list[str] = []
             if outside and slope is not None:
                 bound = (

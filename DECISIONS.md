@@ -5107,6 +5107,21 @@ here and recorded.
   `msr` control from the study, which discards the only real hazard panel this project has; and
   scoring detection of a seeded `C1` on this subject without the evidence rule, which would credit
   the detector for a finding it would have raised with no seed at all.
+- **Consequence (2026-09-17, the Phase 12 pre-flight commit A):** the measured real
+  `msr_prepayment` baseline above is **five evidence keys, not three**. D-171 gives each `C1`
+  candidate the decile table of the split it fired on, so the finding gains
+  `calibration.out_of_time` and `calibration.vintage_holdout` and the recorded set becomes
+  {`calibration_slope.out_of_time`, `calibration.mean_rel_gap.out_of_time`,
+  `calibration.mean_rel_gap.vintage_holdout`, `calibration.out_of_time`,
+  `calibration.vintage_holdout`}, re-measured offline against the five verified `package.yaml`
+  digests. `eval/taxonomy.yaml` and
+  `tests/test_seed.py::test_every_control_carries_the_baseline_d161_measured` carry the five.
+  Nothing else in this entry changes: the class, the severity, the two splits and the run itself
+  are as measured on 2026-09-16, and the **evidence rule is unaffected** — a seeded `C1` on this
+  subject and data mode still has to reach a **test-split** artifact to count as detected, and
+  neither new key is one. It is the first illustration of this entry's own warning that a baseline
+  is a measured number which must be re-measured whenever a subject, a threshold or a **tool**
+  changes.
 
 ## D-162. The verified data manifest becomes an artifact, so a `--data` report can cite the check
 
@@ -5851,3 +5866,99 @@ here and recorded.
   `/tmp` copy of the subject, **except** the two committed figures, the coefficient arithmetic, the
   `beta_incentive` and `turnover_floor` readings and the D-040 reconciliation, which were
   re-measured against this repository at `666a41b` while the entry was written.
+
+## D-171. The calibration finding carries its decile table, and a slice carries its relative gap
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, commit A; ruled in Cowork from
+  `preflight-inventory-report.md`, one entry for both halves because D-168 says the two are one
+  decision)
+- **Q:** Two of the pre-flight's items are about the same missing quantity read at two levels.
+  (ix) A `C1` candidate cites the scalars its detail sentence quotes — a slope, a mean predicted
+  probability, an observed rate, the bound each was read against — and not the **decile table** of
+  the split it fired on, so the reader of the finding is shown the means and not the shape behind
+  them. (x) A sub-population stores eight scalars and no **relative** gap, so a report that wants
+  to say whether a level error is uniform across a partition or concentrated in one half has the
+  two absolute shortfalls and nothing to divide them by. Should either be stored, and in which
+  order?
+- **A:** **Both, and the artifact side lands before the prompt side.**
+
+  **(ix)** `_calibration_rule` now opens each firing split's candidate with
+  `calibration.<split>` and adds the branch evidence to it, so on the real MSR panel F-001's
+  evidence goes **9 → 11**, gaining `calibration.out_of_time` and `calibration.vintage_holdout`
+  and nothing else. The table is already stored for every split computed, so the candidate mints
+  no artifact: it cites what the store holds. The eleven keys, measured offline on 2026-09-17 with
+  `quaestor validate subjects/msr_prepayment --data /tmp/msr_data --llm fake` against the five
+  verified `package.yaml` digests, are `calibration.out_of_time`, `calibration.vintage_holdout`,
+  `calibration.mean_rel_gap.out_of_time`, `calibration.mean_rel_gap.vintage_holdout`,
+  `calibration_slope.out_of_time`, `metrics.out_of_time.mean_predicted`,
+  `metrics.out_of_time.event_rate`, `metrics.vintage_holdout.mean_predicted`,
+  `metrics.vintage_holdout.event_rate`, `threshold.C1.calibration_slope.min` and
+  `threshold.C1.mean_ratio_rel`. The breached splits are `out_of_time` — slope **0.4321** below
+  0.80 **and** relative gap **0.4618** above 0.25 — and `vintage_holdout`, on the gap alone at
+  **0.4932**, its slope **0.8502** being inside the band; `test` and `train` do not fire and their
+  tables are not cited, which is what the new rule test asserts. The store still holds **273**
+  artifacts and the run still writes **51** claims at grounding precision **1.0000**: the two
+  tables were already there, and a table's cells are excluded from extraction because the renderer
+  and not a model writes them (D-013, D-115). The visible change to the report is that section 6
+  now renders both decile tables and the artifact appendix indexes **52** entries rather than 50.
+
+  **(x)** Each slice now stores `metrics.<split>.sub.<slug>.mean_rel_gap` beside its
+  `mean_predicted` and `event_rate`, and the per-slice metrics table gains the row. The formula is
+  **not copied**: `relative_gap(mean_predicted, event_rate)` is now a module-level function that
+  both `_one_split` and `_subpopulation` call, so `calibration.mean_rel_gap.<split>` and
+  `metrics.<split>.sub.<slug>.mean_rel_gap` are the same arithmetic under two names — unsigned,
+  `|mean_predicted - event_rate| / event_rate`, guarded at a zero denominator. A slice that is the
+  whole of its split is refused by D-121, so the two levels cannot be made to agree by
+  construction; one function is how they agree.
+
+  **The order is forced.** Pre-flight item (vi) forbids the drafter from computing a quotient of
+  two cited numbers, because a number in prose needs an artifact behind it and a division the
+  renderer did not do mints a third number nothing verifies. So the quotient has to exist in the
+  store before the prompt may forbid deriving it, and this commit is the artifact half.
+
+  **The knock-on to D-161 is measured, not expected.** `control_msr_clean`'s baseline evidence in
+  `eval/taxonomy.yaml` goes from three keys to five, gaining the two tables, and
+  `tests/test_seed.py::test_every_control_carries_the_baseline_d161_measured` with it. D-161
+  itself is **amended with a dated paragraph and not rewritten**, on D-160's pattern. The evidence
+  rule the baseline exists to support is untouched: detection of a seeded `C1` on this subject and
+  data mode still requires a **test-split** artifact, and neither new key is one.
+
+  **The pre-flight assertion is discharged.** `tests/test_live_msr.py` asserted that no
+  sub-population artifact carried the relative quantity, with `(pre-flight)` in its own message.
+  It now reads two runs and says which is which: the **committed** run of 2026-09-17 in
+  `eval/results/first-live/msr/` still has no `.sub.*.mean_rel_gap`, because it predates this
+  commit and that is a fact about the run rather than about the code, and a **fresh** offline
+  slice of the synthetic hazard subject carries the quotient as an artifact a sentence can cite.
+  The ratios that test derives by hand — the seasoned half of `loan_age` out of time about **3.8**
+  times its observed rate against **1.5** on the newer half, where the absolute shortfalls are
+  **0.0091** and **0.0082** and read as a level shift — are exactly what the run could not state,
+  and are why D-168 cut edit 4's closing clause.
+
+- **Why:** The two items share a reader. The `C1` detail sentence reports means, and means are the
+  statistic under which a level error looks uniform: out of time the absolute gap **widens** from
+  about 0.009 in bin 1 to 0.015 in bin 10 while the relative one **collapses** from about 37 times
+  to about 1.5, and the same reversal appears across the `loan_age` partition. A finding that
+  carries only the means hands the reader the reading that is wrong in both places. The table is
+  free — it is stored, hashed and rendered already — so citing it costs nothing and removes the
+  need for the narrative to describe a shape it cannot cite.
+
+  Storing the slice quotient rather than letting the sentence compute it is the same argument from
+  the other side. Rejected alternatives: **(i)** having the drafter divide the two cited scalars,
+  which is what (vi) forbids and what the excerpt run actually could not do, so the clause was cut
+  instead of being written; **(ii)** putting `mean_rel_gap` in `SCALAR_METRICS`, which would rename
+  the split-level artifact from `calibration.mean_rel_gap.<split>` to `metrics.<split>.mean_rel_gap`
+  and break every committed run's index and every citation into it, for tidiness; **(iii)** adding
+  the slice gap as a *candidate* rule, which D-086 refuses — a slice selected by one of the model's
+  own features discriminating or calibrating differently is usually the model conditioning
+  correctly, and this commit raises no new candidate on any subject; and **(iv)** duplicating the
+  four-token formula at the two call sites, which is two chances to disagree about the one number
+  a report will put side by side. The zero-denominator guard is kept although it is **unreachable
+  through the tool** — `stats.auc` refuses a sample with no event before any gap is computed, on a
+  split and on a slice alike — so it is exercised on the function directly and documented as the
+  guard it is rather than as a branch the pipeline can take.
+
+  Measured at both ends: **1,618 → 1,622** offline tests, zero failures, coverage 99% of
+  `src/quaestor`; both synthetic validates unchanged at `{E1 low}` and `{}`; the real MSR fake
+  validate differing from its predecessor only in the two rendered tables, the appendix count and
+  the run id; `examples/golden_report/` untouched; and `pytest tests/probatio --cassette=replay`
+  **40 passed** with zero provider calls, because this commit touches no prompt.

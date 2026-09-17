@@ -27,7 +27,7 @@ from quaestor.tools import Thresholds, ToolContext, ToolResult, default_registry
 from quaestor.tools.collinearity import sign_of
 from quaestor.tools.frames import declared_features, scored_frame
 from quaestor.tools.leakage import DUPLICATE_MULTIPLE, FEATURE_OVERLAP_BOUND, duplicate_share
-from quaestor.tools.metrics import THRESHOLD_TABLE, subpopulation_expression
+from quaestor.tools.metrics import THRESHOLD_TABLE, relative_gap, subpopulation_expression
 from quaestor.tools.run import MAX_SECONDS_NAME
 from quaestor.tools.stats import logistic_standard_errors
 from quaestor.tools.thresholds import EFFECTIVE_SUFFIX, effective_name
@@ -508,6 +508,108 @@ def test_a_separable_split_is_reported_rather_than_ending_the_run(
     rows = {row["metric"]: row for row in ctx.store.load(THRESHOLD_TABLE)}
     assert rows["calibration_slope"]["result"] == "not evaluated"
     assert "calibration_slope on test" in result.summary
+
+
+def test_c1_cites_the_decile_table_of_each_breached_split_and_of_no_other(
+    tmp_path: Path, msr_run_dir: Path
+) -> None:
+    """D-171: the candidate carries the table that shows the relative reading the means hide.
+
+    The hazard subject is the one that needs it -- the real MSR panel's `C1` is a level error
+    whose relative gap collapses across the deciles while the absolute one widens -- so the
+    positive case here is its synthetic twin with one split's scores inflated. `out_of_time` is
+    made to breach and `test` is left alone, and the candidate cites `calibration.out_of_time`
+    and not `calibration.test`, even though both tables are in the store: evidence names the
+    split the rule fired on.
+    """
+    ctx = context(tmp_path, MSR, msr_run_dir)
+    frame = pd.read_csv(ctx.out_dir / "predictions_out_of_time.csv")
+    frame["y_score"] = np.clip(frame["y_score"] * 2.0, 0.0, 1.0)
+    write_csv(ctx.out_dir / "predictions_out_of_time.csv", frame)
+    result = run("compute_metrics", ctx, {"splits": ["test", "out_of_time"]})
+
+    assert classes(result) == ["C1"]
+    assert "calibration.test" in ctx.store, "the clean split's table is stored all the same"
+    breached = ctx.store.artifact("calibration.out_of_time").hash
+    untouched = ctx.store.artifact("calibration.test").hash
+    cited = {digest for candidate in result.candidates for digest in candidate.evidence}
+    assert breached in cited
+    assert untouched not in cited
+    # The tables are the only thing that changed: the numbers the detail sentence quotes are
+    # still the split's own scalars and its slope.
+    candidate = next(c for c in result.candidates if c.defect_class is DefectClass.C1)
+    assert candidate.evidence == sorted(set(candidate.evidence))
+    assert all(ctx.store.get(digest) for digest in candidate.evidence)
+
+
+def test_a_slice_carries_the_relative_gap_the_split_carries(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """D-171: `metrics.<split>.sub.<slug>.mean_rel_gap`, on a frame whose answer is arithmetic.
+
+    The slice's scores are overwritten with a constant, so the quotient is
+    `(event_rate - mean_predicted) / event_rate` with both terms readable off the frame rather
+    than off the tool, and the tool's answer has to be that number.
+    """
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    frame = pd.read_csv(ctx.out_dir / "predictions_test.csv")
+    data = pd.read_csv(ctx.out_dir / "data_test.csv")
+    selected = data["limit_bal"] <= data["limit_bal"].median()
+    frame.loc[selected, "y_score"] = 0.01
+    write_csv(ctx.out_dir / "predictions_test.csv", frame)
+    run(
+        "compute_metrics",
+        ctx,
+        {"splits": ["test"], "subpopulation": {"column": "limit_bal", "rule": "below_median"}},
+    )
+
+    stem = "metrics.test.sub.limit_bal_low"
+    observed = float(frame.loc[selected, "y_true"].mean())
+    assert observed > 0.0
+    assert ctx.store.value(f"{stem}.mean_predicted") == pytest.approx(0.01)
+    assert ctx.store.value(f"{stem}.event_rate") == pytest.approx(observed)
+    assert ctx.store.value(f"{stem}.mean_rel_gap") == pytest.approx((observed - 0.01) / observed)
+    rows = {str(row["metric"]): float(row["value"]) for row in ctx.store.load(stem)}
+    assert rows["mean_rel_gap"] == pytest.approx((observed - 0.01) / observed)
+
+
+def test_the_split_and_the_slice_read_the_relative_gap_the_same_way(
+    tmp_path: Path, credit_run_dir: Path
+) -> None:
+    """D-171: one formula, two callers, and a denominator of zero that answers rather than raises.
+
+    A slice that is the whole of a split is refused by D-121, so the two levels cannot be made to
+    agree by construction; they agree because they call :func:`relative_gap`. The test says so
+    twice: the shared function reproduces what the split stored, and it reproduces what the slice
+    stored, from the scalars each of them stored beside it.
+
+    The zero denominator is exercised on the function alone because it is unreachable through the
+    tool: `stats.auc` refuses a sample with no event before a gap is computed, on a split and on
+    a slice alike, so the guard exists to keep the quantity defined and not to be hit.
+    """
+    ctx = context(tmp_path, CREDIT, credit_run_dir)
+    run(
+        "compute_metrics",
+        ctx,
+        {"splits": ["test"], "subpopulation": {"column": "limit_bal", "rule": "above_median"}},
+    )
+
+    stem = "metrics.test.sub.limit_bal_high"
+    for prefix, stored in (
+        ("metrics.test", "calibration.mean_rel_gap.test"),
+        (stem, f"{stem}.mean_rel_gap"),
+    ):
+        assert ctx.store.value(stored) == pytest.approx(
+            relative_gap(
+                ctx.store.value(f"{prefix}.mean_predicted"),
+                ctx.store.value(f"{prefix}.event_rate"),
+            )
+        )
+
+    assert relative_gap(0.02, 0.0) == 0.0
+    assert relative_gap(0.0, 0.0) == 0.0
+    assert relative_gap(0.01, 0.02) == pytest.approx(0.5)
+    assert relative_gap(0.03, 0.02) == pytest.approx(0.5), "the gap is unsigned, as the split's is"
 
 
 def test_the_clean_subject_is_not_separable(tmp_path: Path, credit_run_dir: Path) -> None:
