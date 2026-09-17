@@ -1044,3 +1044,112 @@ only positive case it has been exercised against is one seeded recipe that clear
 of four. The four cases it removed were all on synthetic panels. Whether the gate is right on a
 real panel with a real regime effect is a question for the Phase 12 study and the MSR live run,
 neither of which has run.
+
+### 2026-09-16 — `msr_prepayment`, `full_agent`, Claude CLI — the first live run with a finding to write
+
+The record is `eval/results/first-live/msr-attempt1/`. It is named `msr-attempt1` for the reason
+D-087 named `credit-attempt1`: it is one attempt of several the runbook expects, and its section 1
+carries a defect that makes it the wrong run to excerpt. It is archived, not superseded — every
+number below is re-derivable from the committed trace, claims and findings.
+
+**The run.** `quaestor validate subjects/msr_prepayment --data … --llm claude-cli --model
+"claude-opus-5[1m]" --config full_agent`, started 2026-09-16 23:56 UTC, **exit 0**, and it
+rendered. It is the **first live run of the hazard subject**, the **first live run against a
+sample this repository does not hold that is not the UCI credit panel**, and the **first live run
+with a finding to draft**: the six previous live runs are all `credit_default`, and the one that
+raised `L2 high` on attempt 1 never reached a report. Committed: `trace.jsonl` (475 events), the
+23 cassettes, `artifacts/` (320 logical names) and `run/*.json`. Not committed: the row-level
+files, which are the real sample (D-087, and the sweep below).
+
+| quantity | value |
+|---|---|
+| model calls | **23** — 4 plan, 9 draft, 1 re-ask, 9 extract |
+| model | `claude-opus-5[1m]`, through `ClaudeCLILLM` — on all 23 |
+| tool calls | **19** — the 15 of the rule-based plan (`run_model`, `profile_data`, `compute_metrics`, `check_leakage`, `check_stability`, `check_collinearity`, `challenger_compare`, `run_scenarios` and `retrieve_guidance` seven times), plus the loop's four `compute_metrics` calls — **28.73 s** in total, 17.12 s of it the subject's own fit, over 320 artifacts |
+| plan steps (bounded loop) | **4**, all accepted and all executed: the incentive 2×2, `above_median` and `below_median` on each of `out_of_time` and `vintage_holdout` |
+| claim checks | **426** trace events over the two rounds |
+| claims, pre-repair | **305** at **0.9934** — 303 verified, 1 mismatch, 1 unsupported, 0 dangling, 0 unattributed |
+| claims, post-repair | **304** at **1.0000**, after 2 repair rounds that rewrote no claim and **removed two numbers** |
+| findings | **1** — `F-001`, `C1 calibration` at severity **medium**, **six candidates merged**, nine evidence artifacts; three open items |
+| developer claims | **3 of 3 verified** — `auc test 0.655`, `brier test 0.00906`, `calibration_slope test 1.017` |
+| output tokens | **141,514** — 1,712 plan, 51,048 draft, 5,462 re-ask, 83,292 extract |
+| input tokens | **352,860** |
+| longest single call | an extraction: **17,802 output tokens, 178.4 s** |
+| notional cost | **$7.1697** — $0.4169 the four plan steps, $3.3090 drafting, $0.5157 the one re-ask, $2.9281 extraction |
+| wall-clock | **25:50** from the first traced event to the last (1,549.94 s); the operator's shell clock read 26:09 |
+| report written | **yes** |
+
+**Against the credit excerpt run, which is the only fair comparison.** That run
+(`eval/results/first-live/credit/`) cost **$3.9739** over **14:33** (872.74 s) for 18 model calls
+and 210 claims; this one cost **$7.1697** over **25:50** for 23 calls and 305. The difference is
+not drift. This run has **a finding to draft** — section 6 writes `F-001`'s six-paragraph
+narrative and three open items where the credit run wrote one sentence and none — it drafts and
+extracts **nine** sections against seven because two were re-drafted, it carries **one re-ask** at
+$0.5157 that the credit run did not need, and its four loop steps put 39 new logical names into
+the store each, which section 4 then reports. Per claim the two runs are $0.0189 and $0.0235.
+
+**What held, and it is most of the run.** D-156 held in section 6: the drafter was handed the
+findings document, named `F-001` under the heading the prompt gave it, and did not move the
+finding to the open items — the failure mode of all eight recorded drafts before the fix. D-162's
+manifest table is cited in section 3 (`data.manifest`, five files verified against `package.yaml`)
+and its Appendix C row is present. D-164's z gate is cited in section 5: the sign-flip screen is
+reported as a coefficient magnitude of 0.05 **and** an absolute z of at least 2, and no feature
+meets it. The bounded loop ran a coherent 2×2 rather than four unrelated slices, and its own
+`why` strings say so.
+
+**The substantive result, which is the model's and not the pipeline's.** Three of the four slices
+breached `threshold.O1.slice_auc_gap` at 0.08 and became open items: `out_of_time` high-incentive
+AUC **0.6046** (gap 0.08523), `vintage_holdout` low-incentive **0.5956** (gap 0.1432), and
+`out_of_time` **below**-median incentive at **0.5198** (gap 0.17) — a segment holding half the
+split on which the model ranks barely better than chance. That is the finding a reader of this
+report should carry away, and no rule minted it: D-102 routed all three to section 6 as questions
+for the developer.
+
+**Per-section grounding, pre-repair, as `claims.json` records it.** summary **12/12**,
+conceptual soundness **70/70**, data integrity **72/72**, outcomes **91/92**, sensitivity
+**29/30**, findings **22/22**, monitoring **7/7**. The sections in which **every claim verified
+before any repair** are therefore **1, 2, 3, 6 and 7**; the two that did not are section 4, on
+claim `8dc85fe2b8ce10b4`, and section 5, on claim `e08daa963ce63f32`.
+
+**Neither of those two is a false sentence, and that is the point of recording them separately.**
+Section 4 wrote "the decile separation on test, with decile 1 holding the highest probabilities" —
+a bin label, true, and tokenised as a claim of value 1.0 with no artifact behind it. Section 5
+wrote "the servicing value falls by 1078000" against
+`scenario.value_change.-300 = -1077724.40` — a magnitude inside tolerance (275.6 against 500),
+whose sign the verb carried and the matcher did not read. Both are defects in **our** tokeniser
+and matcher, and the repair loop's corrections made the prose worse in both places: "the first
+decile", a word-number our own repair instruction asked for, and "changes by -1078000", which
+verifies and reads badly. Section 1's defect is of the third kind and is the reason this run is
+archived.
+
+| # | what the live run exposed | kind | fixed in |
+|---|---|---|---|
+| DECISIONS D-165 | **Section 1 said "No findings were raised at any severity." under a scope table reading 0 / 1 / 0 / 0.** `_draft_inputs` hands `findings=[]` to every section but 6, and `SECTION_FOR_CLASS` maps `C1` to `outcomes`, so section 1's candidates block was `NO_CANDIDATES` — "describe nothing as a finding" — while `_SUMMARY_BRIEF` asked it for "how many findings were raised at which severity". This is **D-156's second half**: that fix single-sourced section 6 and left section 1 asking for a count it is never given. It never showed on `credit_default` because all six of those runs raised zero findings — the same blind spot that hid the first half — and it would have hit section 1 of **every Phase 12 seeded variant**. Study scoring reads `findings.json` and is unaffected; every such report's opening sentence would have been wrong | defect | follow-up commit |
+| DECISIONS D-166 | `decile 1` tokenised as a claim. A `label_number` exclusion, on the pattern of `section_number`: an integer that **labels** a bin rather than measuring one. The renderer's own caption "decile 1 holds the highest probabilities" is inside a renderer block and was already excluded, which is why the credit runs never met this | defect | same |
+| DECISIONS D-167 | "falls by 1078000" against a negative artifact. The verb carries the sign and the matcher compared signed values. A direction verb governing `by` now compares **magnitudes** and requires the verb's direction to match the artifact's sign. A classifier has no signed scenario artifact, which is why this is the hazard subject's defect to find | defect | same |
+
+**Two things read and deliberately not changed**, named here so they are not rediscovered as
+defects. Section 5's "roughly six times" (1,078,000 / 167,100 = 6.45) is the derived-ratio
+word-number class already on the Phase 12 pre-flight list against `DRAFT_INSTRUCTION`. Section 4's
+"these two exceedances are raised as calibration findings" describes two candidates that merged
+into one finding: it is wording, not a number, and it stays.
+
+**What the archive holds, on D-087's terms.** Twenty row-level CSVs are outside the repository, in
+`~/code/data-raw/credit/first-live-msr-rows/attempt1/`: the eight under `run/` and twelve under
+`artifacts/`. Eight of the twelve are the byte-identical content-addressed twins of the `run/`
+files (`run.data_*`, `run.predictions_*`, 135,061 to 313,539 lines each). The other four are the
+`cpr.*` period tables (`cpr.train` 72 lines, `cpr.test` 72, `cpr.out_of_time` 76,
+`cpr.vintage_holdout` 87) — monthly actual-against-predicted CPR with a row count, carrying no
+identifier and no per-loan value, moved because the sweep's rule is a line count and not a
+judgement about each file. The consequence is the one D-087 already states: those twelve logical
+names resolve in `artifacts/index.json`, with their hash, kind and summary, and have no payload
+file in the repository. Nothing a reader needs is lost — `cpr.test`'s 71 rows are rendered in full
+inside section 4's renderer block in `report.md`. `find … -name '*.csv' -size +20k` prints
+nothing, and no committed file matches `loan_sequence`. The directory is 3.4 MB.
+
+**What this entry does not show.** One run, one panel, one model and one seed: the three classes
+are three that one live report surfaced, not an enumeration, and the two that section 4 and
+section 5 carried are both classes the six credit runs structurally could not have met. Nothing
+here measures whether the fixes are right — that is the re-run, which is the excerpt candidate and
+which had not been made when this was written. The `msr_prepayment` **excerpt run remains
+outstanding**.

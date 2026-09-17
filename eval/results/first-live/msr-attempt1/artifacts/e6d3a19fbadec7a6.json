@@ -1,0 +1,1 @@
+"msr_prepayment: data /private/tmp/msr_data, seed 20260901; 10 of 12 features retained, removed ['bom_balance_log', 'note_rate']; train n=313538, test n=135060, out_of_time n=283343, vintage_holdout n=221779; test auc=0.6549 brier=0.009063; projection as of 202603 on 3946 loans, value change -300bp -1077724.40, +300bp 167117.06\n"

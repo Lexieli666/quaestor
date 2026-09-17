@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "msr_prepayment-full_agent-20260916T235634Z-e98677a9",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The model systematically under-predicts prepayment on both holdout splits and its scores are compressed against the outcome, so the package is mis-calibrated in level and in slope.",
+      "narrative": "The logistic regression of the outcome on the predicted logit over the out-of-time split has a slope of 0.4321 [[art:d9f87bb2:calibration_slope.out_of_time]], below the floor of the acceptable band at 0.8 [[art:749634ae:threshold.C1.calibration_slope.min]].\n\nMean predicted probability on the out-of-time split is 0.01005 [[art:fd777cc4:metrics.out_of_time.mean_predicted]] against an observed event rate of 0.01868 [[art:cf3a82aa:metrics.out_of_time.event_rate]], a relative shortfall of 0.4618 [[art:9e4c8750:calibration.mean_rel_gap.out_of_time]] against a tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\n\nOn the vintage holdout the mean predicted probability is 0.009873 [[art:c12c52f7:metrics.vintage_holdout.mean_predicted]] against an observed event rate of 0.01948 [[art:bab66615:metrics.vintage_holdout.event_rate]], a relative shortfall of 0.4932 [[art:92b5a8c4:calibration.mean_rel_gap.vintage_holdout]] against the same tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\n\nThe validator concludes that the miss is not a single-split artefact, because it reproduces on two independent holdouts at close to the same magnitude and in the same direction, and that a slope well under one means the shortfall widens as the predicted score rises rather than sitting as a constant offset.\n\nThe model developer should re-fit or re-calibrate the score so that its predicted level matches the observed rate within tolerance on both holdouts, and should document whether the compression reflects an omitted or mis-specified response to the prepayment driver rather than an intercept that can be shifted.\n\nUntil the recalibration is evidenced, the validator recommends that downstream use of the point predictions be constrained and the limitation communicated to model users, with the remediation tracked to a documented response [[reg:SR26-2:VI.3]].",
+      "evidence": [
+        "20e93a8c",
+        "749634ae",
+        "92b5a8c4",
+        "9e4c8750",
+        "bab66615",
+        "c12c52f7",
+        "cf3a82aa",
+        "d9f87bb2",
+        "fd777cc4"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 6
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ],
+    "run_scenarios": [
+      "X1"
+    ]
+  }
+}

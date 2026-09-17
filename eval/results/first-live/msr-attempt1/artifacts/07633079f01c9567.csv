@@ -1,0 +1,11 @@
+feature,n_missing,missing_fraction
+orig_ltv,0,0
+credit_score,0,0
+orig_upb_log,0,0
+sato,0,0
+loan_age,0,0
+incentive,0,0
+burnout,0,0
+rate_change_12m,0,0
+season_sin,0,0
+season_cos,0,0

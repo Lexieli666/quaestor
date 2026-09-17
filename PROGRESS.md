@@ -99,8 +99,16 @@ are named in brackets.
     `python -m code.run --data` on the Release 47 sample files, and the offline
     `--data … --llm fake` validate of that panel raises exactly one finding, `C1` at medium on the
     out-of-time and vintage-holdout splits, which D-161 records as the control's measured baseline
-    rather than a false alarm (D-160 carries the fit). The **`msr_prepayment` live run remains
-    outstanding**, on that panel
+    rather than a false alarm (D-160 carries the fit). The **`msr_prepayment` live run has been
+    made once**, on 2026-09-16, and is archived as `eval/results/first-live/msr-attempt1/` on
+    D-087's terms — 23 model calls, 19 tool calls, 320 artifacts, 305 claims at grounding
+    precision **0.9934 pre-repair and 1.0000 post-repair over 304**, one finding (`C1` at medium,
+    six candidates merged) and three open items, exit 0, $7.1697, 1,549.94 s, with the bounded
+    loop running the incentive 2×2 across both holdouts. Twenty row-level CSVs are outside the
+    repository. It is `attempt1` and not the bare name because its section 1 says no finding was
+    raised under a scope table reading 0 / 1 / 0 / 0 (D-165); sections 4 and 5 carried one
+    tokeniser class and one matcher class each (D-166, D-167). The **`msr_prepayment` excerpt run
+    remains outstanding**, on that panel and on the build those three fixes ship in
 - [x] **Phase 10** — Taxonomy and seeded-defect generator (spec §5, `04` §2)
   - **nothing was dropped**: all fourteen seeded recipes produce their `expected_signal` on the
     synthetic subjects and all fourteen are detected at severity ≥ medium by `rules_only`, and the

@@ -1,0 +1,26 @@
+{
+  "out_of_time": {
+    "event_rate": 0.018680539134547175,
+    "n": 283343,
+    "n_loans": 7954,
+    "rows_hash": "06a90f3072b4d48a54e5c514307c56aa42013b7c450792958d985fc87a15b2a8"
+  },
+  "test": {
+    "event_rate": 0.009173700577521102,
+    "n": 135060,
+    "n_loans": 3685,
+    "rows_hash": "c9915fa02f56077c8a362ab7a5b85d6f7d95666891f1bbecb0b86f3acdd7a477"
+  },
+  "train": {
+    "event_rate": 0.009475725430410349,
+    "n": 313538,
+    "n_loans": 8596,
+    "rows_hash": "07abda1058fc2d10f600334a9540ae935c4586920cd8da582ae23801db69a1b7"
+  },
+  "vintage_holdout": {
+    "event_rate": 0.019478850567456792,
+    "n": 221779,
+    "n_loans": 6123,
+    "rows_hash": "6544b04dc1163d9122a60e16bccefc3ff490fb3e2599b7bb371c9a57a4e303cb"
+  }
+}
