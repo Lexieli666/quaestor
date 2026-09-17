@@ -325,3 +325,82 @@ def test_the_findings_line_is_built_from_the_findings_and_not_from_the_candidate
     assert "candidates raised for this section: 1" not in prompt
     assert candidate.detail not in prompt
     assert "findings raised by this validation: 1" in prompt
+
+
+# --- Phase 9 follow-up 7: section 1 is handed the findings too (D-165) -------------------------
+
+
+def test_the_summary_prompt_names_the_finding_and_never_says_there_are_none(
+    store: ArtifactStore,
+) -> None:
+    """D-165: the first live report with a finding opened by saying none was raised.
+
+    Section 1's candidates block was `NO_CANDIDATES` -- no defect class maps to
+    `ReportSection.summary` either -- above a brief asking it for "how many findings were raised at
+    which severity". This is D-156's mechanism a second time, on the section that fix did not
+    reach.
+    """
+    finding = _promoted(store)
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.summary), findings=[finding])
+    assert NO_CANDIDATES not in prompt
+    assert "none -- describe nothing as a finding" not in prompt
+    assert finding.id in prompt
+    assert "- F-001, a E1 effective challenge finding at low severity" in prompt
+    assert "do not write that no finding was raised" in prompt
+
+
+def test_the_summary_prompt_is_told_not_to_write_a_count_as_a_digit(store: ArtifactStore) -> None:
+    """The count is in the scope table the renderer writes above the prose, and has no artifact."""
+    prompt = drafter(FakeLLM()).prompt(
+        brief_for(ReportSection.summary), findings=[_promoted(store)]
+    )
+    assert "write no count of them as a digit" in prompt
+    assert "the renderer prints the count by severity in the scope table" in prompt
+    assert "write **no count of them as a digit**" in prompt
+    assert "a number with no artifact behind it" in prompt.replace("\n", " ")
+    assert 'in the form "F-001, a C1 calibration finding at' in prompt
+
+
+def test_the_summary_is_told_to_name_a_finding_and_not_to_head_it(store: ArtifactStore) -> None:
+    """Section 6 copies the heading; section 1 is told what it will be so it can name the same
+    finding, and told not to write one."""
+    finding = _promoted(store)
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.summary), findings=[finding])
+    assert f"section 6 heads it {finding_heading(finding)!r}" in prompt
+    assert "Do not write a heading, a narrative or a number of your own about them here" in prompt
+    assert "Findings to write about, in this order, each under the heading given" not in prompt
+    assert finding.narrative not in prompt
+
+
+def test_the_summary_prompt_with_no_finding_still_says_none() -> None:
+    """The agreement runs both ways here too: nothing listed, and the line that says so."""
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.summary))
+    assert NO_CANDIDATES in prompt
+    assert "Where that list is empty, and only then, say in one sentence" in prompt
+    assert "section 6 heads it" not in prompt
+
+
+def test_the_section_six_prompt_is_unchanged_in_shape_by_the_summary_fix(
+    store: ArtifactStore,
+) -> None:
+    """D-156's own instruction is still the one section 6 reads."""
+    finding = _promoted(store)
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.findings), findings=[finding])
+    assert "Findings to write about, in this order, each under the heading given:" in prompt
+    assert finding_heading(finding) in prompt
+    assert f"what the check found: {finding.narrative}" in prompt
+    assert "section 6 heads it" not in prompt
+
+
+def test_the_pipeline_hands_the_findings_to_the_summary_and_to_section_six_only(
+    store: ArtifactStore,
+) -> None:
+    """The list is `_SECTIONS_GIVEN_FINDINGS`, and no third section may join it silently."""
+    from quaestor.pipeline import _SECTIONS_GIVEN_FINDINGS, _draft_inputs
+
+    finding = _promoted(store)
+    briefs = [brief_for(section) for section in ReportSection]
+    inputs = _draft_inputs(store, briefs, {}, {}, [finding])
+    given = {section for section, value in inputs.items() if value.findings}
+    assert given == set(_SECTIONS_GIVEN_FINDINGS)
+    assert given == {ReportSection.summary, ReportSection.findings}

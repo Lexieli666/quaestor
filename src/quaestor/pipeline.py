@@ -461,6 +461,23 @@ def _follow_ups(
     return assigned
 
 
+_SECTIONS_GIVEN_FINDINGS: Final = (ReportSection.summary, ReportSection.findings)
+"""The two sections that are handed the findings document, and why there are two (D-165).
+
+Section 6 writes each finding out; section 1 names them in its headline. Both were asked to say
+something about the same list and only one of them was given it, so section 1's prompt carried
+``candidates raised for this section: none -- describe nothing as a finding`` -- no defect class
+maps to :attr:`~quaestor.vocab.ReportSection.summary` in ``SECTION_FOR_CLASS`` -- above a brief
+asking it for "how many findings were raised at which severity". It answered the half it could see.
+That is D-156's mechanism a second time: that fix single-sourced section 6 and left section 1
+asking for a count it is never given.
+
+It never showed on ``credit_default`` because all six live runs of that subject raised zero
+findings, which is the same blind spot that hid the first half; the first run with a finding to
+draft opened "No findings were raised at any severity." under a scope table reading 0 / 1 / 0 / 0.
+"""
+
+
 def _draft_inputs(
     store: ArtifactStore,
     briefs: Sequence[SectionBrief],
@@ -488,7 +505,7 @@ def _draft_inputs(
             artifacts=artifacts,
             spans=spans.get(brief.section, []),
             candidates=candidates_by_section.get(brief.section, []),
-            findings=list(findings) if brief.section is ReportSection.findings else [],
+            findings=list(findings) if brief.section in _SECTIONS_GIVEN_FINDINGS else [],
             follow_ups=assigned.get(brief.section, []),
         )
     return inputs

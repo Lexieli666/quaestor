@@ -5281,6 +5281,107 @@ here and recorded.
   edited. The Phase 12 pre-flight list in the `docs/STUDY.md` draft loses its §4 item (ii), which
   is Cowork's to move.
 
+## D-165. Section 1 is handed the findings document, and stops being asked for a count
+
+- **Date:** 2026-09-17 (Phase 9 follow-up 7)
+- **Q:** Section 1 of the first live `msr_prepayment` run
+  (`eval/results/first-live/msr-attempt1/report.md`) closes: **"No findings were raised at any
+  severity."** Directly above it, inside a renderer block the same report writes, the scope table
+  reads **0 / 1 / 0 / 0**, and three pages later section 6 writes `F-001` out in full under the
+  heading the prompt gave it. One report, two answers to one question. Which half is wrong, and
+  where?
+- **A:** Section 1's, and in the prompt it was given. `_draft_inputs` handed
+  `findings=list(findings) if brief.section is ReportSection.findings else []` — every section but
+  6 got an empty list — and `SECTION_FOR_CLASS` maps `C1` to `outcomes`, so
+  `candidates_by_section` held nothing for section 1 either. Its candidates block was therefore
+  `NO_CANDIDATES`, word for word *"candidates raised for this section: none — describe nothing as
+  a finding"*, sitting above a brief whose last clause asked it to state "how many findings were
+  raised at which severity". The drafter was told there were none and asked how many there were.
+  It answered the half it could see, which is the only coherent thing it could have done.
+
+  **This is D-156's mechanism, and D-156 fixed only its first half.** That decision found the same
+  contradiction in section 6 — a prompt built from `candidates` alone saying "none" above the
+  findings it ordered the drafter to describe — and fixed it by deriving section 6's block from
+  the findings document, so that "both halves come from one object". Section 1 asks about the same
+  object, was never given it, and was left outside the fix.
+
+  Two changes, and nothing else. `pipeline._SECTIONS_GIVEN_FINDINGS` is now `(summary, findings)`,
+  so section 1 is handed the same document section 6 is and its `_candidates_block` renders the
+  findings list rather than `NO_CANDIDATES`. And `_SUMMARY_BRIEF` stops asking for a count: **the
+  count by severity is already in the scope table the renderer writes immediately above the
+  prose**, from `findings.json`, so the drafter is asked to **name each finding** — "F-001, a C1
+  calibration finding at medium severity" — and to write **no count as a digit**. A count the
+  drafter wrote itself would be a number with no artifact behind it: an unsupported claim by
+  construction, which the verifier would flag, the repair loop would remove, and the reader would
+  then find only in a table. The brief also carries D-091's sentence in D-091's words: never write
+  that none was raised when the list is not empty.
+
+  Section 1 is given the findings' **ids, classes and severities and nothing else** —
+  `_findings_block` takes the section now and writes a different instruction for each. Section 6
+  gets the narrative and the evidence keys because it writes them out; section 1 gets neither,
+  because they are numbers cited to artifacts its own selector does not carry, and a section
+  handed a number it may not cite is a section being set up to write an unsupported claim. It is
+  told what section 6's heading will be, so that it can name the finding as the reader will meet
+  it, and told not to write a heading itself.
+- **Why:** The opening sentence of a validation report is the sentence most likely to be read
+  alone, and this one was false on a run that found a real defect. Nothing downstream would have
+  caught it: `findings.json` is correct, the scope table is correct, grounding precision is
+  **1.0000** post-repair because "no findings were raised" contains no number to verify, and
+  `eval/score.py` reads `findings.json` and never the prose. A false sentence carrying no number
+  is invisible to every check this pipeline has, which is why it had to be fixed in the prompt
+  rather than in a verifier.
+
+  **Why it never showed on `credit_default`, which is the part worth recording.** All six live
+  runs of that subject raised **zero findings**, so section 1's "none" was true every time and its
+  brief's count question was answerable every time. That is the same blind spot that hid D-156's
+  first half — a contradiction between two lists can only appear when one of them is non-empty —
+  and it is the second time in this project that a defect survived six runs by being invisible on
+  a clean one. It would have reached **section 1 of every seeded variant in the Phase 12 study**,
+  all of which are built to carry a finding. Study *scoring* is unaffected, because it reads
+  `findings.json`; every report's opening sentence would have been wrong.
+
+  Rejected alternative: letting the renderer append the count sentence to section 1, which would
+  make the sentence true and make the drafter's own closing paragraph contradict a line printed
+  underneath it — the defect moved rather than fixed. The renderer already states the count in the
+  only form that cannot drift, which is the table.
+- **Measured:** `tests/test_drafter.py` gains six cases — the summary prompt with one finding
+  names it and carries neither `NO_CANDIDATES` nor "describe nothing as a finding"; it carries the
+  no-count-as-a-digit instruction and the scope-table reason; it is told section 6's heading and
+  told not to write one, and is given neither the narrative nor "Findings to write about, in this
+  order"; with no finding it still says none; section 6's own instruction is unchanged; and
+  `_draft_inputs` gives the findings to exactly `{summary, findings}` and no third section. The
+  six existing D-156 cases pass unchanged. Offline afterwards: `credit_default --synthetic` 1.0000
+  → 1.0000 over 49 claims, 168 artifacts, `{E1 low}`; `msr_prepayment --synthetic` 1.0000 → 1.0000
+  over 45 claims, 272 artifacts, `{}`; `msr_prepayment --data … --llm fake` 1.0000 → 1.0000 over
+  51 claims, 273 artifacts, the same one `C1` at medium on the same nine evidence hashes, and its
+  section-1 prompt now carries `F-001`. The golden report is byte-identical: its section 1 says no
+  finding was raised **and it has none**, so this change cannot move it, and the fact that it does
+  not is the assertion that the change stayed in the prompt.
+
+  **One tape was stranded, and re-recording it was the human's call (D-149).**
+  `tests/probatio/cases/draft_section.yaml` pins each case's brief and findings, so `python
+  tests/probatio/casebuilder.py` rewrites the `draft_section.summary` case — brief, `findings`,
+  `prompt_bytes` 20,307 → 21,758, `prompt_sha256` `820145888ff24b37` → `1c56fd2d5e0d30c8` — and
+  its cassette key moved with it. **Exactly one case** moved: the lead-in line of
+  `_candidates_block` is section-aware for this reason, so section 6's prompt is unchanged to the
+  byte and its tape, and every other tape, replayed throughout. The work stopped there and the
+  operator recorded the case on 2026-09-17, a sixth record sitting and the first since Phase 11.
+  The tape it wrote carries **20** interactions — 8 drafting calls, 4 `structured()` re-asks and 8
+  judge calls — at **$3.6610**, against the superseded tape's 18 at $3.2771; the case's replayed
+  cost goes $0.185098 → $0.357327 and its latency 28,368 ms → 53,305 ms, both of them the longer
+  prompt. Every assertion still passes 4/4 and no baseline score moves; the ten baseline files are
+  re-stamped and nothing in them but `recorded` changes.
+
+  The recording was made **over** the old tape rather than into a moved-aside file, so it arrived
+  carrying all 38 interactions, and D-158's prune is what this commit applies: the live key set was
+  measured with a session-scoped patch over `CassetteStore.replay` rather than read off the visible
+  pattern — 127 replay requests over the ten cases, 123 distinct keys — and the 18 interactions
+  whose keys are not in it were removed and the tape rewritten through `CassetteStore.write`. The
+  18 are exactly the 18 the superseded tape held, which is the check that the measurement found the
+  right set. The other nine tapes prune **nothing**, and a no-op round trip through the same writer
+  leaves all nine byte-identical. Committed tapes go **121 → 123 interactions** and
+  **$28.9458 → $29.3297**; 4.9 MB either way.
+
 ## D-166. A bin label is not a claim: the `label_number` exclusion class
 
 - **Date:** 2026-09-17 (Phase 9 follow-up 7)

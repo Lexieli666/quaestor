@@ -250,7 +250,9 @@ where the drafter reads it, in the words a reader of the prompt cannot mistake.
 
 
 def _candidates_block(
-    candidates: Sequence[FindingCandidate], findings: Sequence[Finding] = ()
+    candidates: Sequence[FindingCandidate],
+    findings: Sequence[Finding] = (),
+    section: ReportSection = ReportSection.findings,
 ) -> str:
     """Render what a section may call a finding, from the one list it is also asked to write.
 
@@ -262,11 +264,24 @@ def _candidates_block(
     built from ``candidates`` alone said "candidates raised for this section: none -- describe
     nothing as a finding" immediately above the findings it was ordered to describe. Both halves
     now come from one object, so the two cannot disagree.
+
+    **Section 1 reads the same block**, for the same reason and after the same failure (D-165). It
+    is handed no candidate either -- ``SECTION_FOR_CLASS`` maps no class to
+    :attr:`~quaestor.vocab.ReportSection.summary` on any real run -- so it opened the first live
+    report that had a finding with "No findings were raised at any severity." What each section
+    then does with the list is :func:`_findings_block`'s sentence, and the one clause of this block
+    that differs between the two is its lead-in: section 6 is promised "the heading to copy" and
+    section 1 is promised "what this section is to do with them", because section 1 must not copy
+    one. Section 6's line is unchanged to the byte, which is what keeps its recorded tape valid.
     """
     if findings:
+        tail = (
+            "the heading to copy"
+            if section is ReportSection.findings
+            else "what this section is to do with them"
+        )
         lines = [
-            f"findings raised by this validation: {len(findings)}, listed in full below with the "
-            "heading to copy"
+            f"findings raised by this validation: {len(findings)}, listed in full below with {tail}"
         ]
         lines += [
             f"- {finding.id} {finding.defect_class.value} "
@@ -363,8 +378,10 @@ def _follow_ups_block(follow_ups: Sequence[FollowUp], section: ReportSection) ->
     return "\n".join(lines) + "\n"
 
 
-def _findings_block(findings: Sequence[Finding]) -> str:
-    """Render the findings section 6 must write about, each with the heading to copy.
+def _findings_block(
+    findings: Sequence[Finding], section: ReportSection = ReportSection.findings
+) -> str:
+    """Render the findings a section must write about, each with the heading to copy.
 
     With no finding to write about, the instruction is one sentence and a prohibition. The fourth
     live report's section 6 said no finding was raised and then listed seven reviews it had carried
@@ -373,7 +390,32 @@ def _findings_block(findings: Sequence[Finding]) -> str:
     docs directory. The enumeration a reader needs is the renderer's own "Checks that ran and
     raised no candidate" line, built from the run's record, so the drafter is asked not to write a
     second one (DECISIONS D-103).
+
+    **Section 1 is given the same list and a different instruction** (D-165). It names the findings
+    in its headline where section 6 writes them out, so it gets each finding's id, class and
+    severity and is told what section 6's heading for it will be -- so that it can name the finding
+    as the reader will meet it three pages later -- and it is given neither the narrative nor the
+    evidence keys. Handing it those would be handing it numbers cited to artifacts its own
+    selector does not carry, which is an unsupported claim waiting to be written.
     """
+    if findings and section is not ReportSection.findings:
+        lines = [
+            "\nThe findings this validation raised. Name each one in your prose, and write no "
+            "count of them as a digit -- the renderer prints the count by severity in the scope "
+            "table above your prose:"
+        ]
+        lines += [
+            f"- {finding.id}, a {finding.defect_class.value} "
+            f"{DEFECT_CLASS_NAMES[finding.defect_class]} finding at {finding.severity.value} "
+            f"severity; section 6 heads it {finding_heading(finding)!r}"
+            for finding in findings
+        ]
+        lines.append(
+            "Section 6 is where each of those is written out in full. Do not write a heading, a "
+            "narrative or a number of your own about them here, and do not write that no finding "
+            "was raised."
+        )
+        return "\n".join(lines) + "\n"
     if not findings:
         return (
             "\nNo finding was raised. Say so in one sentence and do not describe what was reviewed "
@@ -454,7 +496,7 @@ class Drafter:
         """
         extra = _follow_ups_block(follow_ups, brief.section)
         if findings or brief.section is ReportSection.findings:
-            extra += _findings_block(findings)
+            extra += _findings_block(findings, brief.section)
         if previous is not None and problems:
             extra += "\n" + REPAIR_INSTRUCTION.format(
                 previous=previous, problems="\n".join(f"- {problem}" for problem in problems)
@@ -466,7 +508,7 @@ class Drafter:
             brief=brief.brief,
             artifacts=_artifacts_block(artifacts),
             guidance=_guidance_block(spans),
-            candidates=_candidates_block(candidates, findings),
+            candidates=_candidates_block(candidates, findings, brief.section),
             extra=extra,
         )
 

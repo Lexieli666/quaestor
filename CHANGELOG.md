@@ -102,6 +102,28 @@ run that was not committed.
 
 ### Fixed
 
+- **Section 1 is handed the findings document, and stops being asked for a count.** The first live
+  `msr_prepayment` run closed section 1 with "No findings were raised at any severity." directly
+  under a scope table reading 0 / 1 / 0 / 0, three pages above the `F-001` section 6 wrote out in
+  full. `_draft_inputs` gave the findings to section 6 alone and `SECTION_FOR_CLASS` maps no class
+  to the summary, so section 1's prompt said "candidates raised for this section: none — describe
+  nothing as a finding" above a brief asking it "how many findings were raised at which severity":
+  it was told there were none and asked how many there were. This is D-156's mechanism a second
+  time — that fix single-sourced section 6 and left section 1 outside it — and it never showed on
+  `credit_default` because all six live runs of that subject raised zero findings. Section 1 now
+  reads the same findings document section 6 does, and `_SUMMARY_BRIEF` asks it to **name** each
+  finding by id, class and severity rather than to count them: the count by severity is already in
+  the scope table the renderer writes above the prose, and a count the drafter wrote itself would
+  be a number with no artifact behind it. Section 1 is given the ids, classes and severities and
+  not the narratives or evidence keys, which are numbers its own selector does not carry. Nothing
+  downstream would have caught this: `findings.json` was right, the scope table was right, and a
+  false sentence with no number in it is invisible to grounding precision (D-165). The one tape the
+  change strands, `draft_section.summary`, was re-recorded by the operator in a sixth record
+  sitting and pruned under D-158: the live key set was measured rather than guessed, the 18
+  superseded interactions removed, and the committed tapes go 121 → 123 interactions and
+  $28.9458 → $29.3297. No other tape moves, and `pytest tests/probatio --cassette=replay` is back
+  to 40 passed with zero provider calls.
+
 - **A bin label is no longer a claim: the `label_number` exclusion class.** Section 4 of the first
   live `msr_prepayment` run wrote "with decile 1 holding the highest probabilities"; the `1` went
   into grounding precision's denominator, came back `unsupported` — nothing in the store holds a

@@ -782,8 +782,10 @@ operator's figure across the sittings — and the fifth, the one-case re-record 
 the gap is not waste that pruning created: two sittings died part way (D-155) and two rubric
 revisions stranded what earlier ones had bought, so the calls were made and paid for and the tapes
 they wrote are gone. D-158's pruning removes 64 interactions that no replay can reach and does not
-move this figure by a cent. Three causes, none of them the cost model, which predicted the whole
-of the first run's spend to within 6%:
+move this figure by a cent. The $28.95 is the tapes **as this phase left them**: a sixth sitting on
+2026-09-17 re-recorded `draft_section.summary` for D-165 and took them to $29.3297 over 123
+interactions, which the entry for that work records. Three causes, none of them the cost model,
+which predicted the whole of the first run's spend to within 6%:
 
 * **The 120 s provider timeout.** The second sitting lost `data_integrity`, `sensitivity` and
   `monitoring` to `ClaudeCLIProvider`'s default hung-process ceiling, which was acting as a budget:
@@ -1146,6 +1148,24 @@ names resolve in `artifacts/index.json`, with their hash, kind and summary, and 
 file in the repository. Nothing a reader needs is lost — `cpr.test`'s 71 rows are rendered in full
 inside section 4's renderer block in `report.md`. `find … -name '*.csv' -size +20k` prints
 nothing, and no committed file matches `loan_sequence`. The directory is 3.4 MB.
+
+**The one tape the fixes cost, and the sixth record sitting.** Class A is the only one of the three
+that is in a prompt, and `tests/probatio/cases/draft_section.yaml` pins each case's brief and
+findings, so re-running `casebuilder.py` moved the `draft_section.summary` case's
+`prompt_sha256` from `820145888ff24b37` to `1c56fd2d5e0d30c8` and stranded its 18 recorded
+interactions. **Exactly one case** moved, which was engineered rather than lucky: a first cut of
+the fix also reworded the lead-in of the shared candidates block, which stranded
+`draft_section.findings` instead and which the replay caught, so that line is section-aware and
+section 6's prompt is unchanged to the byte. The operator recorded the case on **2026-09-17** —
+the sixth record sitting, and the first since Phase 11 — and the new tape carries **20**
+interactions (8 drafting, 4 re-asks, 8 judge) at **$3.6610**, with the case's replayed cost going
+$0.185098 → $0.357327 and its latency 28,368 ms → 53,305 ms on the longer prompt. Every assertion
+still passes 4/4 and no baseline score moves. The recording was made over the old tape, so D-158's
+prune applies: the live key set was **measured** with a session-scoped patch over
+`CassetteStore.replay` — 127 replay requests, 123 distinct keys over the ten cases — and the 18
+dead interactions, exactly the 18 the superseded tape held, were removed. The committed tapes go
+**121 → 123 interactions** and **$28.9458 → $29.3297**, 4.9 MB either way, and the other nine
+tapes prune nothing.
 
 **What this entry does not show.** One run, one panel, one model and one seed: the three classes
 are three that one live report surfaced, not an enumeration, and the two that section 4 and

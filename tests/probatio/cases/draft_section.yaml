@@ -335,7 +335,14 @@
       Open with one sentence that says what the model is, what it predicts, and which guidance this
       report follows, anchored by a [[reg:...]] citation. Then state how the subject was run and how
       large each split is, then the headline result: which developer-declared thresholds the model
-      passes, each with the value and the bound, and how many findings were raised at which severity.
+      passes, each with the value and the bound.
+      Close on this validation's findings, taken from the list below and from nothing else. Name each
+      one -- its id, its class in words, its severity, in the form "F-001, a C1 calibration finding at
+      medium severity" -- and write **no count of them as a digit**: the renderer prints the count by
+      severity in the scope table directly above your prose, and a count you wrote yourself would be a
+      number with no artifact behind it. Where that list is empty, and only then, say in one sentence
+      that no finding was raised. Never write that none was raised when the list is not empty, and never
+      describe as a finding anything the list does not name.
       Do not describe a check that has no artifact in the JSON below.
     spans:
     - doc: SR26-2
@@ -356,10 +363,27 @@
     - doc: SR11-7
       section_id: V.1
       heading: Key Elements of Comprehensive Validation
-    findings: []
-    prompt_bytes: 20307
+    findings:
+    - id: F-001
+      defect_class: E1
+      severity: low
+      suggested_severity: low
+      severity_reason: null
+      tool: challenger_compare
+      title: a hist_gradient_boosting challenger reaches an AUC of 0.8240 on test against the champion's
+        0.7480, a lead of 0.0760 against an effective-challenge threshold of 0.03
+      narrative: a hist_gradient_boosting challenger reaches an AUC of 0.8240 on test against the champion's
+        0.7480, a lead of 0.0760 against an effective-challenge threshold of 0.03
+      evidence:
+      - 5c6c2bfc
+      - bf5be719
+      - c9e502ae
+      - e042774c
+      section: conceptual_soundness
+      candidates_merged: 1
+    prompt_bytes: 21758
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: 820145888ff24b37
+    prompt_sha256: 1c56fd2d5e0d30c8
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -377,7 +401,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.48
+    max_cost_usd: 0.49
     max_latency_ms: 480000.0
   snapshot: scores
   tags:

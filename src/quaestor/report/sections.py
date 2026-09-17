@@ -419,7 +419,14 @@ _SUMMARY_BRIEF = """\
 Open with one sentence that says what the model is, what it predicts, and which guidance this
 report follows, anchored by a [[reg:...]] citation. Then state how the subject was run and how
 large each split is, then the headline result: which developer-declared thresholds the model
-passes, each with the value and the bound, and how many findings were raised at which severity.
+passes, each with the value and the bound.
+Close on this validation's findings, taken from the list below and from nothing else. Name each
+one -- its id, its class in words, its severity, in the form "F-001, a C1 calibration finding at
+medium severity" -- and write **no count of them as a digit**: the renderer prints the count by
+severity in the scope table directly above your prose, and a count you wrote yourself would be a
+number with no artifact behind it. Where that list is empty, and only then, say in one sentence
+that no finding was raised. Never write that none was raised when the list is not empty, and never
+describe as a finding anything the list does not name.
 Do not describe a check that has no artifact in the JSON below."""
 
 _CONCEPTUAL_BRIEF = """\
