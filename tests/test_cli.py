@@ -579,3 +579,66 @@ def test_the_parser_is_buildable_without_running_anything() -> None:
     assert args.command == "validate"
     assert args.config == Configuration.full_agent.value
     assert re.fullmatch(r"-?\d+", str(args.synthetic))
+
+
+def test_a_validate_whose_checklist_partly_failed_still_exits_zero(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """D-177's consequence for the scripted interface, which is what D-082's codes are about.
+
+    Exit 1 means "ran and did not produce what it was asked for". A run that wrote a report naming
+    the check it is missing produced what it was asked for, minus one row, and says so in the
+    report rather than in the exit code. The run that genuinely produces nothing -- the subject
+    itself failing to run -- still exits 1, which the case below pins.
+    """
+    from quaestor.errors import ToolError
+    from quaestor.tools.collinearity import CheckCollinearityTool
+
+    def raising(self: object, args: object, ctx: object) -> object:
+        raise ToolError("the design matrix is singular on this split")
+
+    monkeypatch.setattr(CheckCollinearityTool, "run", raising)
+    out = tmp_path / "r"
+    code, printed, err = run(
+        capsys,
+        "validate",
+        str(CREDIT),
+        "--synthetic",
+        str(SMALL),
+        "--llm",
+        "fake",
+        "--out",
+        str(out),
+    )
+    assert code == EXIT_OK, err
+    assert printed.startswith("report: ")
+    assert "did not run: the design matrix is singular on this split" in (
+        (out / "report.md").read_text(encoding="utf-8")
+    )
+
+
+def test_a_validate_whose_subject_would_not_run_still_exits_one(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The other side of D-177: `run_model` is the one call whose failure is still the run's."""
+    from quaestor.errors import ToolError
+    from quaestor.tools.run import RunModelTool
+
+    def raising(self: object, args: object, ctx: object) -> object:
+        raise ToolError("the package has no `code/` directory")
+
+    monkeypatch.setattr(RunModelTool, "run", raising)
+    code, printed, err = run(
+        capsys,
+        "validate",
+        str(CREDIT),
+        "--synthetic",
+        str(SMALL),
+        "--llm",
+        "fake",
+        "--out",
+        str(tmp_path / "r"),
+    )
+    assert code == EXIT_FAILED_RUN
+    assert printed == ""
+    assert "no `code/` directory" in err

@@ -1226,3 +1226,23 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   are knowingly left stranded and are recorded after lean D with the pricing runs, in batches of at
   most three cases from a plain shell (D-174). No download, no training on real data from any test.
   No push.
+- 2026-09-17 — **Phase 12 pre-flight, commit C** — **no live run, no live data, no provider call,
+  no recording**: the inventory's item (i), the free one, and the cut list's step 2 — it lands
+  before any paid run because a tool that crashes mid-run without it costs the whole run. A
+  `ToolError` from the rule-based plan no longer ends the run: `_run_checklist` records a
+  `FailedCheck`, Appendix D carries `` `check_collinearity` (M1) | did not run: <message> `` as its
+  first row and skips that tool in the rows below, `tools_run` and `checks_without_candidates`
+  exclude it, the `tool_call` trace event gains `error`, and a conditional `{extra}` block tells
+  section 1 to say the validation is incomplete. `run_model` stays fatal — everything after it
+  reads what it wrote — and `quaestor validate` now exits **0** with a partial checklist and **1**
+  when the subject will not run, a narrowing of D-082's contract the operator signed before the
+  commit (**D-177**, with dated amendments on **D-088** and **D-082**). Gate: full offline suite
+  excluding `tests/probatio` **1,609 passed**, 0 failed, 0 skipped, 0 xfailed (1,599 → 1,609, ten
+  added); coverage of `src/quaestor` **99%**; `ruff check` and `ruff format --check` clean on
+  `src tests eval subjects`; `mypy --strict src/quaestor` clean over 60 source files; both
+  `--synthetic --llm fake` validates unchanged at `{E1 low}` and `{}`; `examples/golden_report/`
+  untouched; **`python tests/probatio/casebuilder.py` rebuilds all three case files byte-identical
+  — 0 of 10 cases move, which is what makes this commit free**. **[stranded]** `pytest
+  tests/probatio --cassette=replay` is **7 failed, 33 passed** with zero provider calls, unchanged
+  from `06900d1`: the same seven drafting tapes, no new stranding. No download, no training on real
+  data from any test. No push.

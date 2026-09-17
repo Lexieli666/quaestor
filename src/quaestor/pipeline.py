@@ -44,7 +44,7 @@ from .agent.planner import (
 )
 from .artifacts.store import ArtifactKind, ArtifactStore
 from .configs import SCREENED_CLASSES, ConfigSpec, Narrative, PlanMode, config_for
-from .errors import ArtifactError
+from .errors import ArtifactError, ToolError
 from .findings import (
     CandidateNotPromoted,
     DefectClass,
@@ -77,7 +77,7 @@ from .report.sections import (
     ordered_briefs,
     sections_for_follow_up,
 )
-from .tools import ToolContext, ToolResult, default_registry, guidance_name
+from .tools import ToolContext, ToolRegistry, ToolResult, default_registry, guidance_name
 from .tools.thresholds import Thresholds
 from .trace import EventType, TraceEvent, TraceReader, TraceWriter
 from .verifier.claim import Claim, VerifiedClaim
@@ -96,6 +96,7 @@ __all__ = [
     "REPORT_FILE",
     "TRACE_FILE",
     "UNEVIDENCED_PREFIX",
+    "FailedCheck",
     "PlainFinding",
     "PlainReport",
     "ValidationRun",
@@ -209,6 +210,9 @@ class ValidationRun:
         plan: The rule-based plan, as executed.
         steps: The bounded loop's steps, accepted and refused.
         results: One result per tool call, in order.
+        checks_failed: The rule-based checks that raised, which the run went on without (D-177).
+            Empty on every run of a package whose checks all apply, which is every run this
+            repository commits.
     """
 
     package: ModelPackage
@@ -223,6 +227,7 @@ class ValidationRun:
     plan: list[PlannedCall] = field(default_factory=list)
     steps: list[PlanStep] = field(default_factory=list)
     results: list[ToolResult] = field(default_factory=list)
+    checks_failed: list[FailedCheck] = field(default_factory=list)
 
     @property
     def precision_pre(self) -> float:
@@ -397,6 +402,79 @@ def _promote(
     return findings, declined
 
 
+RUN_MODEL_TOOL: Final = "run_model"
+"""The one call of the rule-based plan whose failure is still the run's failure (D-177).
+
+Everything after it reads what it wrote. A run whose subject did not run has no predictions, so
+every check behind it would raise in turn and the report would be Appendix D and nothing else --
+which is not a validation of the model, it is a note saying the model was never seen. A *subject*
+that runs and fails is a different thing and does not come through here at all: ``run_model``
+turns that into an ``R0`` candidate and returns normally, and ``R0`` is a finding the report makes.
+"""
+
+
+@dataclass(frozen=True)
+class FailedCheck:
+    """One check of the rule-based plan that raised, and what it said.
+
+    Attributes:
+        tool: The tool that could not run.
+        message: Its own ``ToolError`` message, as Appendix D prints it and the trace records it.
+    """
+
+    tool: str
+    message: str
+
+    @property
+    def label(self) -> str:
+        """How the report names the check, with the classes it would have screened for."""
+        classes = SCREENED_CLASSES.get(self.tool, ())
+        codes = ", ".join(item.value for item in classes)
+        return f"`{self.tool}`{f' ({codes})' if codes else ''}"
+
+    @property
+    def reason(self) -> str:
+        """The Appendix D cell: that it did not run, and the tool's own sentence."""
+        return f"did not run: {self.message}"
+
+
+def _run_checklist(
+    registry: ToolRegistry, plan: Sequence[PlannedCall], ctx: ToolContext
+) -> tuple[list[ToolResult], list[FailedCheck]]:
+    """Run the rule-based plan, letting a check that raises cost its own row and not the run.
+
+    D-088 made a ``ToolError`` from a *loop-requested* call the step's failure rather than the
+    run's, and said in so many words that nothing about the rule-based plan changes. This is the
+    sentence it reverses, and the reason is the same one D-088 gave for the loop, applied to a
+    fact D-088 did not have: a check that raises after eleven others have run discards eleven
+    checks' worth of artifacts and, under ``full_agent``, a paid model call as well. The report a
+    partial checklist supports is worth more than the exit code it costs, provided the report says
+    plainly which check is missing -- which Appendix D now does, from :class:`FailedCheck`
+    (DECISIONS D-177).
+
+    Args:
+        registry: The tool registry.
+        plan: The rule-based plan, in order.
+        ctx: The run's context.
+
+    Returns:
+        The results of the calls that ran, and one :class:`FailedCheck` per call that did not.
+
+    Raises:
+        ToolError: :data:`RUN_MODEL_TOOL` raised. That one is still the run's failure.
+    """
+    results: list[ToolResult] = []
+    failed: list[FailedCheck] = []
+    for call in plan:
+        try:
+            results.append(registry.call(call.tool, dict(call.args), ctx))
+        except ToolError as exc:
+            if call.tool == RUN_MODEL_TOOL:
+                raise
+            failed.append(FailedCheck(call.tool, str(exc.message)))
+    return results, failed
+
+
 def _checks_without_candidates(
     tools_run: Sequence[str], raised: Sequence[DefectClass]
 ) -> dict[str, list[DefectClass]]:
@@ -488,6 +566,7 @@ def _draft_inputs(
     findings: Sequence[Finding],
     follow_ups: Mapping[ReportSection, list[FollowUp]] | None = None,
     items: Sequence[OpenItem] = (),
+    not_run: Sequence[FailedCheck] = (),
 ) -> dict[ReportSection, DraftInputs]:
     """Assemble, per section, everything the drafter is allowed to see.
 
@@ -516,6 +595,7 @@ def _draft_inputs(
             findings=list(findings) if brief.section in _SECTIONS_GIVEN_FINDINGS else [],
             follow_ups=assigned.get(brief.section, []),
             items=list(items) if brief.section is ReportSection.findings else [],
+            not_run=list(not_run) if brief.section is ReportSection.summary else [],
         )
     return inputs
 
@@ -550,11 +630,20 @@ def _not_checked(
     config: ConfigSpec,
     tools_run: Sequence[str],
     developer_note: str | None,
+    checks_failed: Sequence[FailedCheck] = (),
 ) -> list[NotChecked]:
-    """Build Appendix D: what did not run, and why it did not."""
+    """Build Appendix D: what did not run, and why it did not.
+
+    A check that **raised** is listed first and by its own message, because it is the one row of
+    this table a reader must not mistake for a design decision: every other row says a check did
+    not apply, and this one says a check applied and broke (D-177). Its tool is then skipped in
+    the rows below, so that a `check_stability` that crashed is not also reported as a package
+    that declares no regime column -- one check, one row, and the row that is true.
+    """
     spec = package.spec
-    rows: list[NotChecked] = []
-    if "check_stability" not in tools_run:
+    rows: list[NotChecked] = [NotChecked(item.label, item.reason) for item in checks_failed]
+    failed_tools = {item.tool for item in checks_failed}
+    if "check_stability" not in tools_run and "check_stability" not in failed_tools:
         rows.append(
             NotChecked(
                 "`check_stability` (R1)",
@@ -563,7 +652,7 @@ def _not_checked(
                 else "this configuration runs no checks",
             )
         )
-    if "run_scenarios" not in tools_run:
+    if "run_scenarios" not in tools_run and "run_scenarios" not in failed_tools:
         rows.append(
             NotChecked(
                 "`run_scenarios` (X1)",
@@ -762,7 +851,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     )
     if spec_config.plan == PlanMode.run_only:
         plan = plan[:1]
-    results = [registry.call(call.tool, dict(call.args), ctx) for call in plan]
+    results, checks_failed = _run_checklist(registry, plan, ctx)
     candidates = [candidate for result in results for candidate in result.candidates]
     if spec_config.uses_tools:
         candidates = list(loaded.pre_run_candidates()) + candidates
@@ -813,7 +902,8 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     )
 
     findings, declined = _promote(candidates, store, trace)
-    tools_run = [call.tool for call in plan] + [
+    failed_tools = {item.tool for item in checks_failed}
+    tools_run = [call.tool for call in plan if call.tool not in failed_tools] + [
         step.call.tool for step in steps if step.call is not None and step.executed
     ]
     document = FindingsDocument.build(
@@ -835,7 +925,14 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     follow_ups = _follow_ups(store, briefs, executed)
     items = open_items(store, ctx.thresholds.values)
     inputs = _draft_inputs(
-        store, briefs, merge_candidates(candidates), spans, document.findings, follow_ups, items
+        store,
+        briefs,
+        merge_candidates(candidates),
+        spans,
+        document.findings,
+        follow_ups,
+        items,
+        checks_failed,
     )
     drafter = Drafter(
         llm,
@@ -882,6 +979,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
                 findings=inputs[brief.section].findings,
                 follow_ups=inputs[brief.section].follow_ups,
                 items=inputs[brief.section].items,
+                not_run=inputs[brief.section].not_run,
             )
             for brief in briefs
         }
@@ -962,7 +1060,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
         findings=document,
         store=store,
         events=events,
-        not_checked=_not_checked(loaded, spec_config, tools_run, developer_note),
+        not_checked=_not_checked(loaded, spec_config, tools_run, developer_note, checks_failed),
         follow_ups=follow_ups,
         model_id=_model_id(events),
         quaestor_version=quaestor_version or _quaestor_version(),
@@ -984,6 +1082,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
         plan=plan,
         steps=steps,
         results=results,
+        checks_failed=checks_failed,
     )
 
 

@@ -20,17 +20,21 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 import jsonschema
 import pytest
 
 from quaestor import Configuration, TraceReader, validate
 from quaestor.artifacts import ArtifactKind
+from quaestor.errors import ToolError
 from quaestor.findings import DefectClass, Severity, open_items
 from quaestor.pipeline import UNEVIDENCED_PREFIX, ValidationRun
 from quaestor.report import UNVERIFIED_OPEN, check_report
 from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
+from quaestor.tools.collinearity import CheckCollinearityTool
 from quaestor.tools.metrics import SCALAR_METRICS
+from quaestor.tools.run import RunModelTool
 from quaestor.tools.thresholds import (
     SLICE_GAP_BOUND,
     SLICE_SHARE_CEILING,
@@ -521,6 +525,79 @@ def test_a_material_follow_up_is_reported_and_raised_as_an_open_item(tmp_path: P
     assert slice_auc in outcomes.split(FOLLOW_UPS_HEADING, 1)[1]
     assert slice_auc in findings.split(OPEN_ITEMS_HEADING, 1)[1]
     assert "finding" not in findings.split(OPEN_ITEMS_HEADING, 1)[1].lower()
+
+
+# --- D-177: a check of the checklist that raises costs its own row, not the run ----------------
+
+
+def _raising(message: str) -> Any:
+    """A `Tool.run` that raises `ToolError` the way a check that cannot answer does."""
+
+    def run(self: Any, args: Any, ctx: Any) -> Any:
+        raise ToolError(message, fix="quaestor tool check_collinearity --help")
+
+    return run
+
+
+def test_a_checklist_check_that_raises_leaves_a_report_and_an_appendix_d_row(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """D-088 said a `ToolError` from the rule-based plan is the run's failure; D-177 reverses it.
+
+    Eleven checks' worth of artifacts and, under `full_agent`, a paid model call were being thrown
+    away over one check that could not answer. The report is written without it and says so.
+    """
+    monkeypatch.setattr(
+        CheckCollinearityTool, "run", _raising("the design matrix is singular on this split")
+    )
+    run = run_validate(CREDIT, tmp_path / "out", synthetic=SMALL)
+    assert [(item.tool, item.message) for item in run.checks_failed] == [
+        ("check_collinearity", "the design matrix is singular on this split")
+    ]
+    appendix = run.report.split("## Appendix D — Not checked", 1)[1]
+    assert "`check_collinearity` (M1)" in appendix
+    assert "did not run: the design matrix is singular on this split" in appendix
+
+
+def test_a_check_that_raised_screened_for_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`checks_without_candidates` is a claim that a check looked and found nothing (D-088)."""
+    monkeypatch.setattr(CheckCollinearityTool, "run", _raising("singular"))
+    run = run_validate(CREDIT, tmp_path / "out", synthetic=SMALL)
+    assert "check_collinearity" not in run.findings.checks_without_candidates
+    assert "compute_metrics" in run.findings.checks_without_candidates
+
+
+def test_the_trace_says_which_check_died_and_what_it_said(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`ok: false` could not say why, and once the run survives the trace is the only record."""
+    monkeypatch.setattr(CheckCollinearityTool, "run", _raising("the design matrix is singular"))
+    run = run_validate(CREDIT, tmp_path / "out", synthetic=SMALL)
+    events = [
+        event
+        for event in TraceReader(run.out_dir / "trace.jsonl").events()
+        if event.type.value == "tool_call" and event.payload.get("tool") == "check_collinearity"
+    ]
+    assert len(events) == 1
+    assert events[0].payload["ok"] is False
+    assert events[0].payload["error"] == "the design matrix is singular"
+
+
+def test_a_clean_run_has_no_failed_check_and_no_such_appendix_row(credit: ValidationRun) -> None:
+    """The row exists only when it is true; every run this repository commits has none."""
+    assert credit.checks_failed == []
+    assert "did not run:" not in credit.report
+
+
+def test_the_subject_run_failing_is_still_the_runs_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`run_model` is the one call D-177 leaves fatal: everything after it reads what it wrote."""
+    monkeypatch.setattr(RunModelTool, "run", _raising("the package has no `code/` directory"))
+    with pytest.raises(ToolError, match="no `code/` directory"):
+        run_validate(CREDIT, tmp_path / "out", synthetic=SMALL)
 
 
 def test_a_sign_disagreement_reaches_section_six_without_any_loop_step(tmp_path: Path) -> None:

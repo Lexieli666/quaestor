@@ -1958,6 +1958,13 @@ here and recorded.
   on standard error names a fixing command, which is spec 3.1's rule about errors applied to the
   command line. Rejected alternative: a single `quaestor` command with a `--command` flag, which
   would make `--help` one wall of flags belonging to six different jobs.
+- **2026-09-17 (Phase 12 pre-flight, commit C): what exit 1 means for `validate` is narrowed.**
+  A run whose *checklist* partly failed now exits **0**, not 1: it wrote a report, and the report
+  names the check it is missing. Exit 1 keeps its meaning — "ran and did not produce what it was
+  asked for" — and `validate` still returns it for a report the renderer refused and for a subject
+  that could not be run at all. The codes are unchanged; what changed is which outcome falls under
+  which, and the operator signed it on the ground that a report naming its own gap did produce what
+  was asked for. D-177 carries the decision and the sentence a caller needs.
 
 ## D-083. `--timeout` overrides the subject's wall-clock cap, not the provider's
 
@@ -2193,6 +2200,20 @@ here and recorded.
   first, and the two records should agree; and catching the error inside `pipeline.py`'s
   `_execute`, which would leave `follow_up_plan`'s own `execute=` callers — the tests, and Phase
   12's study harness — with the defect still in them.
+- **2026-09-17 (Phase 12 pre-flight, commit C): the last sentence of the answer above is
+  reversed.** "Nothing about the rule-based plan changes: a `ToolError` from one of its calls is
+  still the run's failure and still exits 1" held for nine days and is now false for every call of
+  the checklist but `run_model`. The argument that overturned it is this entry's own, applied to a
+  fact this entry did not have: the loop's exemption was granted because seventeen minutes of a
+  live run had been discarded over a question the model was free to ask, and a checklist check
+  that raises after eleven others have run discards the same eleven checks' worth of artifacts and,
+  under `full_agent`, the paid model call as well — over a question the *package* was free to pose.
+  What is kept is the asymmetry's real content: a validation missing one of its own checks is not a
+  complete report, so the missing check is named in Appendix D, excluded from `tools_run` and
+  therefore from `checks_without_candidates`, carried on the trace with its message, and said aloud
+  by section 1. `run_model` keeps the old rule for the reason this entry gives for the checklist
+  generally, and it is the only call that does. The sentence above is left as recorded; D-177
+  carries the reversal.
 
 ## D-089. The loop is offered only the tools that apply to the package, and refused the others
 
@@ -6160,3 +6181,63 @@ here and recorded.
   make the totals stop matching the money spent; and pruning them under D-158, which would remove
   interactions a replay genuinely reads, because the retry is keyed on a different prompt and the
   failed first call is part of the recorded sequence.
+
+## D-177. A check of the checklist that raises costs its own row, not the run
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, commit C; the exit-code change signed by the operator
+  before the commit, because it is `quaestor validate`'s scripted interface)
+- **Q:** D-088 made a `ToolError` from a *loop-requested* call the step's failure rather than the
+  run's, and said in so many words that nothing about the rule-based plan changes: a `ToolError`
+  from one of its calls is still the run's failure and still exits 1. The Phase 12 study is
+  eighteen seeded variants across three configurations, and a seeded variant is a package built to
+  be abnormal — a copied split, a collinear design, a regime column that partitions badly. One
+  check raising on one variant discards that variant's whole run, including the paid model call
+  under `full_agent`. Does the checklist keep the old rule?
+- **A:** No, for every call but one. `_run_checklist` runs the rule-based plan call by call and
+  catches `ToolError`: the check is recorded as a `FailedCheck` carrying the tool and the tool's
+  own message, and the pipeline goes on to promote, draft, verify, repair and render with what it
+  has. Four things then say what is missing, in four places a different reader looks at:
+  **Appendix D** carries the first row, `` `check_collinearity` (M1) | did not run: <message> ``,
+  and the tool is skipped in the rows below it so that a check which crashed is not also reported
+  as a check that did not apply; **`tools_run`** excludes it, so `checks_without_candidates` never
+  claims a dead check looked and found nothing; the **trace**'s `tool_call` event gains an `error`
+  field carrying the message, which is the same field `plan_step` has carried since D-088; and
+  **section 1** is told, through a block in the drafter's `{extra}` slot, to say in one sentence
+  that the validation is incomplete and to name the checks and the classes they would have
+  screened for.
+  **`run_model` is the exception and the only one.** Everything after it reads what it wrote, so a
+  run whose subject never ran has no predictions, every check behind it would raise in turn, and
+  the report would be Appendix D and nothing else — which is not a validation of the model, it is
+  a note saying the model was never seen. A subject that runs *and fails* does not come through
+  here at all: `run_model` turns that into an `R0` candidate and returns normally, and `R0` is a
+  finding the report makes.
+  **The exit code changes with it.** A run whose checklist partly failed exits **0** where D-082's
+  rule was 1 for "ran and did not produce what it was asked for". A report that names the check it
+  is missing did produce what was asked for, minus one row. `run_model` failing still exits 1.
+  **Any harness or CI step that judges a run must read the run's failed checks — `Appendix D`'s
+  "did not run" rows in the report, `ValidationRun.checks_failed` in process, or the `tool_call`
+  event's `error` field on the trace — and not the exit code alone**, because a partial checklist
+  and a clean one are now the same code.
+- **Why:** The cut list puts this commit before any paid run for exactly this reason: a tool that
+  crashes mid-run without it costs the whole run, and `docs/STUDY.md` §5's "a run that produces no
+  report" row is meant to be empty. The failure mode it removes is the expensive one — not a
+  defect the study wants to measure, but the study losing a measurement to an unrelated crash
+  after it has been paid for.
+  **The instruction to section 1 is a conditional block and not a sentence in `_SUMMARY_BRIEF`,
+  and that is a measured choice.** A brief is in the prompt whether or not it applies, so a
+  sentence about crashed checks would be in the prompt of every clean run — where it is a rule the
+  drafter has to be told to ignore, and where, measured, it moves the pinned `draft_section.summary`
+  case by 182 bytes and strands its $3.66 tape for nothing. The conditional block is empty on a
+  clean run, and `python tests/probatio/casebuilder.py` rebuilds all three case files
+  **byte-identical** under this commit: 0 of 10 cases move, which is what makes commit C free and
+  is asserted directly (`test_a_clean_run_adds_not_one_byte_to_any_prompt`).
+  Rejected alternatives. **Catching the error inside `registry.call`**, which would hide a failed
+  check from `quaestor tool` and from the study harness's own callers — D-088 rejected the mirror
+  image of this for the same reason. **Converting the failure into an `R0` candidate**, which
+  would put a crash of *this* codebase into the study's detection numbers as a defect found in the
+  subject; `R0` is about the subject's run, and a check that cannot run is our problem, not the
+  model's. **Letting `run_model` fail softly too**, which produces the empty report described
+  above and would make the "produced no report" row read as a clean run. **Naming the failed checks
+  in every section's prompt**, which is D-096's two accounts of one fact: Appendix D is the table
+  every reader gets, and what section 1 owes is only the sentence that stops a reader taking the
+  report as complete.

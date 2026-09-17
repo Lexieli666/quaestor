@@ -9,6 +9,7 @@ them is enforced downstream by something that will otherwise look like a model f
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -457,3 +458,46 @@ def test_no_other_section_is_handed_the_open_items() -> None:
             assert "the fitted coefficient on `orig_ltv`" in prompt
         else:
             assert "the fitted coefficient on `orig_ltv`" not in prompt, section
+
+
+# --- D-177: section 1 is told which checks could not run, and only when some could not ----------
+
+
+@dataclass(frozen=True)
+class _NotRun:
+    """A `pipeline.FailedCheck` as the drafter sees it: two strings and nothing else."""
+
+    label: str
+    message: str
+
+
+def test_section_one_is_told_which_checks_could_not_run() -> None:
+    """Appendix D carries the table; what section 1 owes is that the report is incomplete."""
+    failed = [_NotRun("`check_collinearity` (M1)", "the design matrix is singular")]
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.summary), not_run=failed)
+    assert "Checks of this validation's own checklist that could not run" in prompt
+    assert "- `check_collinearity` (M1): the design matrix is singular" in prompt
+    assert "the validation is incomplete" in prompt
+    assert "Do not call any of them a finding." in prompt
+
+
+def test_no_section_but_the_summary_is_told_about_a_check_that_could_not_run() -> None:
+    """A second section describing the same gap is D-096's two accounts of one fact again."""
+    failed = [_NotRun("`check_collinearity` (M1)", "the design matrix is singular")]
+    for section in ReportSection:
+        prompt = drafter(FakeLLM()).prompt(brief_for(section), not_run=failed)
+        if section is ReportSection.summary:
+            assert "could not run" in prompt
+        else:
+            assert "the design matrix is singular" not in prompt, section
+
+
+def test_a_clean_run_adds_not_one_byte_to_any_prompt() -> None:
+    """Why this is a conditional block and not a sentence in `_SUMMARY_BRIEF` (D-177).
+
+    A brief is in the prompt whether or not it applies, so a sentence about crashed checks would
+    move the pinned `draft_section.summary` case and strand its tape on every run that had none.
+    """
+    for section in ReportSection:
+        with_none = drafter(FakeLLM()).prompt(brief_for(section), not_run=[])
+        assert with_none == drafter(FakeLLM()).prompt(brief_for(section)), section

@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Any, Final
+from typing import Any, Final, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -52,9 +52,11 @@ __all__ = [
     "DraftedSection",
     "Drafter",
     "GuidanceSpan",
-    "open_items_block",
+    "NotRunCheck",
     "finding_heading",
     "merge_candidates",
+    "not_run_block",
+    "open_items_block",
     "spans_from_payload",
     "template_section",
 ]
@@ -468,6 +470,61 @@ def open_items_block(items: Sequence[OpenItem], follow_ups: Sequence[FollowUp] =
     return "\n".join(lines) + "\n"
 
 
+class NotRunCheck(Protocol):
+    """What this module needs of a check that raised: how to name it, and what it said.
+
+    A structural type rather than an import, because the object is ``pipeline.FailedCheck`` and
+    :mod:`quaestor.pipeline` imports this module. The drafter needs two strings and has no use for
+    the rest, which is exactly what a protocol is for (D-177).
+    """
+
+    @property
+    def label(self) -> str:
+        """The check's name and the defect classes it screens for."""
+
+    @property
+    def message(self) -> str:
+        """The tool's own ``ToolError`` message."""
+
+
+def not_run_block(failed: Sequence[NotRunCheck], section: ReportSection) -> str:
+    """Tell section 1 that a check of the checklist raised, and what it was.
+
+    **Empty on every run whose checks all ran**, which is why this is a block in the ``{extra}``
+    slot rather than a sentence in ``_SUMMARY_BRIEF``: a brief is in the prompt whether or not it
+    applies, and a sentence about crashed checks in the prompt of a run that had none is a rule
+    the drafter has to be told to ignore -- and, measured, it moves the pinned `draft_section.
+    summary` case and strands its tape for nothing. This block adds no byte to a clean run's
+    prompt (DECISIONS D-177).
+
+    Section 1 and no other. Appendix D carries the full table for every reader, and a second
+    section describing the same gap in its own words is D-096's two accounts of one fact again;
+    what section 1 owes is the sentence that stops a reader taking the report as complete.
+
+    Args:
+        failed: The checks that raised, in plan order.
+        section: The section being drafted.
+
+    Returns:
+        The block, with a leading blank line, or the empty string.
+    """
+    if not failed or section is not ReportSection.summary:
+        return ""
+    lines = [
+        "",
+        "Checks of this validation's own checklist that could not run. The report was written "
+        "without them, and Appendix D carries this table in full:",
+    ]
+    lines += [f"- {item.label}: {item.message}" for item in failed]
+    lines.append(
+        "Say in one sentence that the validation is incomplete and name each of those checks and "
+        "the defect classes it would have screened for. Write no number about them: there is no "
+        "artifact behind a check that did not run, and the rule above about a quantity you were "
+        "not given still holds. Do not call any of them a finding."
+    )
+    return "\n".join(lines) + "\n"
+
+
 def _findings_block(
     findings: Sequence[Finding], section: ReportSection = ReportSection.findings
 ) -> str:
@@ -567,6 +624,7 @@ class Drafter:
         findings: Sequence[Finding] = (),
         follow_ups: Sequence[FollowUp] = (),
         items: Sequence[OpenItem] = (),
+        not_run: Sequence[NotRunCheck] = (),
         previous: str | None = None,
         problems: Sequence[str] = (),
     ) -> str:
@@ -580,6 +638,7 @@ class Drafter:
             findings: The findings it must write about; section 6 only.
             follow_ups: The bounded loop's executed steps whose artifacts this section was shown.
             items: The open items minted for this run; section 6 only.
+            not_run: The checklist's checks that raised; section 1 only, empty on a clean run.
             previous: The draft being repaired, or ``None`` on the first round.
             problems: The verifier's sentences for the claims that did not verify.
 
@@ -591,6 +650,7 @@ class Drafter:
             extra += _findings_block(findings, brief.section)
         if brief.section is ReportSection.findings:
             extra += open_items_block(items, follow_ups)
+        extra += not_run_block(not_run, brief.section)
         if previous is not None and problems:
             extra += "\n" + REPAIR_INSTRUCTION.format(
                 previous=previous, problems="\n".join(f"- {problem}" for problem in problems)
@@ -616,6 +676,7 @@ class Drafter:
         findings: Sequence[Finding] = (),
         follow_ups: Sequence[FollowUp] = (),
         items: Sequence[OpenItem] = (),
+        not_run: Sequence[NotRunCheck] = (),
         previous: str | None = None,
         problems: Sequence[str] = (),
     ) -> str:
@@ -629,6 +690,7 @@ class Drafter:
             findings: The findings it must write about; section 6 only.
             follow_ups: The bounded loop's executed steps whose artifacts this section was shown.
             items: The open items minted for this run; section 6 only.
+            not_run: The checklist's checks that raised; section 1 only, empty on a clean run.
             previous: The draft being repaired, or ``None`` on the first round.
             problems: The verifier's sentences for the claims that did not verify.
 
@@ -649,6 +711,7 @@ class Drafter:
                 findings=findings,
                 follow_ups=follow_ups,
                 items=items,
+                not_run=not_run,
                 previous=previous,
                 problems=problems,
             ),

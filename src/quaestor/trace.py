@@ -48,7 +48,8 @@ class EventType(StrEnum):
     """The event types of spec section 3.1.
 
     Attributes:
-        tool_call: A tool ran. Fields: ``tool``, ``args_hash``, ``duration_s``, ``artifacts``.
+        tool_call: A tool ran. Fields: ``tool``, ``args_hash``, ``duration_s``, ``artifacts``,
+            ``candidates``, ``ok``, and ``error`` on a call that raised (D-177).
         llm_call: A model was called. Fields: ``purpose``, ``model``, ``tokens_in``,
             ``tokens_out``, ``cost_usd``, ``latency_ms``. ``purpose`` is ``"reask"`` on every
             retry, which is how the study counts them.

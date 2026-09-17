@@ -23,6 +23,21 @@ run that was not committed.
 
 ### Added
 
+- **A check of the checklist that raises now costs its own row and not the run.** `_run_checklist`
+  catches a `ToolError` from the rule-based plan: the check is recorded, and the pipeline goes on
+  to promote, draft, verify, repair and render with what it has. Four places say what is missing —
+  Appendix D's first row (`` `check_collinearity` (M1) | did not run: <the tool's own message> ``),
+  `tools_run` and therefore `checks_without_candidates`, the `tool_call` trace event's new `error`
+  field, and a conditional block that tells section 1 to say in one sentence that the validation is
+  incomplete. **`run_model` is the one exception**: everything after it reads what it wrote, so a
+  subject that could not be run is still the run's failure. **`quaestor validate` exits 0 with a
+  partial checklist** where it exited 1 before, so a harness that judges a run must read the failed
+  checks and not the exit code alone; `run_model` failing still exits 1 (**D-177**, amending
+  **D-088** and narrowing **D-082**). The instruction to section 1 is a conditional block rather
+  than a sentence in the brief, so a clean run's prompts are byte-identical and no Probatio tape
+  moves: 0 of 10 cases, rebuilt and diffed.
+
+
 - **A quantity is a digit, a comparison names its kind, and section 6's open items are minted by a
   rule.** Three bullets join `DRAFT_INSTRUCTION`: a quantity goes in digits with its citation and
   never in words, no ratio or difference is computed that is not itself an artifact, and a

@@ -314,8 +314,8 @@ class ToolRegistry:
         started = time.monotonic()
         try:
             result = tool.run(parsed, ctx)
-        except ToolError:
-            self._emit(ctx, name, args_hash, time.monotonic() - started, None)
+        except ToolError as exc:
+            self._emit(ctx, name, args_hash, time.monotonic() - started, None, error=exc.message)
             raise
         self._emit(ctx, name, args_hash, time.monotonic() - started, result)
         return result
@@ -327,8 +327,15 @@ class ToolRegistry:
         args_hash: str,
         duration: float,
         result: ToolResult | None,
+        error: str | None = None,
     ) -> None:
-        """Write the one ``tool_call`` event for a call, successful or not."""
+        """Write the one ``tool_call`` event for a call, successful or not.
+
+        A failed call carries the tool's own message on ``error``, as ``plan_step`` has carried it
+        for a loop-requested call since D-088. Before this the event said ``ok: false`` and nothing
+        else, so a trace could say which check died and not why -- and once a dead check no longer
+        ends the run (D-177), the trace is the only place the reason is written in full.
+        """
         if ctx.trace is None:
             return
         ctx.trace.emit(
@@ -339,4 +346,5 @@ class ToolRegistry:
             artifacts=[artifact.hash for artifact in result.artifacts] if result else [],
             candidates=result.classes if result else [],
             ok=result is not None,
+            **({"error": error} if error else {}),
         )

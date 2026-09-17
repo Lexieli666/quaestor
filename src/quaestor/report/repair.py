@@ -43,7 +43,7 @@ from ..verifier.extract import Extraction
 from ..verifier.match import Match
 from ..verifier.tokens import NUMERIC_TOKEN_RE, eligible_numbers, numeric_tokens, token_value
 from ..vocab import ReportSection
-from .drafter import Drafter, GuidanceSpan
+from .drafter import Drafter, GuidanceSpan, NotRunCheck
 from .sections import ArtifactBrief, FollowUp, SectionBrief
 
 __all__ = [
@@ -129,6 +129,7 @@ class DraftInputs:
         findings: The findings section 6 must write about.
         follow_ups: The bounded loop's executed steps this section is asked to report (D-101).
         items: The open items minted for this run, which section 6 writes out (D-173).
+        not_run: The checklist's checks that raised, which section 1 names (D-177).
     """
 
     artifacts: Sequence[ArtifactBrief] = ()
@@ -137,6 +138,7 @@ class DraftInputs:
     findings: Sequence[Finding] = ()
     follow_ups: Sequence[FollowUp] = ()
     items: Sequence[OpenItem] = ()
+    not_run: Sequence[NotRunCheck] = ()
 
 
 @dataclass
@@ -455,6 +457,7 @@ def repair_sections(
                 findings=given.findings,
                 follow_ups=given.follow_ups,
                 items=given.items,
+                not_run=given.not_run,
                 previous=draft.markdown,
                 problems=problems,
             )
