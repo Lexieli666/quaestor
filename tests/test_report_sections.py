@@ -14,7 +14,7 @@ import pytest
 from pydantic import ValidationError
 
 from quaestor.artifacts import ArtifactKind, ArtifactStore
-from quaestor.findings import DefectClass
+from quaestor.findings import DefectClass, open_items
 from quaestor.package import PackageSpec, Use, load_package
 from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
 from quaestor.report.sections import (
@@ -45,7 +45,7 @@ from quaestor.report.sections import (
 from quaestor.tools.leakage import FEATURE_OVERLAP_BOUND
 from quaestor.tools.metrics import THRESHOLD_TABLE, metric_artifact_name
 from quaestor.tools.run import MAX_SECONDS_NAME
-from quaestor.tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
+from quaestor.tools.thresholds import DEFAULT_THRESHOLDS, SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
 from quaestor.verifier import ClaimStatus, match_claim
 from quaestor.verifier.claim import Claim, ClaimSource, Unit
 from quaestor.vocab import SECTION_ORDER, ReportSection
@@ -359,7 +359,8 @@ def test_section_six_is_asked_for_the_open_items_subsection() -> None:
     brief = brief_for(ReportSection.findings)
     assert OPEN_ITEMS_HEADING in brief.brief
     assert "model developer" in brief.brief
-    assert "Never write\nthe word finding about an open item." in brief.brief
+    assert "Never write the word finding about an open item." in brief.brief
+    assert "the ones listed for you at\nthe end of this prompt and no others" in brief.brief
 
 
 # --- the Phase 9 follow-up 4 additions ----------------------------------------------------------
@@ -595,8 +596,10 @@ def test_the_follow_up_block_names_the_step_s_own_question(tmp_path: Path) -> No
     findings = drafter.prompt(brief_for(ReportSection.findings), follow_ups=[follow_up])
     assert FOLLOW_UPS_HEADING not in findings
     assert OPEN_ITEMS_HEADING in findings
-    assert "what the\nmodel discriminates on inside that segment" in findings or (
-        "what the model discriminates on inside that segment" in findings
+    assert "what the model\ndiscriminates on inside that segment" in findings
+    assert "never-delinquent majority segment" not in findings, (
+        "since D-173 section 6 is handed its open items, not the loop's steps: the step's own "
+        "question belongs to the section that computed it"
     )
 
 
@@ -695,8 +698,14 @@ def test_the_follow_up_block_gives_the_slice_rule_and_the_table_and_not_the_enum
     assert "`delinq_last == 0`" in prompt
     assert "[[table:metrics.test.sub.s_eq_0]]" in prompt
     assert "Do **not** enumerate the step's metrics in prose" in prompt
-    findings = drafter.prompt(brief_for(ReportSection.findings), follow_ups=[follow_up])
-    assert "`delinq_last == 0`" in findings
+    items = open_items(store, DEFAULT_THRESHOLDS)
+    findings = drafter.prompt(
+        brief_for(ReportSection.findings), follow_ups=[follow_up], items=items
+    )
+    assert "`delinq_last == 0`" in findings, (
+        "section 6 names the segment by the loop's own expression, which the minting rule cannot "
+        "read back out of the artifact stem and the open-items block joins on (D-173)"
+    )
 
 
 def test_a_follow_up_that_asked_for_no_slice_carries_no_rule(tmp_path: Path) -> None:

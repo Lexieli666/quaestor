@@ -15,6 +15,13 @@ public way to make a finding: it takes candidates of one class, unions their evi
 many it merged, and demands a one-sentence reason whenever the severity it publishes differs from
 the one the check suggested.
 
+:func:`open_items` is the other half of what section 6 reports, and the half that is not a defect:
+the observations a validator should ask a developer about that no rule calls a finding. It is a
+rule rather than a brief's examples for the reason :meth:`Finding.from_candidates` is one -- the
+list a report is asked for and the list a study scores against have to be the same list -- and it
+lives here because an open item is a sibling of a finding and this is the module both readers can
+import (DECISIONS D-173).
+
 The store reaches the validator through pydantic's validation **context**, not through a field: a
 finding is a persisted object and the store is not part of it. Reading a persisted document back
 passes ``store=None`` on purpose -- ``eval/score.py`` scores a run from ``findings.json`` alone,
@@ -48,6 +55,7 @@ from .vocab import Configuration, ReportSection
 
 __all__ = [
     "FINDING_ID_RE",
+    "OPEN_ITEM_OWNER",
     "PRE_RUN_TOOL",
     "SCHEMA_VERSION",
     "SECTION_FOR_CLASS",
@@ -57,7 +65,10 @@ __all__ = [
     "Finding",
     "FindingCandidate",
     "FindingsDocument",
+    "OpenItem",
+    "OpenItemKind",
     "Severity",
+    "open_items",
     "severity_rank",
 ]
 
@@ -455,6 +466,253 @@ class Finding(BaseModel):
             The renumbered copy.
         """
         return self.model_copy(update={"id": f"F-{number:03d}"})
+
+
+OPEN_ITEM_OWNER: Final = "model developer"
+"""Who a minted open item asks for an answer, unless the artifacts name someone else (D-096)."""
+
+_SLICE_SEGMENT: Final = ".sub."
+"""What marks a sub-population's artifact stem, as ``compute_metrics`` writes it (D-102)."""
+
+_SLICE_GAP_SUFFIX: Final = ".auc_gap"
+"""The tail of the artifact that says how far a sub-population fell below its split."""
+
+_SLICE_SHARE_SUFFIX: Final = ".share"
+"""The tail of the artifact that says how much of the split a sub-population holds."""
+
+_SIGN_PREFIX: Final = "sign_check."
+"""The family ``check_collinearity`` stores a fitted sign against its univariate direction under."""
+
+_AGREES_SUFFIX: Final = ".agrees"
+"""The tail of the artifact that is 1 when the two signs agree and 0 when they do not (D-095)."""
+
+_FEATURE_OVERLAP: Final = "leakage.overlap.features"
+"""The share of test rows whose feature vector also appears in train (D-086)."""
+
+_TRAIN_DUPLICATES: Final = "leakage.duplicates.train"
+"""The within-train duplicate share, which is what raises the feature-overlap bound (D-086)."""
+
+
+class OpenItemKind(StrEnum):
+    """Which rule minted an open item, in the order :func:`open_items` returns them.
+
+    Attributes:
+        slice_gap: A sub-population materially worse than its split's headline, large enough to
+            be worth answering for (D-102).
+        sign_disagreement: A fitted coefficient whose sign contradicts the feature's own
+            univariate direction (D-095).
+        feature_overlap: A feature-vector overlap between the splits that the within-train
+            duplicate share explains, so no ``L2`` candidate was raised (D-086).
+    """
+
+    slice_gap = "slice_gap"
+    sign_disagreement = "sign_disagreement"
+    feature_overlap = "feature_overlap"
+
+
+class OpenItem(BaseModel):
+    """One observation a developer should answer for that no rule calls a defect.
+
+    A sibling of :class:`Finding`, and deliberately not one: D-096 refuses to promote an open item
+    to an ``info``-severity finding, because that would put it in ``findings.json``, in the
+    severity counts and in the study's precision denominator, so a helpful observation would score
+    as a false alarm. It is minted by :func:`open_items` from artifacts that are already in the
+    store, so every number in it is citable and none of it was invented by a model.
+
+    Attributes:
+        kind: Which rule minted it.
+        subject: What it is about -- a sub-population's artifact stem, a feature name, or the
+            pair of splits the overlap was measured between.
+        artifacts: The logical names section 6 may cite for it, the observed quantities first and
+            the bound last, deduplicated and in that order.
+        bound: The logical name of the artifact the observation was read against. A threshold for
+            two of the three kinds; for a sign disagreement it is the univariate direction, which
+            is the thing the fitted sign was compared with and is an artifact like any other.
+        detail: The sentence-sized facts section 6 needs, with every number written as the store
+            holds it.
+        owner: Who is asked to answer, :data:`OPEN_ITEM_OWNER` unless the artifacts name someone
+            else.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    kind: OpenItemKind
+    subject: str = Field(min_length=1)
+    artifacts: list[str] = Field(min_length=1)
+    bound: str = Field(min_length=1)
+    detail: str = Field(min_length=1)
+    owner: str = OPEN_ITEM_OWNER
+
+
+def _figure(value: float) -> str:
+    """Render one number for an open item's prose at the four figures the drafter is shown."""
+    return f"{value:.4g}"
+
+
+def _bound_value(store: ArtifactStore, thresholds: Mapping[str, float], name: str) -> float | None:
+    """Return the value of a bound that is citable, or ``None`` when it is not.
+
+    The resolved thresholds are the authority for a bound the run *decided*; a derived bound such
+    as ``threshold.L2.overlap.features_effective`` is not among them and is read from the store,
+    which is the only place it exists. Either way the bound must be **in the store**, because an
+    open item names the bound it was read against and a comparison against an unstored number is
+    a comparison nothing can check (D-091).
+
+    Args:
+        store: The run's artifact store.
+        thresholds: The resolved thresholds, keyed by logical artifact name.
+        name: The bound's logical name.
+
+    Returns:
+        The value, or ``None`` when the store does not hold the bound.
+    """
+    if name not in store:
+        return None
+    declared = thresholds.get(name)
+    return float(declared) if declared is not None else store.value(name)
+
+
+def _slice_items(store: ArtifactStore, thresholds: Mapping[str, float]) -> list[OpenItem]:
+    """Mint one open item per sub-population materially worse than its split and large enough."""
+    from .tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR
+
+    bound = _bound_value(store, thresholds, SLICE_GAP_BOUND)
+    floor = _bound_value(store, thresholds, SLICE_SHARE_FLOOR)
+    if bound is None or floor is None:
+        return []
+    items: list[OpenItem] = []
+    for gap_name in store.names():
+        if _SLICE_SEGMENT not in gap_name or not gap_name.endswith(_SLICE_GAP_SUFFIX):
+            continue
+        stem = gap_name[: -len(_SLICE_GAP_SUFFIX)]
+        share_name = f"{stem}{_SLICE_SHARE_SUFFIX}"
+        if share_name not in store:  # pragma: no cover - the tool stores the pair together
+            continue
+        gap, share = store.value(gap_name), store.value(share_name)
+        if share < floor or gap <= bound:
+            continue
+        head, _, _slug = stem.partition(_SLICE_SEGMENT)
+        split = head.removeprefix("metrics.")
+        headline = f"{head}.auc"
+        names = [gap_name, share_name, f"{stem}.auc", headline, SLICE_GAP_BOUND, SLICE_SHARE_FLOOR]
+        items.append(
+            OpenItem(
+                kind=OpenItemKind.slice_gap,
+                subject=stem,
+                artifacts=[name for name in dict.fromkeys(names) if name in store],
+                bound=SLICE_GAP_BOUND,
+                detail=(
+                    f"on the {split} split this sub-population's AUC falls {_figure(gap)} below "
+                    f"the split's own, past {SLICE_GAP_BOUND} at {_figure(bound)}, on "
+                    f"{_figure(share)} of the split, which is at or above {SLICE_SHARE_FLOOR} at "
+                    f"{_figure(floor)}"
+                ),
+            )
+        )
+    return sorted(items, key=lambda item: item.subject)
+
+
+def _sign_items(store: ArtifactStore) -> list[OpenItem]:
+    """Mint one open item per retained feature whose fitted sign contradicts its direction."""
+    items: list[OpenItem] = []
+    for agrees_name in store.names():
+        if not (agrees_name.startswith(_SIGN_PREFIX) and agrees_name.endswith(_AGREES_SUFFIX)):
+            continue
+        if store.value(agrees_name) != 0.0:
+            continue
+        feature = agrees_name[len(_SIGN_PREFIX) : -len(_AGREES_SUFFIX)]
+        coef = f"{_SIGN_PREFIX}{feature}.coef_sign"
+        direction = f"{_SIGN_PREFIX}{feature}.univariate_direction"
+        if coef not in store or direction not in store:  # pragma: no cover - stored as a triple
+            continue
+        items.append(
+            OpenItem(
+                kind=OpenItemKind.sign_disagreement,
+                subject=feature,
+                artifacts=[agrees_name, coef, direction],
+                bound=direction,
+                detail=(
+                    f"the fitted coefficient on `{feature}` carries sign "
+                    f"{_figure(store.value(coef))} where that feature's own univariate direction "
+                    f"is {_figure(store.value(direction))}, so the model conditions on it against "
+                    "the direction it shows on its own"
+                ),
+            )
+        )
+    return sorted(items, key=lambda item: item.subject)
+
+
+def _overlap_item(store: ArtifactStore, thresholds: Mapping[str, float]) -> list[OpenItem]:
+    """Mint the open item for a feature-vector overlap the within-train duplicates explain."""
+    from .tools.leakage import FEATURE_OVERLAP_BOUND, OVERLAP_THRESHOLD
+
+    declared = _bound_value(store, thresholds, OVERLAP_THRESHOLD)
+    effective = _bound_value(store, thresholds, FEATURE_OVERLAP_BOUND)
+    if declared is None or effective is None or _FEATURE_OVERLAP not in store:
+        return []
+    overlap = store.value(_FEATURE_OVERLAP)
+    if not declared < overlap <= effective:
+        return []
+    names = [_FEATURE_OVERLAP, _TRAIN_DUPLICATES, OVERLAP_THRESHOLD, FEATURE_OVERLAP_BOUND]
+    return [
+        OpenItem(
+            kind=OpenItemKind.feature_overlap,
+            subject=_FEATURE_OVERLAP,
+            artifacts=[name for name in names if name in store],
+            bound=FEATURE_OVERLAP_BOUND,
+            detail=(
+                f"{_figure(overlap)} of the held-out rows repeat a feature vector of the training "
+                f"split, above {OVERLAP_THRESHOLD} at {_figure(declared)} but within "
+                f"{FEATURE_OVERLAP_BOUND} at {_figure(effective)}, the bound the within-train "
+                "duplicate share raised, so no contamination candidate was raised and the "
+                "repetition is unexplained rather than innocent"
+            ),
+        )
+    ]
+
+
+def open_items(store: ArtifactStore, thresholds: Mapping[str, float]) -> list[OpenItem]:
+    """Mint section 6's open items by rule from what a run already stored.
+
+    D-096 put ``### Open items`` at the end of section 6 and named two examples in the drafter's
+    brief; a brief's examples are not a rule, and the committed real-MSR run shows the gap --
+    its three open items are the three sub-populations, and the three coefficients whose fitted
+    sign contradicts their univariate direction, which is one of D-096's own two examples, are not
+    among them. This function is the rule, and it has one home: the report drafter is handed what
+    it returns and ``eval/score.py`` imports the same function rather than re-deriving it, so the
+    list a report was asked for and the list a study scores against cannot come apart (D-173).
+
+    Three families, and no fourth. Each reads quantities a tool already stored against a bound
+    that tool already stored, so nothing here computes a number the store does not hold:
+
+    * a sub-population whose AUC gap exceeds ``threshold.O1.slice_auc_gap`` on a share at or above
+      ``threshold.O1.slice_min_share`` (D-102);
+    * a retained feature whose ``sign_check.<feature>.agrees`` is 0 (D-095);
+    * a feature-vector overlap above ``threshold.L2.overlap`` but within
+      ``threshold.L2.overlap.features_effective``, which is the case D-086 declines to call
+      contamination (D-086).
+
+    The two threshold modules are imported inside the functions that need them rather than at the
+    top of this one: ``quaestor.tools`` imports this module for :class:`FindingCandidate`, so a
+    module-level import here is a cycle. The names are still read from the modules that own their
+    spelling, which is what the import is for.
+
+    Args:
+        store: The run's artifact store, which holds every quantity and every bound read here.
+        thresholds: The resolved thresholds, keyed by logical artifact name -- ``Thresholds.values``
+            for a run, and the defaults for a store read back off disk. A derived bound is not
+            among them and is read from the store.
+
+    Returns:
+        The open items: the sub-populations first, by artifact stem, then the sign disagreements by
+        feature, then the feature overlap. The order is fixed so that a scorer comparing two runs
+        compares like with like.
+    """
+    return [
+        *_slice_items(store, thresholds),
+        *_sign_items(store),
+        *_overlap_item(store, thresholds),
+    ]
 
 
 class CandidateNotPromoted(BaseModel):

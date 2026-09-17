@@ -1198,3 +1198,31 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   `examples/golden_report/` untouched; `pytest tests/probatio --cassette=replay` **40 passed** with
   zero provider calls, because this commit touches no prompt. No live model call, no download, no
   training on real data from any test. No push.
+- 2026-09-17 — **Phase 12 pre-flight, commit B** — **one live record sitting, killed, nothing of it
+  committed**: the pre-flight inventory's items (vi), (viii) and (v), the only commit of the
+  pre-flight that spends money. `DRAFT_INSTRUCTION` gains three bullets — a quantity in digits with
+  its citation, no computed ratio, and a comparison that names whether it is the difference or the
+  ratio — and its docstring stops claiming every rule has a checker behind it: two of the three are
+  drafting rules and are labelled as such (**D-172**). `quaestor.findings.open_items` mints section
+  6's `### Open items` from the sub-population gap and share, the `sign_check.*` triple and the
+  feature overlap, all against bounds already in the store; `_FINDINGS_BRIEF` stops naming examples,
+  `drafter.open_items_block` renders the closed list, and `eval/score.py` will import the same
+  function rather than re-derive it — no `open_items` block in `findings.json`, because that is a
+  schema change after Phase 1 (**D-173**). Measured over the committed real-MSR excerpt run, the
+  rule mints that run's own **three** sub-populations by name plus **three** sign disagreements
+  (`orig_ltv`, `sato`, `season_sin`) it never wrote — a superset, which is the direction that makes
+  it a fix. The seventh record sitting was started and **killed at 3.25 of 7 cases after ~35
+  minutes and $17.1014**; `draft_section.data_integrity`'s judge fell 1.000 → 0.800 on criterion 5,
+  so nothing was accepted: the four rewritten tapes were copied out of the repository and their
+  paths restored, the rubric and the baselines were not touched, and the two omission bullets gained
+  a cross-reference to D-100's silent-omission rule (**D-174**, **D-175**, **D-176**). Gate: full
+  offline suite excluding `tests/probatio` **1,599 passed**, 0 failed, 0 skipped, 0 xfailed
+  (1,582 → 1,599, seventeen added and three expectations amended); coverage of `src/quaestor`
+  **99%**; `ruff check` and `ruff format --check` clean on `src tests eval subjects`;
+  `mypy --strict src/quaestor` clean over 60 source files; both `--synthetic --llm fake` validates
+  unchanged at `{E1 low}` and `{}`; the real-panel fake validate's one `C1` unchanged at eleven
+  evidence keys; `examples/golden_report/` untouched. **[stranded]** `pytest tests/probatio
+  --cassette=replay` is **7 failed, 33 passed** with zero provider calls: the seven drafting tapes
+  are knowingly left stranded and are recorded after lean D with the pricing runs, in batches of at
+  most three cases from a plain shell (D-174). No download, no training on real data from any test.
+  No push.

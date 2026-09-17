@@ -181,18 +181,24 @@ Spelled out here for the reason :data:`OPEN_ITEMS_HEADING` is.
 """
 
 _FOLLOW_UP_ARTIFACTS_PREFIX: Final = "artifacts: "
-"""How the drafting prompt's follow-up block introduces the names one step produced."""
+"""How a drafting prompt introduces the names one step or one open item rests on.
+
+Two blocks use it and they never appear in the same prompt: ``### Follow-up analyses`` in the
+sections the bounded loop asked something about, and section 6's open-items block, which since
+D-173 is minted by rule rather than derived from the loop's steps. This fake reports whichever of
+the two it was handed, which is why one prefix is enough.
+"""
 
 
 def _follow_up_artifacts(prompt: str) -> list[str]:
-    """Return the logical names the prompt's follow-up block says the loop's steps produced.
+    """Return the logical names the prompt says its steps or its open items rest on.
 
     Args:
         prompt: The prompt as sent.
 
     Returns:
-        The names, in prompt order, deduplicated. Empty when the prompt carries no follow-up
-        block, which is every section the bounded loop asked nothing about.
+        The names, in prompt order, deduplicated. Empty when the prompt carries neither block,
+        which is every section the bounded loop asked nothing about and that mints no open item.
     """
     names: list[str] = []
     for line in prompt.splitlines():

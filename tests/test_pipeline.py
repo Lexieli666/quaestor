@@ -26,6 +26,7 @@ import pytest
 
 from quaestor import Configuration, TraceReader, validate
 from quaestor.artifacts import ArtifactKind
+from quaestor.findings import DefectClass, Severity, open_items
 from quaestor.pipeline import UNEVIDENCED_PREFIX, ValidationRun
 from quaestor.report import UNVERIFIED_OPEN, check_report
 from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
@@ -520,6 +521,37 @@ def test_a_material_follow_up_is_reported_and_raised_as_an_open_item(tmp_path: P
     assert slice_auc in outcomes.split(FOLLOW_UPS_HEADING, 1)[1]
     assert slice_auc in findings.split(OPEN_ITEMS_HEADING, 1)[1]
     assert "finding" not in findings.split(OPEN_ITEMS_HEADING, 1)[1].lower()
+
+
+def test_a_sign_disagreement_reaches_section_six_without_any_loop_step(tmp_path: Path) -> None:
+    """The observation D-096 named as an example and no report had ever written (D-173).
+
+    `sign_check.*` belongs to section 2's selector and to no step of the bounded loop, so before
+    the minting rule there was no path by which section 6 could learn of it: its brief named the
+    kind of thing and its artifact list carried none of them. Here the loop runs nothing at all
+    and the disagreement is still an open item, cited, on a run whose finding set is unchanged.
+    """
+    run = run_validate(CREDIT, tmp_path / "out")
+    disagreeing = [
+        name
+        for name in run.store.names()
+        if name.startswith("sign_check.")
+        and name.endswith(".agrees")
+        and run.store.value(name) == 0.0
+    ]
+    assert disagreeing, "the synthetic credit champion fits at least one contradicting sign"
+    items = open_items(run.store, Thresholds().values)
+    assert [item.subject for item in items] == [
+        name[len("sign_check.") : -len(".agrees")] for name in disagreeing
+    ]
+    written = _section(run.report, "## 6. Findings and recommendations")
+    written = written.split(OPEN_ITEMS_HEADING, 1)[1]
+    for name in disagreeing:
+        assert f":{name}]]" in written
+    assert "finding" not in written.lower()
+    assert [(f.defect_class, f.severity) for f in run.findings.findings] == [
+        (DefectClass.E1, Severity.low)
+    ], "D-017's finding set is what a prompt-text change may not move"
 
 
 def test_a_follow_up_inside_the_bound_stays_in_the_section_that_computed_it(

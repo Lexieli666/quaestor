@@ -784,8 +784,10 @@ revisions stranded what earlier ones had bought, so the calls were made and paid
 they wrote are gone. D-158's pruning removes 64 interactions that no replay can reach and does not
 move this figure by a cent. The $28.95 is the tapes **as this phase left them**: a sixth sitting on
 2026-09-17 re-recorded `draft_section.summary` for D-165 and took them to $29.3297 over 123
-interactions, which the entry for that work records. Three causes, none of them the cost model,
-which predicted the whole of the first run's spend to within 6%:
+interactions, which the entry for that work records. **That $29.3297 over 123 interactions is the
+figure as of 2026-09-17, after the sixth sitting and before the seventh**; the dated entry below
+says what the seventh cost and why it moved neither number. Three causes, none of them the cost
+model, which predicted the whole of the first run's spend to within 6%:
 
 * **The 120 s provider timeout.** The second sitting lost `data_integrity`, `sensitivity` and
   `monitoring` to `ClaudeCLIProvider`'s default hung-process ceiling, which was acting as a budget:
@@ -1310,3 +1312,63 @@ enumeration of everything a reader outside this project would misread. D-167 sti
 evidence. And the `algorithm_name` class is a fourth instance of one pattern rather than proof the
 pattern is now closed: the next live run is the test of whether an exclusion list assembled one
 defect at a time has stopped finding new ones.
+
+### 2026-09-17 — the seventh record sitting: $17.10 spent, no tape committed
+
+No validation run. The Phase 12 pre-flight's prompt-text commit stranded the seven
+`draft_section.*` tapes — `DRAFT_INSTRUCTION` gained three bullets and section 6's brief and
+prompt gained the minted open items (D-172, D-173) — and the seventh record sitting was started
+against them and **killed by the operator after three completed cases and one partial one**.
+
+**What it cost, per tape, counting only the interactions that were not already on the committed
+tape:**
+
+| tape | interactions | recorded cost | this sitting |
+| --- | ---: | ---: | ---: |
+| `draft_section.conceptual_soundness` | 18 → 35 | $5.3763 → $10.3631 | **$4.9868** |
+| `draft_section.data_integrity` | 16 → 33 | $4.3556 → $9.1571 | **$4.8015** |
+| `draft_section.outcomes` | 18 → 32 (partial) | $4.9845 → $9.0262 | **$4.0417** |
+| `draft_section.summary` | 20 → 37 | $3.6610 → $6.9324 | **$3.2714** |
+| **total** | | | **$17.1014** |
+
+About **$4.4 a completed case**, against $3.94 on the committed tapes — on estimate, and under the
+$35 ceiling the sitting was given. `draft_section.findings`, `draft_section.monitoring` and
+`draft_section.sensitivity` were never reached.
+
+**None of it is committed.** One case failed its judge assertion (below), which is a stop-and-report,
+so the four rewritten tapes were copied out of the repository and the four paths restored to
+`82e7bab`. **The committed tapes therefore stand unchanged at $29.3297 over 123 interactions**, and
+the $17.10 joins the roughly $44 of stranded calls the four Phase 11 sittings paid for: calls made,
+paid for, and no tape. The layer has now cost about **$90** in all.
+
+**What it found, and it is the reason nothing was accepted.** `draft_section.data_integrity`'s
+judge assertion fell from **pass 1.000** to **fail 0.800** — the only baseline that moved — on
+criterion 5, the rubric's statement of D-100: *"Criterion 5: sentence declares no
+characteristic-index bound was provided to this section."* The sentence was *"No separate bound on
+the characteristic index was declared to this section, so these values are reported against the
+largest of them at 0.02363 …"*. The cause is in the new bullets: both are instructions to **omit**
+something, and neither said the omission must be silent, so a drafter reading them together with
+D-100's rule explained why it left the comparison out. Each bullet now ends by pointing at that
+rule; the fix is a cross-reference, not a fourth rule (D-172).
+
+**The judge's own variance, measured on this sitting's tapes.** A Probatio case draws eight times —
+once for the run and once for each of the seven relation perturbations — so the four tapes carry
+**30 judge replies**, of which **3 are failures**: `data_integrity`'s base run, and two
+perturbations of `draft_section.conceptual_soundness`, which passed its own base run 4/4. About
+**1 reply in 10**. Two of the three are the criterion-5 defect above; the third is criterion 1, an
+uncited `1`. This is the self-consistency companion to D-157's **kappa 0.771** against a human
+labeller, and it means a single clean re-record is not evidence that the fix worked (D-175).
+
+**An artifact of the record path, pre-existing.** One interaction recorded 487 bytes of a Claude
+Code agent issuing a `Bash` tool call in place of a drafted section; `structured()` re-asked and
+the retry answered normally. The committed tapes at `82e7bab` already hold seven of these — 2, 2
+and 3 in `conceptual_soundness`, `outcomes` and `summary` — so it is a property of driving
+`claude -p` as a subprocess and not of this commit, and it means a tape's interaction count is a
+count of **calls**, not of answers (D-176).
+
+**What the sitting changed about how a sitting is run.** It ran about **35 minutes** and completed
+**3.25 cases** before it had to be stopped, and it was driven from a Claude Code background shell,
+which is what made stopping it a kill rather than a clean exit. Recording is therefore done from a
+plain shell, in batches of **at most three cases**, with `--max-cost` set from the chunk rather
+than from the layer — and lean D's pricing runs take their ceiling from the same measurement
+(D-174).

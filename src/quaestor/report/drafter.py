@@ -28,7 +28,7 @@ from typing import Any, Final
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..artifacts.store import ArtifactKind
-from ..findings import SECTION_FOR_CLASS, Finding, FindingCandidate
+from ..findings import SECTION_FOR_CLASS, Finding, FindingCandidate, OpenItem
 from ..llm.base import LLM
 from ..llm.structured import structured
 from ..trace import TraceWriter
@@ -52,6 +52,7 @@ __all__ = [
     "DraftedSection",
     "Drafter",
     "GuidanceSpan",
+    "open_items_block",
     "finding_heading",
     "merge_candidates",
     "spans_from_payload",
@@ -94,6 +95,22 @@ Rules, all of them checked after you answer:
   cite the superseded SR11-7 only where it says something the revision does not.
 - Write markdown. Do not write a level-2 heading: the renderer writes it.
 - Do not use the words "compliant" or "certified".
+- A quantity goes in digits with its citation, never in words. "Half", "a third", "twice", "six
+  times", "three of them" and "the first decile" are quantities written as words: each either has
+  an artifact, in which case write the digits and cite it, or it has none, in which case leave the
+  comparison out and say nothing about it -- the rule above still holds, so do not write that the
+  number was not provided, not declared or not available to you. Counts of what this prompt handed
+  you -- how many findings, how many declared thresholds, how many features -- are quantities too,
+  and the renderer already prints them. Direction and relation in words are wanted, not forbidden:
+  "below", "above", "further from", "the larger of the two".
+- Do not do arithmetic. A ratio, a difference, a percentage or a multiple that is not itself one of
+  the artifacts below is a number you computed, and nothing downstream can check it against
+  anything. Write the two cited numbers and name the relation between them in words, and by that
+  same rule do not write that the ratio, the difference or the multiple itself is not reported.
+- When you compare a shortfall, an error or a gap across two populations -- two splits, two
+  sub-populations, two deciles -- say which comparison you are making, the difference or the ratio,
+  and do not conclude that the two are alike on one of them while the other goes unmentioned. Two
+  populations whose absolute gaps match can have ratios that differ by a factor of three.
 - Call something a finding only if it is in the candidate list at the end of this prompt. The
   findings section reports exactly that list, and a section that calls anything else a finding
   contradicts it.
@@ -108,7 +125,24 @@ Findings raised for this section:
 {candidates}
 {extra}
 Answer with the section's markdown under the key "markdown"."""
-"""The drafter's prompt. Every rule in it is enforced somewhere downstream, or it is not a rule."""
+"""The drafter's prompt, and what each of its rules rests on.
+
+Most of them are enforced somewhere downstream: the citation rule by the matcher, the
+one-sentence-per-line rule by the extractor's pre-pass, the table directive by the renderer, the
+findings rule by the candidate list section 6 is built from. "A quantity goes in digits" is
+enforced by the tokenizer and the matcher **once it is obeyed**, which is the point of asking:
+a quantity in digits is tokenized as a claim and either carries a citation that resolves or is
+counted against the report, and a quantity written as a word -- "half", "twice", "six times" --
+is exactly the quantity that escapes both. **Two are not enforced at all, and are drafting
+rules rather than checked ones** -- "do not do arithmetic" and "say which comparison you are
+making". Nothing downstream can see that a ratio was computed rather than cited, because an
+uncited number is already counted against the report and a *cited* number that happens to be a
+quotient of two others is indistinguishable from a number read off an artifact; and nothing can
+see that a paragraph compared two populations on their absolute gaps while their ratios differ,
+because that is a judgement about what a sentence concluded and not about any number in it. They
+are in the prompt because the measured failures they answer are failures of drafting, and the
+place to answer a drafting failure is the drafting instruction (DECISIONS D-172).
+"""
 
 REPAIR_INSTRUCTION: Final = """\
 Your previous draft of this section was checked against the artifact store and some of its numbers
@@ -352,29 +386,85 @@ def _follow_ups_block(follow_ups: Sequence[FollowUp], section: ReportSection) ->
         if follow_up.detail:
             lines.append(f"  materiality: {follow_up.detail}")
     if section is ReportSection.findings:
-        lines.append(
-            "Each of those is an open item and not a finding: no rule fired on any of them. Write "
-            f"one line per step under `{OPEN_ITEMS_HEADING}`, asking the model developer what the "
-            "model discriminates on inside that segment, and cite the slice's own value, the "
-            "headline it is compared with and the bound the comparison was made against. Name the "
-            "segment by its slice rule, written inside backticks exactly as given above."
+        return ""
+    lines.append(
+        f"Report every one of them under the heading `{FOLLOW_UPS_HEADING}`, written exactly "
+        "like that on a line of its own and placed after the rest of this section: for each, "
+        "what was asked, why it was asked, and what the numbers say. A step the run paid for "
+        "and the report does not mention is a question a reader cannot see was asked."
+    )
+    lines.append(
+        "Name each step by its slice rule, written inside backticks exactly as given above. "
+        "Do **not** enumerate the step's metrics in prose: write each of its table directives "
+        "on a line of its own, and then, in sentences of your own, how the slice reads -- how "
+        "far its AUC falls below the split's own and against which bound, how much of the "
+        "split it holds and against which floor, and whether mean predicted against the "
+        "observed rate says the weakness is in the level of the probabilities or in their "
+        "ordering. Every number in those sentences carries its citation."
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _slice_rule_for(item: OpenItem, follow_ups: Sequence[FollowUp]) -> str:
+    """Return the slice-rule expression of the step that produced one open item's artifacts.
+
+    An open item is minted from the store, which knows a sub-population by its artifact stem and
+    not by the rule that selected it: ``metrics.out_of_time.sub.incentive_high`` does not say
+    whether ``incentive_high`` is a column or a column and a rule. The loop's own step does say,
+    and the drafter is forbidden to write a logical name in the prose, so the two are joined here
+    -- on the artifacts they share -- rather than by guessing the expression back out of the slug
+    (DECISIONS D-112, D-173).
+    """
+    for follow_up in follow_ups:
+        if follow_up.slice_rule and set(follow_up.artifacts) & set(item.artifacts):
+            return follow_up.slice_rule
+    return ""
+
+
+def open_items_block(items: Sequence[OpenItem], follow_ups: Sequence[FollowUp] = ()) -> str:
+    """Render section 6's open items as the closed list it is asked to write.
+
+    The same shape D-156 gave section 6's findings and D-165 gave section 1's: the list is
+    computed once, by :func:`quaestor.findings.open_items`, and the section is handed it rather
+    than told what kind of thing might qualify. Before this, section 6's brief named two examples
+    -- a fitted sign that disagrees with its univariate direction, a feature overlap the
+    within-train duplicate share explains -- and the drafter was separately handed the bounded
+    loop's material steps; the committed real-MSR run wrote the three steps and none of the three
+    sign disagreements its own store holds, which is what a brief's examples buy (D-173).
+
+    Args:
+        items: The open items, minted by rule, in the order they are to be written.
+        follow_ups: The loop's executed steps, for the slice rule an item's prose names it by.
+
+    Returns:
+        The block, with a leading blank line, or the instruction to say there is none.
+    """
+    if not items:
+        return (
+            "\nNo open item was minted by rule from this run's artifacts. Write one sentence "
+            f"under `{OPEN_ITEMS_HEADING}` saying there is none, and compose none of your own.\n"
         )
-    else:
-        lines.append(
-            f"Report every one of them under the heading `{FOLLOW_UPS_HEADING}`, written exactly "
-            "like that on a line of its own and placed after the rest of this section: for each, "
-            "what was asked, why it was asked, and what the numbers say. A step the run paid for "
-            "and the report does not mention is a question a reader cannot see was asked."
-        )
-        lines.append(
-            "Name each step by its slice rule, written inside backticks exactly as given above. "
-            "Do **not** enumerate the step's metrics in prose: write each of its table directives "
-            "on a line of its own, and then, in sentences of your own, how the slice reads -- how "
-            "far its AUC falls below the split's own and against which bound, how much of the "
-            "split it holds and against which floor, and whether mean predicted against the "
-            "observed rate says the weakness is in the level of the probabilities or in their "
-            "ordering. Every number in those sentences carries its citation."
-        )
+    lines = [
+        "",
+        f"Open items for `{OPEN_ITEMS_HEADING}`, minted by rule from this run's artifacts. These "
+        "are the open items of this validation and there are no others; write one line for each, "
+        "in this order, and add none of your own:",
+    ]
+    for item in items:
+        lines.append(f"- {item.detail}")
+        lines.append(f"  artifacts: {', '.join(item.artifacts)}")
+        lines.append(f"  read against: {item.bound}")
+        lines.append(f"  owner: {item.owner}")
+        rule = _slice_rule_for(item, follow_ups)
+        if rule:
+            lines.append(f"  name it in prose by its slice rule, written as `{rule}`")
+    lines.append(
+        "None of those is a finding: no rule fired on any of them, and the word finding does not "
+        "belong in any of these lines. Write each as a question to its owner rather than as a "
+        "verdict -- conditioning on one feature also conditions on everything correlated with it "
+        "-- and cite the observation's own value, what it is compared with and the bound it was "
+        "read against."
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -476,6 +566,7 @@ class Drafter:
         candidates: Sequence[FindingCandidate] = (),
         findings: Sequence[Finding] = (),
         follow_ups: Sequence[FollowUp] = (),
+        items: Sequence[OpenItem] = (),
         previous: str | None = None,
         problems: Sequence[str] = (),
     ) -> str:
@@ -488,6 +579,7 @@ class Drafter:
             candidates: The candidates raised on its material.
             findings: The findings it must write about; section 6 only.
             follow_ups: The bounded loop's executed steps whose artifacts this section was shown.
+            items: The open items minted for this run; section 6 only.
             previous: The draft being repaired, or ``None`` on the first round.
             problems: The verifier's sentences for the claims that did not verify.
 
@@ -497,6 +589,8 @@ class Drafter:
         extra = _follow_ups_block(follow_ups, brief.section)
         if findings or brief.section is ReportSection.findings:
             extra += _findings_block(findings, brief.section)
+        if brief.section is ReportSection.findings:
+            extra += open_items_block(items, follow_ups)
         if previous is not None and problems:
             extra += "\n" + REPAIR_INSTRUCTION.format(
                 previous=previous, problems="\n".join(f"- {problem}" for problem in problems)
@@ -521,6 +615,7 @@ class Drafter:
         candidates: Sequence[FindingCandidate] = (),
         findings: Sequence[Finding] = (),
         follow_ups: Sequence[FollowUp] = (),
+        items: Sequence[OpenItem] = (),
         previous: str | None = None,
         problems: Sequence[str] = (),
     ) -> str:
@@ -533,6 +628,7 @@ class Drafter:
             candidates: The candidates raised on its material.
             findings: The findings it must write about; section 6 only.
             follow_ups: The bounded loop's executed steps whose artifacts this section was shown.
+            items: The open items minted for this run; section 6 only.
             previous: The draft being repaired, or ``None`` on the first round.
             problems: The verifier's sentences for the claims that did not verify.
 
@@ -552,6 +648,7 @@ class Drafter:
                 candidates=candidates,
                 findings=findings,
                 follow_ups=follow_ups,
+                items=items,
                 previous=previous,
                 problems=problems,
             ),

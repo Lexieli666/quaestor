@@ -530,19 +530,18 @@ that nothing checked -- the fourth live report's own list named "input data line
 docs directory.
 Then close the section with the heading `### Open items`, written exactly like that on a line of
 its own, and under it the observations this validation made that are **not** defects under any
-rule but that a developer should still answer for. One per line, each carrying the citation of
-the artifact it rests on and each naming an owner -- write "model developer" unless the artifacts
-name someone else. A coefficient whose fitted sign disagrees with its univariate direction, and a
-share of test rows repeating a training feature vector that the within-train duplicate share
-explains, are both open items rather than findings, and are the kind of thing this subsection is
-for. So is a follow-up analysis marked below as materially worse than the headline: write it as a
-question and not as a verdict -- conditioning on one feature also conditions on everything
-correlated with it, so a segment selected on a delinquency count is also a segment of near-constant
-delinquency history, and what a developer is being asked is what the model discriminates on inside
-that segment rather than to accept that the model is defective there. Cite the slice's own value,
-the headline it is compared with and the bound the comparison was made against.
-If there is genuinely nothing, write one sentence under the heading saying so. Never write
-the word finding about an open item."""
+rule but that a developer should still answer for. The open items are the ones listed for you at
+the end of this prompt and no others: one per line, in the order given, each carrying the citation
+of the artifact it rests on and each naming an owner -- write "model developer" unless the item
+names someone else. Do not compose an open item of your own and do not leave one of them out.
+Write each as a question and not as a verdict -- conditioning on one feature also conditions on
+everything correlated with it, so a segment selected on a delinquency count is also a segment of
+near-constant delinquency history, and what a developer is being asked is what the model
+discriminates on inside that segment rather than to accept that the model is defective there.
+Cite the observation's own value, what it is compared with and the bound the comparison was made
+against.
+Where no open item is listed for you, write one sentence under the heading saying there is none.
+Never write the word finding about an open item."""
 
 _MONITORING_BRIEF = """\
 Recommend ongoing monitoring: which quantities to track, at what frequency, and against which

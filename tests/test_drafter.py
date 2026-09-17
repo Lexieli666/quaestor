@@ -15,7 +15,14 @@ import pytest
 
 from quaestor.artifacts import ArtifactKind, ArtifactStore
 from quaestor.errors import LLMOutputError
-from quaestor.findings import DefectClass, Finding, FindingCandidate, Severity
+from quaestor.findings import (
+    DefectClass,
+    Finding,
+    FindingCandidate,
+    OpenItem,
+    OpenItemKind,
+    Severity,
+)
 from quaestor.llm import FakeLLM
 from quaestor.report.drafter import (
     DRAFT_PURPOSE,
@@ -404,3 +411,49 @@ def test_the_pipeline_hands_the_findings_to_the_summary_and_to_section_six_only(
     given = {section for section, value in inputs.items() if value.findings}
     assert given == set(_SECTIONS_GIVEN_FINDINGS)
     assert given == {ReportSection.summary, ReportSection.findings}
+
+
+# --- Phase 12 pre-flight: the open items are a list, not a kind of thing (D-173) ----------------
+
+
+def _open_item(name: str = "orig_ltv") -> OpenItem:
+    """One minted sign disagreement, as section 6 is handed it."""
+    return OpenItem(
+        kind=OpenItemKind.sign_disagreement,
+        subject=name,
+        artifacts=[
+            f"sign_check.{name}.agrees",
+            f"sign_check.{name}.coef_sign",
+            f"sign_check.{name}.univariate_direction",
+        ],
+        bound=f"sign_check.{name}.univariate_direction",
+        detail=f"the fitted coefficient on `{name}` carries sign -1 where its direction is 1",
+    )
+
+
+def test_section_six_is_handed_its_open_items_as_a_closed_list() -> None:
+    """The shape D-156 gave the findings list: the section is given the list, not the criterion."""
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.findings), items=[_open_item()])
+    assert "minted by rule from this run's artifacts" in prompt
+    assert "there are no others" in prompt
+    assert "the fitted coefficient on `orig_ltv`" in prompt
+    assert "  artifacts: sign_check.orig_ltv.agrees, sign_check.orig_ltv.coef_sign," in prompt
+    assert "  read against: sign_check.orig_ltv.univariate_direction" in prompt
+    assert "  owner: model developer" in prompt
+
+
+def test_a_section_six_prompt_with_no_open_item_is_told_to_compose_none() -> None:
+    """A run that minted nothing is a run whose section 6 says so in one sentence."""
+    prompt = drafter(FakeLLM()).prompt(brief_for(ReportSection.findings))
+    assert "No open item was minted by rule from this run's artifacts." in prompt
+    assert "compose none of your own" in prompt
+
+
+def test_no_other_section_is_handed_the_open_items() -> None:
+    """Section 6 writes them; a second section writing them is D-096's two accounts again."""
+    for section in ReportSection:
+        prompt = drafter(FakeLLM()).prompt(brief_for(section), items=[_open_item()])
+        if section is ReportSection.findings:
+            assert "the fitted coefficient on `orig_ltv`" in prompt
+        else:
+            assert "the fitted coefficient on `orig_ltv`" not in prompt, section

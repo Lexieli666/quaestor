@@ -23,6 +23,23 @@ run that was not committed.
 
 ### Added
 
+- **A quantity is a digit, a comparison names its kind, and section 6's open items are minted by a
+  rule.** Three bullets join `DRAFT_INSTRUCTION`: a quantity goes in digits with its citation and
+  never in words, no ratio or difference is computed that is not itself an artifact, and a
+  comparison across two populations says whether it is the difference or the ratio. Two of the
+  three are enforced by nothing downstream and the prompt's own docstring now says so rather than
+  claiming every rule has a checker behind it (**D-172**). Beside them,
+  `quaestor.findings.open_items` mints `### Open items` from three families a tool already stored
+  against a bound that tool already stored — a sub-population's AUC gap and share, a fitted sign
+  against its univariate direction, and a feature-vector overlap the within-train duplicate share
+  explains — and section 6 is handed the list rather than told what kind of thing might qualify
+  (**D-173**). Run over the committed real-MSR excerpt run, the rule mints that run's own **three**
+  sub-populations by name and **three** sign disagreements — `orig_ltv`, `sato`, `season_sin` —
+  that its store records and its section 6 never mentions. `eval/score.py` will import the same
+  function; no `open_items` block was added to `findings.json`, because that is a report-schema
+  change after Phase 1. Both `--synthetic --llm fake` validates are unchanged at `{E1 low}` and
+  `{}` and `examples/golden_report/` is untouched.
+
 - **A `C1` finding carries the decile table of every split it fired on, and every sub-population
   carries its relative calibration gap.** `_calibration_rule` opens each firing split's candidate
   with `calibration.<split>`, so on the real `msr_prepayment` panel F-001's evidence goes from

@@ -381,9 +381,9 @@
       - e042774c
       section: conceptual_soundness
       candidates_merged: 1
-    prompt_bytes: 21758
+    prompt_bytes: 23272
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: 1c56fd2d5e0d30c8
+    prompt_sha256: afee6dbc101dbb65
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -401,7 +401,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.49
+    max_cost_usd: 0.51
     max_latency_ms: 480000.0
   snapshot: scores
   tags:
@@ -926,9 +926,9 @@
       section_id: IV
       heading: Model Development, Implementation, and Use
     findings: []
-    prompt_bytes: 28323
+    prompt_bytes: 29837
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: af74bfa96de418f5
+    prompt_sha256: 94bb3ebb05625bf3
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -946,7 +946,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.8
+    max_cost_usd: 0.82
     max_latency_ms: 480000.0
   snapshot: scores
   tags:
@@ -1508,9 +1508,9 @@
       section_id: V.1.c
       heading: Outcomes Analysis
     findings: []
-    prompt_bytes: 34228
+    prompt_bytes: 35742
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: afd892c0ed52254f
+    prompt_sha256: 432c87cdfe20f7a0
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -1528,7 +1528,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.82
+    max_cost_usd: 0.84
     max_latency_ms: 480000.0
   snapshot: scores
   tags:
@@ -2209,9 +2209,9 @@
       section_id: IV.1
       heading: Model Development and Implementation
     findings: []
-    prompt_bytes: 38748
+    prompt_bytes: 40262
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: 13d9f328d4b96d63
+    prompt_sha256: b6619112a56f8306
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -2229,7 +2229,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.96
+    max_cost_usd: 0.98
     max_latency_ms: 480000.0
   snapshot: scores
   tags:
@@ -2561,9 +2561,9 @@
       section_id: V.2
       heading: Validation of Vendor and Other Third-Party Products
     findings: []
-    prompt_bytes: 22297
+    prompt_bytes: 23811
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: 2c2c693b87fefe00
+    prompt_sha256: f3d2de222cb3edf1
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -2581,7 +2581,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.42
+    max_cost_usd: 0.44
     max_latency_ms: 480000.0
   snapshot: scores
   tags:
@@ -2610,6 +2610,63 @@
       summary: auc on test, recomputed by quaestor
       value: 0.748
       citation: '[[art:5c6c2bfc:metrics.test.auc]]'
+    - name: sign_check.delinq_max_6m.agrees
+      hash8: c946359c
+      kind: scalar
+      summary: 1 when the fitted sign on delinq_max_6m agrees with its univariate direction, 0 when
+        it does not
+      value: 0
+      citation: '[[art:c946359c:sign_check.delinq_max_6m.agrees]]'
+    - name: sign_check.delinq_max_6m.coef_sign
+      hash8: a07d68ab
+      kind: scalar
+      summary: the sign of the fitted coefficient on delinq_max_6m
+      value: -1
+      citation: '[[art:a07d68ab:sign_check.delinq_max_6m.coef_sign]]'
+    - name: sign_check.delinq_max_6m.univariate_direction
+      hash8: b9088f4a
+      kind: scalar
+      summary: the sign of delinq_max_6m's own single-feature AUC on train minus 0.5
+      value: 1
+      citation: '[[art:b9088f4a:sign_check.delinq_max_6m.univariate_direction]]'
+    - name: sign_check.limit_bal.agrees
+      hash8: 0278aad1
+      kind: scalar
+      summary: 1 when the fitted sign on limit_bal agrees with its univariate direction, 0 when it does
+        not
+      value: 0
+      citation: '[[art:0278aad1:sign_check.limit_bal.agrees]]'
+    - name: sign_check.limit_bal.coef_sign
+      hash8: 6af6aef2
+      kind: scalar
+      summary: the sign of the fitted coefficient on limit_bal
+      value: 1
+      citation: '[[art:6af6aef2:sign_check.limit_bal.coef_sign]]'
+    - name: sign_check.limit_bal.univariate_direction
+      hash8: 56d284d6
+      kind: scalar
+      summary: the sign of limit_bal's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:56d284d6:sign_check.limit_bal.univariate_direction]]'
+    - name: sign_check.pay_ratio_last.agrees
+      hash8: 79abee77
+      kind: scalar
+      summary: 1 when the fitted sign on pay_ratio_last agrees with its univariate direction, 0 when
+        it does not
+      value: 0
+      citation: '[[art:79abee77:sign_check.pay_ratio_last.agrees]]'
+    - name: sign_check.pay_ratio_last.coef_sign
+      hash8: f018263e
+      kind: scalar
+      summary: the sign of the fitted coefficient on pay_ratio_last
+      value: 1
+      citation: '[[art:f018263e:sign_check.pay_ratio_last.coef_sign]]'
+    - name: sign_check.pay_ratio_last.univariate_direction
+      hash8: f8e46d75
+      kind: scalar
+      summary: the sign of pay_ratio_last's own single-feature AUC on train minus 0.5
+      value: -1
+      citation: '[[art:f8e46d75:sign_check.pay_ratio_last.univariate_direction]]'
     - name: threshold.E1.delta_auc
       hash8: e042774c
       kind: scalar
@@ -2835,19 +2892,18 @@
       docs directory.
       Then close the section with the heading `### Open items`, written exactly like that on a line of
       its own, and under it the observations this validation made that are **not** defects under any
-      rule but that a developer should still answer for. One per line, each carrying the citation of
-      the artifact it rests on and each naming an owner -- write "model developer" unless the artifacts
-      name someone else. A coefficient whose fitted sign disagrees with its univariate direction, and a
-      share of test rows repeating a training feature vector that the within-train duplicate share
-      explains, are both open items rather than findings, and are the kind of thing this subsection is
-      for. So is a follow-up analysis marked below as materially worse than the headline: write it as a
-      question and not as a verdict -- conditioning on one feature also conditions on everything
-      correlated with it, so a segment selected on a delinquency count is also a segment of near-constant
-      delinquency history, and what a developer is being asked is what the model discriminates on inside
-      that segment rather than to accept that the model is defective there. Cite the slice's own value,
-      the headline it is compared with and the bound the comparison was made against.
-      If there is genuinely nothing, write one sentence under the heading saying so. Never write
-      the word finding about an open item.
+      rule but that a developer should still answer for. The open items are the ones listed for you at
+      the end of this prompt and no others: one per line, in the order given, each carrying the citation
+      of the artifact it rests on and each naming an owner -- write "model developer" unless the item
+      names someone else. Do not compose an open item of your own and do not leave one of them out.
+      Write each as a question and not as a verdict -- conditioning on one feature also conditions on
+      everything correlated with it, so a segment selected on a delinquency count is also a segment of
+      near-constant delinquency history, and what a developer is being asked is what the model
+      discriminates on inside that segment rather than to accept that the model is defective there.
+      Cite the observation's own value, what it is compared with and the bound the comparison was made
+      against.
+      Where no open item is listed for you, write one sentence under the heading saying there is none.
+      Never write the word finding about an open item.
     spans:
     - doc: SR26-2
       section_id: VI.3
@@ -2885,9 +2941,9 @@
       - e042774c
       section: conceptual_soundness
       candidates_merged: 1
-    prompt_bytes: 22296
+    prompt_bytes: 26248
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: 2747cbbb12cc5043
+    prompt_sha256: 7a3ac7cb4741a56d
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -2905,7 +2961,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.34
+    max_cost_usd: 0.39
     max_latency_ms: 480000.0
   snapshot: scores
   tags:
@@ -3255,9 +3311,9 @@
       section_id: V.1.c
       heading: Outcomes Analysis
     findings: []
-    prompt_bytes: 25846
+    prompt_bytes: 27360
     rubric_sha256: 9aab524960c01a07
-    prompt_sha256: 96677de5b67be6cd
+    prompt_sha256: ba8160a2ff54bc89
   assertions:
   - type: schema_valid
     schema_file: tests/probatio/schemas/drafted_section.json
@@ -3275,7 +3331,7 @@
     rubric: grounding
     threshold: 1.0
   budget:
-    max_cost_usd: 0.56
+    max_cost_usd: 0.58
     max_latency_ms: 480000.0
   snapshot: scores
   tags:

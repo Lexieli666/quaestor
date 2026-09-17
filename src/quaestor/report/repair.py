@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Final, NamedTuple
 
-from ..findings import Finding, FindingCandidate
+from ..findings import Finding, FindingCandidate, OpenItem
 from ..trace import EventType, TraceWriter
 from ..verifier.claim import ClaimStatus, VerifiedClaim
 from ..verifier.claims_doc import Repair, RepairSide
@@ -128,6 +128,7 @@ class DraftInputs:
         candidates: The candidates raised on its material.
         findings: The findings section 6 must write about.
         follow_ups: The bounded loop's executed steps this section is asked to report (D-101).
+        items: The open items minted for this run, which section 6 writes out (D-173).
     """
 
     artifacts: Sequence[ArtifactBrief] = ()
@@ -135,6 +136,7 @@ class DraftInputs:
     candidates: Sequence[FindingCandidate] = ()
     findings: Sequence[Finding] = ()
     follow_ups: Sequence[FollowUp] = ()
+    items: Sequence[OpenItem] = ()
 
 
 @dataclass
@@ -452,6 +454,7 @@ def repair_sections(
                 candidates=given.candidates,
                 findings=given.findings,
                 follow_ups=given.follow_ups,
+                items=given.items,
                 previous=draft.markdown,
                 problems=problems,
             )

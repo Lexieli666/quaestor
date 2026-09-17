@@ -51,7 +51,9 @@ from .findings import (
     Finding,
     FindingCandidate,
     FindingsDocument,
+    OpenItem,
     Severity,
+    open_items,
 )
 from .hashing import stable_hash
 from .llm.base import LLM
@@ -76,7 +78,7 @@ from .report.sections import (
     sections_for_follow_up,
 )
 from .tools import ToolContext, ToolResult, default_registry, guidance_name
-from .tools.thresholds import SLICE_GAP_BOUND, SLICE_SHARE_FLOOR, Thresholds
+from .tools.thresholds import Thresholds
 from .trace import EventType, TraceEvent, TraceReader, TraceWriter
 from .verifier.claim import Claim, VerifiedClaim
 from .verifier.claims_doc import ClaimsDocument
@@ -485,16 +487,22 @@ def _draft_inputs(
     spans: Mapping[ReportSection, list[GuidanceSpan]],
     findings: Sequence[Finding],
     follow_ups: Mapping[ReportSection, list[FollowUp]] | None = None,
+    items: Sequence[OpenItem] = (),
 ) -> dict[ReportSection, DraftInputs]:
-    """Assemble, per section, everything the drafter is allowed to see."""
+    """Assemble, per section, everything the drafter is allowed to see.
+
+    Section 6's artifact list is the one that is not a selection: it carries every artifact its
+    findings name as evidence and every artifact its open items rest on, because a section asked
+    to write a sentence about a number it may not cite is a section asked for an unsupported
+    claim. The open items' names come from the minting rule rather than from the loop's steps
+    (D-173): the sign disagreements and the feature overlap are in no step's artifact list, and
+    before this they were in no section-6 prompt either.
+    """
     assigned = dict(follow_ups or {})
     evidence_names = sorted(
         {store.get(digest).name for finding in findings for digest in finding.evidence}
     )
-    open_item_names = sorted(
-        {name for item in assigned.get(ReportSection.findings, []) for name in item.artifacts}
-        | ({SLICE_GAP_BOUND, SLICE_SHARE_FLOOR} if ReportSection.findings in assigned else set())
-    )
+    open_item_names = sorted({name for item in items for name in item.artifacts})
     inputs: dict[ReportSection, DraftInputs] = {}
     for brief in briefs:
         extra: Sequence[str] = ()
@@ -507,6 +515,7 @@ def _draft_inputs(
             candidates=candidates_by_section.get(brief.section, []),
             findings=list(findings) if brief.section in _SECTIONS_GIVEN_FINDINGS else [],
             follow_ups=assigned.get(brief.section, []),
+            items=list(items) if brief.section is ReportSection.findings else [],
         )
     return inputs
 
@@ -824,8 +833,9 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
     from .report.drafter import merge_candidates  # noqa: PLC0415 - one caller, one import
 
     follow_ups = _follow_ups(store, briefs, executed)
+    items = open_items(store, ctx.thresholds.values)
     inputs = _draft_inputs(
-        store, briefs, merge_candidates(candidates), spans, document.findings, follow_ups
+        store, briefs, merge_candidates(candidates), spans, document.findings, follow_ups, items
     )
     drafter = Drafter(
         llm,
@@ -871,6 +881,7 @@ def validate(  # noqa: PLR0913, PLR0915 - the pipeline's steps are its signature
                 candidates=inputs[brief.section].candidates,
                 findings=inputs[brief.section].findings,
                 follow_ups=inputs[brief.section].follow_ups,
+                items=inputs[brief.section].items,
             )
             for brief in briefs
         }

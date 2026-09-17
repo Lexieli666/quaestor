@@ -1652,3 +1652,47 @@ precision for a parameter the data never identified is worse than printing nothi
 cell cannot clear the precision gate, which is the right answer. A regime whose *varying* features
 still leave the information matrix singular is refused by name: that one is a real degeneracy and
 regularising it away would be inventing the number the whole rule depends on.
+
+## Phase 12 pre-flight — Two rules the machinery cannot check, and an open item that is minted
+
+Three bullets were added to `DRAFT_INSTRUCTION` and one of them is not like the other two. **A
+quantity goes in digits with its citation** is enforced once it is obeyed: a number in digits is
+tokenized as a claim and is either cited and matched or counted against the report, and "roughly
+half", "twice" and "six times" are precisely the quantities that escape both. **Do not do
+arithmetic** and **say which comparison you are making** are enforced by nothing, and the
+docstring under `DRAFT_INSTRUCTION` was rewritten to say so rather than left to read as though
+every rule in the prompt had a checker behind it. A cited number that happens to be the quotient
+of two others is indistinguishable, downstream, from a number read off an artifact; and whether a
+paragraph concluded that two populations are alike is a judgement about a sentence, not about any
+number in it. The rejected alternative was to drop the two rules for being uncheckable, which
+leaves the drafting failures they answer — a derived "roughly six times", and two absolute gaps of
+0.009 and 0.008 read as alike where the ratios are 3.8x and 1.5x — with nowhere to be answered.
+The place to answer a drafting failure is the drafting instruction, and the honest thing is to
+label it.
+
+**Open items are minted by a rule with one home.** `quaestor.findings.open_items` reads three
+families a tool already stored against a bound that tool already stored — a sub-population's
+`auc_gap` and `share` against `threshold.O1.slice_auc_gap` and `threshold.O1.slice_min_share`, the
+`sign_check.*` triple, and `leakage.overlap.features` between `threshold.L2.overlap` and
+`threshold.L2.overlap.features_effective` — and section 6 is handed the list rather than told what
+kind of thing might qualify. It lives in `findings.py` because an open item is a sibling of a
+finding and that module is the one both the report drafter and `eval/score.py` can import; the two
+threshold modules are imported inside the functions that need them, because `quaestor.tools`
+imports `findings` for `FindingCandidate` and a module-level import is a cycle. Measured on the
+committed real-MSR run: the rule mints the run's own three sub-populations, by name, and three
+sign disagreements — `orig_ltv`, `sato`, `season_sin` — that the run's store records and its
+section 6 never mentions, on a coefficient sign that is one of D-096's own two examples.
+
+Three alternatives were rejected. **Writing the minted list into `findings.json`** as an
+`open_items` block beside `findings` is a report-schema change after Phase 1, which `CLAUDE.md`
+makes a stop-and-ask, and nothing needs it: `eval/score.py` imports the same function and re-reads
+the store. **Promoting an open item to an `info` finding** is D-096's own rejected alternative and
+would put a helpful observation in the study's precision denominator. **Leaving the examples in
+the brief and adding the sign check to them** is the shape D-156 and D-165 already removed twice:
+a section told what might qualify decides for itself, and the excerpt run is the measurement of
+what it decides. Section 6 is no longer given the bounded loop's steps either — a material step
+reached it as a follow-up block and now reaches it as one of the minted items, so the list is one
+object and not two. The slice rule the loop asked for is joined onto the item it produced, on the
+artifacts they share, because the store knows a sub-population by an artifact stem and the drafter
+is forbidden to write a logical name in the prose; guessing the expression back out of the slug
+would be wrong on any column whose own name ends in `_low`.
