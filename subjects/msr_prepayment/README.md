@@ -259,6 +259,7 @@ Seed 20260901, `--synthetic 2000`, this machine (Python 3.12.14, scikit-learn 1.
 | challenger − champion AUC | **−0.0415** (the `E1` threshold is +0.03, so no finding) |
 | baseline hazard | 0.00088 at age 0, peaking at 0.00329 at age 43, 0.00301 at age 60 |
 | projection book | 511 loans, 96.6 million of balance, as of 2024-01 |
+| base servicing value | 1,596,815 |
 | value change at −300bp / +300bp | **−1,297,986** / **+168,055**; monotone across all seven shocks; convexity −1,129,932 |
 | wall-clock, through `run_model` | about 3.1 s (subprocess 2.4 s) |
 
@@ -271,6 +272,12 @@ as train-against-test, and the other comparisons are reported and not tested
 (`DECISIONS.md` D-046). And **the fitted `burnout` coefficient is +0.079 where the process's is
 −0.18**: burnout is a near-monotone function of loan age, whose effect the spline absorbs, so its
 own coefficient is weakly identified. A validator should say so; it is not a defect.
+
+**The −81.29% this book loses at −300bp is not comparable with the −11.35% the real sample's book
+loses at the same shock**, and the difference is the book rather than the machinery: the synthetic
+book sits much closer to the money at its valuation month than the real one does, so the same
+parallel fall moves it much further in. `DECISIONS.md` **D-170** measures that gap, decomposes it
+and records why the generating process is **not** recalibrated to the real fit.
 
 ## Measured on the real sample
 

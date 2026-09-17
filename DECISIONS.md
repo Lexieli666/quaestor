@@ -3896,6 +3896,20 @@ here and recorded.
   `msr__L2__contamination` and `msr__S1__vintage_shift` each raise an `R1` on one weak coefficient
   (`burnout`, `sato`), which D-047 already records as sitting close to the seed-to-seed noise on
   this subject.
+- **Correction, 2026-09-17 (the recalibration-thread close):** that last sentence is false on HEAD,
+  and has been since **D-164**. The precision gate D-164 added to `R1` — `|coef / s.e.|` at least
+  `threshold.R1.sign_flip_z`, 2.0, in **every** regime — removed both of those collateral `R1`s,
+  and D-164's own entry names these two variants as the cases the rule was decided for. The
+  coefficients are exactly the ones this paragraph calls weak: on `msr__L2__contamination`,
+  `burnout` is **+0.222939081** falling at **z +1.97** and **−0.048147452** rising at **z −0.17**;
+  on `msr__S1__vintage_shift`, `sato` is **−0.062575844** falling at **z −0.70** and
+  **+0.210835407** rising at **z +1.11**. Each clears the 0.05 materiality gate in both regimes and
+  none of the four reaches |z| 2. Re-measured at `666a41b` on this machine (Python 3.12.14,
+  scikit-learn 1.9.0), `--synthetic 2000` through `run_model` and the `rules_only` configuration,
+  `--llm fake`, no model call: `msr__L2__contamination` raises **`{L2 medium}`** and
+  `msr__S1__vintage_shift` raises **`{T1 high, S1 medium, C1 medium}`**. The rest of the collateral
+  paragraph and the whole of the table above are unchanged, and the original sentence is left as it
+  was written on the pattern of D-160.
 - **Why:** These are the numbers the study's recall is measured against and the numbers a later
   change would first show up in, so they are recorded here rather than left in a test's
   assertions, on the pattern D-047 and D-053 set. The two thin margins are named because a recipe
@@ -5734,3 +5748,106 @@ here and recorded.
   medium over the same nine evidence keys at 1.0000 over 51 claims — and
   `pytest tests/probatio --cassette=replay` still passes 40 with every snapshot `unchanged` and
   zero provider calls, because this touches no prompt.
+
+## D-170. The synthetic MSR process is not recalibrated to the real fit, and the thread's premise was backwards
+
+- **Date:** 2026-09-17 (Phase 9 follow-up, decided by the human in Cowork)
+- **Q:** The handoff's §6.1 asks for the synthetic MSR process to be recalibrated to the real
+  Freddie fit, on the grounds that "the synthetic projection loses only 1.3% of servicing value at
+  −300 bp where a real MSR loses about a third, so the incentive effect is too weak". Should it be?
+- **A:** **No, and the premise is backwards.** Measured, the synthetic book loses **81.29%** of its
+  servicing value at −300 bp — **−1,297,986** on a base of **1,596,815**, the figure D-047 and the
+  subject's `README.md` have carried since Phase 4 — where the real panel loses **11.35%**
+  (**−1,077,724** of **9,498,507**, `eval/results/first-live/msr/` and
+  `subjects/msr_prepayment/artifacts/real/projection.json`). The synthetic projection is **7.2×
+  more responsive** than the real one, not tamer. The **1.3%** of §6.1 predates **D-040**'s rate
+  ramp, which is the change that moved the book out of the money and the convexity to negative;
+  nothing since Phase 4 has reported it.
+
+  **The incentive coefficient is the strong axis too, not the weak one.** The synthetic champion
+  recovers **1.2527** per percentage point of incentive — standardised **1.2534** over an
+  `sd(incentive)` of **1.00055** on its training split, against the generating process's
+  `beta_incentive` of **1.15** — where the real champion recovers **0.65626**, its standardised
+  **0.3952** over an `sd(incentive)` of **0.60214**. That is a factor of **1.91**, and
+  **1.17×–1.58×** on a like-for-like retained-feature set, so the synthetic responds more under
+  every comparison made.
+
+  **The gap decomposes multiplicatively, and moneyness is the larger half.** Of the 69.94 points
+  between −81.29% and −11.35%: matching the real book's moneyness alone takes the synthetic to
+  **−38.97%** (**60.5%** of the gap), matching the coefficient alone to **−49.25%** (**45.8%**),
+  and both together to **−21.61%** (**85.3%**). The residual **10.26** points is the real book's
+  tighter incentive dispersion — p10-to-p90 of **1.25 pp** against **2.00** — its mean loan age of
+  **102.6** months against **54.6**, and its further-amortised balances.
+
+  **The mechanism is the book's moneyness at the valuation month.** Mean first-projected-month
+  incentive is **−2.293** on the real book and **−0.717** on the synthetic one, so the same −300 bp
+  lands the synthetic book deep in the money — **100%** of loans above 0 and **97.8%** above 1 pp —
+  and the real one barely at it, **91.4%** above 0 and **29.8%** above 1 pp. The base hazard the
+  shock multiplies is also **3.55×** higher on the synthetic side to begin with. **The declared
+  machinery is shared and is not the difference**: horizon 180 months, servicing fee 25 bp,
+  discount 0.08 and the same seven-point shock grid, through one code path on both panels (D-043).
+  The `turnover_floor` acts on the **generating process** and not on the projection, which rolls
+  the fitted champion forward; at +300 bp both projections run below it.
+
+  **One apparent disagreement with D-040 and the subject `README.md`, reconciled rather than left.**
+  Both describe the ramp as leaving the surviving book "about two points out of the money", which
+  reads as a level and is not one: the measured mean first-projected-month incentive is **−0.717**.
+  Two points is the size of the **move**. Re-measured offline at the declared seed, the same book's
+  mean first-projected-month incentive is **+1.288** with `rate_ramp_pp_per_year` set to zero and
+  **−0.717** at the declared 1.05 for two years — a move of **2.005** points, which is the quantity
+  D-040's own argument is about. Both readings agree the book is out of the money; the real book,
+  at −2.293, is further out, which is the whole of the mechanism above.
+
+  **And the knob §6.1 names cannot reach its target from either side.** Swept over
+  `beta_incentive ∈ [0.50, 2.30]`, the −300 bp response stays between **−47%** and **−83%** and is
+  **non-monotone**, peaking near **1.40**, because the intercept solve holds `target_smm` fixed and
+  a stronger incentive slope is paid for with a lower intercept. Nothing in that range comes near
+  −11.35%. The band on which the `{}` expectation of D-047 survives is recorded here because it is
+  a useful robustness statement about the control in its own right: **[0.80, 1.40]**, with the
+  shipped **1.15** near its middle, a **`C1`** below it — the out-of-time calibration slope crosses
+  the declared 1.20 — and an **`R1`** above **1.75**, on the **AUC-gap** arm at 0.109 and 0.169
+  against the 0.10 threshold, not on the sign-flip arm D-164 tightened.
+
+  **§6.1's second clause is answered the same way.** It reports that the synthetic's fitted
+  `burnout` came out **+0.079** against the process's **−0.18** (D-047). The **real** champion's
+  fitted `burnout` is **+0.0008253** — positive, against the same negative subject-matter prior,
+  on the real panel. The synthetic reproduces the real panel's behaviour on exactly the point the
+  thread complained about, so there is nothing to calibrate there either.
+- **Why:** D-047's own argument for having a second control is that **two clean controls that
+  behave differently are worth more than two that behave the same**. This subject's job is to be a
+  clean control with a known generating process and a detectable seeded defect, not a replica of
+  one Freddie Mac sample; the replica is what `--data` mode is for, and D-161 already records what
+  each control measures in each data mode.
+
+  Against no benefit, recalibrating costs. It rewrites the whole `A` paragraph of **D-047**,
+  **D-053**'s `msr_prepayment` paragraph, five rows of **D-136**'s table and its collateral
+  paragraph, **D-044**, **D-161** and **D-164**; the subject `README.md`'s measured table; four
+  lines of `PROGRESS.md`; `CHANGELOG.md`; two lines of `docs/DESIGN.md`; `eval/taxonomy.yaml`'s
+  control baseline; and **8 tests across four files with about 24 pinned assertions**. It makes the
+  clean control **stop being clean** — at the literal recalibration the control raises `{C1
+  medium}`, on an out-of-time calibration slope of **1.2227** against the declared 1.20 — which
+  would put into D-161 a baseline **chosen** rather than discovered, and choosing the arithmetic
+  that makes a control come out the way one wants is what **D-035**, **D-046** and **D-161** each
+  refuse. And it changes four of the seven MSR rows' **collateral** finding sets, with
+  `msr__C1__oversampled_hazard` gaining an **`X1` at high** on a projection convexity that flips
+  from **−541,832** to **+325,859** — a finding `04` §4 scores. Every `msr__*` recipe does still
+  fire its own class at severity ≥ medium under the probe, so detection is not what breaks; the
+  collateral is.
+
+  Rejected alternatives. **(i) Recalibrating through the rate path instead**, which is the larger
+  lever — **+157.63 bp** of extra ramp is worth **42** of the 70 points — refused for the same
+  reason, and because the ramp, the cut dates and the three vintages are **declarations** decided
+  before Phase 4 rather than free parameters; moving them to land a projection figure is the moved
+  floor of `T1` wearing a generator's clothes. **(ii) Recalibrating `beta_incentive`**, which is
+  what §6.1 asks for: it cannot reach the target at any value in the sweep, and the direction §6.1
+  proposes — *more* incentive response — is the wrong one. **(iii) Leaving the thread open**, which
+  leaves a stale number in the handoff for the next reader to act on, and is why this entry is long
+  enough to carry the arithmetic that closes it.
+
+  The working record is the diagnosis session of **2026-09-17**, whose report is
+  `~/code/quaestor-package/phase10-draft/msr-synthetic-recalibration-diagnosis-report.md` — outside
+  the repository, like every Cowork draft. Every figure above is that session's measurement,
+  reproduced there from `/tmp/msr_data` with all five `package.yaml` digests verified and from a
+  `/tmp` copy of the subject, **except** the two committed figures, the coefficient arithmetic, the
+  `beta_incentive` and `turnover_floor` readings and the D-040 reconciliation, which were
+  re-measured against this repository at `666a41b` while the entry was written.

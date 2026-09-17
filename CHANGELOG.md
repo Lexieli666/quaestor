@@ -43,6 +43,24 @@ run that was not committed.
 
 ### Changed
 
+- **The synthetic MSR process is not recalibrated to the real fit, and the thread asking for it is
+  closed on the measurement.** The premise was backwards: the synthetic book loses **81.29%** of its
+  servicing value at −300 bp (−1,297,986 of 1,596,815, in D-047 and the subject `README.md` since
+  Phase 4) where the real panel loses **11.35%** (−1,077,724 of 9,498,507), so the synthetic
+  projection is **7.2× more responsive**, not tamer; the 1.3% the thread quoted predates D-040's
+  rate ramp. The incentive coefficient runs the same way — 1.2527 per percentage point synthetic
+  against 0.65626 real — and the real champion's fitted `burnout` is **+0.0008253**, positive
+  against the same negative prior the thread complained about on the synthetic side. **D-170**
+  records the decomposition, the `beta_incentive` sweep and the band the `{}` expectation survives
+  on ([0.80, 1.40], the shipped 1.15 near its middle), and what recalibrating would cost — chiefly
+  a control that stops being clean and four of the seven MSR rows' collateral finding sets.
+  `subjects/msr_prepayment/README.md` gains the synthetic book's base servicing value and one
+  sentence saying the two projection figures are not comparable. **D-136** gains a dated correction:
+  its collateral paragraph's `R1`s on `msr__L2__contamination` and `msr__S1__vintage_shift` were
+  removed by D-164's precision gate, and re-measured offline at `666a41b` the two variants raise
+  `{L2 medium}` and `{T1 high, S1 medium, C1 medium}`. Documentation only; no code, subject, test or
+  evaluation file moves.
+
 - **`R1`'s sign-flip rule reads the flipping coefficient's precision as well as its size.** A
   feature now flips only when, in **every** regime, `|coef|` clears `threshold.R1.sign_flip_coef`
   (unchanged, 0.05) **and** `|coef / s.e.|` reaches the new `threshold.R1.sign_flip_z` (2.0). The
