@@ -19,9 +19,10 @@ The exclusion classes are D-015's six, in D-015's order: a renderer block or a `
 directive (nothing inside was written by a model), the hex characters and the logical name inside
 an artifact citation, a regulatory section id, inline code, a finding id, section and list
 numbering -- including a cross-reference to a section of this report written in words, "Section 4"
-(D-112) -- and the package version string, plus two added since: a reference to an entry of
-this project's own decision log, ``D-050`` (D-116), and an integer that labels a bin rather than
-measuring one, ``decile 1`` (D-166). Masking writes spaces over each region rather
+(D-112) -- and the package version string, plus three added since: a reference to an entry of
+this project's own decision log, ``D-050`` (D-116), an integer that labels a bin rather than
+measuring one, ``decile 1`` (D-166), and the digits of an algorithm or standard name, ``SHA-256``
+(D-169). Masking writes spaces over each region rather
 than deleting it, so every offset a caller computes still points where it did in the original text.
 """
 
@@ -158,6 +159,35 @@ _REG_SECTION_ID_RE: Final = re.compile(
 )
 """A section id written in prose rather than inside a citation: ``V.1.c``, ``SR 11-7``."""
 
+_ALGORITHM_NAME_RE: Final = re.compile(r"\b(?!SR-|OCC-)[A-Z]{2,}-\d{1,4}\b")
+"""The digits of an **algorithm or standard name**: ``SHA-256``, ``MD-5``, ``ISO-8601``.
+
+Section 3 of the second live ``msr_prepayment`` run wrote "verified each one against its recorded
+SHA-256 digest before any split was read", and the ``256`` was tokenised as a claim of value 256.0,
+flagged unsupported -- no artifact holds it, because it names a hash function -- and removed by a
+repair round whose replacement, "its recorded cryptographic digest", is honest and slightly worse
+prose. It was the run's only pre-repair failure and it cost a report that was otherwise 298 of 298
+(DECISIONS D-169).
+
+The renderer's own caption two lines below writes ``SHA-256`` as well and was never a claim,
+because it is inside a renderer block: the same near-miss that hid :data:`_LABEL_NUMBER_RE`'s
+``decile 1`` until a drafter wrote the phrase in its own prose. This is the fourth class of this
+shape after D-112's section reference, D-116's ``D-050`` and D-166's bin label, and what the four
+have in common is an identifier whose digits a reader does not read as a measurement.
+
+The lookahead keeps a **regulator code** out of this class, so ``SR-11-7`` and ``OCC-2011-12`` are
+left for :data:`_REG_SECTION_ID_RE` -- which is also why the mask runs after it, so ``SR 11-7`` is
+already blanked as a ``regulatory_section_id`` before this pattern sees the line. Neither hyphenated
+spelling is one the corpus or the drafter produces; whether the reg pattern should learn them is its
+own question and not this one.
+
+Bounded so that it cannot eat a measurement. The letters are two or more, upper case and a whole
+word, so a shock label keeps its number: "a shock of -300 bp" and "scenario -300" are untouched,
+and so is the lower-case ``bp-300``. The integer is one to four digits and a whole word, so
+``SHA-25612`` does not match. An upper-case ``BP-300`` **would** be masked, which is the one place
+the shape rule over-reaches; nothing in this pipeline writes it, and the alternative is a whitelist
+of algorithm names that a drafter would fall off the first time it reached for a fifth one."""
+
 _PATTERN_ORDER: Final = (
     "renderer_block",
     "section_number",
@@ -165,6 +195,7 @@ _PATTERN_ORDER: Final = (
     "inline_code",
     "citation_hash",
     "regulatory_section_id",
+    "algorithm_name",
     "finding_id",
     "decisions_reference",
     "package_version",
@@ -420,5 +451,6 @@ def _masked(markdown: str, package_version: str | None) -> tuple[str, list[Exclu
     text = _mask(text, _SECTION_REFERENCE_RE, "section_number", found)
     text = _mask(text, _LABEL_NUMBER_RE, "label_number", found)
     text = _mask(text, _REG_SECTION_ID_RE, "regulatory_section_id", found)
+    text = _mask(text, _ALGORITHM_NAME_RE, "algorithm_name", found)
     text = _mask_version(text, package_version, found)
     return text, found

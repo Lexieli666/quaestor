@@ -5653,3 +5653,84 @@ here and recorded.
   and none in §2. The suite goes 1591 → 1613. `docs/EVALUATION.md` carries the dated attempt-2
   entry with the per-section pre-repair counts and the loop's loan-age result; `PROGRESS.md` ticks
   Phase 9 closed on both halves.
+
+## D-169. An algorithm name is not a claim: the `algorithm_name` exclusion class
+
+- **Date:** 2026-09-17 (Phase 9 follow-up 8)
+- **Q:** Section 3 of the MSR excerpt run wrote "The run resolved the declared input files and
+  verified each one against its recorded **SHA-256** digest before any split was read." The `256`
+  went into grounding precision's denominator as claim `7a2768dcbeb4fed3`, came back `unsupported`
+  — nothing in the store holds it, and nothing could, because it names a hash function — and the
+  scoped repair round removed it, leaving "its recorded **cryptographic** digest". It is the run's
+  **only** pre-repair failure: 297 of 298 rather than 298 of 298, and 0.9966 rather than 1.0000.
+  Is the fix an exclusion class, and where does it stop?
+- **A:** An exclusion class, `algorithm_name`, beside `regulatory_section_id`, for a hyphenated
+  identifier of the form `[A-Z]{2,}-\d{1,4}` whose letters are **not** a regulator code the
+  existing class already covers. `SHA-256`, `SHA-3`, `MD-5`, `ISO-8601` and `RFC-8259` mask;
+  `SR 11-7` and `OCC 2011-12` keep their existing class, which the mask order guarantees as well as
+  the lookahead — `_ALGORITHM_NAME_RE` runs **after** `_REG_SECTION_ID_RE`, so a regulator code is
+  already blanked before this pattern sees the line. It is added to `_PATTERN_ORDER` after
+  `regulatory_section_id`, so `claims.json` and Appendix A list it in one place across runs.
+
+  Bounded so that it cannot eat a measurement, which is the failure mode an exclusion list is most
+  dangerous for, because it lowers the denominator invisibly. The letters are two or more, upper
+  case and a whole word, so a **shock label keeps its number**: `a shock of -300 bp` and
+  `scenario -300` both tokenise as -300, and the lower-case `bp-300` tokenises as 300. That last
+  case keeps its digits and loses its sign because the minus follows a word character and
+  `NUMERIC_TOKEN_RE`'s lookbehind refuses it — the tokenizer's long-standing reading of a hyphen
+  inside an identifier, not something this class introduces, and the test says so. The integer is
+  one to four digits and a whole word, so `SHA-25612` does not match.
+
+  **The one place the shape rule over-reaches, stated rather than hidden:** an upper-case `BP-300`
+  would be masked. Nothing in this pipeline writes it — the renderer's shock column is `shock_bp`
+  with a bare integer, and both live runs of the hazard subject wrote the shock as a bare number in
+  prose — and the alternative is a whitelist of algorithm names, which a drafter falls off the first
+  time it reaches for a fifth one. **The second, also stated:** `SR-11-7`, hyphenated where the
+  corpus writes `SR 11-7`, is refused by the lookahead and is not matched by `_REG_SECTION_ID_RE`
+  either, so its `11` and `7` would both be eligible. No committed corpus chunk, subject, fixture
+  or report writes that spelling; whether the **regulatory** pattern should learn it is that
+  pattern's question and deliberately not answered here, because answering it inside this class
+  would file a regulator code under "algorithm name".
+- **Why:** This is the **fourth** class of one shape, and naming the shape is most of the value of
+  the entry. D-112 excluded a section cross-reference written in words, D-116 a reference to this
+  project's own decision log, D-166 an integer that labels a bin, and this one the digits of an
+  algorithm or standard name. What the four have in common is an **identifier whose digits a reader
+  does not read as a measurement** — and in all four the pipeline put the number in the denominator,
+  failed to verify it, and repaired prose that was already true. The repair is the real cost: "its
+  recorded cryptographic digest" is honest and worse, exactly as D-166's "the first decile" was, and
+  a validation report that may not name the hash function it checked against is a report our own
+  tokenizer has made vaguer.
+
+  The near-miss is worth recording because it is the same one D-166 had. The renderer's own caption
+  two lines below the drafted sentence reads "each verified against its SHA-256 before the run", and
+  it was never a claim — it is inside a renderer block, and `drafted_prose` removes those before the
+  model ever sees them. So the class was invisible until a drafter wrote the phrase in its **own**
+  prose, which is the third time that ordering has hidden a class from six or seven live runs.
+
+  Rejected alternatives. Widening `_REG_SECTION_ID_RE` to take any `[A-Z]{2,}-\d+`, which would file
+  `SHA-256` as a regulatory section id in `claims.json` and Appendix A and make the exclusion list
+  lie about why a number was dropped — the list is auditable or it is nothing. Telling the drafter
+  in `DRAFT_INSTRUCTION` not to name hash functions, which trades a true sentence for a prompt rule
+  and would not have helped the run that is already committed. Letting the claim stand and accepting
+  0.9966 as the honest figure: refused, because the number was never a claim, so 0.9966 is not a
+  measurement of the drafter's grounding but of our own tokenizer's reach — which is D-084's whole
+  argument for there being one definition of an eligible number. And a whitelist of the five names
+  above, refused for the reason given under the `BP-300` limitation: the shape is the rule, and a
+  list of five is a list that is wrong on the sixth.
+
+  **Not** retrofitted to the committed run. `eval/results/first-live/msr/` keeps its 0.9966, its
+  repair round and its "cryptographic digest", because the record is what the pipeline produced
+  (D-087, D-120, D-168). `tests/test_live_msr.py` asserts the run's figures as they are, and the
+  test below asserts the same sentence produces no claim under this build — the two together are
+  the before and after.
+- **Measured:** `tests/test_verifier_extract.py` gains five cases: the live sentence verbatim from
+  `claims.json`'s `pre_repair` record, which now yields zero claims with `SHA-256` listed under
+  `algorithm_name`; one case per family the class covers, so the shape rule cannot shrink silently;
+  `SR 11-7` and `OCC 2011-12` asserted to stay `regulatory_section_id` with no `algorithm_name`
+  entry at all; the three shock-label spellings, each keeping its number; and the bounds,
+  `SHA-25612`, `A-5` and `sha-256` all still claims. The suite goes 1613 → 1618. The golden report
+  is untouched, both `--synthetic --llm fake` validates and the real-panel `--data … --llm fake`
+  validate differ only in run id, timestamp and wall-clock — the real panel still raises one `C1` at
+  medium over the same nine evidence keys at 1.0000 over 51 claims — and
+  `pytest tests/probatio --cassette=replay` still passes 40 with every snapshot `unchanged` and
+  zero provider calls, because this touches no prompt.

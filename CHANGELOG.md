@@ -102,6 +102,26 @@ run that was not committed.
 
 ### Fixed
 
+- **An algorithm name is no longer a claim: the `algorithm_name` exclusion class.** Section 3 of the
+  second live `msr_prepayment` run — the one committed as the excerpt run — wrote "verified each one
+  against its recorded **SHA-256** digest before any split was read", and the `256` went into
+  grounding precision's denominator, came back `unsupported` (no artifact holds the name of a hash
+  function) and was removed by a repair round whose replacement, "its recorded cryptographic
+  digest", is honest and vaguer. It was the run's **only** pre-repair failure, so the report reads
+  0.9966 over 298 where it would otherwise read 1.0000 over 298. The pre-pass now excludes a
+  hyphenated identifier of the form `[A-Z]{2,}-\d{1,4}` whose letters are not a regulator code the
+  existing class already covers: `SHA-256`, `SHA-3`, `MD-5`, `ISO-8601` and `RFC-8259` mask, while
+  `SR 11-7` and `OCC 2011-12` keep their `regulatory_section_id` class — the new mask runs after the
+  regulatory one, so a regulator code is already blanked before this pattern sees the line. Bounded
+  so it cannot eat a measurement: the letters are upper case and a whole word, so a rate shock keeps
+  its number (`a shock of -300 bp`, `scenario -300`), and the integer is one to four digits, so
+  `SHA-25612` is still a claim. This is the fourth class of one shape after D-112's section
+  reference, D-116's `D-050` and D-166's bin label — an identifier whose digits a reader does not
+  read as a measurement — and the third to be hidden for several live runs because the renderer's
+  own caption writes the same token inside a renderer block, where it was never a claim. The
+  committed run keeps its 0.9966 and its repaired sentence: the record is what the pipeline produced
+  (D-169).
+
 - **Section 1 is handed the findings document, and stops being asked for a count.** The first live
   `msr_prepayment` run closed section 1 with "No findings were raised at any severity." directly
   under a scope table reading 0 / 1 / 0 / 0, three pages above the `F-001` section 6 wrote out in

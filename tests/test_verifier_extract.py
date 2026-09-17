@@ -574,3 +574,76 @@ def test_the_label_class_is_bounded_to_three_digits_and_a_whole_word() -> None:
     extraction = extract(SECTION, markdown, llm_returning())
     assert [claim.value for claim in extraction.claims] == [1000.0, 3.0, 4.0]
     assert not any(item.pattern == "label_number" for item in extraction.exclusions)
+
+
+# --- Phase 9 follow-up 8: an algorithm name is not a claim (D-169) ------------------------------
+
+
+def test_the_live_sentence_that_lost_a_claim_to_sha_256_now_produces_none() -> None:
+    """Section 3 of the MSR excerpt run, verbatim from `claims.json`'s `pre_repair` record.
+
+    `eval/results/first-live/msr/` carries this sentence as claim `7a2768dcbeb4fed3` at value
+    256.0, `unsupported`, the run's only pre-repair failure -- and the repair round removed the
+    number, so the committed report says "its recorded cryptographic digest" instead. Under this
+    build the sentence carries no claim at all, which is what it always carried.
+    """
+    markdown = (
+        "The run resolved the declared input files and verified each one against its recorded "
+        "SHA-256 digest before any split was read.\n"
+    )
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == []
+    patterns = {item.pattern: item.examples for item in extraction.exclusions}
+    assert patterns["algorithm_name"] == ["SHA-256"]
+
+
+def test_every_algorithm_and_standard_name_of_this_shape_is_excluded() -> None:
+    """One case per family the class is meant to cover, so the shape rule is pinned."""
+    for name in ("SHA-256", "SHA-3", "MD-5", "ISO-8601", "RFC-8259"):
+        markdown = f"The digest is a {name} value and nothing else.\n"
+        extraction = extract(SECTION, markdown, llm_returning())
+        assert [claim.value for claim in extraction.claims] == [], name
+        patterns = {item.pattern: item.examples for item in extraction.exclusions}
+        assert patterns["algorithm_name"] == [name], name
+
+
+def test_a_regulator_code_keeps_its_own_exclusion_class() -> None:
+    """`SR 11-7` is a section id and stays one: the new class may not take it over (D-169)."""
+    markdown = "Guidance SR 11-7 and bulletin OCC 2011-12 both apply here.\n"
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == []
+    patterns = {item.pattern: item.examples for item in extraction.exclusions}
+    assert patterns["regulatory_section_id"] == ["SR 11-7", "OCC 2011-12"]
+    assert "algorithm_name" not in patterns
+
+
+def test_a_rate_shock_label_keeps_its_number(store: ArtifactStore) -> None:
+    """The bound that matters for this subject: a shock is a measurement, not an identifier.
+
+    The hazard subject's section 5 reports a parallel grid whose ends are -300 and 300 basis
+    points, and every figure in it is an artifact this store holds. A class that swallowed a shock
+    label would remove the sensitivity section's claims from the denominator.
+
+    `bp-300` keeps its digits and loses its sign, at 300 rather than -300: the minus follows a word
+    character, so :data:`NUMERIC_TOKEN_RE`'s lookbehind refuses it. That is the tokenizer's
+    long-standing reading of a hyphen inside an identifier and not something this class changes;
+    what matters here is that the number is still a claim and still has to be cited.
+    """
+    citation = store.artifact("metrics.test.auc").citation()
+    for phrase, shock in (
+        ("a shock of -300 bp", -300.0),
+        ("scenario -300", -300.0),
+        ("the bp-300 leg", 300.0),
+    ):
+        markdown = f"Under {phrase} the reading is 0.748 {citation}.\n"
+        extraction = extract(SECTION, markdown, llm_returning())
+        assert [claim.value for claim in extraction.claims] == [shock, 0.748], phrase
+        assert not any(item.pattern == "algorithm_name" for item in extraction.exclusions), phrase
+
+
+def test_the_algorithm_class_is_bounded_to_four_digits_and_upper_case_letters() -> None:
+    """`SHA-25612` is no algorithm, a single letter is not the shape, and lower case is not it."""
+    markdown = "Neither SHA-25612 nor A-5 nor sha-256 is one of them.\n"
+    extraction = extract(SECTION, markdown, llm_returning())
+    assert [claim.value for claim in extraction.claims] == [25612.0, 5.0, 256.0]
+    assert not any(item.pattern == "algorithm_name" for item in extraction.exclusions)
