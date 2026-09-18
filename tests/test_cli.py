@@ -173,7 +173,7 @@ def test_a_package_with_no_documented_size_refuses_a_bare_synthetic(
         (["tool"], "the following arguments are required"),
         (["tool", "no_such_tool", "--pkg", "P", "--run-dir", "D"], "invalid choice"),
         (["corpus"], "the following arguments are required: ACTION"),
-        (["study", "run"], "invalid choice"),
+        (["study", "score"], "invalid choice"),
         (["verifier-eval"], "invalid choice"),
         (["mcp"], "invalid choice"),
     ],
@@ -185,7 +185,7 @@ def test_a_package_with_no_documented_size_refuses_a_bare_synthetic(
         "tool-without-anything",
         "tool-with-an-unknown-tool",
         "corpus-without-an-action",
-        "study-is-phase-12",
+        "study-score-is-eval-score-py",
         "verifier-eval-is-phase-13",
         "mcp-is-phase-15",
     ],
@@ -195,9 +195,10 @@ def test_a_usage_error_exits_two_and_names_the_command_that_fixes_it(
 ) -> None:
     """Including the three commands of spec 3.14 that this version deliberately does not have.
 
-    `study`, `verifier-eval` and `mcp` are rejected as unknown commands rather than accepted and
-    apologised for, which is the same argument the Phase 0 design paragraph makes about half-built
-    flag surfaces (D-082).
+    `study score`, `verifier-eval` and `mcp` are rejected as unknown commands rather than accepted
+    and apologised for, which is the same argument the Phase 0 design paragraph makes about
+    half-built flag surfaces (D-082). Scoring is `python eval/score.py`: it reads finished run
+    directories and runs nothing, so it is not a verb of this program.
     """
     code, _, err = run(capsys, *argv)
     assert code == EXIT_USAGE
@@ -516,12 +517,12 @@ def test_the_top_level_help_lists_the_four_commands_that_exist() -> None:
     assert "verifier-eval" not in text and " mcp" not in text
 
 
-def test_study_offers_build_alone_until_phase_12_writes_the_other_two() -> None:
-    """D-082 unchanged for the two study actions that do not exist yet."""
+def test_study_offers_build_and_run_and_not_score() -> None:
+    """D-082 unchanged for the one study action that is not a verb of this program."""
     lines = _help_of(["study", "--help"]).splitlines()
     actions = [line.split()[0] for line in lines if line.startswith("    ") and line.split()]
-    assert "build" in actions
-    assert "run" not in actions and "score" not in actions
+    assert "build" in actions and "run" in actions
+    assert "score" not in actions
 
 
 def test_a_data_run_asks_the_subject_for_no_generated_rows() -> None:

@@ -1290,3 +1290,50 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   stands where `8a01b49` left it at **1,615 passed**; `ruff` and `mypy --strict` clean.
   **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7 failed, 33 passed**.
   No push.
+- 2026-09-17 — **Phase 12 pre-flight, commit D lean** — **no live run, no live data, no provider
+  call, no recording**: the cut list's step 6, three things and nothing else. **`quaestor study
+  run`** (`eval/run_study.py`, loaded from beside the taxonomy as `seed.py` is) runs the study one
+  **chunk** at a time — a chunk being one invocation, about 35 minutes and two `full_agent` runs
+  (D-174) — and resumes from a `ledger.json` rewritten after every cell through a temporary name
+  and a rename, carrying per `(variant, configuration)` cell the status, the attempt count, the
+  cost, the wall clock, both grounding figures, the finding classes and **`checks_failed`**;
+  `--max-cost` is **two** ceilings, one before a cell starts so that a chunk ends on a cell
+  boundary and one before every model call so that a run doubling its own drafting bill is stopped
+  (D-179's 16.2% re-ask pair), priced from D-179's measured table until the ledger has a cell of
+  its own to price from, and an unpriced completion under a ceiling is an error rather than a free
+  call. A capped chunk exits **0** as a finished one does, so a driver reads `remaining`, and a
+  cell that reported without a check is `done` with a non-empty `checks_failed` — **D-177** carried
+  from one run to a study of them (**D-181**). **`eval/score.py`** reads `findings.json`,
+  `claims.json`, `trace.jsonl` and `artifacts/index.json` and never the prose, and refuses three
+  things rather than defaulting them: a variant whose seeded class's check did not run, a control
+  whose baseline the taxonomy records as `null`, and a collateral pairing `docs/STUDY.md` §5 did
+  not decide in advance (**D-182**). Measured on the **eighteen free `rules_only` directories**:
+  **14/14 detected** (`C1` 2/2, `D1` 1/1, `L1` 3/3, `L2` 2/2, `M1` 1/1, `R1` 1/1, `S1` 2/2, `T1`
+  1/1, `X1` 1/1), **0 false alarms over four controls**, **0 collateral spurious**, **0
+  unjudged**, **precision 1.0000**, grounding 1.0000 mean and minimum, scorer exit 0 with nothing
+  owed. Two things the human decided on the sweep's evidence and this commit carries. **The two
+  perturbed controls' synthetic baselines are written into `eval/taxonomy.yaml`** —
+  `control_credit_perturbed` `{E1 low}`, `control_msr_perturbed` `{}`, each its clean control's and
+  the credit one to the artifact hash — so the false-alarm denominator is four controls and not
+  two; both `real` cells stay `null`, and the MSR row records that the shuffle is not
+  value-neutral (`challenger.auc` 0.7337 → 0.7000) though it changes no finding set (**D-184**).
+  **And `msr__S1__vintage_shift` raising `C1 medium` is §5's sixth collateral rule, a true
+  consequence, dated today**: the hazard is fitted through 2019 and tested on the 2020–21
+  refinancing wave, which is the mechanism **D-161** measured on the real MSR control and recorded
+  as a true finding there, and a mechanism cannot be true on a real panel and spurious on a
+  synthetic one built to carry it; every rule now carries the date it was decided and
+  `summary.json` prints it, five reading 2026-09-09 and one 2026-09-17 (**D-182**, amended).
+  **`quaestor study build --data`** is the flag, the pass-through to `load_package` (so a
+  manifest is verified at build time) and `SEED.yaml`'s `mode: real`; the four recipes needing a
+  column the real sample does not carry are skipped by name, which is ten of the fourteen recipes
+  and thirteen of the eighteen variants, and **D-137 takes a dated amendment** (**D-183**). Not in
+  this commit, by the cut list: the four CSV transforms, the open-items descriptive column and the
+  cost/latency aggregation. Gate: full
+  offline suite excluding `tests/probatio` **1,699 passed**, 0 failed, 0 skipped, 0 xfailed
+  (1,615 → 1,699, 84 added); coverage of `src/quaestor` **99%**, `cli.py` at 100%; `ruff check`
+  and `ruff format --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean
+  over 60 source files; both `--synthetic --llm fake` validates unchanged at `{E1 low}` and `{}`;
+  `examples/golden_report/` untouched. **[stranded]** `pytest tests/probatio --cassette=replay`
+  unchanged at **7 failed, 33 passed**, zero provider
+  calls: this commit touches no prompt. No download, no training on real data from any test. No
+  push.

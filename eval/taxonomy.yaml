@@ -1,7 +1,9 @@
 # eval/taxonomy.yaml — Phase 10, filled in Cowork on 2026-09-09 from the human's answers. Final,
-# with two additions and nothing else: every control row gained a `baseline` key on 2026-09-16
-# under D-161, and on 2026-09-17 `control_msr_clean`'s measured evidence went from three keys to
-# five under D-171, because each breached split's decile table joined the candidate.
+# with three additions and nothing else: every control row gained a `baseline` key on 2026-09-16
+# under D-161; on 2026-09-17 `control_msr_clean`'s measured evidence went from three keys to
+# five under D-171, because each breached split's decile table joined the candidate; and on
+# 2026-09-17 the two perturbed controls' synthetic baselines were written in from the offline
+# measurement (D-184), their `real` cells staying null until a human runs them under --data.
 # Copy to the repo as eval/taxonomy.yaml. Class codes are fixed by 02-SPEC.md section 3.7 and are
 # the scoring keys of the study; do not rename them.
 #
@@ -42,12 +44,24 @@ controls:
     subject: credit_default
     recipe: harmless_perturbation
     params: {shuffle_rows: true, feature_prefix: "f_"}
-    baseline: null                                # not yet measured (Phase 12 pre-flight)
+    baseline:
+      synthetic:
+        - {class: E1, severity: low}              # measured offline 2026-09-17: identical to
+                                                  # control_credit_clean's synthetic baseline
+                                                  # down to the artifact hash
+      real: null                                  # not measured; needs a human --data run
   - id: control_msr_perturbed
     subject: msr_prepayment
     recipe: harmless_perturbation
     params: {shuffle_rows: true, feature_prefix: "f_"}
-    baseline: null                                # not yet measured (Phase 12 pre-flight)
+    baseline:
+      synthetic: []                               # measured offline 2026-09-17: identical to
+                                                  # control_msr_clean's finding set. NOT value-
+                                                  # neutral, though: the row shuffle moves
+                                                  # challenger.auc 0.7337 -> 0.7000 and
+                                                  # challenger.delta_auc -0.0415 -> -0.0753,
+                                                  # which the false-alarm arm carries as a note
+      real: null                                  # not measured; needs a human --data run
 defects:
 
   # ---- L1: target leakage ------------------------------------------------------------------

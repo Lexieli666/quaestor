@@ -14,6 +14,7 @@ test that drafts a report uses the offline provider.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ from conftest import REPO_ROOT, load_module
 from quaestor.cli import EXIT_FAILED_RUN, EXIT_OK, EXIT_USAGE
 from quaestor.cli import main as cli_main
 from quaestor.configs import SCREENED_CLASSES, synthetic_default_n
+from quaestor.errors import PackageError
 from quaestor.findings import PRE_RUN_TOOL, DefectClass, Severity, severity_rank
 from quaestor.llm.offline import OfflineLLM
 from quaestor.package import load_package
@@ -274,9 +276,19 @@ def test_every_control_carries_the_baseline_d161_measured(taxonomy: Any) -> None
         }
     ]
 
-    # The perturbed pair is a Phase 12 pre-flight item and says so by carrying nothing.
-    assert by_id["control_credit_perturbed"].baseline is None
-    assert by_id["control_msr_perturbed"].baseline is None
+    # The perturbed pair's synthetic baselines were measured offline on 2026-09-17 and written in
+    # (D-184); each is its clean control's, which is what "harmless" is supposed to mean. Both
+    # `real` cells stay null, because no test in this repository may read the real sample.
+    assert by_id["control_credit_perturbed"].baseline == {
+        "synthetic": [{"class": "E1", "severity": "low"}],
+        "real": None,
+    }
+    assert by_id["control_msr_perturbed"].baseline == {"synthetic": [], "real": None}
+    for control in ("control_credit", "control_msr"):
+        clean = by_id[f"{control}_clean"].baseline
+        perturbed = by_id[f"{control}_perturbed"].baseline
+        assert clean is not None and perturbed is not None
+        assert clean["synthetic"] == perturbed["synthetic"], control
 
     # A baseline answers a question about a control, so no seeded row has one.
     for spec in taxonomy.specs:
@@ -404,7 +416,7 @@ def test_a_value_planted_in_seed_yaml_reaches_nothing_the_pipeline_writes(
 # --- the command line ----------------------------------------------------------------------------
 
 
-def test_study_build_writes_every_variant_and_study_run_is_still_refused(
+def test_study_build_writes_every_variant_and_study_score_is_still_refused(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     out = tmp_path / "variants"
@@ -415,7 +427,7 @@ def test_study_build_writes_every_variant_and_study_run_is_still_refused(
     assert f"{SEEDED_VARIANTS + CONTROL_VARIANTS} variant(s) under" in printed
     assert (out / "credit__T1__false_claim" / seed_module.SEED_FILE).is_file()
     with pytest.raises(SystemExit) as exit_code:
-        cli_main(["study", "run"])
+        cli_main(["study", "score"])
     assert exit_code.value.code == EXIT_USAGE
 
 
@@ -546,9 +558,9 @@ def test_a_dropped_row_is_recorded_and_not_built(
     )
     assert code == EXIT_OK
     printed = capsys.readouterr().out
-    assert f"msr__S1__vintage_shift: dropped ({reason})" in printed
+    assert f"msr__S1__vintage_shift: not built ({reason})" in printed
     assert f"{SEEDED_VARIANTS + CONTROL_VARIANTS - 1} variant(s) under" in printed
-    assert "1 dropped" in printed
+    assert "1 not built" in printed
     assert not (out / "msr__S1__vintage_shift").exists()
 
     taxonomy = seed_module.load_taxonomy(path)
@@ -570,3 +582,135 @@ def test_a_dropped_row_without_a_reason_is_refused(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError, match="dropped with no dropped_reason"):
         seed_module.load_taxonomy(path)
+
+
+# --- `--data`: the minimal pass-through the bridge needs (D-137, amended) --------------------
+
+
+REAL_DATA_RECIPES = 10
+"""Ten of the fourteen recipes work in both data modes; the four that do not are named by name."""
+
+
+def test_the_four_synthetic_only_recipes_are_the_ones_d137_named() -> None:
+    """D-137 named five *variants*; they are four *recipes*, both `credit__L1` arms sharing one."""
+    assert set(seed_module.SYNTHETIC_ONLY_RECIPES) == {
+        "add_post_outcome_feature",
+        "end_of_month_balance",
+        "regime_sign_flip",
+        "reintroduce_collinear",
+    }
+    assert set(seed_module.SYNTHETIC_ONLY_RECIPES) < set(seed_module.RECIPES)
+    assert len(seed_module.RECIPES) - len(seed_module.SYNTHETIC_ONLY_RECIPES) == REAL_DATA_RECIPES
+
+
+def test_the_five_variants_those_four_recipes_cover_are_d137_s_list(taxonomy: Any) -> None:
+    only = {spec.id for spec in taxonomy.specs if spec.recipe in seed_module.SYNTHETIC_ONLY_RECIPES}
+    assert only == {
+        "credit__L1__after_outcome_declared",
+        "credit__L1__after_outcome_hidden",
+        "credit__R1__regime_flip",
+        "credit__M1__vif_reintroduced",
+        "msr__L1__eom_balance",
+    }
+
+
+def test_a_synthetic_only_recipe_is_refused_under_data_and_says_which_column_it_needs(
+    tmp_path: Path, taxonomy: Any
+) -> None:
+    spec = next(item for item in taxonomy.specs if item.id == "credit__R1__regime_flip")
+    with pytest.raises(ValueError, match="application_cohort"):
+        seed_module.seed(
+            SUBJECTS / spec.subject, spec, tmp_path / "never", data_dir=tmp_path / "data"
+        )
+    assert not (tmp_path / "never").exists()
+
+
+def test_data_reaches_load_package_so_a_manifest_is_verified_at_build_time(
+    tmp_path: Path, taxonomy: Any
+) -> None:
+    """The one thing `--data` changes about a build: the variant is checked against the data.
+
+    No real row is read here -- the point is that a directory which does *not* hold the declared
+    sample is refused, which is the failure a Phase 12 sitting must not discover at its third hour.
+    """
+    spec = next(item for item in taxonomy.specs if item.id == "credit__T1__false_claim")
+    empty = tmp_path / "data"
+    empty.mkdir()
+    with pytest.raises(PackageError, match="declares a manifest digest"):
+        seed_module.seed(SUBJECTS / spec.subject, spec, tmp_path / "v", data_dir=empty)
+
+
+def _subject_without_a_manifest(tmp_path: Path) -> Path:
+    """A copy of the credit subject with `data.manifest` removed, so a `--data` build can be run
+    offline against a directory holding nothing. Removing the manifest is what makes it testable;
+    `CLAUDE.md` forbids a test that reads the real sample at all."""
+    subjects = tmp_path / "subjects"
+    target = subjects / "credit_default"
+    target.mkdir(parents=True)
+    for path in sorted((SUBJECTS / "credit_default").rglob("*")):
+        if path.is_file() and "__pycache__" not in path.parts:
+            destination = target / path.relative_to(SUBJECTS / "credit_default")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(path.read_bytes())
+    payload = yaml.safe_load((target / "package.yaml").read_text(encoding="utf-8"))
+    assert payload["data"].pop("manifest", None) is not None
+    (target / "package.yaml").write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    return subjects
+
+
+def test_a_data_build_writes_the_ten_it_can_and_names_the_four_it_cannot(tmp_path: Path) -> None:
+    """The whole of the minimal `study build --data`: the flag, the pass-through and the skip."""
+    subjects = _subject_without_a_manifest(tmp_path)
+    whole = seed_module.load_taxonomy(TAXONOMY_FILE)
+    credit_rows = [spec for spec in whole.specs if spec.subject == "credit_default"]
+    credit_only = dataclasses.replace(whole, subjects=["credit_default"], specs=credit_rows)
+    out = tmp_path / "variants"
+    data = tmp_path / "data"
+    data.mkdir()
+    results = seed_module.build_all(credit_only, out, subjects_dir=subjects, data_dir=data)
+    built = {result.spec.id for result in results if result.built}
+    skipped = {result.spec.id: str(result.reason) for result in results if not result.built}
+    assert skipped.keys() == {
+        "credit__L1__after_outcome_declared",
+        "credit__L1__after_outcome_hidden",
+        "credit__R1__regime_flip",
+        "credit__M1__vif_reintroduced",
+    }
+    assert all("synthetic-only under --data" in reason for reason in skipped.values())
+    assert built == {spec.id for spec in credit_rows} - skipped.keys()
+    assert not any((out / name).exists() for name in skipped)
+
+    key = yaml.safe_load(
+        (out / "credit__T1__false_claim" / seed_module.SEED_FILE).read_text(encoding="utf-8")
+    )
+    assert key["mode"] == "real" and key["data_dir"] == str(data)
+    assert key["synthetic_n"] is None
+
+
+def test_a_synthetic_build_still_says_synthetic_and_carries_no_data_directory(
+    variants: dict[str, Path],
+) -> None:
+    key = yaml.safe_load(
+        (variants["credit__T1__false_claim"] / seed_module.SEED_FILE).read_text(encoding="utf-8")
+    )
+    assert key["mode"] == "synthetic" and key["data_dir"] is None
+    assert key["synthetic_n"] == synthetic_default_n("credit_default")
+
+
+def test_study_build_data_names_a_directory_that_is_not_there(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    code = cli_main(
+        [
+            "study",
+            "build",
+            "--taxonomy",
+            str(TAXONOMY_FILE),
+            "--out",
+            str(tmp_path / "v"),
+            "--data",
+            str(tmp_path / "nowhere"),
+        ]
+    )
+    assert code == EXIT_USAGE
+    assert "no data directory at" in capsys.readouterr().err

@@ -6447,3 +6447,236 @@ here and recorded.
   it. **Keeping the 6–7 h figure** and treating the measurement as pessimistic, which is choosing
   the number that makes the plan look affordable — the same move D-086 rejected when it declined
   to raise a threshold until the data passed.
+
+## D-181. The study runs in chunks, and `--max-cost` is two ceilings rather than one
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, commit D lean, the cut list's step 6)
+- **Q:** `docs/STUDY.md` §4 asks for a `quaestor study run` that is "resumable per (variant,
+  configuration)" and for a `--max-cost` that stops a sitting rather than reporting on it. D-174
+  measured the sitting at about 35 minutes and D-180 measured the study at ≈10.85 h in ≈19 chunks.
+  What does the harness resume *from*, and what exactly does the ceiling check?
+- **A:** **A ledger, and two ceilings.**
+
+  **Resumption is `<out>/ledger.json`**, rewritten in full after every cell — to a temporary name
+  and then renamed, so a killed chunk leaves a file that parses — and holding, per
+  `(variant, configuration)` cell: `status`, `attempts`, `cost_usd`, `calls`, `seconds`,
+  `out_dir`, `precision_pre`, `precision_post`, `n_claims`, the finding classes, `checks_failed`
+  and `budget_stopped`. A cell whose latest attempt is `done` is skipped by the next chunk;
+  anything else is attempted again and its `attempts` counter is what tells the operator a cell is
+  failing repeatedly. **The rejected alternative is inferring resumption from a `report.md` on
+  disk**, which cannot tell a finished cell from a directory that was half written when the sitting
+  was killed — D-174's seventh sitting *was* killed — and which has nowhere to put the cost the
+  cell incurred, the figure that prices the next one.
+
+  **`--max-cost` is checked in two places and both are needed.** *Before a cell starts*, its
+  estimate is compared with what is left of the ceiling and a cell that does not fit is not
+  started; that is what makes a chunk end on a cell boundary instead of stranding a half-paid run,
+  and it is how an operator sizes a 35-minute sitting by setting a dollar figure. *Before every
+  model call*, the ceiling is checked against what has actually been spent; that is the circuit
+  breaker, and it is the one D-179 argues for — a ceiling that can only be read between runs
+  cannot see the single run that doubles its drafting bill through a pair of re-asks, measured at
+  **16.2%** of a run. The estimate is D-179's measured table (`rules_only` $0; `plain_llm` $1.5622
+  credit, $1.6335 MSR scaled; `full_agent` $5.2635 and $5.5033) until the ledger holds a completed
+  cell of the same configuration and subject, and that cell's own cost afterwards.
+
+  **The ceiling is per chunk and not per study, by construction**: it counts inside one invocation
+  and starts again at the next, which is D-174's "`--max-cost` set from that chunk and not from
+  the whole layer" made literal.
+
+  **A completion with no price, under a ceiling, is an error.** `quaestor.llm.base` already says
+  why `cost_usd` is `None` rather than `0.0` — "a zero that means 'unknown' turns a cost ceiling
+  into a check that always passes" — and `BudgetedLLM` refuses rather than counting the call free.
+
+  **Two exit codes that do not distinguish what a caller needs, and what to read instead.** A
+  chunk that stopped on its ceiling exits `0` exactly as one that finished the study does, so a
+  driver reads `remaining` in `ledger.json`. And a cell that produced a report without one of its
+  checks is `done` with a non-empty `checks_failed`, which is **D-177**'s rule carried from one run
+  to a study of them: `quaestor study run` prints those cells and writes them down, and no caller
+  of it is entitled to judge a run by the code alone.
+- **Why:** The failure this design is against is not a wrong number, it is a lost sitting. Every
+  paid arrangement in it — the ledger flush after each cell, the atomic rename, the soft ceiling on
+  the cell boundary, the retry of a failed cell — exists so that an interrupted chunk costs at most
+  the cell it was in the middle of, and so that the next chunk needs no argument but the same
+  command line. Nineteen sittings is nineteen chances to lose the run to a detail.
+  Rejected alternatives. **Probatio's `--max-cost`**, which on probatio 0.1.0 sees about half the
+  spend and is read at session end, so it reports and does not stop (D-149, amended in Phase 11).
+  **A `--max-runs` or `--max-seconds` chunk size** beside the ceiling, which is a second way of
+  saying the same thing: at a measured $5.26–5.50 a `full_agent` run, a dollar figure *is* a run
+  count and a wall clock, and a second knob is a second thing to set wrong. **Catching every
+  exception per cell** so that a chunk always runs to its end, which would go on spending against
+  a broken harness; only a `QuaestorError` and the budget stop are caught, the ledger is already
+  flushed, and anything else ends the chunk. **A `main()` in `eval/run_study.py`** beside
+  `quaestor study run`, which would need a second implementation of `--llm`'s provider construction
+  and its rules about which flags combine; `seed.py` has a `main` because it builds no provider.
+  **Pooling cassettes across cells**, which the pre-flight already measured as ambiguous, cassette
+  keys being a hash of the request: each cell records into a store of its own.
+
+## D-182. What `eval/score.py` refuses to score, and the pairing the free runs left unjudged
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, commit D lean; developed against the eighteen
+  `rules_only` result directories of the cut list's step 3)
+- **Q:** `docs/STUDY.md` §5 defines detection, false alarms, collateral judgements and precision,
+  and §4 owes §5 two contract clauses. Where does the scorer have to *decline* rather than compute,
+  and what did it find on the eighteen free runs?
+- **A:** **Three refusals, and one thing a human now owes.**
+
+  **It refuses to score a variant whose seeded class's check did not run.** Since D-177 a
+  rule-based check that raises costs its own row and not the run, so a report can be complete but
+  for the one check that would have screened for the planted defect; scoring that as a miss
+  measures a crash. The variant is set aside, named with the tool and the tool's own message, and
+  is in neither the numerator nor the denominator. The clause §4 writes says to read Appendix D's
+  "did not run" rows; the scorer reads the **trace's `tool_call` `error` field** instead, which
+  D-177 names as one of the three places the fact is written and is the only machine-readable one
+  in the run directory — `score.py` opens no prose. A variant whose check crashed *and whose class
+  was found anyway* is a detection, not a refusal: there is nothing to decline.
+
+  **It refuses to count false alarms on a control whose baseline is `null`.** D-161 writes `null`
+  for "not yet measured", and the two perturbed controls still carry it. Scoring against an
+  unmeasured baseline publishes every one of that control's findings as a false alarm, which is
+  arithmetic about a missing measurement and not a fact about the detector. A perturbed control is
+  scored against **its own** row; a *seeded* variant is scored against the **clean** control's row
+  for its subject and mode, because those two ask different questions. Keying baselines by subject
+  alone would have lent the clean measurement to the perturbed control and hidden that nobody has
+  made it.
+
+  **It refuses to judge a collateral pairing nobody decided in advance.** §5 decided five, from
+  D-136's Phase 10 measurements: seeded `S1` → `T1` and seeded `C1` → `T1` are true consequences of
+  breaching the package's own declared bound; `msr__L1` → `X1` and credit `L1` → `C1` are true
+  consequences of the leak; a collateral `R1` is spurious, which is what D-164's tightened rule is
+  for. The scorer holds exactly those five. Anything else is `unjudged`, counted in neither half of
+  precision, and printed, because §5 says such a judgement is made at scoring time and recorded in
+  §9 with its date. A collateral class that the subject's own clean control raises at the same
+  severity is `baseline` rather than either verdict — the same reading of D-161, and the case that
+  will arise on the real-MSR bridge runs, whose control baseline is `{C1 medium}`.
+
+  **Measured on the eighteen `rules_only` directories, free and offline: 14/14 seeded variants
+  detected**, per class `C1` 2/2, `D1` 1/1, `L1` 3/3, `L2` 2/2, `M1` 1/1, `R1` 1/1, `S1` 2/2, `T1`
+  1/1, `X1` 1/1; **0 false alarms** on the two controls whose baselines are measured; **0
+  collateral spurious**; **precision 1.0000**; grounding precision 1.0000 mean and minimum, pre-
+  and post-repair, which is `rules_only` being trivially grounded and is reported as such. All six
+  collateral findings the six pre-decided rules cover fired exactly where §5 says they should.
+  **Two controls are not scorable for false alarms** — `control_credit_perturbed` and
+  `control_msr_perturbed`, baseline `null` — and that is the pre-flight item those baselines were
+  always going to be. **And exactly one pairing came back unjudged: `msr__S1__vintage_shift`
+  raising `C1 medium`.** It is not judged in this commit, deliberately: it is a study number, §5
+  says it is recorded in §9 with its date, and the mechanism is the same one D-161 measured on the
+  real MSR control — a model fitted through 2019 under-predicting the 2020–21 refinancing wave —
+  which makes "true consequence" the likely answer and exactly the kind of likely answer that
+  should be written down by a person rather than assumed by the scorer that surfaced it.
+- **Why:** Each refusal replaces a default that would have put a number nobody decided into a
+  published table: a crash scored as a miss, an unmeasured baseline read as an empty one, an
+  unforeseen collateral finding called spurious because that is the conservative-looking option.
+  The study's whole claim is that its misses are published; a miss that is really a crash, or a
+  false alarm that is really an unmeasured control, is a way of being wrong in both directions at
+  once. Two columns §5 asks for are absent and their absence is the cut list's rather than an
+  oversight — the descriptive open-items column and the cost and latency aggregation, both
+  recoverable from the traces and the ledger after the fact.
+  Rejected alternatives. **Reading Appendix D** for the failed checks, which makes the scorer a
+  reader of prose and would break on a renderer change that moves a table. **Matching evidence
+  hashes by equality**, which cannot work: `findings.json` shortens to eight characters and
+  `artifacts/index.json` keeps sixteen, so the join is a prefix match, as §4's contract clause
+  says. **Scoring `plain_llm`'s unevidenced candidates as misses rather than false alarms**, which
+  would make the arm look merely unhelpful instead of wrong; `04` §4 counts each as a false alarm
+  and D-072 is the decision it implements. **Judging the `msr__S1` → `C1` pairing here**, which is
+  a study judgement made by the session that wrote the scorer, in the commit whose whole point is
+  that the scoring rules were fixed before the paid runs.
+
+  **Amended 2026-09-17, same commit, by the human: the `msr__S1` → `C1` pairing is a true
+  consequence and is section 5's sixth collateral rule.** The reasoning, recorded in the rule
+  itself and not only here: `train_pre_test_post` fits the hazard through 2019 and tests it on the
+  2020–21 refinancing wave, so the model really does under-predict prepayment on the tested split
+  — and that is the **same mechanism D-161 measured on the real MSR control**, where it is recorded
+  as a true finding and not a false alarm. A mechanism cannot be true on a real panel and spurious
+  on a synthetic one built to carry it; the data being generated changes what the finding is
+  evidence *about*, not whether the model has the defect. The rule is `seeded S1 → raised C1` on
+  `msr_prepayment` only, because the credit `S1` recipe shifts a limit-balance segment rather than
+  a time window and has no wave to under-predict — `credit__S1` → `C1` stays unjudged, and the
+  eighteen free runs do not raise it. Every rule now carries **the date it was decided**: the
+  original five read "2026-09-09, D-136, before any variant was run" and this one reads
+  "2026-09-17, D-182 amendment, at scoring time", and both appear in `summary.json`, so a reader
+  can tell a rule fixed in advance from one written after the numbers were seen without being
+  told. That distinction is the reason the entry above declined to make the judgement itself and
+  is not weakened by the judgement being made: what section 5 forbids is a scorer quietly deciding,
+  not a person deciding on the record. **The eighteen `rules_only` directories now score with
+  nothing owed**: 14/14 detected, four controls scored, 0 false alarms, 0 collateral spurious, 0
+  unjudged, precision 1.0000, and `eval/score.py` exits 0.
+
+## D-183. `study build --data`, and D-137's dated amendment
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, commit D lean; amends **D-137** of 2026-09-08)
+- **Q:** D-137 said `quaestor study build` offers no `--data` flag, because five of the eighteen
+  variants need a column the real sample does not carry and the flag would build packages that
+  cannot run. The cut list's accepted plan keeps a two-run real-data bridge, which needs a way to
+  apply a recipe to a real data directory. What is the minimum, and what does it do to D-137?
+- **A:** **The flag, the pass-through, and four recipes skipped by name.**
+
+  `quaestor study build --data DIR` and `seed(..., data_dir=DIR)` change no byte of any recipe,
+  because every recipe hangs off the seam *after* the subject has chosen where its rows come from,
+  or only edits `package.yaml`. What `--data` changes is two things. `SEED.yaml` records
+  `mode: real`, `data_dir: DIR` and `synthetic_n: null`, so the scorer reads the right control
+  baseline for the run it is scoring. And the directory is handed to `load_package`, which
+  **verifies the package's declared manifest at build time** — so a data directory that does not
+  hold the declared sample is refused in the build, in seconds, rather than at the third hour of a
+  paid sitting.
+
+  **D-137 is amended, with this date.** Its answer named five *variants*; they are four *recipes*,
+  because both `credit__L1` arms run `add_post_outcome_feature`. `SYNTHETIC_ONLY_RECIPES` names
+  them with D-137's own reasons — `add_post_outcome_feature` (a `pay_amt_next` column, and a
+  synthetic construction that reads the generating process's latent margin, D-132),
+  `end_of_month_balance` (patches `build_panel`, which a `--data` run never calls),
+  `regime_sign_flip` (an `application_cohort` column), `reintroduce_collinear` (a `bill_last_adj`
+  computed from a raw statement schema `--data` mode never sees) — and under `--data` those rows
+  are skipped with their reason rather than built. Ten of the fourteen recipes build in both modes;
+  with the four controls that is **thirteen of the eighteen variants** on real data, and the two
+  bridge variants are chosen from the nine seeded ones. D-137's recorded fix — an edit to
+  `sample.py` and `sample_freddie.py` — is superseded by `docs/STUDY.md` §3's mechanism, a
+  transform on the delivered split files, which is testable offline where a sampler edit is not;
+  those four transforms are the cut list's cut 3 and are **not** in this commit.
+- **Why:** D-137's reasoning was right and its conclusion has an expiry date on it: the flag would
+  build packages that cannot run *while the four transforms do not exist*, which is an argument for
+  refusing the four rows, not for refusing the flag. Naming them at the point of the build is
+  strictly better than D-137's alternative of recording the list in a decision entry, because the
+  list is then executable and a test asserts it is the same five variants.
+  Rejected alternatives. **Writing the four transforms now**, which is cut 3 and one to two
+  engineering sessions, and which the accepted plan removed. **Letting `--data` build all
+  eighteen** and discovering the five at validation time, which is exactly the shell-hour D-137
+  set out to avoid. **Skipping by variant id** rather than by recipe, which would have to be
+  re-derived every time a row is added and which mis-states the fact: it is the recipe that needs
+  a column, and both `credit__L1` arms need the same one.
+
+## D-184. The two perturbed controls' synthetic baselines are written into the taxonomy
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, commit D lean; the human's instruction, from the
+  offline measurement of 2026-09-17)
+- **Q:** D-161 gives every control a measured baseline per data mode, and the two perturbed
+  controls have carried `baseline: null` — "not yet measured" — since it was written.
+  `eval/score.py` refuses to score a `null` baseline for false alarms (D-182), so the study's
+  false-alarm denominator was two controls and not four. The measurement exists. Is it written in?
+- **A:** **Yes, for `synthetic`; `real` stays `null`.** `control_credit_perturbed` =
+  `{E1 low}`, identical to `control_credit_clean`'s synthetic baseline down to the artifact hash;
+  `control_msr_perturbed` = `{}`, identical to `control_msr_clean`'s finding set. Both `real` cells
+  stay `null` and will until a human runs the pair under `--data`, because no test in this
+  repository may read the real sample and an unmeasured cell is the honest record of that.
+  **Recorded with the credit row and carried in the YAML comment**: on `msr_prepayment` the
+  harmless perturbation is *not* value-neutral — the row shuffle moves `challenger.auc`
+  0.7337 → 0.7000 and `challenger.delta_auc` −0.0415 → −0.0753. It changes no finding set, which is
+  what a baseline records, but a control whose challenger fit moves 3.4 points under a
+  perturbation called harmless is a fact the false-alarm arm carries as a note rather than
+  discards.
+- **Why:** A `null` baseline is not a neutral placeholder in the study's arithmetic: it removes a
+  control from the false-alarm denominator, and a false-alarm rate quoted over half the controls
+  is a weaker number than one quoted over all of them — quietly, in the direction that flatters
+  the detector, because the controls that were dropped are the ones nobody had checked. The
+  measurement was made and sat in a draft; the taxonomy is where the scorer reads it.
+  That both perturbed baselines equal their clean controls' is the result "harmless perturbation"
+  is named for, and it is why `eval/score.py` still keys a control's baseline to the **control**
+  and a seeded variant's to the **clean control of its subject**: the two agree today, and keying
+  by subject alone would give a silent wrong answer on the day a perturbation stops being harmless.
+  Rejected alternatives. **Leaving both `null` and quoting the false-alarm rate over two
+  controls**, with a footnote, which publishes a number that a measurement already in hand makes
+  better. **Writing a `real` cell from the synthetic one**, which is not a measurement of anything
+  — D-161's whole point is that a baseline is measured per data mode, and the real MSR control's
+  `{C1 medium}` against its synthetic `{}` is the case that proves the modes differ. **Deriving a
+  perturbed baseline from its clean control at scoring time** rather than writing the row, which
+  would make "the perturbation is harmless" an assumption of the scorer instead of a measurement
+  it can be checked against.

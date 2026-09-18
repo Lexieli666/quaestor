@@ -39,6 +39,71 @@ run that was not committed.
 
 ### Added
 
+- **`quaestor study run`: the study in resumable chunks, with a cost ceiling that stops a sitting
+  rather than reporting on it.** One cell is one `(variant, configuration)` pair; a chunk is one
+  invocation. `<out>/ledger.json` is rewritten after every cell — to a temporary name and renamed,
+  so a killed chunk leaves a file that parses — and carries per cell the status, the attempt count,
+  the cost, the wall clock, both grounding figures, the finding classes and **the checks that did
+  not run**; the next chunk skips whatever is `done`. `--max-cost` is checked **twice**: a cell
+  whose estimate does not fit what is left is not started, which ends a chunk on a cell boundary
+  instead of stranding a half-paid run, and the ceiling is checked again **before every model
+  call**, which is the circuit breaker D-179 asks for — a per-study ceiling cannot see the one run
+  that doubles its drafting bill through a pair of re-asks, measured at 16.2% of a run. The
+  estimate is D-179's measured table until the ledger holds a cell of the same configuration and
+  subject, and that cell's own cost afterwards; a completion with no price under a ceiling is an
+  error and not a free call. A chunk that stopped on its ceiling exits **0** exactly as a finished
+  one does, so a driver reads `remaining` in the ledger, and a cell that reported without one of
+  its checks is `done` with a non-empty `checks_failed` — **D-177**'s rule carried from one run to
+  a study of them (**D-181**). Each cell records into a cassette store of its own; pooling is
+  ambiguous, cassette keys being a hash of the request.
+
+- **`eval/score.py`: the study's numbers, computed from four files and no prose.** Detection is
+  `04` §4's criterion — a finding of the seeded class at severity at least medium, with a
+  developer-claim `mismatch` as `T1`'s second channel under `--data` — and the scorer **refuses**
+  three things rather than defaulting them: it will not score a variant whose seeded class's check
+  did not run (read off the trace's own `tool_call` `error` field, since Appendix D is prose); it
+  will not count false alarms on a control whose taxonomy baseline is `null`, which means "not yet
+  measured" and never "empty"; and it will not judge a collateral pairing that `docs/STUDY.md` §5
+  did not decide in advance, recording it `unjudged` and counting it in neither half of precision.
+  Evidence hashes join by **prefix**, `findings.json` keeping eight characters and
+  `artifacts/index.json` sixteen. Measured on the eighteen free `rules_only` directories:
+  **14/14 detected**, `C1` 2/2, `D1` 1/1, `L1` 3/3, `L2` 2/2, `M1` 1/1, `R1` 1/1, `S1` 2/2, `T1`
+  1/1, `X1` 1/1; over all **four** controls **0 false alarms**; **0 collateral spurious**, **0
+  unjudged**, **precision 1.0000**, grounding precision 1.0000 mean and minimum, and the scorer
+  exits 0 with nothing owed (**D-182**).
+
+- **The two perturbed controls' synthetic baselines are in `eval/taxonomy.yaml`, so the
+  false-alarm denominator is four controls and not two.** `control_credit_perturbed` = `{E1 low}`
+  and `control_msr_perturbed` = `{}`, each identical to its clean control's synthetic baseline —
+  the credit one down to the artifact hash — from the offline measurement of 2026-09-17. Both
+  `real` cells stay `null`, which is what "not yet measured" means and what no test in this
+  repository may change. Recorded with them: on `msr_prepayment` the harmless perturbation is
+  **not** value-neutral, the row shuffle moving `challenger.auc` 0.7337 → 0.7000 and
+  `challenger.delta_auc` −0.0415 → −0.0753 while changing no finding set (**D-184**).
+
+- **A sixth collateral rule: a seeded MSR `S1` that also raises `C1` is a true consequence.**
+  `train_pre_test_post` fits the hazard through 2019 and tests it on the 2020–21 refinancing wave,
+  so the model really does under-predict prepayment on the tested split — the same mechanism
+  **D-161** measured on the *real* MSR control and recorded there as a true finding. A mechanism
+  cannot be true on a real panel and spurious on a synthetic one built to carry it. The rule is
+  `msr_prepayment` only: the credit `S1` shifts a limit-balance segment and has no wave to
+  under-predict. Every collateral rule now carries **the date it was decided** — five read
+  "2026-09-09, D-136, before any variant was run" and this one "2026-09-17, D-182 amendment, at
+  scoring time" — and both appear in `summary.json`, so a reader can tell a rule fixed in advance
+  from one written after the numbers were seen (**D-182**, amended).
+
+- **`quaestor study build --data`, the minimum the real-data bridge needs.** The flag changes no
+  byte of any recipe — every recipe hangs off the seam after the subject has chosen its data mode,
+  or only edits `package.yaml` — and changes two things instead: `SEED.yaml` records `mode: real`
+  with the directory, and the directory reaches `load_package`, so a package's declared manifest is
+  **verified at build time** rather than at the third hour of a paid sitting. The four recipes that
+  need a *column* the real sample does not carry are skipped by name with their reason, which is
+  **ten of the fourteen recipes and thirteen of the eighteen variants** buildable on real data.
+  **D-137 takes a dated amendment**: it named five variants, they are four recipes (both
+  `credit__L1` arms share one), and its recorded fix — an edit to the two samplers — is superseded
+  by a transform on the delivered split files. Those four transforms are the cut list's cut 3 and
+  are not in this commit (**D-183**).
+
 - **A check of the checklist that raises now costs its own row and not the run.** `_run_checklist`
   catches a `ToolError` from the rule-based plan: the check is recorded, and the pipeline goes on
   to promote, draft, verify, repair and render with what it has. Four places say what is missing —

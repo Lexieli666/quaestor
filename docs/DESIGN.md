@@ -1696,3 +1696,77 @@ object and not two. The slice rule the loop asked for is joined onto the item it
 artifacts they share, because the store knows a sub-population by an artifact stem and the drafter
 is forbidden to write a logical name in the prose; guessing the expression back out of the slug
 would be wrong on any column whose own name ends in `_low`.
+
+## Phase 12 commit D — The chunk, the two ceilings, and a scorer that refuses three things
+
+The study is 62 paid runs and about eleven hours of model time in nineteen sittings (D-180), and
+the object the harness is built around is therefore the **chunk** — one invocation of `quaestor
+study run` — and not the study. Resumability is a **ledger** rewritten after every cell rather
+than a scan of the output tree: `ledger.json` records, per `(variant, configuration)` cell, the
+status, the attempt count, the cost, the wall clock, both grounding figures, the finding classes
+and the checks that did not run, and the next chunk skips whatever is `done`. The rejected
+alternative was to infer resumption from the presence of a `report.md`, which cannot tell a cell
+that finished from a cell whose directory was half written when the sitting was killed — and
+D-174's sitting *was* killed — and which has nowhere to put the cost the cell actually incurred,
+the number that prices the next one.
+
+**`--max-cost` is two ceilings and both are load-bearing.** Before a cell starts, its estimate is
+compared with what is left and a cell that does not fit does not start; before every model call,
+the ceiling is checked against what has been spent. Only the first makes a chunk end on a cell
+boundary rather than stranding a half-paid run, and only the second is the circuit breaker D-179
+asks for — a ceiling read between runs cannot see the one run that doubles its own drafting bill
+through a pair of re-asks, which is measured at 16.2% of a run. The estimate is D-179's measured
+table until the ledger has a completed cell of the same configuration and subject, and that cell's
+own cost afterwards. Two alternatives were rejected: **a per-study ceiling**, which is the one
+D-179 shows cannot stop a runaway run; and **Probatio's `--max-cost`**, which on probatio 0.1.0
+sees about half the spend and is read at session end, so it reports and does not stop (D-149).
+A completion whose `cost_usd` is `None` under a ceiling is an error rather than a free call, which
+is `quaestor.llm.base`'s own sentence about why the field is not `0.0` enforced where it matters.
+
+**The exit code is not the answer, twice over.** A chunk that stopped on its ceiling exits `0`
+exactly as one that finished the study does, so `remaining` in `ledger.json` is what a driver
+reads; and a cell that reported without one of its checks is `done` with a non-empty
+`checks_failed`, which is D-177's rule carried from one run to a study of them.
+
+`eval/score.py` reads `findings.json`, `claims.json`, `trace.jsonl` and `artifacts/index.json` and
+never `report.md`, and it **refuses three things rather than guessing them**. It refuses to score a
+variant whose seeded class's check did not run, because that scores a crash as a miss — read off
+the trace's own `tool_call` error and not off Appendix D, since the appendix is prose. It refuses
+to count false alarms on a control whose baseline the taxonomy records as `null`, because `null` is
+"not yet measured" and scoring against it publishes every one of that control's findings as a false
+alarm. And it refuses to judge a collateral pairing nobody decided in advance: `docs/STUDY.md` §5
+held five, and anything else is recorded `unjudged` and counted in neither half of precision until
+a dated judgement exists. The rejected alternative to all three is a default — score it as a miss,
+treat `null` as empty, call an unforeseen collateral finding spurious — and each default is a
+number nobody decided arriving in a published table.
+
+**The procedure then ran, which is the point of it.** The eighteen free `rules_only` directories
+surfaced exactly one unjudged pairing — a seeded MSR `S1` also raising `C1` — and it was judged a
+true consequence and written in as §5's sixth rule: `train_pre_test_post` fits the hazard through
+2019 and tests it on the 2020–21 refinancing wave, which is the same mechanism D-161 measured on
+the *real* MSR control and recorded there as a true finding, and a mechanism cannot be true on a
+real panel and spurious on a synthetic one built to carry it. So every rule now carries the **date
+it was decided**, five reading 2026-09-09 and one 2026-09-17, and `summary.json` carries both: a
+reader can tell a rule fixed before the runs from one written after the numbers were seen without
+being told, which is the property the in-advance list was protecting and the only one a
+scoring-time judgement can threaten.
+
+The perturbed controls are scored against **their own** taxonomy rows and not against the clean
+control's, while a seeded variant is scored against the clean control's: a seeded variant asks what
+the subject does with nothing planted in it, and a perturbed control asks what the perturbation
+does. Their synthetic baselines — `{E1 low}` and `{}` — are now written in, so the false-alarm
+denominator is four controls and not two; the two agree with their clean controls today, which is
+what "harmless" is supposed to mean, and keying every baseline by subject alone would give a silent
+wrong answer on the day a perturbation stops being harmless.
+
+Scored with both in: 14/14 detected, four controls, 0 false alarms, 0 collateral spurious, 0
+unjudged, precision 1.0000, and the scorer exits 0.
+
+**`study build --data` is the flag, the pass-through and nothing else.** A recipe is the same patch
+in both data modes because every one of them hangs off the seam after the subject has chosen where
+its rows come from, or only edits `package.yaml`; so `--data` changes what `SEED.yaml` records and
+hands the directory to `load_package`, which verifies the declared manifest at build time rather
+than at the third hour of a paid sitting. The four recipes that need a *column* the real sample
+does not carry are skipped by name with their reason. The alternative — writing the four CSV
+transforms now — is the cut list's cut 3, and building them into the commit that cannot run them
+is how a Phase 12 session discovers at the shell that five variants do not build.

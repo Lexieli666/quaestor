@@ -20,6 +20,12 @@ gitignored tree -- so `quaestor study build` loads it from beside the taxonomy i
 Every recipe is a text patch with a named anchor, and an anchor that is not found is an error
 rather than a silent no-op: a seeded-defect generator that quietly seeds nothing would put a
 guaranteed miss in the study and blame the detector for it.
+
+**Data modes.** A recipe is the same patch in both modes, because every one of them hangs off the
+seam *after* the subject has chosen where its rows come from, or only edits `package.yaml`. Four
+recipes are the exception -- they need a *column* the real sample does not carry -- and under
+`--data` they are skipped by name, with their reason, rather than built into packages that cannot
+run (`SYNTHETIC_ONLY_RECIPES`, D-137 as amended).
 """
 
 from __future__ import annotations
@@ -43,6 +49,7 @@ __all__ = [
     "RECIPES",
     "SEED_FILE",
     "SEEDED_STATUS",
+    "SYNTHETIC_ONLY_RECIPES",
     "DefectSpec",
     "Taxonomy",
     "Variant",
@@ -81,6 +88,36 @@ _SKIP_SUFFIXES: Final = (".pyc", ".pyo")
 
 _MAIN_GUARD: Final = 'if __name__ == "__main__":'
 """Where a subject's entrypoint stops being definitions and starts being a program."""
+
+SYNTHETIC_MODE: Final = "synthetic"
+REAL_MODE: Final = "real"
+"""What `SEED.yaml`'s `mode:` says, and the key a control's baseline is measured under."""
+
+SYNTHETIC_ONLY_RECIPES: Final[Mapping[str, str]] = {
+    "add_post_outcome_feature": (
+        "needs a pay_amt_next column the real sample does not carry, and the synthetic "
+        "construction reads the generating process's latent margin (D-132), which a real panel "
+        "has none of"
+    ),
+    "end_of_month_balance": (
+        "patches build_panel, which a --data run never calls: sample_freddie.py builds the panel "
+        "and code/run.py reads back the four split files it wrote"
+    ),
+    "regime_sign_flip": "needs an application_cohort column the real sample does not carry",
+    "reintroduce_collinear": (
+        "needs bill_last_adj, computed by the patched engineer from the raw statement schema that "
+        "--data mode never sees"
+    ),
+}
+"""The four recipes that cannot be applied to a real data directory, and why (D-137, amended).
+
+D-137 named five *variants*; they are four *recipes*, because both `credit__L1` arms run
+`add_post_outcome_feature`. Each needs a column the real sample does not have, and a column is
+built by `sample.py` and `sample_freddie.py` rather than by a recipe. The amendment of 2026-09-17
+replaces the recorded fix -- an edit to the samplers -- with a transform on the delivered split
+files, which is testable offline where a sampler edit is not; that transform is the cut list's
+cut 3 and is not in this commit, so under `--data` these four rows are skipped and said so.
+"""
 
 
 @dataclass(frozen=True)
@@ -1315,11 +1352,20 @@ RECIPES: Final[Mapping[str, Callable[[Variant, DefectSpec], None]]] = {
 
 @dataclass(frozen=True)
 class BuildResult:
-    """One variant that was written, or one row that was skipped because it is dropped."""
+    """One variant that was written, or one row that was not.
+
+    Attributes:
+        spec: The taxonomy row.
+        root: Where the variant was written, or `None` when it was not built.
+        notes: The `applied:` lines the recipe recorded, empty on a row that was not built.
+        reason: Why the row was not built -- it is marked `status: dropped`, or its recipe is one
+            of `SYNTHETIC_ONLY_RECIPES` and the build is a `--data` one. `None` on a built row.
+    """
 
     spec: DefectSpec
     root: Path | None
     notes: list[str]
+    reason: str | None = None
 
     @property
     def built(self) -> bool:
@@ -1334,6 +1380,7 @@ def seed(
     *,
     synthetic_n: int | None = None,
     taxonomy: Taxonomy | None = None,
+    data_dir: Path | str | None = None,
 ) -> ModelPackage:
     """Copy a subject package, apply one recipe to the copy and write `SEED.yaml` beside it.
 
@@ -1345,13 +1392,23 @@ def seed(
         synthetic_n: The panel size the variant is meant to be validated at, recorded in
             `SEED.yaml`; it is a note to the operator and changes no file of the package.
         taxonomy: The taxonomy the row came from, so `SEED.yaml` can record its digest.
+        data_dir: Where the subject's real data lives, for a variant that is meant to be validated
+            under `--data`. It changes no byte of the recipe: the nine recipes that work in both
+            modes hang off the seam *after* the subject has chosen its data mode, or they only
+            edit `package.yaml`. What it changes is what `SEED.yaml` records and, through
+            `load_package`, that the variant's declared manifest is verified against the data it
+            will be run on -- so a variant that cannot be validated is discovered here rather than
+            at the third hour of a paid sitting (D-137, amended).
 
     Returns:
         The variant, loaded through `quaestor.package.load_package` -- which is also the check
         that the recipe left a package that still parses.
 
     Raises:
-        ValueError: The row is marked `status: dropped`, or a recipe's anchor is not where it was.
+        ValueError: The row is marked `status: dropped`, or its recipe is one of
+            `SYNTHETIC_ONLY_RECIPES` and `data_dir` was given, or a recipe's anchor is not where
+            it was.
+        PackageError: `data_dir` was given and a digest of the package's manifest does not match.
     """
     source = Path(subject_pkg)
     target = Path(out_dir)
@@ -1360,6 +1417,8 @@ def seed(
             f"{defect.id} is marked status: dropped in the taxonomy ({defect.dropped_reason}); "
             "a dropped recipe is recorded and not built"
         )
+    if data_dir is not None and defect.recipe in SYNTHETIC_ONLY_RECIPES:
+        raise ValueError(f"{defect.id} is synthetic-only: {SYNTHETIC_ONLY_RECIPES[defect.recipe]}")
     if target.exists():
         shutil.rmtree(target)
     for path in _copyable(source):
@@ -1369,8 +1428,10 @@ def seed(
 
     variant = Variant(target, defect.id)
     RECIPES[defect.recipe](variant, defect)
-    _write_seed_file(variant, defect, source, synthetic_n=synthetic_n, taxonomy=taxonomy)
-    return load_package(target)
+    _write_seed_file(
+        variant, defect, source, synthetic_n=synthetic_n, taxonomy=taxonomy, data_dir=data_dir
+    )
+    return load_package(target, data_dir=data_dir)
 
 
 def _write_seed_file(
@@ -1380,6 +1441,7 @@ def _write_seed_file(
     *,
     synthetic_n: int | None,
     taxonomy: Taxonomy | None,
+    data_dir: Path | str | None = None,
 ) -> None:
     """Write the variant's provenance: the answer key, in the file the pipeline never opens."""
     payload: dict[str, Any] = {
@@ -1399,8 +1461,9 @@ def _write_seed_file(
             "package": str(source),
             "files": len(list(_copyable(source))),
         },
-        "mode": "synthetic",
-        "synthetic_n": synthetic_n,
+        "mode": REAL_MODE if data_dir is not None else SYNTHETIC_MODE,
+        "synthetic_n": None if data_dir is not None else synthetic_n,
+        "data_dir": str(data_dir) if data_dir is not None else None,
         "generator": "eval/seed.py",
         "taxonomy": (
             {"path": str(taxonomy.path), "sha256": taxonomy.digest()} if taxonomy else None
@@ -1424,17 +1487,23 @@ def build_all(
     *,
     subjects_dir: Path | str = SUBJECTS_DIR,
     synthetic_n: Mapping[str, int] | None = None,
+    data_dir: Path | str | None = None,
 ) -> list[BuildResult]:
-    """Build every variant the taxonomy declares, dropped rows excepted.
+    """Build every variant the taxonomy declares, dropped and synthetic-only rows excepted.
 
     Args:
         taxonomy: The loaded taxonomy.
         out_dir: Where the variant packages go, one directory per variant id.
         subjects_dir: Where the clean subjects live.
         synthetic_n: Panel size per subject, recorded in each `SEED.yaml`.
+        data_dir: Where the subjects' real data lives. When given, the four recipes of
+            `SYNTHETIC_ONLY_RECIPES` are skipped with their reason rather than built into packages
+            that cannot run (D-137, amended), and every variant that *is* built has its manifest
+            verified against that directory.
 
     Returns:
-        One result per row of the taxonomy, in file order; a dropped row has no root.
+        One result per row of the taxonomy, in file order; a row that was not built has no root
+        and carries the reason.
     """
     root = Path(out_dir)
     root.mkdir(parents=True, exist_ok=True)
@@ -1442,7 +1511,12 @@ def build_all(
     results: list[BuildResult] = []
     for spec in taxonomy.specs:
         if spec.is_dropped:
-            results.append(BuildResult(spec=spec, root=None, notes=[str(spec.dropped_reason)]))
+            reason = str(spec.dropped_reason)
+            results.append(BuildResult(spec=spec, root=None, notes=[reason], reason=reason))
+            continue
+        if data_dir is not None and spec.recipe in SYNTHETIC_ONLY_RECIPES:
+            reason = f"synthetic-only under --data: {SYNTHETIC_ONLY_RECIPES[spec.recipe]}"
+            results.append(BuildResult(spec=spec, root=None, notes=[], reason=reason))
             continue
         target = root / spec.id
         package = seed(
@@ -1451,6 +1525,7 @@ def build_all(
             target,
             synthetic_n=sizes.get(spec.subject),
             taxonomy=taxonomy,
+            data_dir=data_dir,
         )
         assert package.root == target
         results.append(BuildResult(spec=spec, root=target, notes=list(_notes_of(target))))
@@ -1477,6 +1552,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--subjects", type=Path, default=SUBJECTS_DIR)
     parser.add_argument("--synthetic", type=int, nargs="?", const=-1, default=None)
+    parser.add_argument("--data", type=Path, default=None)
     args = parser.parse_args(list(argv) if argv is not None else None)
     taxonomy = load_taxonomy(args.taxonomy)
     results = build_all(
@@ -1484,9 +1560,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.out,
         subjects_dir=args.subjects,
         synthetic_n=synthetic_sizes(taxonomy, args.synthetic),
+        data_dir=args.data,
     )
     for result in results:
-        where = str(result.root) if result.root else "not built (dropped)"
+        where = str(result.root) if result.root else f"not built ({result.reason})"
         print(f"{result.spec.id}: {result.spec.recipe} -> {where}")
     built = [result for result in results if result.built]
     print(f"{len(built)} variant(s) built under {args.out}; {len(results) - len(built)} dropped")

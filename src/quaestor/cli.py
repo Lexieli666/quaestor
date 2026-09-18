@@ -1,29 +1,37 @@
 """The ``quaestor`` console script: ``validate``, ``tool``, ``corpus ingest`` and ``study build``.
 
-Spec section 3.14 lists eight commands. Four of them exist today, and only those four have a
-parser: ``study run`` and ``study score`` arrive with the study in Phase 12, ``verifier-eval``
-with Phase 13, and ``mcp`` with Phase 15. A flag that parses and then says "not implemented" is
-worse than no flag, because a reader of ``--help`` cannot tell the difference between what this
-program does and what it is going to do; the Phase 0 design paragraph on half-built flag surfaces
-is the whole argument, and it applies here (D-082). ``study`` therefore takes exactly one action
-today, and ``quaestor study run`` is an argparse "invalid choice" like any misspelling.
+Spec section 3.14 lists eight commands. Five of them exist today, and only those five have a
+parser: ``verifier-eval`` arrives with Phase 13 and ``mcp`` with Phase 15, and ``study score`` is
+``python eval/score.py``, which reads run directories and never runs anything. A flag that parses
+and then says "not implemented" is worse than no flag, because a reader of ``--help`` cannot tell
+the difference between what this program does and what it is going to do; the Phase 0 design
+paragraph on half-built flag surfaces is the whole argument, and it applies here (D-082).
 
-``study build`` is the one command whose implementation is not in this package. The seeded-defect
-generator lives in ``eval/seed.py``, outside ``src/``, because the pipeline being measured must
-not be able to import the thing that plants the defects; so the command loads it from beside the
-taxonomy it was given, and says so when it is not there (DECISIONS D-127).
+``study build`` and ``study run`` are the two commands whose implementation is not in this
+package. The seeded-defect generator lives in ``eval/seed.py`` and the study harness in
+``eval/run_study.py``, outside ``src/``, because the pipeline being measured must not be able to
+import the thing that plants the defects and because a study harness is a development tool that
+only makes sense inside a checkout; so each command loads its module from beside the taxonomy it
+was given, and says so when it is not there (DECISIONS D-127).
 
 **Exit codes**, which are the interface a script sees:
 
 * ``0`` -- the command did what it was asked.
 * ``1`` -- the command ran and did not produce what it was asked for: a validation the renderer
-  refused, a tool whose inputs are not there, an ingest whose outline does not match its document.
-  The run directory holds the trace of how far it got.
+  refused, a tool whose inputs are not there, an ingest whose outline does not match its document,
+  a study chunk one of whose cells produced no report. The run directory holds the trace of how
+  far it got.
 * ``2`` -- the request itself was wrong: a flag, a missing package, a package that does not load,
   a PDF that is not where the command says it is. Nothing was run.
 
 Every message written to standard error names the command that fixes it, which is spec section
 3.1's rule about error messages applied to the program's own front door.
+
+**The exit code is not the whole answer, and two commands say so.** A ``validate`` whose checklist
+partly failed exits ``0`` and names the missing check in Appendix D, so a caller judging a run
+reads ``checks_failed`` and not the code (D-177). A ``study run`` that stopped on its cost ceiling
+exits ``0`` exactly as one that finished the study does, so a caller reruns the same command line
+until ``remaining`` in ``ledger.json`` reads zero.
 """
 
 from __future__ import annotations
@@ -58,7 +66,9 @@ __all__ = [
     "EXIT_OK",
     "EXIT_USAGE",
     "PROVIDERS",
+    "RUN_STUDY_MODULE",
     "SEED_MODULE",
+    "STUDY_ORDER",
     "build_parser",
     "main",
 ]
@@ -84,8 +94,27 @@ _TRACE_FILE: Final = "trace.jsonl"
 SEED_MODULE: Final = "seed.py"
 """The seeded-defect generator, looked for beside ``--taxonomy`` and loaded under an alias."""
 
+RUN_STUDY_MODULE: Final = "run_study.py"
+"""The study harness, looked for in the same place and loaded the same way."""
+
 _SEED_ALIAS: Final = "quaestor_eval_seed"
 """What ``eval/seed.py`` is imported as, so it does not collide with anything on the path."""
+
+_RUN_STUDY_ALIAS: Final = "quaestor_eval_run_study"
+"""What ``eval/run_study.py`` is imported as, for the same reason."""
+
+STUDY_ORDER: Final = (
+    Configuration.rules_only.value,
+    Configuration.plain_llm.value,
+    Configuration.full_agent.value,
+)
+"""The order ``study run`` runs the configurations in when ``--config`` is not given.
+
+Cheapest first, which is ``docs/STUDY.md`` section 4's order and not :data:`CONFIGURATIONS`'s:
+``rules_only`` makes no model call, so eighteen of them are a free rehearsal of the harness, and
+``plain_llm`` costs about a third of ``full_agent`` a run (D-179). A defect in the study harness
+should be found by the arm that costs nothing to re-run.
+"""
 
 _DEFAULT_TAXONOMY: Final = Path("eval") / "taxonomy.yaml"
 _SUBJECTS_DIRNAME: Final = "subjects"
@@ -290,20 +319,21 @@ def _add_corpus(commands: Any) -> None:
 
 
 def _add_study(commands: Any) -> None:
-    """Add ``quaestor study build``: the seeded-defect variants of `04` section 2.
+    """Add ``quaestor study build`` and ``quaestor study run``.
 
-    ``build`` is the only action, so ``quaestor study run`` and ``quaestor study score`` are
-    argparse "invalid choice" errors until Phase 12 writes them, which is what D-082 asks of every
-    command that does not exist yet.
+    ``score`` is deliberately not an action: it reads finished run directories and runs nothing,
+    so it is ``python eval/score.py`` and not a verb of this program. ``quaestor study score``
+    stays an argparse "invalid choice", which is what D-082 asks of every command that does not
+    exist here.
     """
     study_parser = commands.add_parser(
         "study",
-        help="build the seeded-defect variants the evaluation runs on",
+        help="build the seeded-defect variants the evaluation runs on, and run the study",
         description=(
-            "The seeded-defect study of 04-SEEDED-DEFECT-STUDY.md. Only `build` exists today: it "
-            "writes one variant package per row of the taxonomy, each with a SEED.yaml recording "
-            "what was done to it that no validation run ever reads. `run` and `score` are Phase "
-            "12."
+            "The seeded-defect study of 04-SEEDED-DEFECT-STUDY.md. `build` writes one variant "
+            "package per row of the taxonomy, each with a SEED.yaml recording what was done to it "
+            "that no validation run ever reads; `run` validates those variants under one or more "
+            "configurations, in resumable chunks. Scoring is `python eval/score.py`."
         ),
     )
     actions = study_parser.add_subparsers(dest="action", metavar="ACTION", required=True)
@@ -347,36 +377,181 @@ def _add_study(commands: Any) -> None:
             "with no number, each subject's documented default"
         ),
     )
+    build_parser.add_argument(
+        "--data",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help=(
+            "build the variants for a --data validation against this directory, verifying each "
+            "one's manifest against it; the four recipes that need a column the real sample does "
+            "not carry are skipped by name (D-137)"
+        ),
+    )
     build_parser.set_defaults(run=_run_study_build)
+    _add_study_run(actions)
 
 
-def _load_seed_module(directory: Path) -> ModuleType:
-    """Import ``eval/seed.py`` from a directory, under an alias of its own.
+def _add_study_run(actions: Any) -> None:
+    """Add ``quaestor study run``: one chunk of the study, resumable and capped.
+
+    The flag surface is ``validate``'s, because a cell *is* a validation and a second spelling of
+    ``--llm`` or ``--synthetic`` would be a second set of rules about which of them combine. What
+    is new is the two flags a study needs and a single run does not: ``--config``, which may be
+    repeated, and ``--max-cost``, the chunk's ceiling.
+    """
+    run_parser = actions.add_parser(
+        "run",
+        help="run one chunk of the study: every (variant, configuration) cell not yet finished",
+        description=(
+            "Validate each variant under each configuration and write the result under --out, "
+            "with a ledger.json that records what finished, what it cost and which checks did "
+            "not run. Re-running the same command resumes: a cell whose latest attempt finished "
+            "is skipped. --max-cost is the ceiling for this invocation alone -- one sitting -- "
+            "and is checked both before a cell starts and before every model call."
+        ),
+    )
+    run_parser.add_argument(
+        "--variants",
+        metavar="DIR",
+        type=Path,
+        required=True,
+        help="where `quaestor study build` wrote the variant packages",
+    )
+    run_parser.add_argument(
+        "--out", metavar="DIR", type=Path, required=True, help="the study directory"
+    )
+    run_parser.add_argument(
+        "--config",
+        metavar="C",
+        action="append",
+        choices=[name.value for name in CONFIGURATIONS],
+        default=None,
+        help=(
+            "which configuration to run; repeat it to run several, in the order given "
+            f"(default: {', '.join(STUDY_ORDER)}, which is cheapest first)"
+        ),
+    )
+    source = run_parser.add_mutually_exclusive_group(required=True)
+    source.add_argument(
+        "--data",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help="the directory holding the subjects' real data",
+    )
+    source.add_argument(
+        "--synthetic",
+        metavar="N",
+        nargs="?",
+        type=int,
+        const=SYNTHETIC_FROM_SUBJECT,
+        default=None,
+        help="generate N rows per variant; with no number, each subject's documented default",
+    )
+    run_parser.add_argument(
+        "--llm", choices=PROVIDERS, required=True, help="the provider every cell's calls go to"
+    )
+    run_parser.add_argument(
+        "--model",
+        metavar="M",
+        default=None,
+        help="the model to ask; name it, or the study is not comparable to the runs it quotes",
+    )
+    run_parser.add_argument(
+        "--max-cost",
+        metavar="USD",
+        type=float,
+        default=None,
+        help=(
+            "stop this chunk once its model calls have cost this much; a cell whose estimate "
+            "does not fit is not started, and a call that would cross the line is not made"
+        ),
+    )
+    run_parser.add_argument(
+        "--only",
+        metavar="VARIANT",
+        action="append",
+        default=None,
+        help="restrict the chunk to these variants; repeat it for several",
+    )
+    run_parser.add_argument(
+        "--taxonomy",
+        metavar="FILE",
+        type=Path,
+        default=_DEFAULT_TAXONOMY,
+        help=f"where {RUN_STUDY_MODULE} is looked for (default: beside {_DEFAULT_TAXONOMY})",
+    )
+    run_parser.add_argument(
+        "--record-cassettes",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help="record every model call, one store per cell, so the study can be replayed",
+    )
+    run_parser.add_argument(
+        "--cassettes",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help="where --llm replay reads its recorded calls from",
+    )
+    run_parser.set_defaults(run=_run_study_run)
+
+
+def _load_eval_module(directory: Path, filename: str, alias: str, fix: str) -> ModuleType:
+    """Import one module of ``eval/`` from a directory, under an alias of its own.
+
+    Both of the ``study`` actions are implemented outside this package and found the same way:
+    beside the taxonomy the command was given, which is the one path a caller always names.
 
     Args:
-        directory: Where the taxonomy is, which is where the generator is looked for.
+        directory: Where the taxonomy is, which is where the module is looked for.
+        filename: The module's file name, :data:`SEED_MODULE` or :data:`RUN_STUDY_MODULE`.
+        alias: What to import it as, so it collides with nothing on the path.
+        fix: The command to suggest when it is not there.
 
     Returns:
         The loaded module.
 
     Raises:
-        PackageError: There is no ``seed.py`` there, or it does not import.
+        PackageError: There is no such file there, or it does not import.
     """
-    path = directory / SEED_MODULE
+    path = directory / filename
     if not path.is_file():
         raise PackageError(
-            f"there is no {SEED_MODULE} beside {directory}, so there is no seeded-defect "
-            "generator to run; `quaestor study build` works inside a checkout of this "
-            "repository, where eval/seed.py sits next to eval/taxonomy.yaml",
-            fix="quaestor study build --taxonomy eval/taxonomy.yaml --out eval/variants",
+            f"there is no {filename} beside {directory}; `quaestor study` works inside a checkout "
+            f"of this repository, where eval/{filename} sits next to eval/taxonomy.yaml",
+            fix=fix,
         )
-    spec = importlib.util.spec_from_file_location(_SEED_ALIAS, path)
+    spec = importlib.util.spec_from_file_location(alias, path)
     if spec is None or spec.loader is None:  # pragma: no cover - a file that is not importable
         raise PackageError(f"{path} is not importable as a module")
     module = importlib.util.module_from_spec(spec)
-    sys.modules[_SEED_ALIAS] = module
+    sys.modules[alias] = module
     spec.loader.exec_module(module)
     return module
+
+
+def _load_seed_module(directory: Path) -> ModuleType:
+    """Import ``eval/seed.py``, the seeded-defect generator."""
+    return _load_eval_module(
+        directory,
+        SEED_MODULE,
+        _SEED_ALIAS,
+        "quaestor study build --taxonomy eval/taxonomy.yaml --out eval/variants",
+    )
+
+
+def _load_run_study_module(directory: Path) -> ModuleType:
+    """Import ``eval/run_study.py``, the study harness."""
+    return _load_eval_module(
+        directory,
+        RUN_STUDY_MODULE,
+        _RUN_STUDY_ALIAS,
+        "quaestor study run --variants eval/variants --out eval/results/run --llm fake "
+        "--synthetic --config rules_only",
+    )
 
 
 def _run_study_build(args: argparse.Namespace) -> int:
@@ -402,6 +577,11 @@ def _run_study_build(args: argparse.Namespace) -> int:
             "quaestor study build --taxonomy eval/taxonomy.yaml --subjects subjects "
             "--out eval/variants",
         )
+    if args.data is not None and not Path(args.data).is_dir():
+        return _fail(
+            f"there is no data directory at {args.data}",
+            "see data/README.md for where each subject's sample comes from",
+        )
     try:
         taxonomy = seed_module.load_taxonomy(taxonomy_path)
         results: list[Any] = seed_module.build_all(
@@ -409,8 +589,9 @@ def _run_study_build(args: argparse.Namespace) -> int:
             args.out,
             subjects_dir=subjects,
             synthetic_n=seed_module.synthetic_sizes(taxonomy, args.synthetic),
+            data_dir=args.data,
         )
-    except (ValueError, KeyError, OSError) as exc:
+    except (ValueError, KeyError, OSError, QuaestorError) as exc:
         return _fail(
             f"{taxonomy_path} could not be built: {exc}",
             f"cat {taxonomy_path}",
@@ -422,9 +603,55 @@ def _run_study_build(args: argparse.Namespace) -> int:
             built += 1
             print(f"{result.spec.id}: {result.spec.recipe} -> {result.root}")
         else:
-            print(f"{result.spec.id}: dropped ({result.spec.dropped_reason})")
-    print(f"{built} variant(s) under {args.out}; {len(results) - built} dropped")
+            print(f"{result.spec.id}: not built ({result.reason})")
+    print(f"{built} variant(s) under {args.out}; {len(results) - built} not built")
     return EXIT_OK
+
+
+def _run_study_run(args: argparse.Namespace) -> int:
+    """Run ``quaestor study run``: one chunk, then a summary of what is left.
+
+    The return value is :data:`EXIT_OK` for a chunk that ended cleanly, whether it ended because
+    the study is finished or because the ceiling was reached, and :data:`EXIT_FAILED_RUN` when a
+    cell produced no report. Which of the two clean endings happened is in ``ledger.json``, and
+    the ``checks_failed`` a finished cell carries is printed here and written there: D-177's rule
+    is that a caller judging a run reads those and not this number.
+    """
+    taxonomy_path = Path(args.taxonomy)
+    try:
+        harness = _load_run_study_module(taxonomy_path.parent)
+        provider = _provider(argparse.Namespace(**{**vars(args), "record_cassettes": None}))
+    except QuaestorError as exc:
+        return _fail(str(exc.message), exc.fix or "quaestor study run --help")
+    configurations = args.config or list(STUDY_ORDER)
+    model: dict[str, Any] = {"model": args.model} if args.model else {}
+    try:
+        summary = harness.run_chunk(
+            args.variants,
+            args.out,
+            provider=provider,
+            configurations=configurations,
+            synthetic=None if args.synthetic == SYNTHETIC_FROM_SUBJECT else args.synthetic,
+            data_dir=args.data,
+            max_cost_usd=args.max_cost,
+            only=args.only,
+            cassettes_dir=args.record_cassettes,
+            **model,
+        )
+    except QuaestorError as exc:
+        return _fail(str(exc.message), exc.fix or "quaestor study run --help")
+    ledger = Path(args.out) / harness.LEDGER_FILE
+    print(
+        f"{len(summary.ran)} cell(s) run, {len(summary.failed)} failed, "
+        f"{len(summary.skipped)} already done; ${summary.spent_usd:.4f} spent"
+    )
+    if summary.stopped_for_budget:
+        print(f"stopped on --max-cost ${args.max_cost:.4f}; rerun the same command to continue")
+    for record in summary.checks_failed:
+        tools = ", ".join(failure["tool"] for failure in record.checks_failed)
+        print(f"{record.cell.key}: reported without {tools}")
+    print(f"{summary.remaining} cell(s) of this plan remaining; ledger: {ledger}")
+    return EXIT_FAILED_RUN if summary.failed else EXIT_OK
 
 
 def _fail(message: str, fix: str, code: int = EXIT_USAGE) -> int:
