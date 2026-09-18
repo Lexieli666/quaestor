@@ -42,9 +42,33 @@ tmp/
 # there. See CLAUDE.md, hard constraints.
 data-raw/
 
-# NOTE: `eval/results/`, `eval/results/published/` and (from Phase 11) `tests/probatio/cassettes/`
-# are deliberately NOT ignored. They hold committed study results and recorded tapes, which CI and
-# every provenance claim in the documentation must be able to read.
+# NOTE: `tests/probatio/cassettes/` is deliberately NOT ignored. It holds the recorded tapes,
+# which CI and every provenance claim in the documentation must be able to read.
+
+# Study results, decided before the tree grew (D-185). A chunk of `quaestor study run` writes
+# about 11 MB a cell -- the artifact store and the subject's own `run/` output -- and the study is
+# 62 cells, so what enters the repository is decided by rule here rather than by whoever runs the
+# last chunk.
+#
+# Committed: `published/`, the one copy the README and `docs/STUDY.md` quote from, and
+# `first-live/`, Phase 9's archived runs that the test layer reads. Not committed: every
+# timestamped working directory a chunk writes, which is reproduced by re-running the chunk.
+eval/results/*
+!eval/results/.gitkeep
+!eval/results/first-live/
+!eval/results/published/
+
+# Inside a published run, the artifact store stays out: it is regenerated exactly by replaying
+# that run's committed cassettes, and the conclusions rest on `report.md`, `findings.json`,
+# `claims.json`, `trace.jsonl` and `summary.json`, all of which are committed (D-185).
+eval/results/published/**/artifacts/
+
+# The subject's own `run/` output never carries rows into the repository, in any results
+# directory. A `--data` run writes the real panel to `data_train.csv` and `data_test.csv` and its
+# predictions beside them; `CLAUDE.md`'s "no Freddie Mac rows in the repo" is a hard constraint
+# and not something to remember at commit time. The four JSON contract files are what Phase 9
+# committed by hand and are what this keeps.
+eval/results/**/run/*.csv
 
 # The seeded-defect variants of Phase 10 are generated artefacts, not sources: `quaestor study
 # build` writes one package per row of `eval/taxonomy.yaml`, and the taxonomy plus `eval/seed.py`

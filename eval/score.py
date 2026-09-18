@@ -53,6 +53,7 @@ import json
 import sys
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Final
 
@@ -74,6 +75,7 @@ __all__ = [
     "load_runs",
     "main",
     "score",
+    "stamp",
 ]
 
 DETECTION_SEVERITY: Final = Severity.medium
@@ -628,8 +630,23 @@ class ConfigurationScore:
 
 @dataclass
 class StudyScore:
-    """Every configuration's score, and what the whole thing was computed from."""
+    """Every configuration's score, and what the whole thing was computed from.
 
+    Attributes:
+        generated: When the scoring ran, UTC to the second. `summary.json` is the file the README
+            and `docs/STUDY.md` quote from, and it travels without the run directory it was
+            computed in -- so the date a reader needs has to be inside it, not in the name of a
+            directory they may not have. Spelled exactly as the report's own front matter spells
+            its `generated`, because a reader comparing the two should not have to parse two
+            formats. Injectable, so that a test's `summary.json` is byte-stable.
+        results_dir: Where the run directories were read from.
+        variants_dir: Where the answer keys were read from.
+        taxonomy: Which taxonomy's control baselines were used.
+        configurations: One score per configuration.
+        unknown_variants: Runs whose variant carries no answer key.
+    """
+
+    generated: datetime
     results_dir: str
     variants_dir: str
     taxonomy: str
@@ -640,6 +657,7 @@ class StudyScore:
         """`summary.json`."""
         return {
             "schema_version": 1,
+            "generated": stamp(self.generated),
             "results_dir": self.results_dir,
             "variants_dir": self.variants_dir,
             "taxonomy": self.taxonomy,
@@ -648,6 +666,18 @@ class StudyScore:
             },
             "variants_without_an_answer_key": list(self.unknown_variants),
         }
+
+
+def stamp(moment: datetime) -> str:
+    """Spell one instant the way the report's front matter spells `generated`: UTC, to the second.
+
+    Args:
+        moment: The instant, in any time zone.
+
+    Returns:
+        ISO-8601 in UTC with a `Z` suffix and no microseconds.
+    """
+    return moment.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _detects(run: RunDirectory, key: VariantKey, baseline: Baseline) -> bool:
@@ -806,7 +836,7 @@ def _lines(result: StudyScore) -> Iterator[str]:
         yield f"no answer key for: {', '.join(result.unknown_variants)}"
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(argv: Sequence[str] | None = None, *, generated: datetime | None = None) -> int:
     """Score a directory of runs and print the summary. Returns an exit code.
 
     Returns:
@@ -837,6 +867,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     keys = load_keys(args.variants)
     baselines = load_baselines(args.taxonomy)
     result = StudyScore(
+        generated=generated or datetime.now(UTC),
         results_dir=str(args.results),
         variants_dir=str(args.variants),
         taxonomy=str(args.taxonomy),

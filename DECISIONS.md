@@ -6680,3 +6680,51 @@ here and recorded.
   perturbed baseline from its clean control at scoring time** rather than writing the row, which
   would make "the perturbation is harmless" an assumption of the scorer instead of a measurement
   it can be checked against.
+
+## D-185. What of a study run enters the repository, decided before the tree grew
+
+- **Date:** 2026-09-18 (Phase 12, after chunk 1; the human's decision, taken before the paid arms
+  write anything)
+- **Q:** Chunk 1 wrote **200 MB** for eighteen free `rules_only` cells, and `eval/results/` is
+  deliberately not gitignored. The study is 62 cells across four more arms. What is committed?
+- **A:** **`published/` only, and not all of that.** Measured over chunk 1's eighteen runs, a
+  results tree is three things: the **artifact stores** at 104 MB, the subject's own **`run/`
+  output** at 87 MB, and the four documents — `report.md`, `findings.json`, `claims.json`,
+  `trace.jsonl` — at **8.9 MB** between them. So:
+
+  * Every **timestamped working directory** a chunk writes is ignored. It is reproduced by
+    re-running the chunk, and there will be several of them before the study is finished.
+  * **`eval/results/published/`** is committed: the four documents per run, `summary.json`,
+    `MANIFEST.json` and the run's **cassettes**, which `docs/STUDY.md` §7 says *are* the run.
+  * **`eval/results/first-live/`** stays committed exactly as it is. Phase 9's archived runs are
+    read by the test layer (D-138 builds a Probatio case input from
+    `first-live/credit/report.md`), and this rule is about the study, not about them.
+  * The **artifact store is out, even under `published/`**: it is regenerated exactly by replaying
+    that run's committed cassettes against the same variant package, and what the study's
+    conclusions rest on is `findings.json`, `claims.json` and `summary.json`.
+  * **`run/*.csv` is out of every results directory, and this one is a hard constraint rather than
+    a size decision.** The subject writes `data_train.csv` and `data_test.csv` into its run
+    directory, and under `--data` those are rows of the real panel. `CLAUDE.md` says no Freddie
+    Mac rows in the repository; Phase 9 honoured that by committing only the four JSON contract
+    files of `run/` and leaving the CSVs behind, **by hand, one commit at a time**. The rule makes
+    it automatic, which is what it should have been.
+- **Why:** A rule written after 62 cells have been run is a rule written by whoever ran the last
+  chunk, and the shape it would take is "whatever is already there". The cost of getting it wrong
+  is asymmetric: an over-inclusive tree is ~700 MB of regenerable bytes in a repository whose
+  point is a report and a study, and, in the `--data` arms, a hard-constraint breach that is
+  discovered by someone reading a CSV in a diff.
+  **What is given up, said plainly.** `eval/score.py` reads `artifacts/index.json` for one rule —
+  a baseline class on a seeded variant must cite an artifact the control's baseline did not — so a
+  published run cannot be *re-scored* from the committed tree alone without first replaying its
+  cassettes to rebuild the store. The scored answer is not lost: `summary.json` is committed and
+  carries every number, its inputs and, from this commit, the date it was computed. Keeping
+  `index.json` alone would cost about 960 KB over eighteen runs and would restore re-scoring; it
+  is not done here because the human's decision was the store, and because a half-committed store
+  is a third state to explain. It is a one-line change to `.gitignore` if that trade is later
+  judged the other way.
+  Rejected alternatives. **Committing every chunk's tree** and pruning later, which is the rule
+  written by the last chunk. **Gitignoring `eval/results/` entirely** and publishing elsewhere,
+  which breaks D-138's committed case input and every provenance claim that names a path in this
+  repository. **Keeping `run/` in full under `published/`**, which is 87 MB of predictions and,
+  on the two bridge runs, real rows. **Trusting the commit message**, which is what Phase 9 did
+  and which worked only because one person made every commit.

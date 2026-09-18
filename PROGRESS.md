@@ -1337,3 +1337,28 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   unchanged at **7 failed, 33 passed**, zero provider
   calls: this commit touches no prompt. No download, no training on real data from any test. No
   push.
+- 2026-09-18 — **Phase 12, chunk 1 and the results-tree rule** — **no provider call, no live data,
+  $0.0000**: the study's first chunk, `rules_only` over all eighteen variants through
+  `quaestor study run` itself rather than a hand-driven sweep, written to
+  `eval/results/20260918T065257Z/` with `--max-cost 0` — a ceiling a free arm must not touch, and
+  did not. **18 cells run, 0 failed, 0 remaining, 66 s of subject time**, grounding precision
+  1.0000 pre- and post-repair on every one over 200–330 claims, and **0 cells with
+  `checks_failed`**, so commits C and D's crash path stayed dormant. **All eighteen finding sets
+  are byte-identical to the pre-commit-C/D sweep**, 18 of 18, nothing gained or lost. Scored:
+  **14/14 detected** (`C1` 2/2, `D1` 1/1, `L1` 3/3, `L2` 2/2, `M1` 1/1, `R1` 1/1, `S1` 2/2, `T1`
+  1/1, `X1` 1/1), four controls, **0 false alarms, 0 collateral spurious, 0 unjudged, 0 not
+  scorable, precision 1.0000**, `eval/score.py` exit 0 with nothing owed; the seven collateral
+  findings carry their provenance, six dated 2026-09-09 and one 2026-09-17. Two things shipped
+  with it. `summary.json` now carries **the date it was scored**, UTC to the second and spelled as
+  a report's front matter spells `generated`, because the published file travels without the
+  directory whose name carries the stamp. And **what of a study run enters the repository is a
+  `.gitignore` rule** (**D-185**), decided on chunk 1's own measurement — 104 MB of artifact
+  stores, 87 MB of `run/` output, 8.9 MB of documents — before the four paid arms write anything:
+  timestamped working directories out, `published/` in without its artifact stores,
+  `first-live/` untouched, and **`run/*.csv` out of every results directory**, because a `--data`
+  run writes the real panel there and Phase 9 was keeping it out by hand. Gate: offline suite
+  excluding `tests/probatio` **1,702 passed**, 0 failed, 0 skipped, 0 xfailed (1,699 → 1,702,
+  three added); `ruff check` and `ruff format --check` clean on `src tests eval subjects`;
+  `mypy --strict src/quaestor` clean over 60 source files. **[stranded]** `pytest tests/probatio
+  --cassette=replay` unchanged at **7 failed, 33 passed**. Chunk 1's 200 MB tree stays on disk and
+  out of the repository. Pushed.

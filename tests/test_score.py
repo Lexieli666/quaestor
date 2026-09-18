@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +32,9 @@ seed_module = load_module("quaestor_eval_seed_under_test", REPO_ROOT / "eval" / 
 
 TAXONOMY_FILE = REPO_ROOT / "eval" / "taxonomy.yaml"
 SUBJECTS = REPO_ROOT / "subjects"
+
+PINNED = datetime(2026, 9, 18, 6, 52, 57, tzinfo=UTC)
+"""A fixed instant, so a test can assert on `summary.json`'s bytes rather than on a clock."""
 
 SCORED = ("credit__T1__false_claim", "credit__C1__smote_uncalibrated", "control_credit_clean")
 """Three variants: a seeded one whose recipe is a `package.yaml` edit, one whose recipe is a
@@ -557,6 +561,7 @@ def test_the_summary_says_what_it_was_computed_from(tmp_path: Path) -> None:
         findings=[{"defect_class": "L1", "severity": "high", "evidence": ["aaaaaaaa"]}],
     )
     result = scorer.StudyScore(
+        generated=PINNED,
         results_dir=str(tmp_path / "results"),
         variants_dir=str(tmp_path / "variants"),
         taxonomy=str(TAXONOMY_FILE),
@@ -564,6 +569,7 @@ def test_the_summary_says_what_it_was_computed_from(tmp_path: Path) -> None:
     )
     payload = result.to_payload()
     assert payload["schema_version"] == 1
+    assert payload["generated"] == "2026-09-18T06:52:57Z"
     assert payload["taxonomy"] == str(TAXONOMY_FILE)
     block = payload["configurations"]["rules_only"]
     assert block["detected"] == ["v"] and block["precision"] == pytest.approx(1.0)
@@ -688,3 +694,70 @@ def test_a_plain_miss_is_a_result_and_exits_zero(
     )
     assert code == 0
     assert "L1: 0/1; missed v" in capsys.readouterr().out
+
+
+def test_the_summary_carries_the_date_it_was_scored_and_spells_it_as_a_report_does(
+    tmp_path: Path,
+) -> None:
+    """`summary.json` travels without its run directory, so the date has to be inside it.
+
+    The README and `docs/STUDY.md` quote from the published `summary.json`; a reader of those
+    numbers may never see the directory whose name carries the stamp, and a directory name is the
+    operator's anyway rather than something the scoring wrote. The spelling is the one the
+    report's own front matter uses -- UTC, to the second, `Z`-suffixed -- so that comparing the
+    two does not mean parsing two formats.
+    """
+    _write_key(tmp_path / "variants", "v")
+    _write_run(
+        tmp_path / "results",
+        "v",
+        findings=[{"defect_class": "L1", "severity": "high", "evidence": ["aaaaaaaa"]}],
+    )
+    out = tmp_path / "summary.json"
+    code = scorer.main(
+        [
+            "--results",
+            str(tmp_path / "results"),
+            "--variants",
+            str(tmp_path / "variants"),
+            "--out",
+            str(out),
+        ],
+        generated=PINNED,
+    )
+    assert code == 0
+    assert json.loads(out.read_text(encoding="utf-8"))["generated"] == "2026-09-18T06:52:57Z"
+
+
+def test_the_stamp_is_utc_whatever_zone_it_is_handed() -> None:
+    """A clock in another zone is converted, not printed; microseconds are dropped."""
+    assert scorer.stamp(datetime(2026, 9, 18, 6, 52, 57, 123456, tzinfo=UTC)) == (
+        "2026-09-18T06:52:57Z"
+    )
+    local = datetime(2026, 9, 17, 23, 52, 57, tzinfo=timezone(timedelta(hours=-7)))
+    assert scorer.stamp(local) == "2026-09-18T06:52:57Z"
+
+
+def test_scoring_with_no_timestamp_uses_the_clock(tmp_path: Path) -> None:
+    """The default path, which no other test can assert on without asserting on a clock."""
+    _write_key(tmp_path / "variants", "v")
+    _write_run(
+        tmp_path / "results",
+        "v",
+        findings=[{"defect_class": "L1", "severity": "high", "evidence": ["aaaaaaaa"]}],
+    )
+    out = tmp_path / "summary.json"
+    before = datetime.now(UTC).replace(microsecond=0)
+    scorer.main(
+        [
+            "--results",
+            str(tmp_path / "results"),
+            "--variants",
+            str(tmp_path / "variants"),
+            "--out",
+            str(out),
+        ]
+    )
+    written = json.loads(out.read_text(encoding="utf-8"))["generated"]
+    assert written.endswith("Z")
+    assert before <= datetime.fromisoformat(written.replace("Z", "+00:00"))

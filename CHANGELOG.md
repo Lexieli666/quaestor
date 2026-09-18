@@ -39,6 +39,23 @@ run that was not committed.
 
 ### Added
 
+- **`summary.json` carries the date it was scored.** UTC to the second, `Z`-suffixed, spelled
+  exactly as a report's own front matter spells `generated`, and injectable so a test can assert
+  on the file's bytes rather than on a clock. The README and `docs/STUDY.md` quote from the
+  published `summary.json`, which travels without the run directory it was computed in — so the
+  date a reader needs has to be inside the file, and a directory name is the operator's anyway.
+
+- **What of a study run enters the repository is now a `.gitignore` rule rather than a habit
+  (D-185).** Measured over chunk 1's eighteen free runs, a results tree is 104 MB of artifact
+  stores, 87 MB of the subject's own `run/` output and 8.9 MB of the four documents the study
+  actually reads. Every timestamped working directory a chunk writes is ignored;
+  `eval/results/published/` is committed, minus its artifact stores, which replay exactly from the
+  run's committed cassettes; `eval/results/first-live/` is untouched, because the test layer reads
+  it. **And `run/*.csv` is ignored in every results directory** — the subject writes
+  `data_train.csv` and `data_test.csv` there, and under `--data` those are rows of the real panel.
+  Phase 9 kept them out by hand, one commit at a time; `CLAUDE.md`'s "no Freddie Mac rows in the
+  repo" is now enforced by the file that enforces things.
+
 - **`quaestor study run`: the study in resumable chunks, with a cost ceiling that stops a sitting
   rather than reporting on it.** One cell is one `(variant, configuration)` pair; a chunk is one
   invocation. `<out>/ledger.json` is rewritten after every cell — to a temporary name and renamed,
