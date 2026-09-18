@@ -18,6 +18,7 @@ to guess the shape of the payload.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -225,16 +226,34 @@ def written_number(value: float) -> str:
     for a template to write one number and claim another; positional notation is still what this
     writes, because ``0.0000192`` is what a reader of a validation report expects to see.
 
+    **The number of decimals is chosen so that the significant figures survive**, which is the
+    half this got wrong until D-178. A fixed twelve-decimal format is a precision ceiling, and a
+    value below it is not rounded but erased: ``challenger.brier`` of ``3.2265e-13`` on the
+    ``msr__L1__eom_balance`` variant formatted to ``0.000000000000``, which this function then
+    returned as ``"0.0"`` -- prose asserting that a near-perfect challenger's Brier score is zero,
+    of an artifact that says it is not, in the one configuration whose grounding is meant to be
+    1.0 by construction. Twelve decimals is still the floor, so every number this wrote before
+    D-178 it writes identically; only a value too small for twelve decimals gets more of them.
+
     Args:
         value: The number to write.
 
     Returns:
-        The number as prose writes it.
+        The number as prose writes it, always carrying at least one significant figure of a
+        non-zero value.
     """
     if value == int(value) and abs(value) < 1e15:
         return str(int(value))
-    text = f"{value:.12f}".rstrip("0")
-    return text if not text.endswith(".") else f"{text}0"
+    exponent = math.floor(math.log10(abs(value)))
+    decimals = max(_MIN_DECIMALS, SIGNIFICANT_FIGURES - 1 - exponent)
+    text = f"{value:.{decimals}f}".rstrip("0")
+    if text.endswith("."):  # pragma: no cover - `decimals` keeps a significant figure alive
+        raise ValueError(f"{value!r} rounded away to {text!r}; written_number must not erase it")
+    return text
+
+
+_MIN_DECIMALS: Final = 12
+"""The decimal floor :func:`written_number` keeps, so that nothing it wrote before D-178 moves."""
 
 
 def flatten_json(payload: Any, prefix: str = "", limit: int = MAX_JSON_PATHS) -> dict[str, float]:

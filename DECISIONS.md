@@ -6241,3 +6241,76 @@ here and recorded.
   in every section's prompt**, which is D-096's two accounts of one fact: Appendix D is the table
   every reader gets, and what section 1 owes is only the sentence that stops a reader taking the
   report as complete.
+
+## D-178. A precision ceiling that erased a number, and a wrapper that marked the wrong one
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, found by the free `rules_only` sweep over the
+  eighteen seeded variants — the cut list's step 3, which exists to be the first live exercise of
+  the harness before any paid run)
+- **Q:** Seventeen of the eighteen variants came back at grounding precision **1.0000**.
+  `msr__L1__eom_balance` came back at **0.9969** — 317 verified and one `unattributed` — and its
+  section 2 carried `⟦unverified: 0⟧` around a number whose own claim verified. `rules_only` is
+  the configuration whose grounding is 1.0 **by construction**: the template writes the prose and
+  declares the claims, so there is nothing for a model to reconstruct and nothing for it to get
+  wrong. What broke, and is it one thing?
+- **A:** **Two defects, in two modules, and only the first caused this run's failure. The second
+  was already there and this run is what made it visible.**
+
+  **Defect one — `written_number`'s twelve-decimal format is a precision ceiling, not a rounding.**
+  `f"{value:.12f}".rstrip("0")` on a value below about `5e-13` produces `"0."`, which the function
+  then returned as `"0.0"`. On this variant the seeded end-of-month-balance leak makes the
+  challenger near-perfect and `challenger.brier` is **3.2264600208103315e-13**, so section 2 read
+  *"The value of `challenger.brier` is 0.0"* — prose asserting a value the artifact does not hold,
+  in a document whose entire claim is that it does not do that. The declared claim carries the
+  artifact's value and the prose token reads zero, so the two cannot pair and the token lands as
+  `unattributed`. Note that a **true** zero renders as `"0"`, never `"0.0"`: the two spellings were
+  already distinct, which is why the flattened value had no claim to pair with rather than
+  silently borrowing one. Fixed by choosing the decimal count from the value's own exponent so
+  that :data:`SIGNIFICANT_FIGURES` survive, with twelve decimals kept as a **floor** — every
+  number written before this is written identically, and only a value too small for twelve
+  decimals gets more of them, which `test_no_number_written_before_this_fix_moves` asserts by
+  reimplementing the old function and comparing. The branch that returned `"0.0"` now raises.
+
+  **Defect two — `wrap_unverified` pairs a failed claim to a prose token by value alone.** It took
+  the first unused token in the section whose value matched, with no regard for which line the
+  claim came from. Section 2 here had one failed claim at `0.0` and eleven verified claims at the
+  same value, so the wrapper landed on the first of the eleven: `ablation.burnout.delta_auc`, whose
+  claim verified against an artifact of exactly 0.0, was printed as `⟦unverified: 0⟧`. **This
+  mispairs whenever a section repeats a value and any claim fails, and it is independent of defect
+  one** — it needed only a failed claim and a repeated number, and defect one supplied the failed
+  claim. Fixed by locating the claim's own sentence in the prose and preferring a token inside it,
+  with the value-only search kept as the fallback for a claim whose line a repair round reworded.
+- **Why:** The first is the more serious of the two and it is the project's own thesis turned on
+  itself: a report that writes a number the artifact does not support is the failure every other
+  mechanism here exists to prevent, and it arrived through the one path that was believed to be
+  incapable of it. The fix stays positional rather than reaching for exponent notation — which
+  D-099 made safe for the tokenizer — because `written_number`'s contract is what a report reader
+  expects to see, and `0.0000000000003226` is ugly and true where `3.226e-13` is compact and
+  correct but not what this function is for. The cost is a long string for an absurdly small
+  value; no artifact this project computes is near it.
+  The second matters less to arithmetic and more to trust: `⟦unverified: …⟧` is the report telling
+  its reader which numbers not to rely on, so putting it on a correct sentence while leaving the
+  incorrect one bare is worse than not marking anything. It is recorded as its own defect rather
+  than as a consequence, because fixing `written_number` alone would have hidden it again.
+  **Measured, and this is what bounds the damage.** Across all eighteen variants' artifact
+  indices, exactly **one** scalar on **one** variant falls below the old ceiling —
+  `challenger.brier` on `msr__L1__eom_balance` at 3.2265e-13. The next-smallest non-zero scalar
+  anywhere in the eighteen is **2.93905e-06**, seven orders of magnitude above it. So the other
+  seventeen sweep directories under
+  `~/code/quaestor-package/phase12-draft/rules-only-sweep/` are unaffected and are **not**
+  regenerated; `msr__L1__eom_balance` alone is re-run and replaced, and it comes back at
+  **1.0000 / 1.0000 over 318 claims, 318 verified and 0 unattributed**, with its finding set
+  `{L1 high, X1 high}` unchanged and no wrapper in its prose. Defect two has **never** been
+  observed in a committed artifact: no report under `eval/results/` and not
+  `examples/golden_report/report.md` carries a single `⟦unverified: …⟧`, because every committed
+  run reached 1.0 post-repair and so never gave the wrapper a claim to place.
+  Rejected alternatives. **Declaring the template's claim at the value it wrote rather than at the
+  artifact's**, which would have made the run verify by agreeing that the Brier score is zero —
+  the matcher's tolerance would have accepted it — and would have published a number that is
+  false about the one quantity the seeded defect exists to make extreme. **Rounding to four
+  significant figures everywhere**, which changes every number in every committed report and the
+  golden with them, for a defect that touches values below 5e-13. **Making `uncovered_numbers`
+  positional too**, which is a larger change for a smaller problem: that function answers "is
+  there at least as much accounting as there are tokens", which is a count and is deliberately
+  position-independent; its only weakness is naming the wrong token in a refusal message, and with
+  the wrapper landing correctly its budget balances.

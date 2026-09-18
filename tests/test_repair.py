@@ -15,7 +15,7 @@ import pytest
 
 from quaestor.artifacts import ArtifactKind, ArtifactStore
 from quaestor.llm import FakeLLM, ScriptedLLM
-from quaestor.report.drafter import Drafter
+from quaestor.report.drafter import Drafter, template_section
 from quaestor.report.repair import (
     MAX_REPAIR_ROUNDS,
     UNVERIFIED_OPEN,
@@ -27,9 +27,10 @@ from quaestor.report.repair import (
     wrap_unverified,
     wrapped_values,
 )
-from quaestor.report.sections import brief_for
+from quaestor.report.sections import artifact_briefs, brief_for
 from quaestor.trace import TraceReader, TraceWriter
 from quaestor.verifier import ClaimStatus, extract, match_claims
+from quaestor.verifier.extract import extraction_from
 from quaestor.vocab import ReportSection
 from reportsupport import SectionFake
 
@@ -527,3 +528,59 @@ def test_the_repair_event_says_when_the_round_was_not_scoped_at_all(
     event = TraceReader(trace.path).events("repair")[0]
     assert event.payload["scoped"] is False
     assert event.payload["lines_redrafted"] == 1
+
+
+# --- D-178: the wrapper lands on the claim's own sentence, not on the first equal number --------
+
+
+def test_the_wrapper_lands_on_the_sentence_whose_number_failed(store: ArtifactStore) -> None:
+    """The second symptom of the `msr__L1__eom_balance` defect, reduced to two lines.
+
+    Section 2 of that run carried eleven verified claims at 0 and one failed claim at the same
+    value, and the wrapper took the first token it found -- marking a sentence that verified.
+    """
+    citation = store.artifact("metrics.test.auc").citation()
+    markdown = f"The verified number is 0.7412 {citation}.\nThe unsupported number is 0.7412."
+    draft = draft_of(store, markdown)
+    wrapped = wrap_unverified(draft.markdown, draft.claims)
+    assert f"The verified number is 0.7412 {citation}." in wrapped, (
+        "the sentence whose number verified must come through untouched"
+    )
+    assert f"The unsupported number is {UNVERIFIED_OPEN}0.7412⟧." in wrapped
+    assert wrapped_values(wrapped) == [0.7412]
+
+
+def test_a_failed_claim_whose_sentence_was_reworded_still_gets_wrapped(
+    store: ArtifactStore,
+) -> None:
+    """The fallback: a claim whose text is no longer in the prose is paired on its value alone."""
+    markdown = "The second number is 0.68."
+    draft = draft_of(store, markdown)
+    reworded = [
+        claim.model_copy(update={"text": "a sentence this section no longer carries"})
+        for claim in draft.claims
+    ]
+    wrapped = wrap_unverified(markdown, reworded)
+    assert wrapped_values(wrapped) == [0.68]
+
+
+def test_a_near_zero_and_a_true_zero_in_one_section_both_verify(tmp_path: Path) -> None:
+    """The `msr__L1__eom_balance` defect end to end, in the arm whose grounding must be 1.0.
+
+    Both symptoms need both numbers in one section: the near-zero is what the old formatter erased
+    into a token reading zero, and the true zero beside it is what the wrapper then landed on. The
+    template writes its own claims, so a single unattributed token here is the whole defect.
+    """
+    store = ArtifactStore(tmp_path / "artifacts")
+    store.put("challenger.brier", 3.2264600208103315e-13, ArtifactKind.scalar, "challenger brier")
+    store.put("challenger.delta_auc", 0.0, ArtifactKind.scalar, "challenger minus champion")
+    store.put("metrics.test.auc", 0.7412, ArtifactKind.scalar, "auc on test")
+    section = ReportSection.conceptual_soundness
+    brief = brief_for(section)
+    markdown, declared = template_section(brief, artifacts=artifact_briefs(store, brief))
+    assert "0.0000000000003226" in markdown, "the near-zero keeps its significant figures"
+    assert "is 0 [[art:" in markdown, "the true zero is still written as a bare zero"
+    extraction = extraction_from(section, markdown, declared)
+    matches = match_claims(extraction.claims, store, unattributed=extraction.unattributed_ids)
+    assert [m for m in matches if m.status is not ClaimStatus.verified] == []
+    assert wrap_unverified(markdown, matches) == markdown, "nothing to wrap, so nothing is wrapped"

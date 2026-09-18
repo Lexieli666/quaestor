@@ -9,6 +9,22 @@ run that was not committed.
 
 ### Fixed
 
+- **A number too small for twelve decimals was written as `0.0`, and the unverified wrapper then
+  marked the wrong line.** Two defects, found by the free `rules_only` sweep over the eighteen
+  seeded variants. `written_number`'s `.12f` was a precision ceiling rather than a rounding, so
+  `challenger.brier` of **3.2264600208103315e-13** on `msr__L1__eom_balance` — the seeded leak
+  makes the challenger near-perfect — reached the prose as "is 0.0", a number the artifact does not
+  hold, in the one configuration whose grounding precision is 1.0 by construction; the decimal
+  count now comes from the value's own exponent, with twelve decimals kept as a floor so no number
+  written before this moves. Separately and pre-existing, `wrap_unverified` paired a failed claim
+  to a prose token by value alone, which mispairs whenever a section repeats a value: a sentence
+  whose number verified was printed `⟦unverified: 0⟧` while the incorrect one was left bare. A
+  claim is now wrapped inside its own sentence where its own sentence can be found. The variant
+  goes from **0.9969 (317 verified, 1 unattributed)** to **1.0000 (318 verified, 0 unattributed)**
+  with its finding set unchanged; exactly one scalar in the whole eighteen fell below the old
+  ceiling, the next-smallest anywhere being 2.93905e-06 (**D-178**).
+
+
 - **Three sentences said the rate ramp leaves the MSR book two points out of the money; two points
   is the size of the move.** `DECISIONS.md` D-040, `docs/DESIGN.md` and
   `subjects/msr_prepayment/README.md` each read as a *level*, where the measured mean

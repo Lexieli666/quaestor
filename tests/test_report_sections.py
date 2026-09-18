@@ -106,6 +106,44 @@ def test_written_number_never_uses_an_exponent() -> None:
     assert written_number(-0.0672) == "-0.0672"
 
 
+def test_a_value_too_small_for_twelve_decimals_keeps_its_significant_figures() -> None:
+    """D-178: the fixed `.12f` was a precision ceiling, and below it a number was erased.
+
+    `challenger.brier` on the `msr__L1__eom_balance` variant is 3.2264600208103315e-13 -- the
+    seeded leakage makes the challenger near-perfect -- and the template wrote "is 0.0" of it.
+    That is prose asserting a value the artifact does not hold, in the one configuration whose
+    grounding precision is meant to be 1.0 by construction.
+    """
+    assert written_number(3.2264600208103315e-13) == "0.0000000000003226"
+    assert written_number(-3.2264600208103315e-13) == "-0.0000000000003226"
+
+
+def test_a_true_zero_and_a_near_zero_are_written_as_different_numbers() -> None:
+    """The pairing failure behind the defect: both rendered as a number reading zero.
+
+    A true zero is `0` and a value below the old ceiling was `0.0`, and the two tokenize to the
+    same float -- so the template's declared claim, which carries the artifact's own value, could
+    not be paired with the token in the prose, and the number landed as `unattributed`.
+    """
+    assert written_number(0.0) == "0"
+    assert written_number(3.2264600208103315e-13) != written_number(0.0)
+    assert float(written_number(3.2264600208103315e-13)) != 0.0
+
+
+def test_no_number_written_before_this_fix_moves() -> None:
+    """Twelve decimals stays the floor, so only a value too small for it gets more."""
+    for value in (1e-05, 1500.0, 0.748, -0.0672, 0.0004999, 0.1 + 0.2, 10158.0, 0.5):
+        assert written_number(value) == _twelve_decimals(value), value
+
+
+def _twelve_decimals(value: float) -> str:
+    """`written_number` exactly as it stood before D-178, for the no-regression case above."""
+    if value == int(value) and abs(value) < 1e15:
+        return str(int(value))
+    text = f"{value:.12f}".rstrip("0")
+    return text if not text.endswith(".") else f"{text}0"
+
+
 def test_flatten_json_addresses_list_elements_the_way_a_citation_does() -> None:
     payload = {
         "coefficients": [{"feature": "utilisation", "value": 0.487}],

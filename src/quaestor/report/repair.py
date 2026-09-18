@@ -535,6 +535,16 @@ def wrap_unverified(
     :func:`~quaestor.verifier.tokens.eligible_numbers`' own. A claim whose value happens to match
     digits inside a citation's hash must not turn ``[[art:6bff3109:...]]`` into
     ``[[art:⟦unverified: 6⟧bff3109:...]]``, which is not a citation at all.
+
+    **A claim is wrapped inside its own sentence where its own sentence can be found** (D-178).
+    Pairing on the value alone takes the first token in the section holding that number, which on
+    a section carrying the same number on several lines is the wrong line: the
+    ``msr__L1__eom_balance`` variant's section 2 had one claim fail at ``0.0`` and eleven verified
+    claims at the same value, and the wrapper landed on the first of the eleven -- marking a
+    sentence whose number verified as unverified, in a document whose whole argument is that its
+    labels can be trusted. The claim's own text is what distinguishes them, so it is tried first
+    and the value-only search is kept as the fallback for a claim whose sentence was reworded
+    between extraction and rendering.
     """
     failed = [claim for claim in claims if claim.status is not ClaimStatus.verified]
     if not failed:
@@ -544,14 +554,13 @@ def wrap_unverified(
     used: set[int] = set()
     chosen: list[tuple[int, str]] = []
     for claim in failed:
-        for start, token in spans:
-            if start in used or token_value(token) != claim.value:
-                continue
-            if is_wrapped(markdown, start):
-                continue
-            used.add(start)
-            chosen.append((start, token))
-            break
+        window = _sentence_span(markdown, claim.text)
+        for restrict in (window, None) if window is not None else (None,):
+            picked = _pick_token(markdown, spans, used, claim.value, restrict)
+            if picked is not None:
+                used.add(picked[0])
+                chosen.append(picked)
+                break
     result = markdown
     for start, token in sorted(chosen, reverse=True):
         result = (
@@ -562,6 +571,43 @@ def wrap_unverified(
             + result[start + len(token) :]
         )
     return result
+
+
+def _sentence_span(markdown: str, text: str) -> tuple[int, int] | None:
+    """Return where a claim's own sentence sits in the section, or ``None`` if it is not there.
+
+    Args:
+        markdown: The section's prose.
+        text: The claim's text, as the extractor recorded it.
+
+    Returns:
+        The half-open offsets of the sentence, or ``None`` when it cannot be located -- which is
+        what a repair round that reworded the line leaves behind.
+    """
+    needle = text.strip()
+    if not needle:
+        return None
+    start = markdown.find(needle)
+    return None if start < 0 else (start, start + len(needle))
+
+
+def _pick_token(
+    markdown: str,
+    spans: Sequence[tuple[int, str]],
+    used: set[int],
+    value: float,
+    window: tuple[int, int] | None,
+) -> tuple[int, str] | None:
+    """Return the first unused, unwrapped token of this value, inside ``window`` when given."""
+    for start, token in spans:
+        if start in used or token_value(token) != value:
+            continue
+        if window is not None and not (window[0] <= start < window[1]):
+            continue
+        if is_wrapped(markdown, start):
+            continue
+        return start, token
+    return None
 
 
 def wrapped_values(text: str) -> list[float]:

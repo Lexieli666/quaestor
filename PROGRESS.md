@@ -1246,3 +1246,25 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   tests/probatio --cassette=replay` is **7 failed, 33 passed** with zero provider calls, unchanged
   from `06900d1`: the same seven drafting tapes, no new stranding. No download, no training on real
   data from any test. No push.
+- 2026-09-17 — **Phase 12 pre-flight, D-178** — **no live run, no provider call, no recording**:
+  two defects the free `rules_only` sweep over the eighteen seeded variants found, which is what
+  the cut list put that sweep before any paid run for. `written_number`'s `.12f` was a precision
+  ceiling rather than a rounding, so `challenger.brier` of **3.2264600208103315e-13** on
+  `msr__L1__eom_balance` reached the prose as "is 0.0" — a number the artifact does not hold, in
+  the one configuration whose grounding is 1.0 by construction — and the decimal count now comes
+  from the value's own exponent with twelve decimals kept as a floor, so no number written before
+  this moves. Separately and **pre-existing**, `wrap_unverified` paired a failed claim to a prose
+  token by value alone and so mispaired on any section that repeats a value: `⟦unverified: 0⟧`
+  was printed around `ablation.burnout.delta_auc`, whose claim verified, while the incorrect
+  number was left bare; a claim is now wrapped inside its own sentence, with the value-only
+  search kept as the fallback. Measured: exactly **one** scalar of the eighteen variants falls
+  below the old ceiling, the next-smallest anywhere being **2.93905e-06**, and no committed report
+  carries a wrapper at all, so defect two had never been seen in an artifact. `msr__L1__eom_balance`
+  re-run: **0.9969 → 1.0000** pre and post, 317 verified + 1 unattributed → **318 verified, 0
+  unattributed**, no wrapper, finding set `{L1 high, X1 high}` unchanged. Gate: full offline suite
+  excluding `tests/probatio` **1,615 passed**, 0 failed, 0 skipped, 0 xfailed (1,609 → 1,615, six
+  added, each verified to fail against the old code); `ruff check` and `ruff format --check` clean;
+  `mypy --strict src/quaestor` clean over 60 source files; both `--synthetic --llm fake` validates
+  unchanged at `{E1 low}` and `{}`; `examples/golden_report/` untouched. **[stranded]** `pytest
+  tests/probatio --cassette=replay` unchanged at **7 failed, 33 passed**, zero provider calls: this
+  commit touches no prompt. No push.
