@@ -120,6 +120,23 @@ run that was not committed.
 
 ### Changed
 
+- **The seeded-defect study is re-quoted from measured runs: $170 for 62 paid runs, and about
+  eleven hours of model time in nineteen sittings.** No code changes here. Three pricing runs on
+  two seeded variants — `plain_llm` on `credit__C1__smote_uncalibrated` at **$1.5622** over 8
+  calls, `full_agent` on the same at **$5.2635** over 20, and `full_agent` on
+  `msr__C1__oversampled_hazard` at **$5.5033** over 17 — replace the two per-run estimates the
+  plan was costed from, **$12.3290 spent** in total (**D-179**). Both `full_agent` runs reached
+  grounding 1.0000 with no repair round and found exactly what `rules_only` found on the same
+  variant. The money estimate held (**$170.15** against $215–220 quoted); the runtime estimate did
+  not, and **≈6–7 h is superseded by a measured ≈10.85 h**, which agrees to within 2% with the cut
+  list's own other runtime figure (**D-180**). Measured along the way: subject is *not* the
+  volatile cost term — MSR is 4.6% dearer per run but **23.8% dearer on drafting alone** — while
+  the bounded loop's step count and the `structured()` reask rate are, one reask pair costing
+  16.2% of a run, which is the argument for `--max-cost` being per-chunk rather than per-study.
+  The real-to-synthetic MSR ratio is **1.1785** from the committed excerpt run, and the two
+  real-data bridge runs are priced from it.
+
+
 - **The synthetic MSR process is not recalibrated to the real fit, and the thread asking for it is
   closed on the measurement.** The premise was backwards: the synthetic book loses **81.29%** of its
   servicing value at −300 bp (−1,297,986 of 1,596,815, in D-047 and the subject `README.md` since

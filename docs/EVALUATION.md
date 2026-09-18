@@ -1372,3 +1372,52 @@ which is what made stopping it a kill rather than a clean exit. Recording is the
 plain shell, in batches of **at most three cases**, with `--max-cost` set from the chunk rather
 than from the layer — and lean D's pricing runs take their ceiling from the same measurement
 (D-174).
+
+### 2026-09-17 — three pricing runs, $12.3290, and the study re-quoted
+
+No validation of a subject: three runs of *seeded variants*, made to price the Phase 12 study
+before committing to its budget, and written outside the repository under
+`~/code/quaestor-package/phase12-draft/pricing/` with their cassettes. They are the cut list's
+step 4, deliberately run before the study harness exists so that the measurement sets the
+harness's parameters instead of arriving after them.
+
+| run | variant | calls | cost | wall clock | grounding | findings |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `plain_llm` | `credit__C1__smote_uncalibrated` | 8 | **$1.5622** | 461 s | 0.0000 | 10 |
+| `full_agent` | `credit__C1__smote_uncalibrated` | 20 | **$5.2635** | 1,019 s | 1.0000 | 3 |
+| `full_agent` | `msr__C1__oversampled_hazard` | 17 | **$5.5033** | 1,305 s | 1.0000 | 1 |
+| | | **45** | **$12.3290** | 2,785 s | | |
+
+`plain_llm` came in **29% under** its $2.20 estimate and `full_agent` **4% under** its $5.50.
+Both `full_agent` runs reached grounding **1.0000 pre- and post-repair** with no repair round and
+raised exactly the finding sets `rules_only` raised on the same variants. `plain_llm`'s 0.0000
+over 106 claims is the arm behaving as D-072 describes: ten findings across ten defect classes,
+none citing a computed artifact.
+
+**Where a run's money goes.** On `full_agent` credit: drafting $2.3644 (44.9%, 7 calls),
+extraction $1.6375 (31.1%, 7), **reasks $0.8521 (16.2%, 2)**, loop planning $0.4096 (7.8%, 4).
+On `full_agent` MSR: drafting $2.9269 (53.2%), extraction $2.2676 (41.2%), planning $0.3088
+(5.6%), **no reasks**. Drafting plus extraction is 76% of the credit run and 94% of the MSR one.
+
+**What that says about the subject.** MSR is only **4.6%** dearer per run but **23.0%** dearer per
+call and **23.8%** dearer on drafting alone, which is the figure that tracks the artifact counts
+(371 against 267). The per-run figures nearly agree only because the MSR loop stopped after three
+steps where credit used four, and MSR drew no reask where credit drew two. The volatile terms are
+therefore the loop's step count (±$0.40 a run) and the reask rate ($0.43 a reask, dearer than a
+first draft because a reask resends the whole prompt) — D-176's artifact priced. See D-179.
+
+**The synthetic-to-real ratio.** The synthetic MSR `C1` cost $5.5033 against the committed real
+MSR excerpt run's **$6.4858**, also a `C1`: real is **17.9% dearer**. The two real-data bridge
+runs are priced from that ratio at $6.49 each.
+
+**The re-quote (D-180).** The study is **$170.15 over 62 paid runs** — `rules_only` $0,
+`plain_llm` $28.62, `full_agent` $96.42, six repeats $32.14, two bridge runs $12.97 — against the
+cut list's $215–220. All-in, with the $29.43 already spent (the killed record sitting's $17.1014
+and these runs' $12.3290) and the $28–31 the seven stranded tapes still owe, **$227.58–230.58**.
+The runtime is **39,077 s ≈ 10.85 h** of model time, about **19 sittings** at D-174's 35-minute
+ceiling; the cut list's "≈6–7 h" is superseded, and its own full-plan figure of 15 h for 84 runs
+scales to 11.07 h for 62 and agrees with the measurement to within 2%.
+
+**The layer's running total.** The Probatio tape layer has cost about $90 (the entry above); these
+three runs add $12.3290 of validation spend beside the six committed live runs' own totals. No
+figure in this file comes from a run that was not made.

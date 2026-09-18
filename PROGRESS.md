@@ -1268,3 +1268,25 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   unchanged at `{E1 low}` and `{}`; `examples/golden_report/` untouched. **[stranded]** `pytest
   tests/probatio --cassette=replay` unchanged at **7 failed, 33 passed**, zero provider calls: this
   commit touches no prompt. No push.
+- 2026-09-17 — **Phase 12 pre-flight, steps 4 and 5** — **three live runs, $12.3290, no code
+  change and no recording**: the cut list's pricing runs, made before commit D so that the
+  measurement sets the harness's parameters rather than arriving after them, and its re-quote.
+  `plain_llm` on `credit__C1__smote_uncalibrated` **$1.5622** over 8 calls in 461 s; `full_agent`
+  on the same **$5.2635** over 20 calls in 1,019 s; `full_agent` on
+  `msr__C1__oversampled_hazard` **$5.5033** over 17 calls in 1,305 s — **29% and 4% under** their
+  $2.20 and $5.50 estimates. Both `full_agent` runs at grounding **1.0000** pre and post with no
+  repair round, raising exactly the sets `rules_only` raised (`{T1 high, C1 medium, E1 low}` and
+  `{C1 medium}`); `plain_llm` at **0.0000** over 106 claims with ten findings across ten classes,
+  which is D-072's arm working. First live sight of commit B's rules on a seeded variant: section
+  6's minted open items carry two `utilisation > median(utilisation)` sub-populations and the
+  `limit_bal` sign disagreement, the last of which reached no report before D-173. Measured:
+  subject is **not** the volatile cost term (MSR +4.6% per run, **+23.8% on drafting alone**) —
+  the loop's step count and the reask rate are, one reask pair costing **16.2%** of a run, which
+  is the argument for `--max-cost` per chunk (**D-179**). Re-quote: **$170.15 over 62 paid runs**,
+  **$227.58–230.58 all-in**, and the runtime corrected from "≈6–7 h" to a measured **≈10.85 h in
+  about 19 sittings** — with this session's own ≈18 h figure recorded as wrong, it having applied
+  `full_agent`'s duration to the `plain_llm` arm (**D-180**). The three run directories stay
+  outside the repository, with their cassettes. Gate: no source file touched, so the offline suite
+  stands where `8a01b49` left it at **1,615 passed**; `ruff` and `mypy --strict` clean.
+  **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7 failed, 33 passed**.
+  No push.

@@ -6314,3 +6314,136 @@ here and recorded.
   there at least as much accounting as there are tokens", which is a count and is deliberately
   position-independent; its only weakness is naming the wrong token in a refusal message, and with
   the wrapper landing correctly its budget balances.
+
+## D-179. What a run costs, measured on three seeded variants, and which terms are the volatile ones
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, the cut list's step 4, run before commit D so that
+  its measurement can set the harness's parameters rather than arrive after them)
+- **Q:** The cut list prices the study from two estimates it marks as unmeasured: `plain_llm` at
+  about $2.20 a run and `full_agent` at about $5.50. `rules_only` is $0 and measured. What does a
+  run actually cost, and on which variants?
+- **A:** Three runs, $12.3290 between them, each written outside the repository under
+  `~/code/quaestor-package/phase12-draft/pricing/` with its cassettes. `quaestor study run` does
+  not exist yet, so a pricing run is one `quaestor validate` on a variant `quaestor study build`
+  already wrote:
+
+  ```
+  quaestor validate eval/variants/<variant> \
+    --synthetic <n> --llm claude-cli --model "claude-opus-5[1m]" \
+    --config <plain_llm|full_agent> \
+    --out  ~/code/quaestor-package/phase12-draft/pricing/<name> \
+    --record-cassettes ~/code/quaestor-package/phase12-draft/pricing/<name>/cassettes
+  ```
+
+  `--model` has to be typed: it defaults to `None`, and a run priced against an unnamed model is
+  not comparable to the tape layer or to the committed live runs, which are all
+  `claude-opus-5[1m]` (D-151). `--out` is outside the repository because `eval/results/` is
+  deliberately not gitignored and a pricing run is not a committed study result. There is no
+  `--max-cost` on `validate`; that is what commit D adds, and until it exists a pricing run is
+  uncapped and wants an operator at the keyboard (D-174).
+
+  | run | variant | calls | cost | wall clock | grounding | findings |
+  | --- | --- | ---: | ---: | ---: | ---: | --- |
+  | `plain_llm` | `credit__C1__smote_uncalibrated` | 8 | **$1.5622** | 461 s | 0.0000 | 10 |
+  | `full_agent` | `credit__C1__smote_uncalibrated` | 20 | **$5.2635** | 1,019 s | 1.0000 | 3 |
+  | `full_agent` | `msr__C1__oversampled_hazard` | 17 | **$5.5033** | 1,305 s | 1.0000 | 1 |
+
+  Against the estimates: `plain_llm` **29% under** $2.20, `full_agent` **4% under** $5.50. Both
+  `full_agent` runs reached grounding **1.0000 pre- and post-repair** with no repair round, and
+  each found exactly what `rules_only` found on the same variant — `{T1 high, C1 medium, E1 low}`
+  and `{C1 medium}` — so the agent neither missed the seeded defect nor invented a finding beside
+  it. `plain_llm`'s 0.0000 over 106 claims is the arm working as designed (D-072): 10 findings
+  across ten defect classes on a package with one seeded defect, none of them citing a computed
+  artifact, six of them of the form "no such check was performed".
+- **Why:** Two findings that change how the study is budgeted and run, and neither is the headline
+  per-run figure.
+
+  **Subject is not the volatile term.** MSR is only **4.6%** dearer per run than credit
+  ($5.5033 against $5.2635) — but **23.0%** dearer per *call* and **23.8%** dearer on drafting
+  alone ($2.9269 against $2.3644), which is the number that tracks the artifact counts, 371
+  against 267. The per-run figures nearly agree because two accidents cancelled: the MSR loop
+  stopped after **3** steps where credit used all **4**, and MSR had **no** `structured()` reasks
+  where credit had **two**. Quoting the study from per-run costs alone would therefore hide a real
+  24% subject effect behind two coincidences.
+
+  **The volatile terms are the loop's step count and the reask rate.** A loop step is about $0.10,
+  so 3-against-4 is ±$0.40 a run, and the loop's choices are the model's own and vary run to run —
+  `docs/STUDY.md` §8 already says so of its results, and it is true of its cost. A reask is worse:
+  credit's two cost **$0.8521**, **16.2% of that run**, because a reask resends the whole prompt
+  and is dearer per call than a first draft. That is D-176's artifact priced — the Claude CLI
+  subprocess occasionally answers with tool-call text instead of the requested JSON, and each
+  occurrence costs a full drafting call. Two in seven drafts here against roughly one in twenty on
+  the record sitting. **This is the argument for `--max-cost` being per-chunk rather than
+  per-study**: a ceiling set on a 62-run total cannot see a single run doubling its drafting bill,
+  and a per-chunk ceiling can stop the sitting that is doing it.
+
+  **The synthetic-to-real ratio, which is what the bridge is priced from.** The synthetic MSR
+  `C1` cost **$5.5033**; the committed real-MSR excerpt run, also a `C1`, cost **$6.4858**
+  (D-168). Real is **17.9% dearer**, on a panel with more rows and more splits. The two bridge
+  runs of the cut list's cut 3 are therefore priced at `$5.5033 x 1.1785 = $6.49` each, **$12.97
+  for the pair**, and that is a measured ratio rather than a guess — which is the reason the MSR
+  pricing run was chosen to be a `C1` at all: it is the only class with a committed live run on
+  the other side of the comparison.
+
+## D-180. The study re-quoted from measured runs: $170, 62 paid runs, and about eleven hours in nineteen sittings
+
+- **Date:** 2026-09-17 (Phase 12 pre-flight, the cut list's step 5, from D-179's three runs)
+- **Q:** The cut list's accepted minimum — 18 variants, three configurations, cuts 1, 3 and 4 —
+  was costed at **$215–220** and **6–7 h** of model runtime from two unmeasured per-run
+  estimates. With those estimates now measured, what is the study's budget, and how many sittings
+  is it?
+- **A:** **$170.15 for 62 paid runs, and $227.58–230.58 all-in.** Every figure below is either a
+  measured cost from D-179 or a stated scaling of one; the only arm still unmeasured is
+  `plain_llm` on MSR, scaled by the measured MSR/credit `full_agent` ratio of 1.0456.
+
+  | arm | runs | at | subtotal |
+  | --- | ---: | ---: | ---: |
+  | `rules_only` x 18 | 18 | $0, measured | **$0** |
+  | `plain_llm` x 18 | 11 credit + 7 MSR | $1.5622 / $1.6335 scaled | **$28.62** |
+  | `full_agent` x 18 | 11 credit + 7 MSR | $5.2635 / $5.5033 | **$96.42** |
+  | 2 variants x 3 repeats | 6 | $5.3568, the 18-variant mean | **$32.14** |
+  | 2 real-data bridge runs | 2 | $6.4858, D-179's measured ratio | **$12.97** |
+  | **the study** | **62 paid** | | **$170.15** |
+  | already spent | | killed sitting $17.1014 + pricing $12.3290 | **$29.43** |
+  | the seven stranded tapes | 7 | D-174 | **$28–31** |
+  | **all-in** | | | **$227.58–230.58** |
+
+  So the money estimate was good: **$170 against $215–220 quoted**, 21% under, and the whole
+  pre-flight-plus-study lands within a few dollars of the cut list's figure once the $29.43
+  already spent and the tapes still owed are counted.
+
+  **The runtime estimate was not, and this entry is where it is corrected.** From the measured
+  wall clocks — 461 s for `plain_llm` credit, 1,019 s for `full_agent` credit, 1,305 s for
+  `full_agent` MSR, 1,373.77 s for the committed real-MSR run — the study is **39,077 s ≈ 10.85 h**
+  of model time: 2.56 h for `plain_llm`, 5.65 h for `full_agent`, 1.88 h for the repeats, 0.76 h
+  for the bridge. At D-174's measured sitting ceiling of about 35 minutes that is **≈19 chunks**,
+  not counting the tape sitting's own three.
+
+  **The cut list's "≈6–7 h" is superseded, and the cut list's own other runtime figure was the
+  right one.** Its full-plan line reads "Runtime ≈ 15 h of model time" for 84 runs, which scales
+  to **11.07 h** for 62 — within 2% of the measurement. So the 6–7 h in the recommended-minimum
+  table disagrees with both the measurement and with the cut list's own arithmetic, and it is the
+  outlier rather than the estimate that was merely optimistic.
+- **Why:** Recorded as a decision rather than a note because it is what the human commits the
+  budget against, and because the two halves fail differently and want different responses. The
+  **money** estimate was reliable and can be trusted for the rest of the plan: a per-run cost is
+  a function of prompt bytes and call counts, both of which the pre-flight could see in advance.
+  The **runtime** estimate was not, and could not have been: it is a function of provider latency
+  on 300 KB prompts, which nothing before these three runs had measured. Wall clock is the
+  constraint that decides how many sittings a human sits for, so it is the one a plan should be
+  built on, and an eleven-hour plan in nineteen chunks is a different object from a six-hour plan.
+  **A correction of this session's own figure, recorded because it was stated before it was
+  checked.** An ≈18 h runtime and ≈32 chunks were quoted in conversation immediately after the
+  third pricing run. That was wrong: it applied `full_agent`'s ~18-minute duration to all 62 runs,
+  including the 18 `plain_llm` runs that take 7.7 minutes. The arithmetic above is per arm and is
+  the figure that stands. It is written down rather than quietly replaced for the reason D-170's
+  own correction is: an estimate that is revised without saying so is indistinguishable from an
+  estimate that was always right.
+  Rejected alternatives. **Pricing the two unmeasured arms with a fourth and fifth run**
+  (`plain_llm` on MSR, and one repeat) for about $2, which buys a quote good to a few per cent
+  rather than to ten and is not worth another sitting — the scaling is stated and the arm is 17%
+  of the bill. **Quoting from the per-run costs alone** without D-179's per-call decomposition,
+  which would carry the 4.6% subject figure into the plan and hide the 24% drafting effect behind
+  it. **Keeping the 6–7 h figure** and treating the measurement as pessimistic, which is choosing
+  the number that makes the plan look affordable — the same move D-086 rejected when it declined
+  to raise a threshold until the data passed.
