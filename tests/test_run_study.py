@@ -24,7 +24,7 @@ import pytest
 
 from conftest import REPO_ROOT, load_module
 from quaestor.configs import CONFIGURATIONS
-from quaestor.errors import QuaestorError, ToolError
+from quaestor.errors import QuaestorError, ReportSchemaError, ToolError
 from quaestor.llm.base import Completion
 from quaestor.llm.fake import FakeLLM
 from quaestor.llm.offline import OfflineLLM
@@ -387,7 +387,7 @@ def test_a_ledger_reads_back_everything_it_wrote(tmp_path: Path) -> None:
         remaining=61,
     )
     second = harness.Ledger(path)
-    assert second.is_done(cell) and second.attempts(cell) == 1
+    assert second.is_settled(cell) and second.attempts(cell) == 1
     record = second.records[cell.key]
     assert record.cost_usd == pytest.approx(5.26) and record.calls == 20
     assert record.findings == [{"class": "T1", "severity": "high"}]
@@ -395,12 +395,20 @@ def test_a_ledger_reads_back_everything_it_wrote(tmp_path: Path) -> None:
     assert json.loads(path.read_text(encoding="utf-8"))["remaining_in_last_plan"] == 61
 
 
-def test_a_failed_cell_is_not_done(tmp_path: Path) -> None:
+def test_a_failed_cell_is_retried_and_a_rejected_one_is_not(tmp_path: Path) -> None:
+    """The two ways a cell produces no report, and the only difference that matters (D-187)."""
     path = tmp_path / harness.LEDGER_FILE
-    cell = harness.Cell("full_agent", CHEAP)
+    failed, rejected = harness.Cell("full_agent", CHEAP), harness.Cell("full_agent", CONTROL)
     ledger = harness.Ledger(path)
-    ledger.record(harness.CellRecord(cell=cell, status="failed", error="no"), remaining=1)
-    assert not harness.Ledger(path).is_done(cell)
+    ledger.record(harness.CellRecord(cell=failed, status=harness.FAILED, error="no"), remaining=1)
+    ledger.record(
+        harness.CellRecord(cell=rejected, status=harness.REJECTED, error="refused"), remaining=1
+    )
+    reopened = harness.Ledger(path)
+    assert not reopened.is_settled(failed) and not reopened.was_rejected(failed)
+    assert reopened.is_settled(rejected) and reopened.was_rejected(rejected)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["failed"] == 1 and payload["rejected"] == 1 and payload["done"] == 0
 
 
 # --- the command line ------------------------------------------------------------------------
@@ -434,7 +442,7 @@ def test_study_run_from_the_command_line_writes_a_ledger_and_says_what_is_left(
     )
     printed = capsys.readouterr().out
     assert code == 0
-    assert "2 cell(s) run, 0 failed, 0 already done" in printed
+    assert "2 cell(s) run, 0 failed, 0 rejected, 0 already settled" in printed
     assert "0 cell(s) of this plan remaining" in printed
     assert harness.LEDGER_FILE in printed
     assert _ledger(out)["done"] == 2
@@ -827,3 +835,108 @@ def test_a_bad_request_is_refused_before_the_lock_is_ever_taken(tmp_path: Path) 
             log=lambda _m: None,
         )
     assert not out.exists()
+
+
+# --- a rejection is terminal ------------------------------------------------------------------
+
+
+def _refusing(*_args: Any, **_kwargs: Any) -> Any:
+    """Stand in for a run whose report the renderer would not write."""
+    raise ReportSchemaError(
+        "the rendered report does not satisfy docs/REPORT_SCHEMA.md: "
+        "['certified'] in front matter and section 1"
+    )
+
+
+def test_a_report_the_renderer_refused_is_rejected_and_not_retried(
+    variants: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """D-187: the calls were paid for and another draw is not what would change the answer.
+
+    `plain_llm` has no repair round at all (D-072) and `full_agent`'s runs before the renderer is
+    reached, so neither arm can talk itself out of a refusal by being asked again.
+    """
+    out = tmp_path / "study"
+    monkeypatch.setattr(harness, "validate", _refusing)
+    first = _chunk(variants, out, only=[CHEAP])
+    assert not first.ran and not first.failed
+    assert [record.cell.variant for record in first.rejected] == [CHEAP]
+    assert first.rejected[0].status == harness.REJECTED
+    assert "certified" in str(first.rejected[0].error)
+    assert first.remaining == 0
+
+    monkeypatch.undo()
+    second = _chunk(variants, out, only=[CHEAP])
+    assert not second.ran and [cell.variant for cell in second.skipped] == [CHEAP]
+
+
+def test_a_rejected_cell_is_re_attempted_only_when_it_is_asked_for_by_name(
+    variants: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`--retry-rejected`, turned on once after the cause of the refusal has been changed."""
+    out = tmp_path / "study"
+    monkeypatch.setattr(harness, "validate", _refusing)
+    _chunk(variants, out, only=[CHEAP])
+    monkeypatch.undo()
+
+    resumed = _chunk(variants, out, only=[CHEAP], retry_rejected=True)
+    assert len(resumed.ran) == 1 and not resumed.rejected
+    assert resumed.ran[0].attempts == 2
+    assert _ledger(out)["rejected"] == 0 and _ledger(out)["done"] == 1
+
+
+def test_a_rejection_keeps_what_it_cost_and_what_the_model_said(
+    variants: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The tapes are the only surviving record of the reply the renderer would not write."""
+    out, cassettes = tmp_path / "study", tmp_path / "cassettes"
+    monkeypatch.setattr(harness, "validate", _refusing)
+    summary = _chunk(
+        variants,
+        out,
+        only=[CHEAP],
+        configurations=[Configuration.plain_llm.value],
+        provider=_priced(0.25),
+        cassettes_dir=cassettes,
+    )
+    record = summary.rejected[0]
+    row = next(item for item in _ledger(out)["cells"] if item["variant"] == CHEAP)
+    assert row["status"] == harness.REJECTED and row["out_dir"] is None
+    assert row["cost_usd"] == record.cost_usd
+    assert (cassettes / "plain_llm" / CHEAP).is_dir()
+
+
+def test_a_rejected_chunk_exits_one_from_the_command_line(
+    variants: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: Any
+) -> None:
+    """A chunk that produced a report for every cell but one did not do what it was asked.
+
+    The patch is on `quaestor.pipeline.validate` rather than on this module's `harness`, because
+    the command line loads `eval/run_study.py` fresh under an alias of its own and that copy binds
+    `validate` at its own import -- which happens inside the call below.
+    """
+    import quaestor.pipeline
+
+    monkeypatch.setattr(quaestor.pipeline, "validate", _refusing)
+    code = _run_cli(
+        [
+            "study",
+            "run",
+            "--variants",
+            str(variants),
+            "--out",
+            str(tmp_path / "study"),
+            "--config",
+            "rules_only",
+            "--only",
+            CHEAP,
+            "--synthetic",
+            "800",
+            "--llm",
+            "fake",
+        ]
+    )
+    printed = capsys.readouterr().out
+    assert code == 1
+    assert "0 cell(s) run, 0 failed, 1 rejected" in printed
+    assert "the renderer refused this report" in printed

@@ -9,6 +9,44 @@ run that was not committed.
 
 ### Fixed
 
+- **A paid cell was lost because the compliance rule read the whole report, and "certified domain"
+  is model-risk English.** `plain_llm/msr__C1__oversampled_hazard` ran 522.8 s, made its eight
+  calls, cost **$1.7452** and produced nothing: the renderer refused it on
+  `['certified'] in whole report`. The model had written "restrict the model's **certified
+  domain** to loan ages 0–59 months" and three more like it — the input range a model is approved
+  for, in a recommendation to *narrow* it, which is the opposite of claiming anything is
+  certified. `CLAUDE.md`'s constraint is that no document claims that *it* or the model is
+  compliant or certified, and a claim of that kind is made where a report says what it is, so the
+  rule's scope narrows from `whole report` to **`front matter and section 1`**. The pattern is
+  deliberately unchanged: excluding `certified (domain|range|…)` guesses at the model's next
+  phrasing and breaks on the one after (**D-187**).
+
+- **A report the renderer refused is `rejected`, and `rejected` is terminal.** It was `failed`,
+  which `study run` retries every chunk — re-paying ≈$1.75 on a fresh sample. The calls were made
+  and another draw is not what would change the answer: `plain_llm` has no repair round (D-072)
+  and **`full_agent`'s runs at `pipeline.py:1021`, forty-eight lines before `write_report` at
+  1069**, so neither arm can talk itself out of a refusal. `--retry-rejected` re-attempts them
+  once, after the cause has been changed. Fixed **before** the `full_agent` arm starts, where the
+  same trap costs **≈$5.40** a cell over eighteen cells (**D-187**).
+
+- **`eval/score.py` reads `ledger.json`, so a cell that produced no report is a named miss rather
+  than a silent absence.** `validate` writes `report.md` before `claims.json` and `findings.json`,
+  so a refusal loses all three and the cell is invisible to a scorer that enumerates by
+  `findings.json` — which would compute the arm's recall over the cells that worked and print it
+  as the whole story, dropping the one where it misbehaved. `docs/STUDY.md` §5's rule now holds: in
+  the denominator, out of the numerator, precision untouched. On the live tree `plain_llm`'s `C1`
+  goes from `1/1` to **`1/2`, missed `msr__C1__oversampled_hazard`** (**D-187**).
+
+### Note
+
+- **The collateral judging backlog stands at 23 and gates `plain_llm`'s publishable precision.**
+  Thirteen `plain_llm` cells raised 23 pairings that `docs/STUDY.md` §5 never decided, all at
+  `medium`, across nine variants — the baseline arm behaving as D-072 says it will. They are not
+  judged yet, deliberately: `full_agent` has not run and will add its own batch, and the whole
+  backlog is judged in **one sitting against one dated rule set** rather than twice. Until then the
+  arm's precision of **0.2000** is a floor computed with 23 findings set aside, not a number
+  (**D-182**, amended).
+
 - **A killed chunk's cell could never be run again, which is the one failure the ledger exists to
   prevent.** Chunk 2 of the study died on its first cell with `the logical name 'run.duration_s'
   already holds artifact 11949d1772d26471 and cannot be replaced by 2e7b70f1f5c2d6f0`. Not a

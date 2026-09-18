@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, Final
 
@@ -255,16 +255,51 @@ def _findings_section_of(report: str) -> str:
     return _section_of(report, REQUIRED_HEADINGS[5])
 
 
+SCOPES: Final[Mapping[str, Callable[[str], str]]] = {
+    "whole report": lambda report: report,
+    "front matter and section 1": lambda report: _front_matter_and_summary(report),
+    "Appendix C and Appendix D only": lambda report: _appendices_c_and_d(report),
+}
+"""How each declared scope is cut out of a rendered report, by the name the schema uses."""
+
+
 def _forbidden(report: str) -> list[str]:
-    """Apply the schema's forbidden patterns, each inside the scope it declares."""
+    """Apply the schema's forbidden patterns, each inside the scope it declares.
+
+    Raises:
+        KeyError: The schema declares a scope this module cannot cut out, which is a schema and
+            code that have drifted apart rather than a bad report.
+    """
     problems: list[str] = []
     for rule in REPORT_SCHEMA["x-quaestor-forbidden-patterns"]:
         scope = str(rule["scope"])
-        text = report if scope == "whole report" else _appendices_c_and_d(report)
-        found = re.findall(str(rule["pattern"]), text, flags=re.I)
+        found = re.findall(str(rule["pattern"]), SCOPES[scope](report), flags=re.I)
         if found:
             problems.append(f"{sorted(set(found))} in {scope}: {rule['why']}")
     return problems
+
+
+def _front_matter_and_summary(report: str) -> str:
+    """Return the front matter and section 1, which is where a self-claim can live.
+
+    The scope of the ``compliant``/``certified`` rule. ``CLAUDE.md``'s constraint is that no
+    document of this project claims that *it* or the model it validates is compliant or certified,
+    and a claim of that kind is made where the report says what it is: the front matter and the
+    summary under it, which carries the scope block. Over the whole report the same words are
+    ordinary model-risk English in the mouth of the *subject* -- a live ``plain_llm`` run lost a
+    paid cell to four occurrences of "the certified domain", which is the input range a model is
+    approved for and was being recommended for *narrowing* (DECISIONS D-187).
+
+    Args:
+        report: The whole of ``report.md``.
+
+    Returns:
+        Everything from the start of the report to section 2's heading, or the whole report when
+        section 2 is not there -- in which case the heading check has already reported the real
+        problem and this rule should see everything rather than nothing.
+    """
+    second = REQUIRED_HEADINGS[1]
+    return report.split(second, 1)[0] if second in report else report
 
 
 def _appendices_c_and_d(report: str) -> str:

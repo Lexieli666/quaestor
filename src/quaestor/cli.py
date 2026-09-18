@@ -470,6 +470,15 @@ def _add_study_run(actions: Any) -> None:
         ),
     )
     run_parser.add_argument(
+        "--retry-rejected",
+        action="store_true",
+        help=(
+            "also attempt the cells an earlier chunk recorded `rejected`, whose report the "
+            "renderer refused; off by default, because another draw from the model is not what "
+            "would change the answer"
+        ),
+    )
+    run_parser.add_argument(
         "--only",
         metavar="VARIANT",
         action="append",
@@ -637,6 +646,7 @@ def _run_study_run(args: argparse.Namespace) -> int:
             max_cost_usd=args.max_cost,
             only=args.only,
             cassettes_dir=args.record_cassettes,
+            retry_rejected=args.retry_rejected,
             **model,
         )
     except QuaestorError as exc:
@@ -644,15 +654,18 @@ def _run_study_run(args: argparse.Namespace) -> int:
     ledger = Path(args.out) / harness.LEDGER_FILE
     print(
         f"{len(summary.ran)} cell(s) run, {len(summary.failed)} failed, "
-        f"{len(summary.skipped)} already done; ${summary.spent_usd:.4f} spent"
+        f"{len(summary.rejected)} rejected, {len(summary.skipped)} already settled; "
+        f"${summary.spent_usd:.4f} spent"
     )
+    for record in summary.rejected:
+        print(f"{record.cell.key}: the renderer refused this report -- {record.error}")
     if summary.stopped_for_budget:
         print(f"stopped on --max-cost ${args.max_cost:.4f}; rerun the same command to continue")
     for record in summary.checks_failed:
         tools = ", ".join(failure["tool"] for failure in record.checks_failed)
         print(f"{record.cell.key}: reported without {tools}")
     print(f"{summary.remaining} cell(s) of this plan remaining; ledger: {ledger}")
-    return EXIT_FAILED_RUN if summary.failed else EXIT_OK
+    return EXIT_FAILED_RUN if summary.failed or summary.rejected else EXIT_OK
 
 
 def _fail(message: str, fix: str, code: int = EXIT_USAGE) -> int:

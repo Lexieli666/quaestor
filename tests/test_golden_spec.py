@@ -139,13 +139,24 @@ def test_every_numeric_token_in_the_prose_is_covered_by_a_post_repair_claim() ->
 
 
 # 8
-def test_the_report_uses_no_forbidden_compliance_language() -> None:
-    whole_report = [
-        fp for fp in SCHEMA["x-quaestor-forbidden-patterns"] if fp["scope"] == "whole report"
+def test_the_report_claims_neither_compliance_nor_certification_of_itself() -> None:
+    """The scope is the front matter and section 1, which is where a self-claim can live.
+
+    It was the whole report until D-187, when a live `plain_llm` cell was lost to four
+    occurrences of "the certified domain" in section 4 -- the input range a model is approved
+    for, in a recommendation to *narrow* it, which is model-risk English and not a claim about
+    anything. The rule is about what a report says it is, so it reads where a report says so.
+    """
+    scoped = [
+        fp
+        for fp in SCHEMA["x-quaestor-forbidden-patterns"]
+        if fp["scope"] == "front matter and section 1"
     ]
-    assert whole_report, "REPORT_SCHEMA.json declares no whole-report forbidden pattern"
-    for forbidden in whole_report:
-        assert not re.search(forbidden["pattern"], REPORT, flags=re.I), forbidden
+    assert scoped, "REPORT_SCHEMA.json declares no self-claim forbidden pattern"
+    where = REPORT.split(SCHEMA["x-quaestor-required-headings"][1], 1)[0]
+    assert where != REPORT, "the golden report has no section 2, so the scope is the whole file"
+    for forbidden in scoped:
+        assert not re.search(forbidden["pattern"], where, flags=re.I), forbidden
 
 
 # 9

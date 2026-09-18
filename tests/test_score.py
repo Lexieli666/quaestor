@@ -761,3 +761,154 @@ def test_scoring_with_no_timestamp_uses_the_clock(tmp_path: Path) -> None:
     written = json.loads(out.read_text(encoding="utf-8"))["generated"]
     assert written.endswith("Z")
     assert before <= datetime.fromisoformat(written.replace("Z", "+00:00"))
+
+
+# --- a cell that produced no report ------------------------------------------------------------
+
+
+def _write_ledger(root: Path, cells: list[dict[str, Any]]) -> None:
+    """Write the ledger `quaestor study run` would have left, with the fields the scorer reads."""
+    (root / "ledger.json").write_text(
+        json.dumps({"schema_version": 2, "cells": cells}), encoding="utf-8"
+    )
+
+
+def test_a_cell_that_produced_no_report_is_a_named_miss_and_not_a_silent_absence(
+    tmp_path: Path,
+) -> None:
+    """`docs/STUDY.md` section 5's rule, and the reason the ledger is an input (D-187).
+
+    A renderer refusal loses `report.md`, `claims.json` and `findings.json` together, so the cell
+    is invisible to a scorer that enumerates by `findings.json`. Invisible is the worst thing it
+    could be: the arm's recall would be computed over the cells that worked, dropping the one where
+    it misbehaved, which flatters the detector silently.
+    """
+    keys, results = tmp_path / "variants", tmp_path / "results"
+    _write_key(keys, "seeded_ok", defect_class="C1")
+    _write_run(
+        results,
+        "seeded_ok",
+        configuration="plain_llm",
+        findings=[{"defect_class": "C1", "severity": "high", "evidence": ["aaaaaaaa"]}],
+    )
+    _write_key(keys, "seeded_refused", defect_class="C1")
+    _write_ledger(
+        results,
+        [
+            {"configuration": "plain_llm", "variant": "seeded_ok", "status": "done", "error": None},
+            {
+                "configuration": "plain_llm",
+                "variant": "seeded_refused",
+                "status": "rejected",
+                "error": "['certified'] in front matter and section 1",
+            },
+        ],
+    )
+    item = scorer.score(
+        scorer.load_runs(results),
+        scorer.load_keys(keys),
+        scorer.load_baselines(TAXONOMY_FILE),
+        scorer.load_no_report(results),
+    )["plain_llm"]
+
+    assert item.detected == ["seeded_ok"]
+    assert item.missed == ["seeded_refused"]
+    assert item.per_class["C1"].seeded == 2 and item.per_class["C1"].detected == 1
+    assert [entry.variant for entry in item.no_report] == ["seeded_refused"]
+    assert item.no_report[0].status == "rejected"
+    assert "certified" in item.no_report[0].reason
+
+
+def test_a_no_report_cell_costs_recall_and_leaves_precision_alone(tmp_path: Path) -> None:
+    """It adds nothing to the numerator and raises no finding that could be a false alarm."""
+    keys, results = tmp_path / "variants", tmp_path / "results"
+    _write_key(keys, "ok", defect_class="L1")
+    _write_run(
+        results,
+        "ok",
+        findings=[{"defect_class": "L1", "severity": "high", "evidence": ["aaaaaaaa"]}],
+    )
+    _write_key(keys, "refused", defect_class="L1")
+    _write_ledger(
+        results,
+        [
+            {"configuration": "rules_only", "variant": "ok", "status": "done", "error": None},
+            {
+                "configuration": "rules_only",
+                "variant": "refused",
+                "status": "rejected",
+                "error": "refused",
+            },
+        ],
+    )
+    item = scorer.score(
+        scorer.load_runs(results),
+        scorer.load_keys(keys),
+        scorer.load_baselines(TAXONOMY_FILE),
+        scorer.load_no_report(results),
+    )["rules_only"]
+    assert item.per_class["L1"].detected == 1 and item.per_class["L1"].seeded == 2
+    assert item.precision == pytest.approx(1.0)
+    assert not item.false_alarms
+
+
+def test_a_control_that_produced_no_report_is_listed_and_costs_no_recall(tmp_path: Path) -> None:
+    """A control has no seeded class to miss, so it is reported and scored for nothing."""
+    keys, results = tmp_path / "variants", tmp_path / "results"
+    _write_key(keys, "control_credit_clean", status="control", defect_class=None)
+    _write_run(results, "control_credit_clean")
+    _write_ledger(
+        results,
+        [
+            {
+                "configuration": "rules_only",
+                "variant": "control_credit_clean",
+                "status": "failed",
+                "error": "the subject would not run",
+            }
+        ],
+    )
+    item = scorer.score(
+        scorer.load_runs(results),
+        scorer.load_keys(keys),
+        scorer.load_baselines(TAXONOMY_FILE),
+        scorer.load_no_report(results),
+    )["rules_only"]
+    assert [entry.variant for entry in item.no_report] == ["control_credit_clean"]
+    assert not item.missed and not item.per_class
+
+
+def test_a_directory_with_no_ledger_reads_no_ledger(tmp_path: Path) -> None:
+    """A directory of plain `quaestor validate` runs -- the free sweep -- has none, and is fine."""
+    (tmp_path / "results").mkdir()
+    assert scorer.load_no_report(tmp_path / "results") == []
+
+
+def test_the_command_line_names_a_no_report_cell_and_exits_one(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A renderer refusal is usually about this codebase rather than about the model."""
+    keys, results = tmp_path / "variants", tmp_path / "results"
+    _write_key(keys, "refused", defect_class="C1")
+    _write_key(keys, "ok", defect_class="L1")
+    _write_run(
+        results,
+        "ok",
+        findings=[{"defect_class": "L1", "severity": "high", "evidence": ["aaaaaaaa"]}],
+    )
+    _write_ledger(
+        results,
+        [
+            {
+                "configuration": "rules_only",
+                "variant": "refused",
+                "status": "rejected",
+                "error": "['certified'] in front matter and section 1",
+            }
+        ],
+    )
+    code = scorer.main(["--results", str(results), "--variants", str(keys)])
+    printed = capsys.readouterr().out
+    assert code == 1
+    assert "no report: refused (rejected) — counted as a miss" in printed
+    assert "C1: 0/1; missed refused" in printed

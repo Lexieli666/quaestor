@@ -19,6 +19,13 @@ logical name to a new hash, so the subject's second run collides on `run.duratio
 anything else happens. A killed chunk is the normal case (D-174), so a retry has to work from
 whatever the kill left.
 
+**A rejection is terminal; a failure is not.** A cell whose report the renderer refused is
+recorded `rejected` and is not attempted again, because the calls were made and paid for and
+another draw from the model is not what would change the answer -- `plain_llm` has no repair round
+(D-072) and `full_agent`'s runs before the renderer is reached, so neither arm can talk itself out
+of a refusal. `retry_rejected` re-attempts them, once, after the thing that caused the refusal has
+been changed (D-187).
+
 **Resumability is a ledger, not a scan.** `<out>/ledger.json` is rewritten after every cell and
 records, per cell: the status, the attempt count, the cost, the wall clock, both grounding
 figures, the finding classes, **and the checks that did not run**. A cell whose latest attempt is
@@ -70,7 +77,7 @@ from typing import Any, Final
 import yaml
 
 from quaestor.configs import synthetic_default_n
-from quaestor.errors import QuaestorError
+from quaestor.errors import QuaestorError, ReportSchemaError
 from quaestor.llm.base import LLM, Completion
 from quaestor.llm.recording import RecordingLLM
 from quaestor.package import load_package
@@ -87,6 +94,7 @@ __all__ = [
     "ChunkSummary",
     "Ledger",
     "StudyLockedError",
+    "REJECTED",
     "StudyBudgetError",
     "plan_cells",
     "run_chunk",
@@ -111,7 +119,19 @@ SEED_FILE: Final = "SEED.yaml"
 
 DONE: Final = "done"
 FAILED: Final = "failed"
-"""A cell that ran and produced a report, and a cell that raised before it could."""
+REJECTED: Final = "rejected"
+"""What a cell can end as.
+
+`done` produced a report. `failed` did not and is **retried** by the next chunk, because the
+likeliest reason a cell is not done is that the chunk was killed (D-174) and a retry is the fix.
+`rejected` also produced no report -- the renderer refused what the model wrote -- and is
+**terminal**, because the calls were made and paid for and a retry is a fresh sample rather than a
+repair: `plain_llm` has no repair round at all (D-072), and `full_agent`'s runs before the renderer
+is called, so neither arm can correct a refusal by trying again (D-187).
+"""
+
+TERMINAL: Final = frozenset({DONE, REJECTED})
+"""The statuses a later chunk does not attempt again."""
 
 ESTIMATED_COST_USD: Final[Mapping[str, Mapping[str, float]]] = {
     Configuration.rules_only.value: {"credit_default": 0.0, "msr_prepayment": 0.0},
@@ -324,10 +344,20 @@ class Ledger:
                 record = CellRecord.from_payload(row)
                 self.records[record.cell.key] = record
 
-    def is_done(self, cell: Cell) -> bool:
-        """Whether an earlier chunk finished this cell and wrote its report."""
+    def is_settled(self, cell: Cell) -> bool:
+        """Whether an earlier chunk reached a terminal answer for this cell.
+
+        `done` and `rejected` are both terminal; only `failed` is attempted again. A `rejected`
+        cell is re-attempted only when the operator asks for it by name, because the thing that
+        would change its answer is a change to this codebase and not another draw from the model.
+        """
         record = self.records.get(cell.key)
-        return record is not None and record.status == DONE
+        return record is not None and record.status in TERMINAL
+
+    def was_rejected(self, cell: Cell) -> bool:
+        """Whether this cell's terminal answer was the renderer refusing what the model wrote."""
+        record = self.records.get(cell.key)
+        return record is not None and record.status == REJECTED
 
     def attempts(self, cell: Cell) -> int:
         """How many chunks have already tried this cell."""
@@ -374,7 +404,8 @@ class Ledger:
             "schema_version": LEDGER_SCHEMA_VERSION,
             "remaining_in_last_plan": remaining,
             "done": sum(1 for item in self.records.values() if item.status == DONE),
-            "failed": sum(1 for item in self.records.values() if item.status != DONE),
+            "rejected": sum(1 for item in self.records.values() if item.status == REJECTED),
+            "failed": sum(1 for item in self.records.values() if item.status == FAILED),
             "cost_usd": round(sum(item.cost_usd for item in self.records.values()), 6),
             "cells": [
                 self.records[key].to_payload() for key in sorted(self.records, key=str.casefold)
@@ -459,7 +490,8 @@ class ChunkSummary:
 
     Attributes:
         ran: The cells this chunk finished.
-        failed: The cells this chunk tried and could not finish.
+        failed: The cells this chunk tried and could not finish, which the next chunk retries.
+        rejected: The cells whose report the renderer refused, which the next chunk does not.
         skipped: The cells an earlier chunk had already finished.
         remaining: How many cells of this invocation's plan are still not `done` -- the plan's,
             not the study's, because a chunk may be restricted by `only` or to one configuration.
@@ -471,6 +503,7 @@ class ChunkSummary:
 
     ran: list[CellRecord] = field(default_factory=list)
     failed: list[CellRecord] = field(default_factory=list)
+    rejected: list[CellRecord] = field(default_factory=list)
     skipped: list[Cell] = field(default_factory=list)
     remaining: int = 0
     spent_usd: float = 0.0
@@ -568,6 +601,7 @@ def run_chunk(  # noqa: PLR0913 - a chunk is defined by every one of these
     max_cost_usd: float | None = None,
     only: Sequence[str] | None = None,
     cassettes_dir: Path | str | None = None,
+    retry_rejected: bool = False,
     log: Any = print,
     **params: Any,
 ) -> ChunkSummary:
@@ -589,6 +623,10 @@ def run_chunk(  # noqa: PLR0913 - a chunk is defined by every one of these
             store under `<cassettes_dir>/<configuration>/<variant>/`, never a pooled one: a
             cassette is keyed on a hash of the request, so two runs that send the same prompt are
             ambiguous in one directory (`docs/STUDY.md` section 4).
+        retry_rejected: Attempt the cells an earlier chunk recorded `rejected` as well. Off by
+            default: a rejection is terminal because another draw from the model is not what would
+            change it. It is turned on deliberately, once, after the thing that caused the
+            refusal has been changed (D-187).
         log: Where the per-cell lines go; `print` by default.
         **params: Passed to the provider on every call of every cell, such as `model`. D-151 is
             the reason a study run names its model: a run priced against an unnamed model is not
@@ -613,6 +651,7 @@ def run_chunk(  # noqa: PLR0913 - a chunk is defined by every one of these
             data_dir=data_dir,
             max_cost_usd=max_cost_usd,
             cassettes_dir=cassettes_dir,
+            retry_rejected=retry_rejected,
             log=log,
             params=params,
         )
@@ -628,6 +667,7 @@ def _run_cells(  # noqa: PLR0913 - the chunk's parameters, minus the ones the lo
     data_dir: Path | str | None,
     max_cost_usd: float | None,
     cassettes_dir: Path | str | None,
+    retry_rejected: bool,
     log: Any,
     params: Mapping[str, Any],
 ) -> ChunkSummary:
@@ -643,10 +683,10 @@ def _run_cells(  # noqa: PLR0913 - the chunk's parameters, minus the ones the lo
     summary = ChunkSummary()
 
     def outstanding() -> int:
-        return sum(1 for item in cells if not ledger.is_done(item))
+        return sum(1 for item in cells if not ledger.is_settled(item))
 
     for cell in cells:
-        if ledger.is_done(cell):
+        if ledger.is_settled(cell) and not (retry_rejected and ledger.was_rejected(cell)):
             summary.skipped.append(cell)
             continue
         subject = subject_of[cell.variant]
@@ -680,6 +720,8 @@ def _run_cells(  # noqa: PLR0913 - the chunk's parameters, minus the ones the lo
         )
         if record.status == DONE:
             summary.ran.append(record)
+        elif record.status == REJECTED:
+            summary.rejected.append(record)
         else:
             summary.failed.append(record)
         ledger.record(record, remaining=outstanding())
@@ -728,10 +770,16 @@ def _run_cell(  # noqa: PLR0913 - a cell needs each of these and none of them ha
             **params,
         )
     except StudyBudgetError as exc:
-        return _failed(cell, str(exc), budgeted, spent_before, calls_before, started, log, True)
+        return _ended(
+            cell, FAILED, str(exc), budgeted, spent_before, calls_before, started, log, True
+        )
+    except ReportSchemaError as exc:
+        return _ended(
+            cell, REJECTED, str(exc.message), budgeted, spent_before, calls_before, started, log
+        )
     except QuaestorError as exc:
-        return _failed(
-            cell, str(exc.message), budgeted, spent_before, calls_before, started, log, False
+        return _ended(
+            cell, FAILED, str(exc.message), budgeted, spent_before, calls_before, started, log
         )
     record = _record_of(cell, run, cell_out, budgeted, spent_before, calls_before, started)
     log(
@@ -809,27 +857,28 @@ def _rows_for(package_name: str, synthetic: int | None, data_dir: Path | str | N
     return default
 
 
-def _failed(  # noqa: PLR0913 - the record is a function of the meters around the failure
+def _ended(  # noqa: PLR0913 - the record is a function of the meters around the ending
     cell: Cell,
+    status: str,
     message: str,
     budgeted: BudgetedLLM,
     spent_before: float,
     calls_before: int,
     started: float,
     log: Any,
-    budget_stopped: bool,
+    budget_stopped: bool = False,
 ) -> CellRecord:
     """Build the ledger record of a cell that produced no report, and say so on the log."""
     record = CellRecord(
         cell=cell,
-        status=FAILED,
+        status=status,
         cost_usd=budgeted.spent_usd - spent_before,
         calls=budgeted.calls - calls_before,
         seconds=time.monotonic() - started,
         error=message,
         budget_stopped=budget_stopped,
     )
-    log(f"{cell.key}: FAILED after {record.seconds:.1f}s -- {message}")
+    log(f"{cell.key}: {status.upper()} after {record.seconds:.1f}s -- {message}")
     return record
 
 

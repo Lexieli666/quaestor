@@ -166,10 +166,37 @@ def test_a_table_directive_the_renderer_did_not_expand_is_refused() -> None:
     assert any("[[table:calibration.test]]" in problem for problem in problems)
 
 
-def test_the_word_compliant_is_refused_anywhere_in_the_report() -> None:
-    report = MINIMAL_REPORT + "\nThis model is compliant with the guidance.\n"
+def test_a_self_claim_of_compliance_in_section_one_is_refused() -> None:
+    """`CLAUDE.md`'s constraint, where a report says what it is (D-187)."""
+    report = MINIMAL_REPORT.replace(
+        REQUIRED_HEADINGS[0],
+        REQUIRED_HEADINGS[0] + "\n\nThis model is compliant with the guidance and certified.\n",
+    )
     problems = check_structure(report, configuration=Configuration.rules_only)
-    assert any("whole report" in problem for problem in problems)
+    assert any("front matter and section 1" in problem for problem in problems)
+    assert any("'certified', 'compliant'" in problem for problem in problems)
+
+
+def test_the_front_matter_is_inside_the_self_claim_scope() -> None:
+    report = MINIMAL_REPORT.replace("schema_version: 1", "schema_version: 1\nnote: certified")
+    problems = check_structure(report, configuration=Configuration.rules_only)
+    assert any("front matter and section 1" in problem for problem in problems)
+
+
+def test_a_term_of_art_in_a_later_section_is_not_a_self_claim() -> None:
+    """What D-187 bought: the words are ordinary model-risk English about the *subject*.
+
+    A live `plain_llm` cell was lost to four occurrences of "the certified domain" in section 4 --
+    the input range a model is approved for, in a recommendation to narrow it. The rule is about
+    what the report claims of itself, so it reads where the report says what it is.
+    """
+    report = MINIMAL_REPORT.replace(
+        REQUIRED_HEADINGS[3],
+        REQUIRED_HEADINGS[3] + "\n\nRestrict the certified domain to loan ages 0-59 months.\n",
+    )
+    problems = check_structure(report, configuration=Configuration.rules_only)
+    assert not [problem for problem in problems if "front matter and section 1" in problem]
+    assert problems == check_structure(MINIMAL_REPORT, configuration=Configuration.rules_only)
 
 
 def test_a_citation_that_leaked_into_appendix_c_is_refused() -> None:

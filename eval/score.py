@@ -71,7 +71,9 @@ __all__ = [
     "Collateral",
     "ConfigurationScore",
     "RunDirectory",
+    "NoReport",
     "StudyScore",
+    "load_no_report",
     "load_runs",
     "main",
     "score",
@@ -83,6 +85,9 @@ DETECTION_SEVERITY: Final = Severity.medium
 
 UNEVIDENCED_PREFIX: Final = "unevidenced:"
 """How `quaestor.pipeline` marks a `plain_llm` finding whose evidence resolves to nothing."""
+
+LEDGER_FILE: Final = "ledger.json"
+"""What `quaestor study run` wrote. The only record of a cell that produced no report at all."""
 
 SEED_FILE: Final = "SEED.yaml"
 FINDINGS_FILE: Final = "findings.json"
@@ -324,6 +329,71 @@ def load_runs(results_dir: Path | str) -> list[RunDirectory]:
     if not runs:
         raise ValueError(f"{root} holds no run directory: nothing under it has a {FINDINGS_FILE}")
     return sorted(runs, key=lambda run: (run.configuration, run.variant))
+
+
+@dataclass(frozen=True)
+class NoReport:
+    """A cell the harness ran that produced no report, read from the ledger.
+
+    Attributes:
+        variant: Which variant.
+        configuration: Which configuration.
+        status: `rejected` -- the renderer refused what the model wrote -- or `failed`.
+        reason: The error the ledger recorded.
+    """
+
+    variant: str
+    configuration: str
+    status: str
+    reason: str
+
+    def to_payload(self) -> dict[str, Any]:
+        """The row `summary.json` carries."""
+        return {
+            "variant": self.variant,
+            "status": self.status,
+            "reason": self.reason,
+        }
+
+
+def load_no_report(results_dir: Path | str) -> list[NoReport]:
+    """Read the cells the harness ran that left no `findings.json`, from `ledger.json`.
+
+    **Why the ledger is an input at all.** Every other number here comes from a run directory, and
+    a run that produced no report has none -- `pipeline.validate` writes `report.md` before
+    `claims.json` and `findings.json`, so a renderer refusal loses all three. Such a cell is
+    therefore *invisible* to a scorer that enumerates by `findings.json`, and invisible is the
+    worst thing it could be: the arm's recall would be computed over the cells that worked and
+    printed as the arm's whole story, dropping exactly the cell where it misbehaved. That flatters
+    the detector, silently, which is the class of default D-182 exists to refuse.
+
+    `docs/STUDY.md` section 5 already says what to do with one -- "a run that produces no report is
+    scored as a miss with no report, listed in the miss list ... and counted against the
+    configuration" -- and this is what lets the scorer obey it.
+
+    Args:
+        results_dir: The study directory, whose `ledger.json` is read when it is there.
+
+    Returns:
+        One entry per cell the ledger records as `rejected` or `failed`, ordered by configuration
+        and then variant. Empty when there is no ledger, which is the case for a directory of
+        `quaestor validate` runs.
+    """
+    path = Path(results_dir) / LEDGER_FILE
+    if not path.is_file():
+        return []
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows = [
+        NoReport(
+            variant=str(cell["variant"]),
+            configuration=str(cell["configuration"]),
+            status=str(cell["status"]),
+            reason=str(cell.get("error") or "no reason recorded"),
+        )
+        for cell in payload.get("cells", [])
+        if str(cell["status"]) != "done"
+    ]
+    return sorted(rows, key=lambda row: (row.configuration, row.variant))
 
 
 def _read_run(path: Path) -> RunDirectory:
@@ -570,6 +640,9 @@ class ConfigurationScore:
         missed: Variants whose seeded class was not.
         not_scorable: Variants set aside because the check that screens their class did not run,
             with the tool and its own message.
+        no_report: Cells the harness ran that produced no report at all, from the ledger. A seeded
+            one is a **miss** -- `docs/STUDY.md` section 5's own rule -- named rather than
+            silently absent; a control has no detection to lose and is listed only.
         false_alarms: Findings on the controls that the control's baseline does not carry.
         controls_unmeasured: Controls whose baseline is `null`, so their false-alarm arm is not
             scored at all.
@@ -584,6 +657,7 @@ class ConfigurationScore:
     detected: list[str] = field(default_factory=list)
     missed: list[str] = field(default_factory=list)
     not_scorable: list[dict[str, str]] = field(default_factory=list)
+    no_report: list[NoReport] = field(default_factory=list)
     false_alarms: list[dict[str, str]] = field(default_factory=list)
     controls_unmeasured: list[str] = field(default_factory=list)
     collateral: list[Collateral] = field(default_factory=list)
@@ -616,6 +690,7 @@ class ConfigurationScore:
             "detected": list(self.detected),
             "missed": list(self.missed),
             "not_scorable": list(self.not_scorable),
+            "no_report": [item.to_payload() for item in self.no_report],
             "per_class": {name: item.to_payload() for name, item in sorted(self.per_class.items())},
             "false_alarms": list(self.false_alarms),
             "controls_with_unmeasured_baseline": list(self.controls_unmeasured),
@@ -719,6 +794,7 @@ def score(
     runs: Sequence[RunDirectory],
     keys: Mapping[str, VariantKey],
     baselines: Baselines,
+    no_report: Sequence[NoReport] = (),
 ) -> dict[str, ConfigurationScore]:
     """Score every run, grouped by the configuration each one recorded.
 
@@ -726,6 +802,9 @@ def score(
         runs: The run directories.
         keys: The answer keys, by variant id.
         baselines: The measured control baselines.
+        no_report: Cells the ledger records as having produced no report. A seeded one counts
+            against its configuration as a miss with no report, which is `docs/STUDY.md` section
+            5's rule and the reason the ledger is read at all.
 
     Returns:
         One score per configuration.
@@ -742,6 +821,17 @@ def score(
             _score_control(item, run, key, baselines.for_control(key.variant, key.mode))
         else:
             _score_seeded(item, run, key, baselines.for_subject(key.subject, key.mode))
+    for entry in no_report:
+        item = scores.setdefault(entry.configuration, ConfigurationScore(entry.configuration))
+        item.no_report.append(entry)
+        key = keys.get(entry.variant)
+        if key is None or key.is_control or key.defect_class is None:
+            continue
+        row = item.per_class.setdefault(key.defect_class, ClassScore())
+        row.seeded += 1
+        row.variants.append(key.variant)
+        row.missed.append(key.variant)
+        item.missed.append(key.variant)
     for item in scores.values():
         item.grounding = _grounding(
             [run for run in runs if run.configuration == item.configuration]
@@ -812,6 +902,11 @@ def _lines(result: StudyScore) -> Iterator[str]:
         for cls, row in sorted(item.per_class.items()):
             missed = f"; missed {', '.join(row.missed)}" if row.missed else ""
             yield f"  {cls}: {row.detected}/{row.seeded}{missed}"
+        for gone in item.no_report:
+            yield (
+                f"  no report: {gone.variant} ({gone.status}) — counted as a miss; "
+                f"{gone.reason[:90]}"
+            )
         for skipped in item.not_scorable:
             yield (
                 f"  not scored: {skipped['variant']} ({skipped['class']}) — "
@@ -842,9 +937,11 @@ def main(argv: Sequence[str] | None = None, *, generated: datetime | None = None
     Returns:
         `0` when every variant was scored and nothing is waiting on a person, `1` when something
         is: a run with no answer key, a variant set aside because its check did not run, a control
-        whose baseline is not measured, or a collateral pairing nobody has judged. A **miss** is
-        not one of these -- a miss is a result, and the study publishes it. Each of these four is
-        homework, and none of them is a defect in the detector.
+        whose baseline is not measured, a collateral pairing nobody has judged, or a cell that
+        produced no report -- which is scored as a miss *and* is a thing to look at, because a
+        renderer refusal is usually about this codebase rather than about the model. An ordinary
+        **miss** is not one of these -- a miss is a result, and the study publishes it. Each of
+        these five is homework, and none of them is a defect in the detector.
     """
     parser = argparse.ArgumentParser(
         prog="python eval/score.py",
@@ -866,12 +963,13 @@ def main(argv: Sequence[str] | None = None, *, generated: datetime | None = None
     runs = load_runs(args.results)
     keys = load_keys(args.variants)
     baselines = load_baselines(args.taxonomy)
+    no_report = load_no_report(args.results)
     result = StudyScore(
         generated=generated or datetime.now(UTC),
         results_dir=str(args.results),
         variants_dir=str(args.variants),
         taxonomy=str(args.taxonomy),
-        configurations=score(runs, keys, baselines),
+        configurations=score(runs, keys, baselines, no_report),
         unknown_variants=sorted({run.variant for run in runs} - set(keys)),
     )
     for line in _lines(result):
@@ -881,7 +979,7 @@ def main(argv: Sequence[str] | None = None, *, generated: datetime | None = None
         args.out.write_text(json.dumps(result.to_payload(), indent=2) + "\n", encoding="utf-8")
         print(f"summary: {args.out}")
     owed = bool(result.unknown_variants) or any(
-        item.controls_unmeasured or item.unjudged or item.not_scorable
+        item.controls_unmeasured or item.unjudged or item.not_scorable or item.no_report
         for item in result.configurations.values()
     )
     return 1 if owed else 0

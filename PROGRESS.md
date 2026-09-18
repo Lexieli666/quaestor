@@ -1408,3 +1408,43 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   `ruff format --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean over
   60 source files. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7
   failed, 33 passed**. Not pushed.
+- 2026-09-18 — **Phase 12, chunk 5's lost cell: the compliance rule's scope, a terminal rejection,
+  and a scorer that can see a cell with no report** — **no paid run; the diagnosis and all three
+  fixes are offline**. `plain_llm/msr__C1__oversampled_hazard` ran 522.8 s, made its eight calls,
+  cost **$1.7452** and produced nothing: the renderer refused it on `['certified'] in whole
+  report`. Read from the cell's own tapes, the model had written "restrict the model's **certified
+  domain** to loan ages 0–59 months" and three more like it — the input range a model is approved
+  for, in a recommendation to *narrow* it, which is the opposite of a claim that anything is
+  certified. So, in the order they had to be made: **(1)** the rule's scope narrows from `whole
+  report` to **`front matter and section 1`**, where a report says what it is, the pattern
+  deliberately untouched because excluding `certified (domain|range|…)` guesses at the model's next
+  phrasing; **(2)** a refused report is **`rejected`** and terminal rather than `failed` and
+  retried — `plain_llm` has no repair round (D-072) and **`full_agent`'s runs at `pipeline.py:1021`,
+  forty-eight lines before `write_report` at 1069**, so neither arm can talk itself out of a
+  refusal, and `--retry-rejected` re-attempts once after the cause is changed; **(3)**
+  `eval/score.py` reads `ledger.json`, because `validate` writes `report.md` before `claims.json`
+  and `findings.json` and a refusal loses all three, leaving the cell **invisible** to a scorer
+  that enumerates by `findings.json` — which would compute the arm's recall over the cells that
+  worked and print it as the whole story. `docs/STUDY.md` §5's rule now holds: a seeded no-report
+  cell is a **named miss**, in the denominator, out of the numerator, precision untouched. Measured
+  on the live tree, `plain_llm`'s `C1` goes **`1/1` → `1/2`, missed `msr__C1__oversampled_hazard`**
+  (**D-187**). **Fixed before the `full_agent` arm starts**: the trap is identical there and a lost
+  cell costs **≈$5.40** against ≈$1.75 here, over the study's largest arm. Sanctioned golden edit —
+  `examples/golden_report/REPORT_SCHEMA.json`'s `scope` and `why`, with `MANIFEST.json` and
+  **D-011's pinned hash** moved and a dated row; the golden report's own front matter and section 1
+  carry neither word, so it satisfies the narrowed rule exactly as it satisfied the wide one. Filed
+  and not chased, at the human's instruction: **the committed cassettes do not replay into the same
+  prompt** (`no recorded call cd954d245fd129d0`), which contradicts `docs/STUDY.md` §7's "the
+  cassettes are the run" and is owed an answer before Phase 12 publishes (**D-188**). Recorded and
+  deliberately
+  **not** acted on: the collateral judging backlog stands at **23** pairings from thirteen
+  `plain_llm` cells, all `medium`, across nine variants, against the one the free sweep left. They
+  are judged in **one sitting against one dated rule set** after `full_agent` is in, not twice, and
+  until then `plain_llm`'s precision of **0.2000** is a floor computed with 23 findings set aside
+  rather than a publishable number (**D-182**, amended). Gate: offline
+  suite excluding `tests/probatio` **1,725 passed**, 0 failed, 0 skipped, 0 xfailed (1,714 → 1,725,
+  eleven added); `ruff check` and `ruff format --check` clean on `src tests eval subjects`;
+  `mypy --strict src/quaestor` clean over 60 source files; both `--synthetic --llm fake` validates
+  unchanged at `{E1 low}` and `{}`. **[stranded]** `pytest tests/probatio --cassette=replay`
+  unchanged at **7 failed, 33 passed** — this commit moves no prompt and no case file, deliberately.
+  Not pushed.

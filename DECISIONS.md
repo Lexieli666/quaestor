@@ -162,12 +162,13 @@ here and recorded.
   commit the changed files. The pin therefore always states what the bytes must satisfy, never what
   they happen to be.
   - **Pinned hash:** `MANIFEST.json` has sha256
-    `40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116`
+    `8bbcaa3395664288e2046cad5ef41b8bb347b05352d3fb137bdc430fcc6b2501`
 
   | date | `MANIFEST.json` `sha256` | reason |
   |---|---|---|
   | 2026-09-07 | `1f7df2f39df557dc4b8e39d46e36dbefef4a8f15889c8546b06054c8c8c76c80` | Phase 1: the golden report set is introduced (the Cowork draft of 2026-09-07, copied byte-for-byte) together with the two schemas written for it |
   | 2026-09-07 | `40a9a75ffbed3cce3d50f226f79f84b0e21873f2326ba6383fb0ac4d6bc73116` | Phase 6: regulatory citation pattern widened from `(SR11-7|OCC2011-12)` to `(SR11-7|SR26-2)` after SR 26-2 superseded SR 11-7 (D-055). One character range in `REPORT_SCHEMA.json`; no other byte of the directory changes, and every `[[reg:...]]` citation the golden report already carries still matches |
+  | 2026-09-18 | `8bbcaa3395664288e2046cad5ef41b8bb347b05352d3fb137bdc430fcc6b2501` | Phase 12: the `compliant`/`certified` rule's scope narrowed from `whole report` to `front matter and section 1` (D-187), after a paid `plain_llm` cell was lost to four occurrences of "the certified domain" in section 4. Two fields of one object in `REPORT_SCHEMA.json`, `scope` and `why`; no other byte of the directory changes, and the golden report's own front matter and section 1 carry neither word, so it satisfies the narrowed rule exactly as it satisfied the wide one |
 
 - **Why:** Gate condition 5 as written is a `git diff` against a commit nobody records, which means
   in practice nobody runs it. Two hash links turn it into an ordinary test: the manifest catches a
@@ -6595,6 +6596,22 @@ here and recorded.
   a study judgement made by the session that wrote the scorer, in the commit whose whole point is
   that the scoring rules were fixed before the paid runs.
 
+  **Amended 2026-09-18: the judging backlog stands at 23, is expected to grow, and is judged
+  once.** The free `rules_only` sweep left exactly one unjudged pairing. Thirteen `plain_llm` cells
+  left **23**, all at `medium`, across nine variants -- which is the baseline arm behaving as D-072
+  says it will, raising findings of many classes on a package with one seeded defect, and not a
+  sign that the five pre-decided rules are wrong. They are **deliberately not judged now**. The
+  `full_agent` arm has not run and will add a batch of its own, and a pairing judged twice -- once
+  against the rules as they stand and once against the rules as they will stand -- is two
+  judgements of one fact, which is the shape D-096 rejects wherever it appears. So the whole
+  backlog is judged in **one sitting against one dated rule set**, after `full_agent` is in, and
+  every rule it adds carries the date it was decided exactly as the sixth one does.
+  **What this gates.** `plain_llm`'s precision is not publishable until then. An unjudged pairing
+  counts in neither half of precision, so the arm's current **0.2000** over 13 cells is a floor
+  computed with 23 findings set aside, not a number: judging them can only move it, and in which
+  direction depends on how many are true consequences of a seeded defect and how many are the arm
+  inventing things. `rules_only`'s 1.0000 is unaffected -- its single pairing is judged.
+
   **Amended 2026-09-17, same commit, by the human: the `msr__S1` → `C1` pairing is a true
   consequence and is section 5's sixth collateral rule.** The reasoning, recorded in the rule
   itself and not only here: `train_pre_test_post` fits the hazard through 2019 and tests it on the
@@ -6827,3 +6844,104 @@ here and recorded.
   documentation**, which is what D-174 already was; and **locking the ledger for each flush
   only**, which leaves the stale snapshot exactly where it was, since the damage is done between
   the read and the write and not during either.
+
+## D-187. The compliance rule reads where a report says what it is, and a refused report is terminal
+
+- **Date:** 2026-09-18 (Phase 12, chunk 5; the scope decided by the human, the handling implemented
+  with it)
+- **Q:** `plain_llm/msr__C1__oversampled_hazard` ran for 522.8 s, made its eight calls, cost
+  **$1.7452** and produced no report: the renderer refused it with `['certified'] in whole report`.
+  Is that a defect to fix or a measurement the baseline arm exists to produce — and either way, the
+  cell cannot sit as `failed`, because `study run` retries anything that is not `done`.
+- **A:** **A defect, and the handling is wrong too.** Three changes, in the order they had to be
+  made.
+
+  **1. The rule's scope, not its pattern.** The model's prose used the stem seven times and every
+  one of them was a term of art about the *subject*: "restrict the model's **certified domain** to
+  loan ages 0–59 months", "the share of serviced UPB at loan ages beyond the certified domain",
+  "volumes scored outside the certified domain" — the input range a model is approved for, in a
+  recommendation to **narrow** it. That is model-risk English, and the opposite of a claim that
+  anything is certified. `CLAUDE.md`'s constraint is that no document of this project claims that
+  *it* or the model is compliant or certified, and a claim of that kind is made where a report says
+  what it is. So the scope of the `\b(compliant|certified|SR 11-7 compliance)\b` rule goes from
+  `whole report` to **`front matter and section 1`**, and `schema.py` grows a `SCOPES` table
+  because there are now three of them.
+  **The pattern is deliberately not narrowed.** Excluding `certified (domain|range|population|
+  scope)` is guessing at the model's next phrasing and breaks on the one after; the scope is a
+  statement about where the constraint applies, which does not have to be guessed.
+
+  **2. A refused report is `rejected`, and `rejected` is terminal.** A cell whose renderer refused
+  is no longer `failed`: it is recorded `rejected` and is **not** attempted again, because the
+  calls were made and paid for and another draw from the model is not what would change the answer.
+  `plain_llm` has no repair round at all (D-072), and — the fact that decides this —
+  **`full_agent`'s
+  repair loop runs at `pipeline.py:1021`, forty-eight lines before `write_report` at 1069**, so it
+  cannot catch a schema refusal either. Neither arm can talk itself out of a rejection by being
+  asked again. `--retry-rejected` re-attempts them, once, after the thing that caused the refusal
+  has been changed, which is the only event that makes a retry more than a fresh gamble.
+
+  **3. `eval/score.py` reads `ledger.json`.** `validate` writes `report.md` first, then
+  `claims.json`, then `findings.json`, so a refusal loses all three and the cell is **invisible** to
+  a scorer that enumerates by `findings.json`. Invisible is the worst thing it could be: the arm's
+  recall would be computed over the cells that worked and printed as the arm's whole story,
+  dropping exactly the cell where it misbehaved — silently, in the direction that flatters the
+  detector, which is the class of default D-182 exists to refuse. `docs/STUDY.md` §5 already says
+  what to do with one, so the scorer now obeys it: **a seeded no-report cell is a named miss**, in
+  the denominator, out of the numerator, and precision untouched because it raised no finding that
+  could be a false alarm. Measured on the live tree, `plain_llm`'s `C1` goes from `1/1` to
+  **`1/2`, missed `msr__C1__oversampled_hazard`**, which is the number that was about to be
+  published as `1/1`.
+- **Why the order.** Scoring a false-positive rejection as a miss publishes a miss that is not one,
+  so the scope had to be settled before the scorer learned to count it.
+  **Why before the `full_agent` arm and not after.** A cell lost this way costs **≈$1.75** under
+  `plain_llm` and **≈$5.40** under `full_agent`, whose eighteen cells are the largest arm in the
+  study and have not started. The trap is identical in both — the repair loop cannot reach it — so
+  fixing it after that arm would mean paying three times over for the same discovery.
+  **What is deliberately left alone.** `DRAFT_INSTRUCTION` still says "Do not use the words
+  'compliant' or 'certified'", and `tests/probatio/casebuilder.py`'s
+  `DRAFT_ASSERTION_NOT_CONTAINS` still asserts a drafted section carries neither. That is now
+  advice stricter than the constraint, which is the right shape: the prompt asks the model to avoid
+  the words entirely because it is cheap to do so, and the schema refuses a report only where a
+  self-claim could actually live. Changing either would move a prompt or a case file and strand
+  more tapes, for nothing.
+  **A sanctioned golden edit.** `examples/golden_report/REPORT_SCHEMA.json` carries the same two
+  fields, so `MANIFEST.json` and **D-011's pinned hash** move with it, with a dated row: the golden
+  report's own front matter and section 1 carry neither word, so it satisfies the narrowed rule
+  exactly as it satisfied the wide one, and no other byte of the directory changes.
+  Rejected alternatives. **Narrowing the pattern** (above). **Treating the rejection as a
+  measurement and publishing it**, which would publish a miss caused by an over-broad regex of our
+  own. **Letting the cell stay `failed`**, which re-pays ≈$1.75 a chunk on a fresh gamble.
+  **Making `plain_llm` exempt from the schema**, which would mean the baseline arm is measured
+  against a different standard than the thing it is the baseline for.
+
+## D-188. The committed cassettes do not replay into the same prompt — filed, not chased
+
+- **Date:** 2026-09-18 (Phase 12, chunk 5; filed at the human's instruction rather than
+  investigated)
+- **Q:** `docs/STUDY.md` §7 says the cassettes of the published run "are the run". Replaying a
+  finished cell's own tapes was tried, as the free way to re-render a report without a paid call:
+
+  ```
+  quaestor validate eval/variants/msr__C1__oversampled_hazard --synthetic \
+    --llm replay --cassettes .../cassettes/plain_llm/msr__C1__oversampled_hazard \
+    --config plain_llm --out ...
+  ```
+
+  Does it reproduce the run?
+- **A:** **No.** It fails immediately with `no recorded call cd954d245fd129d0 in
+  .../msr__C1__oversampled_hazard; the prompt began 'You are writing a model-validation report on
+  the package msr_prepayment version 1.0, a'`. The tapes are complete — eight of them, the full
+  set of calls the cell made — so the replay is not missing a recording; it is building a
+  **different prompt** from the one that was recorded, and a cassette is keyed on a hash of the
+  request. Two candidate causes were *not* separated: something run-varying reaching the prompt, or
+  a difference between the study harness's call and `quaestor validate`'s. A grep of the recorded
+  prompt for `duration_s`, `run.status`, `generated` and `timestamp` found none of them, so the
+  obvious first guess is already ruled out and the next session starts from there.
+- **Why filed rather than fixed:** the human's instruction, and it is the right call — the question
+  is orthogonal to the three changes of D-187, and chasing it mid-study would have delayed a fix
+  that has to land before the `full_agent` arm starts. **But it contradicts a published claim.**
+  `docs/STUDY.md` §7 and the project's own differentiator rest on a committed run being
+  reproducible from committed bytes, and on this evidence it is not. Until it is understood, §7's
+  sentence is a claim this repository cannot demonstrate, and the study should not publish it. That
+  is the reason this is a numbered entry rather than a note: it is a known gap between what the
+  documentation says and what the artefacts do, and it is owed an answer before Phase 12 publishes.
