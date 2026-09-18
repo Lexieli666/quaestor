@@ -31,7 +31,8 @@ Every message written to standard error names the command that fixes it, which i
 partly failed exits ``0`` and names the missing check in Appendix D, so a caller judging a run
 reads ``checks_failed`` and not the code (D-177). A ``study run`` that stopped on its cost ceiling
 exits ``0`` exactly as one that finished the study does, so a caller reruns the same command line
-until ``remaining`` in ``ledger.json`` reads zero.
+until ``remaining_in_last_plan`` in ``ledger.json`` reads zero -- that field counts the last
+invocation's own plan, which is why a caller reruns *the same* command line.
 """
 
 from __future__ import annotations

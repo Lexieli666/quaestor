@@ -6489,7 +6489,8 @@ here and recorded.
 
   **Two exit codes that do not distinguish what a caller needs, and what to read instead.** A
   chunk that stopped on its ceiling exits `0` exactly as one that finished the study does, so a
-  driver reads `remaining` in `ledger.json`. And a cell that produced a report without one of its
+  driver reads `remaining_in_last_plan` in `ledger.json`. And a cell that produced a report
+  without one of its
   checks is `done` with a non-empty `checks_failed`, which is **D-177**'s rule carried from one run
   to a study of them: `quaestor study run` prints those cells and writes them down, and no caller
   of it is entitled to judge a run by the code alone.
@@ -6510,6 +6511,19 @@ here and recorded.
   and its rules about which flags combine; `seed.py` has a `main` because it builds no provider.
   **Pooling cassettes across cells**, which the pre-flight already measured as ambiguous, cassette
   keys being a hash of the request: each cell records into a store of its own.
+
+  **Amended 2026-09-18, before chunk 2 was re-run: the ledger's `remaining` is
+  `remaining_in_last_plan`, and the schema version is 2.** The field always counted the cells of
+  the *invocation's own plan* and was documented as doing so, which is correct for a driver that
+  reruns one command line until it reads zero. It is wrong for anything else, and the entry above
+  invites exactly that by telling a driver to "read `remaining`": a `rules_only` chunk rerun after
+  its arm is finished writes **zero** over a ledger with seventeen `plain_llm` cells outstanding,
+  which is what happened while the D-186 fix was being checked. Renaming it is the whole fix --
+  the number was never wrong, the name let it be read as a different number. The version bump is
+  for the driver rather than for this module, which reads only `cells` back and so loads an older
+  ledger unchanged: a script written against version 1 should fail to find its field rather than
+  silently read a zero that means something else. A study part-way through picks up the new
+  spelling on its next flush.
 
 ## D-182. What `eval/score.py` refuses to score, and the pairing the free runs left unjudged
 
@@ -6728,3 +6742,88 @@ here and recorded.
   repository. **Keeping `run/` in full under `published/`**, which is 87 MB of predictions and,
   on the two bridge runs, real rows. **Trusting the commit message**, which is what Phase 9 did
   and which worked only because one person made every commit.
+
+## D-186. A cell owns its directory, because a killed chunk has to be retriable
+
+- **Date:** 2026-09-18 (Phase 12, found by chunk 2's first invocation)
+- **Q:** Chunk 2 died on its first cell with `the logical name 'run.duration_s' already holds
+  artifact 11949d1772d26471 and cannot be replaced by 2e7b70f1f5c2d6f0`. The reading offered at the
+  time was that `rules_only`'s run-level artifacts collide with `plain_llm`'s under one `--out`,
+  and the question that follows is whether `run.*` should be namespaced per configuration. Is that
+  the mechanism?
+- **A:** **No, and namespacing would have fixed nothing.** Each cell already has a store of its
+  own at `<out>/<configuration>/<variant>/artifacts/`; the two arms never share one. The evidence
+  is in the failed cell's own directory: `trace.jsonl` is stamped `00:31:07` and holds exactly one
+  event, a `run_model` that *succeeded*, while `artifacts/index.json` beside it is stamped
+  `00:34:10`. **Two invocations, three minutes apart, into one cell directory.** The first was
+  killed after `run_model` and before the ledger was written -- the ledger is written only when a
+  cell finishes -- so the cell looked un-run to the second invocation, which retried it, ran the
+  subject again, got a different duration, and collided on the first thing the subject stores.
+  Reproduced offline in two commands with `--llm fake` and no money: run a cell, delete
+  `ledger.json`, run it again.
+
+  **The fix is that a cell owns its directory.** `run_chunk` removes
+  `<out>/<configuration>/<variant>/` and that cell's cassette store before attempting it, and says
+  on the log what it discarded. The clearing is reachable only for a cell the ledger does not call
+  `done`, so a resumed chunk cannot touch what an earlier chunk paid for. The cassette store goes
+  with the run directory for the reason `docs/STUDY.md` §4 gives about pooling: a cassette is keyed
+  on a hash of the request, so an abandoned attempt's tapes beside a retry's are two runs in one
+  store.
+
+  **It belongs in `eval/run_study.py` and not in `validate`.** `validate` does not own its `--out`
+  directory -- its caller does, and a human running `quaestor validate` twice into one directory is
+  entitled to the error, which is telling them something true. For a cell the caller *is* the
+  harness, and it is the harness that promised the retry. This is `seed()`'s own rule applied to a
+  run rather than to a package: a variant directory is removed before it is rebuilt "so that
+  seeding twice writes the same bytes rather than layering one recipe on another".
+- **Why:** The ledger's contract is that a cell which is not `done` is attempted again, and before
+  this that contract was unkeepable for the single most likely cause of a cell not being `done` --
+  the chunk having been killed, which D-174 records as the normal way a sitting ends. The defect
+  therefore had the shape the whole harness exists to prevent: a study that cannot be resumed past
+  its first interruption, discovered on paid runs rather than free ones.
+  **Why the store is right to refuse and is not the thing to change.** Rebinding a logical name to
+  a new hash would leave every citation written against the old one resolving to nothing, which is
+  the one guarantee the artifact store exists to make. The error message was correct and arrived at
+  exactly the right moment; what was missing was a caller that did not put it in that position.
+  Rejected alternatives. **Namespacing `run.*` per configuration**, which does not address a retry
+  within one configuration -- the actual case -- and which would change artifact logical names that
+  are cited in reports, pinned byte-for-byte in `examples/golden_report/` and asserted to the byte
+  in the Probatio case inputs (D-138); a report-schema-adjacent change after Phase 1 is a
+  stop-and-ask, and this one would have bought nothing. **A directory per arm**, which the human
+  ruled out before the diagnosis and which is right to rule out: nineteen chunks over four arms
+  would make the operator track which directory belongs to which, and it would not fix a retry
+  either. **Refusing to start and telling the operator to remove the directory**, which makes every
+  kill cost a manual step in a plan that expects nineteen sittings. **Making the store overwrite a
+  name**, which trades a loud failure for silently dangling citations.
+
+  **The second defect this diagnosis found, and the lock that closes it.** `Ledger` reads its
+  snapshot when it is constructed and writes the whole file on every flush, so two chunks against
+  one `--out` are last-writer-wins over a stale snapshot: the second process's flush erases every
+  cell the first recorded after the second started. This was found by nearly doing it. While chunk
+  2 was still live, three diagnostic chunks were run against the same tree, and one of them came
+  within seconds of erasing `plain_llm/control_msr_clean` -- **a finished cell, 8 calls,
+  $1.784082** -- from the ledger. The cell's *output* would have survived on disk and its ledger
+  row would not, so the next chunk would have read it as un-run, cleared its directory under the
+  rule above and paid for it a second time.
+
+  **That is the worst failure this study has, and the reason is that it is unattributable.** A lost
+  cell leaves no trace in the result tree: no error, no failed row, nothing to notice at scoring
+  time. The bill simply comes in higher than $170.15, and by then there is nothing to point at.
+  Every other failure here is loud.
+
+  So `run_chunk` takes an **exclusive lock on `<out>/study.lock` for the whole of a chunk**, with
+  the ledger's read *and* its writes inside it, and a second `quaestor study run` against a live
+  study is refused with the holder's pid rather than racing it. D-174's rule that a sitting is run
+  by one operator at one keyboard is the convention that had been preventing this; the lock is that
+  convention enforced, which is what a 19-chunk study over 62 paid cells needs -- **a rule that
+  holds only while everyone remembers it is not a rule**, and the person who forgot it here was the
+  one who wrote the harness.
+
+  It is `flock(2)` and not a PID file, because **a killed chunk must stay resumable**: a kill is
+  how a sitting normally ends (D-174), and the kernel drops a `flock` when the process dies however
+  it dies, so the next chunk takes it with nothing to reap. The file is left in place on release --
+  deleting it is a race of its own and costs nothing to skip. Rejected: **a PID file**, which has
+  to be reaped and whose reaping is one more thing to get wrong after a kill; **advisory
+  documentation**, which is what D-174 already was; and **locking the ledger for each flush
+  only**, which leaves the stale snapshot exactly where it was, since the damage is done between
+  the read and the write and not during either.

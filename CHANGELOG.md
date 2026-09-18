@@ -9,6 +9,45 @@ run that was not committed.
 
 ### Fixed
 
+- **A killed chunk's cell could never be run again, which is the one failure the ledger exists to
+  prevent.** Chunk 2 of the study died on its first cell with `the logical name 'run.duration_s'
+  already holds artifact 11949d1772d26471 and cannot be replaced by 2e7b70f1f5c2d6f0`. Not a
+  collision between arms: each cell already has a store of its own, and the evidence is in the
+  failed cell's directory, whose `trace.jsonl` is stamped `00:31:07` with one successful
+  `run_model` in it while `artifacts/index.json` beside it is stamped `00:34:10` — **two
+  invocations into one cell directory, three minutes apart**. The first was killed after
+  `run_model` and before the ledger was written, so the cell looked un-run; the second retried it,
+  ran the subject again, got a different duration, and collided on the first thing the subject
+  stores. `run_chunk` now **removes a cell's run directory and its cassette store before
+  attempting it**, and says on the log what it discarded — the clearing being reachable only for a
+  cell the ledger does not call `done`, so a resumed chunk cannot touch what an earlier one paid
+  for. The store is right to refuse a rebind and is unchanged: every citation against the old hash
+  would otherwise stop resolving. Reproduced offline in two commands with `--llm fake`, and four
+  of the five new tests fail against the old code (**D-186**).
+
+- **The ledger's `remaining` is `remaining_in_last_plan`, and the ledger schema is version 2.** It
+  always counted the cells of the invocation's own plan and was documented as doing so, but the
+  short name invites being read as the study's: a `rules_only` chunk rerun after that arm is
+  finished writes **zero** over a ledger with seventeen `plain_llm` cells outstanding, which is
+  what happened while the fix above was being checked. The number was never wrong; the name let it
+  be read as a different number. Reading an older ledger is unaffected — only `cells` is read
+  back — and a study part-way through picks up the new spelling on its next flush (**D-181**,
+  amended).
+
+- **`quaestor study run` takes an exclusive lock on its `--out`, so a second chunk against a live
+  study refuses to start instead of racing it.** `Ledger` reads its snapshot when it is
+  constructed and rewrites the whole file on every flush, so two chunks are last-writer-wins over
+  a stale snapshot: the loser's finished cells vanish from the ledger while their output stays on
+  disk, and the next chunk reads them as un-run, clears their directories and **pays for them
+  again**. Found by nearly doing it — a diagnostic chunk run against a live study came within
+  seconds of erasing a finished cell worth **$1.784082**. It is the worst failure this study has
+  because it is the only silent one: no error, no failed row, nothing at scoring time, just a bill
+  higher than $170.15 with nothing to point at. The ledger's read *and* its writes are now inside
+  one lock, and a second `study run` is refused with the holder's pid. `flock(2)` rather than a PID
+  file, because a kill is how a sitting normally ends (D-174) and the kernel drops a `flock`
+  however the process dies, so a killed chunk stays resumable with nothing to reap. D-174's
+  one-operator-at-one-keyboard rule is the convention this enforces (**D-186**).
+
 - **A number too small for twelve decimals was written as `0.0`, and the unverified wrapper then
   marked the wrong line.** Two defects, found by the free `rules_only` sweep over the eighteen
   seeded variants. `written_number`'s `.12f` was a precision ceiling rather than a rounding, so

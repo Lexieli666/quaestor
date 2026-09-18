@@ -12,6 +12,13 @@ this process and written to `<out>/<configuration>/<variant>/`. Cells are ordere
 configuration and, inside a configuration, by variant id, so a chunk that stops half way leaves a
 prefix rather than a scatter.
 
+**A cell owns its directory.** Whatever an earlier attempt left in `<out>/<configuration>/
+<variant>/` -- and in that cell's cassette store -- is removed before the cell is attempted again.
+Without that a retry is impossible rather than untidy: the artifact store refuses to rebind a
+logical name to a new hash, so the subject's second run collides on `run.duration_s` before
+anything else happens. A killed chunk is the normal case (D-174), so a retry has to work from
+whatever the kill left.
+
 **Resumability is a ledger, not a scan.** `<out>/ledger.json` is rewritten after every cell and
 records, per cell: the status, the attempt count, the cost, the wall clock, both grounding
 figures, the finding classes, **and the checks that did not run**. A cell whose latest attempt is
@@ -19,9 +26,10 @@ figures, the finding classes, **and the checks that did not run**. A cell whose 
 the study that was budgeted, and the operator who wants a cell left alone can see it in the ledger
 and stop. The ledger is the file a driver reads -- `remaining` is in it -- and the exit code is
 deliberately not enough to tell a finished study from a capped chunk, for the same reason D-177
-gives about a run: two different outcomes are now the same code. `remaining` counts the cells of
-the *invocation's own plan*, so the rule for a driver is to rerun the same command line until it
-reads zero.
+gives about a run: two different outcomes are now the same code. the field is called
+`remaining_in_last_plan` because it counts the cells of the *invocation's own plan*, so the rule
+for a driver is to rerun the same command line until it reads zero -- a different command line
+writes a different plan's number over it.
 
 **`--max-cost` is two ceilings, and both are needed.** Before a cell starts, its estimated cost is
 compared with what is left, and a cell that does not fit does not start: that is what makes a
@@ -47,10 +55,15 @@ which *shell* a sitting is typed into, not which entry point it calls.
 
 from __future__ import annotations
 
+import fcntl
 import json
+import os
+import shutil
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Final
 
@@ -73,16 +86,25 @@ __all__ = [
     "CellRecord",
     "ChunkSummary",
     "Ledger",
+    "StudyLockedError",
     "StudyBudgetError",
     "plan_cells",
     "run_chunk",
+    "study_lock",
     "subject_of_variant",
 ]
 
 LEDGER_FILE: Final = "ledger.json"
 """What a chunk writes after every cell and the next chunk reads before its first."""
 
-LEDGER_SCHEMA_VERSION: Final = 1
+LEDGER_SCHEMA_VERSION: Final = 2
+"""Bumped when `remaining` became `remaining_in_last_plan`, which is what it always counted.
+
+Reading an older ledger is unaffected -- only `cells` is read back -- so a study part-way through
+picks up the new spelling on its next flush. The bump is for the driver, not for this module: a
+script written against version 1 should fail to find its field rather than read a zero that means
+something else.
+"""
 
 SEED_FILE: Final = "SEED.yaml"
 """The variant's answer key. This module reads one field of it -- the subject -- to price a cell."""
@@ -328,19 +350,29 @@ class Ledger:
         Args:
             record: The cell's record. Its `attempts` is set from what the ledger already holds.
             remaining: How many cells of this invocation's plan are still not `done`, this one
-                counted. It is the plan's and not the study's, because a chunk may be restricted
-                by `only` or to one configuration; a driver that reruns the *same command line*
-                until `remaining` is zero is therefore right either way.
+                counted. It reaches the file as `remaining_in_last_plan`, because a chunk may be
+                restricted by `only` or to one configuration and the number is then true of the
+                plan and false of the study; a driver that reruns the *same command line* until
+                that field is zero is right either way.
         """
         record.attempts = self.attempts(record.cell) + 1
         self.records[record.cell.key] = record
         self.flush(remaining=remaining)
 
     def flush(self, *, remaining: int) -> None:
-        """Write `ledger.json`, atomically."""
+        """Write `ledger.json`, atomically.
+
+        Args:
+            remaining: How many cells of *this invocation's plan* are not `done`. It is written as
+                `remaining_in_last_plan` and not as `remaining`, because a chunk restricted by
+                `--config` or `--only` leaves a number that is true of its own plan and false of
+                the study: a `rules_only` chunk resumed after the arm finished writes zero while
+                seventeen `plain_llm` cells are still outstanding. A driver reruns one command
+                line until the field reads zero *for that command line* (D-181, amended).
+        """
         payload = {
             "schema_version": LEDGER_SCHEMA_VERSION,
-            "remaining": remaining,
+            "remaining_in_last_plan": remaining,
             "done": sum(1 for item in self.records.values() if item.status == DONE),
             "failed": sum(1 for item in self.records.values() if item.status != DONE),
             "cost_usd": round(sum(item.cost_usd for item in self.records.values()), 6),
@@ -352,6 +384,73 @@ class Ledger:
         temporary = self.path.with_suffix(".json.tmp")
         temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         temporary.replace(self.path)
+
+
+LOCK_FILE: Final = "study.lock"
+"""Held for the whole of a chunk, so two chunks cannot write one `ledger.json` between them."""
+
+
+class StudyLockedError(QuaestorError):
+    """Another `quaestor study run` holds this `--out` directory."""
+
+
+@contextmanager
+def study_lock(root: Path) -> Iterator[None]:
+    """Hold an exclusive lock on a study directory for the length of a chunk.
+
+    **Why this exists, measured.** `Ledger` reads its snapshot when it is constructed and writes
+    the whole file on every flush, so two chunks against one `--out` are last-writer-wins over a
+    stale snapshot: the second process's flush erases every cell the first recorded after the
+    second started. On 2026-09-18 that came within seconds of erasing
+    `plain_llm/control_msr_clean` -- **a finished cell, 8 calls, $1.784082** -- from the ledger of
+    a live study, while a diagnostic chunk was run against the same tree. The cell's *output* would
+    have survived on disk and its ledger row would not, so the next chunk would have seen it as
+    un-run, cleared its directory and paid for it again. **That is the failure mode this study
+    cannot tolerate**: it is silent, it is unattributable afterwards -- the bill simply comes in
+    higher -- and nothing in the result tree records that it happened.
+
+    D-174's rule that a sitting is run by one operator at one keyboard is the convention that
+    prevented it until now. This is that convention enforced, which is what a 19-chunk study over
+    62 paid cells needs: a rule that holds only while everyone remembers it is not a rule.
+
+    The lock is `flock(2)` on `<out>/study.lock` rather than a PID file, because **a killed chunk
+    must stay resumable**. A kill is how a sitting normally ends (D-174), and the kernel drops a
+    `flock` when the process dies however it dies, so the next chunk acquires it without anyone
+    clearing anything by hand. A PID file would have to be reaped, and the reaping is another thing
+    to get wrong at the worst moment. The file itself is left in place on release: deleting it is a
+    race of its own, and it costs nothing to leave.
+
+    Args:
+        root: The study directory, which must already exist.
+
+    Yields:
+        Nothing; the lock is held for the body.
+
+    Raises:
+        StudyLockedError: Another process holds it. The message names the process, so the operator
+            can tell a live sitting from something they have forgotten about.
+    """
+    path = root / LOCK_FILE
+    handle = path.open("a+", encoding="utf-8")
+    try:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:
+            handle.seek(0)
+            holder = handle.read().strip() or "an unknown process"
+            raise StudyLockedError(
+                f"{root} is locked by another `quaestor study run` ({holder}); two chunks writing "
+                f"one {LEDGER_FILE} lose whichever cells the loser recorded last, and a lost cell "
+                "of a finished run is paid for twice",
+                fix="wait for it to finish, or stop it; then rerun this command",
+            ) from exc
+        handle.seek(0)
+        handle.truncate()
+        handle.write(f"pid {os.getpid()} since {datetime.now(UTC).isoformat(timespec='seconds')}\n")
+        handle.flush()
+        yield
+    finally:
+        handle.close()
 
 
 @dataclass
@@ -504,10 +603,42 @@ def run_chunk(  # noqa: PLR0913 - a chunk is defined by every one of these
     cells = plan_cells(variants_dir, configurations, only=only)
     root = Path(out_dir)
     root.mkdir(parents=True, exist_ok=True)
+    with study_lock(root):
+        return _run_cells(
+            cells,
+            root,
+            Path(variants_dir),
+            provider=provider,
+            synthetic=synthetic,
+            data_dir=data_dir,
+            max_cost_usd=max_cost_usd,
+            cassettes_dir=cassettes_dir,
+            log=log,
+            params=params,
+        )
+
+
+def _run_cells(  # noqa: PLR0913 - the chunk's parameters, minus the ones the lock consumed
+    cells: Sequence[Cell],
+    root: Path,
+    variants_dir: Path,
+    *,
+    provider: LLM,
+    synthetic: int | None,
+    data_dir: Path | str | None,
+    max_cost_usd: float | None,
+    cassettes_dir: Path | str | None,
+    log: Any,
+    params: Mapping[str, Any],
+) -> ChunkSummary:
+    """Run the planned cells. Called only with the study lock held.
+
+    The ledger is both *read* and *written* in here, which is the whole point of the lock being
+    outside it: a snapshot taken before another chunk's flush and written after it erases that
+    chunk's cells.
+    """
     ledger = Ledger(root / LEDGER_FILE)
-    subject_of = {
-        cell.variant: subject_of_variant(Path(variants_dir) / cell.variant) for cell in cells
-    }
+    subject_of = {cell.variant: subject_of_variant(variants_dir / cell.variant) for cell in cells}
     budgeted = BudgetedLLM(provider, max_cost_usd=max_cost_usd)
     summary = ChunkSummary()
 
@@ -527,14 +658,20 @@ def run_chunk(  # noqa: PLR0913 - a chunk is defined by every one of these
             )
             summary.stopped_for_budget = True
             break
-        if cassettes_dir is not None:
-            budgeted.inner = RecordingLLM(
-                provider, Path(cassettes_dir) / cell.configuration / cell.variant
-            )
+        cell_out = root / cell.configuration / cell.variant
+        cell_tapes = (
+            Path(cassettes_dir) / cell.configuration / cell.variant
+            if cassettes_dir is not None
+            else None
+        )
+        for path in _clear_previous_attempt(cell_out, cell_tapes):
+            log(f"{cell.key}: discarded an unfinished earlier attempt at {path}")
+        if cell_tapes is not None:
+            budgeted.inner = RecordingLLM(provider, cell_tapes)
         record = _run_cell(
             cell,
-            Path(variants_dir) / cell.variant,
-            root / cell.configuration / cell.variant,
+            variants_dir / cell.variant,
+            cell_out,
             budgeted=budgeted,
             synthetic=synthetic,
             data_dir=data_dir,
@@ -605,6 +742,42 @@ def _run_cell(  # noqa: PLR0913 - a cell needs each of these and none of them ha
     for failure in record.checks_failed:
         log(f"{cell.key}: check did not run — {failure['tool']}: {failure['message']}")
     return record
+
+
+def _clear_previous_attempt(cell_out: Path, cell_tapes: Path | None) -> list[str]:
+    """Remove what an earlier attempt at this cell left behind, and say what was removed.
+
+    **A cell owns its directory, and an attempt starts from nothing.** The artifact store is
+    content-addressed with a logical-name index, so it refuses to rebind a name to a new hash --
+    correctly, because every citation written against the old hash would stop resolving. That makes
+    a *retry* into a directory a previous attempt half-filled impossible rather than merely untidy:
+    the subject runs again, takes a different number of seconds, and `run.duration_s` collides on
+    the first thing it stores. A chunk that is killed is the normal case, not the exceptional one
+    (D-174), so retrying has to work from whatever the kill left.
+
+    The cassette store goes with it, for the reason `docs/STUDY.md` section 4 gives about pooling:
+    a cassette is keyed on a hash of the request, so an abandoned attempt's tapes sitting beside a
+    retry's are two runs in one directory, which is exactly the ambiguity per-cell stores exist to
+    prevent.
+
+    This is `seed()`'s rule applied to a run rather than to a package -- a variant directory is
+    removed before it is rebuilt "so that seeding twice writes the same bytes rather than layering
+    one recipe on another" -- and it belongs here rather than in `validate`, which does not own its
+    `--out` directory. Its caller does, and for a cell the caller is this module.
+
+    Args:
+        cell_out: The cell's run directory.
+        cell_tapes: The cell's cassette store, or `None` when nothing is being recorded.
+
+    Returns:
+        The paths removed, in the order they were removed; empty when there was nothing there.
+    """
+    removed: list[str] = []
+    for path in (cell_out, cell_tapes):
+        if path is not None and path.exists():
+            shutil.rmtree(path)
+            removed.append(str(path))
+    return removed
 
 
 def _rows_for(package_name: str, synthetic: int | None, data_dir: Path | str | None) -> int | None:

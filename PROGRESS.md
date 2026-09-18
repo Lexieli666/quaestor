@@ -1362,3 +1362,49 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   `mypy --strict src/quaestor` clean over 60 source files. **[stranded]** `pytest tests/probatio
   --cassette=replay` unchanged at **7 failed, 33 passed**. Chunk 1's 200 MB tree stays on disk and
   out of the repository. Pushed.
+- 2026-09-18 — **Phase 12, chunk 2 aborted and the resumability defect it found** — **one paid
+  cell banked, $1.6067, and one defect fixed offline**. Chunk 2 (`plain_llm`, `--max-cost 6.60`)
+  was invoked twice: the first was killed after `run_model` and before the ledger was written, the
+  second retried that cell into the directory the kill had left and died on `the logical name
+  'run.duration_s' already holds artifact 11949d1772d26471`. **The offered reading — that
+  `rules_only`'s run-level artifacts collide with `plain_llm`'s under one `--out` — is not the
+  mechanism**: every cell already has a store of its own, and the two timestamps in the failed
+  cell's own directory (`trace.jsonl` `00:31:07`, `artifacts/index.json` `00:34:10`) show two
+  invocations into one cell rather than two arms into one store. So **namespacing `run.*` per
+  configuration would have fixed nothing**, and would have moved artifact names that
+  `examples/golden_report/` and the Probatio case inputs pin to the byte; instead **a cell owns
+  its directory** — `run_chunk` removes the cell's run directory and its cassette store before
+  attempting it, reachable only for a cell the ledger does not call `done`, so a resumed chunk
+  cannot touch what an earlier one paid for (**D-186**). Reproduced and fixed **offline with
+  `--llm fake`, no paid run**; four of the five new tests verified to fail against the old code.
+  **What chunk 2 actually banked**, read after it went idle: it did **not** die at the
+  first cell — it failed that one and carried on, finishing **3 of 18** `plain_llm` cells for
+  **$5.1893** over 24 calls before stopping on its own `--max-cost 6.60`
+  (`control_credit_perturbed` $1.6067 / 479 s / 10 findings, `control_msr_clean` $1.7841 / 555 s /
+  10, `control_msr_perturbed` $1.7985 / 544 s / 5), every one at grounding **0.0000**, which is
+  D-072's arm working exactly as the pricing run measured it. `control_credit_clean` is the one
+  failed cell and the next chunk clears and retries it. An earlier report in this session said the
+  chunk had spent nothing and then that it had spent $1.61; both were snapshots of a **live** tree
+  read as if they were final, and $5.1893 over three cells is the figure. Chunk 1 re-run against
+  the same tree twice: **18 already done, 0 run, report mtimes unchanged**. Two things shipped
+  with it, both because
+  the fix's own verification tripped over them. The ledger's **`remaining` is now
+  `remaining_in_last_plan`** and the schema is **version 2** — the field always counted the
+  invocation's own plan, and a `rules_only` chunk rerun after that arm finished wrote **zero** over
+  a ledger with fifteen `plain_llm` cells outstanding (**D-181**, amended). And **`study run` now
+  takes an exclusive `flock` on its `--out`**, with the ledger's read *and* its writes inside it,
+  so a second chunk against a live study is refused with the holder's pid instead of racing it:
+  `Ledger` snapshots at construction and rewrites the whole file on flush, so two chunks are
+  last-writer-wins and the loser's finished cells vanish from the ledger while their output stays
+  on disk — after which the next chunk reads them as un-run, clears them under the rule above and
+  **pays again**. Found by nearly doing it: three diagnostic chunks were run against the tree while
+  chunk 2 was still live, and one came within seconds of erasing `control_msr_clean`'s **$1.784082**
+  row. It is the one silent failure this study has — no error, no failed row, nothing at scoring
+  time, just a bill above $170.15 with nothing to point at — and D-174's one-operator rule is the
+  convention the lock now enforces. `flock` and not a PID file, because a kill is how a sitting
+  ends and the kernel drops the lock however the process dies, leaving nothing to reap
+  (**D-186**). Gate: offline suite excluding `tests/probatio` **1,714 passed**, 0 failed, 0
+  skipped, 0 xfailed (1,702 → 1,714, twelve added); `ruff check` and
+  `ruff format --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean over
+  60 source files. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7
+  failed, 33 passed**. Not pushed.

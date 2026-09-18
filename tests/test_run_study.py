@@ -14,6 +14,7 @@ report can be complete but for one check and the exit code no longer says so.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -82,7 +83,8 @@ def test_a_chunk_runs_every_cell_and_writes_each_one_down(variants: Path, tmp_pa
         assert (Path(str(cell.out_dir)) / "report.md").is_file()
         assert cell.status == "done" and cell.attempts == 1
     ledger = _ledger(out)
-    assert ledger["done"] == 2 and ledger["failed"] == 0 and ledger["remaining"] == 0
+    assert ledger["done"] == 2 and ledger["failed"] == 0
+    assert ledger["remaining_in_last_plan"] == 0
     assert [row["variant"] for row in ledger["cells"]] == sorted([CHEAP, CONTROL])
 
 
@@ -390,7 +392,7 @@ def test_a_ledger_reads_back_everything_it_wrote(tmp_path: Path) -> None:
     assert record.cost_usd == pytest.approx(5.26) and record.calls == 20
     assert record.findings == [{"class": "T1", "severity": "high"}]
     assert record.checks_failed[0]["tool"] == "check_collinearity"
-    assert json.loads(path.read_text(encoding="utf-8"))["remaining"] == 61
+    assert json.loads(path.read_text(encoding="utf-8"))["remaining_in_last_plan"] == 61
 
 
 def test_a_failed_cell_is_not_done(tmp_path: Path) -> None:
@@ -594,3 +596,234 @@ def test_study_run_prints_the_cells_that_reported_without_a_check(
     printed = capsys.readouterr().out
     assert code == 0
     assert f"rules_only/{CHEAP}: reported without check_collinearity" in printed
+
+
+# --- a cell owns its directory ----------------------------------------------------------------
+
+
+def _kill_after(out: Path) -> None:
+    """Simulate the chunk being killed: the cell's directory is on disk, the ledger is not.
+
+    This is exactly the state D-174's seventh sitting ended in, and the state a retry has to work
+    from. Removing the ledger is the smallest faithful way to produce it, because the ledger is
+    written only *after* a cell finishes.
+    """
+    (out / harness.LEDGER_FILE).unlink()
+
+
+def test_a_cell_killed_mid_attempt_can_be_retried(variants: Path, tmp_path: Path) -> None:
+    """The defect chunk 2 found: without this, a killed chunk's cell can never be run again.
+
+    The artifact store refuses to rebind a logical name to a new hash -- correctly, because every
+    citation against the old one would stop resolving -- so a second attempt in the same directory
+    collides on `run.duration_s`, the first thing the subject stores, before anything else happens.
+    """
+    out = tmp_path / "study"
+    first = _chunk(variants, out, only=[CHEAP])
+    assert len(first.ran) == 1
+    store = out / "rules_only" / CHEAP / "artifacts"
+    assert (store / "index.json").is_file()
+
+    _kill_after(out)
+    lines: list[str] = []
+    second = _chunk(variants, out, only=[CHEAP], log=lines.append)
+    assert len(second.ran) == 1 and not second.failed
+    assert second.ran[0].status == "done"
+    assert any("discarded an unfinished earlier attempt" in line for line in lines)
+
+
+def test_the_retry_starts_from_nothing_rather_than_from_what_was_left(
+    variants: Path, tmp_path: Path
+) -> None:
+    """A stale file from the killed attempt does not survive into the run that replaces it."""
+    out = tmp_path / "study"
+    _chunk(variants, out, only=[CHEAP])
+    stale = out / "rules_only" / CHEAP / "artifacts" / "stale-from-the-killed-attempt.json"
+    stale.write_text("{}", encoding="utf-8")
+    _kill_after(out)
+
+    _chunk(variants, out, only=[CHEAP])
+    assert not stale.exists()
+    assert (out / "rules_only" / CHEAP / "report.md").is_file()
+
+
+def test_a_finished_cell_and_its_tapes_are_never_cleared(variants: Path, tmp_path: Path) -> None:
+    """The clearing is reachable only for a cell the ledger does not call `done`.
+
+    A resumed chunk must not touch what an earlier chunk paid for: nineteen chunks over 62 cells,
+    and a rule that deleted finished work would lose the study one sitting at a time. The case
+    this pins is real -- chunk 2 banked one `plain_llm` cell at $1.61 and eight tapes before the
+    chunk died on the cell beside it, and every later chunk has to leave both alone.
+    """
+    out, cassettes = tmp_path / "study", tmp_path / "cassettes"
+    _chunk(
+        variants,
+        out,
+        only=[CHEAP],
+        configurations=[Configuration.plain_llm.value],
+        cassettes_dir=cassettes,
+    )
+    report = out / "plain_llm" / CHEAP / "report.md"
+    tapes = sorted((cassettes / "plain_llm" / CHEAP).glob("*.json"))
+    stamp = report.stat().st_mtime_ns
+    assert tapes
+
+    second = _chunk(
+        variants, out, configurations=[Configuration.plain_llm.value], cassettes_dir=cassettes
+    )
+    assert CHEAP in [cell.variant for cell in second.skipped]
+    assert report.stat().st_mtime_ns == stamp
+    assert sorted((cassettes / "plain_llm" / CHEAP).glob("*.json")) == tapes
+
+
+def test_a_retry_does_not_pool_the_killed_attempt_s_cassettes(
+    variants: Path, tmp_path: Path
+) -> None:
+    """A cassette is keyed on a hash of the request, so two attempts in one store are ambiguous."""
+    out, cassettes = tmp_path / "study", tmp_path / "cassettes"
+    _chunk(
+        variants,
+        out,
+        only=[CHEAP],
+        configurations=[Configuration.plain_llm.value],
+        cassettes_dir=cassettes,
+    )
+    store = cassettes / "plain_llm" / CHEAP
+    orphan = store / "0000000000000000.json"
+    orphan.write_text("{}", encoding="utf-8")
+    _kill_after(out)
+
+    _chunk(
+        variants,
+        out,
+        only=[CHEAP],
+        configurations=[Configuration.plain_llm.value],
+        cassettes_dir=cassettes,
+    )
+    assert not orphan.exists()
+    assert list(store.glob("*.json"))
+
+
+def test_clearing_says_what_it_removed_and_nothing_when_there_is_nothing(tmp_path: Path) -> None:
+    assert harness._clear_previous_attempt(tmp_path / "nowhere", None) == []
+    cell, tapes = tmp_path / "cell", tmp_path / "tapes"
+    (cell / "artifacts").mkdir(parents=True)
+    tapes.mkdir()
+    assert harness._clear_previous_attempt(cell, tapes) == [str(cell), str(tapes)]
+    assert not cell.exists() and not tapes.exists()
+
+
+def test_the_ledger_field_names_the_plan_it_counted(variants: Path, tmp_path: Path) -> None:
+    """`remaining_in_last_plan`, because a chunk restricted by arm leaves a number about that arm.
+
+    The case that named the field: `rules_only` finishes, a `plain_llm` chunk leaves cells
+    outstanding, and then a `rules_only` chunk is rerun -- which writes **zero** over the ledger
+    while the `plain_llm` cells are still to do. The zero is true of the plan it counted and false
+    of the study, and a driver reads it correctly only by rerunning one command line until that
+    command line's own number is zero (D-181, amended).
+    """
+    out = tmp_path / "study"
+    _chunk(variants, out, configurations=[Configuration.rules_only.value])
+    assert _ledger(out)["remaining_in_last_plan"] == 0
+
+    outstanding = _chunk(
+        variants,
+        out,
+        configurations=[Configuration.plain_llm.value],
+        provider=_priced(0.01),
+        max_cost_usd=0.001,
+    )
+    assert outstanding.remaining == 2
+    assert _ledger(out)["remaining_in_last_plan"] == 2
+
+    again = _chunk(variants, out, configurations=[Configuration.rules_only.value])
+    assert not again.ran and len(again.skipped) == 2
+    assert _ledger(out)["remaining_in_last_plan"] == 0
+    assert _ledger(out)["schema_version"] == 2
+
+
+# --- the study lock ---------------------------------------------------------------------------
+
+
+def test_a_second_chunk_against_a_live_study_refuses_to_start(
+    variants: Path, tmp_path: Path
+) -> None:
+    """The stale-snapshot race, closed: a ledger is read and written under one lock.
+
+    Two chunks against one `--out` are last-writer-wins over a snapshot taken at construction, so
+    the loser's finished cells vanish from the ledger while their output stays on disk -- and the
+    next chunk pays for them again. On 2026-09-18 that came within seconds of erasing a finished
+    `$1.784082` cell of a live study.
+    """
+    out = tmp_path / "study"
+    out.mkdir()
+    with harness.study_lock(out):
+        with pytest.raises(harness.StudyLockedError, match="locked by another"):
+            _chunk(variants, out, only=[CHEAP])
+    assert not (out / harness.LEDGER_FILE).exists()
+
+    summary = _chunk(variants, out, only=[CHEAP])
+    assert len(summary.ran) == 1
+
+
+def test_the_lock_names_the_process_holding_it(tmp_path: Path) -> None:
+    """So an operator can tell a live sitting from something they have forgotten about."""
+    tmp_path.joinpath("study").mkdir()
+    root = tmp_path / "study"
+    with harness.study_lock(root):
+        held = (root / harness.LOCK_FILE).read_text(encoding="utf-8")
+        assert f"pid {os.getpid()} since " in held
+        with pytest.raises(harness.StudyLockedError) as raised:
+            with harness.study_lock(root):
+                pass
+    assert f"pid {os.getpid()}" in str(raised.value.message)
+    assert "paid for twice" in str(raised.value.message)
+
+
+def test_a_released_lock_is_taken_again_and_the_file_is_left_behind(tmp_path: Path) -> None:
+    """Releasing leaves the file: deleting is a race of its own and costs nothing to skip."""
+    root = tmp_path / "study"
+    root.mkdir()
+    with harness.study_lock(root):
+        pass
+    assert (root / harness.LOCK_FILE).is_file()
+    with harness.study_lock(root):
+        pass
+
+
+def test_a_lock_left_by_a_killed_chunk_does_not_block_the_next_one(tmp_path: Path) -> None:
+    """A kill is how a sitting normally ends (D-174), so the lock has to survive being killed.
+
+    `flock` is held by the open file description, so the kernel drops it when the process dies
+    however it dies -- there is nothing to reap, which is the reason it is not a PID file. A file
+    left behind by a process that is gone is taken straight over.
+    """
+    root = tmp_path / "study"
+    root.mkdir()
+    (root / harness.LOCK_FILE).write_text("pid 999999 since 2026-09-18T00:00:00+00:00\n", "utf-8")
+    with harness.study_lock(root):
+        assert f"pid {os.getpid()}" in (root / harness.LOCK_FILE).read_text(encoding="utf-8")
+
+
+def test_the_lock_is_released_when_the_body_raises(tmp_path: Path) -> None:
+    """A chunk that dies inside the lock must not leave the study locked to itself."""
+    root = tmp_path / "study"
+    root.mkdir()
+    with pytest.raises(ToolError), harness.study_lock(root):
+        raise ToolError("the subject would not run")
+    with harness.study_lock(root):
+        pass
+
+
+def test_a_bad_request_is_refused_before_the_lock_is_ever_taken(tmp_path: Path) -> None:
+    """`plan_cells` validates first, so a mistyped `--variants` leaves no lock file at all."""
+    out = tmp_path / "study"
+    with pytest.raises(QuaestorError, match="no variants directory"):
+        harness.run_chunk(
+            tmp_path / "nowhere",
+            out,
+            provider=OfflineLLM(),
+            configurations=[Configuration.rules_only.value],
+            log=lambda _m: None,
+        )
+    assert not out.exists()
