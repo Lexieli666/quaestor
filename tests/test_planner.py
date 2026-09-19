@@ -18,6 +18,7 @@ for, a tool that raises rather than refuses (D-088), and the two blocks the prom
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -38,7 +39,7 @@ from quaestor.agent import (
     rule_based_plan,
     validate_action,
 )
-from quaestor.errors import ToolError
+from quaestor.errors import ArtifactError, ToolError
 from quaestor.findings import DefectClass, FindingCandidate, Severity
 from quaestor.llm import FakeLLM, ScriptedLLM
 from quaestor.package import load_package
@@ -550,3 +551,85 @@ def test_the_prompt_lists_the_columns_a_sub_population_can_be_selected_on() -> N
 def test_a_configuration_with_no_data_says_so_rather_than_showing_an_empty_list() -> None:
     prompt = loop_prompt(default_registry(), load_package(CREDIT), remaining=4)
     assert "(none: this configuration ran no subject" in prompt
+
+
+# --- a loop step refused for a name collision costs the step, not the run (D-190) --------------
+
+
+COLLISION = (
+    "the logical name 'stability.auc_by_regime' already holds artifact 960f708fa38d007d and "
+    "cannot be replaced by f8a99daaffa18678"
+)
+"""The message that ended a paid `full_agent` cell twenty-nine seconds in."""
+
+
+def _raising(error: Exception) -> Callable[[PlannedCall], None]:
+    """An `execute` that refuses every call the loop makes."""
+
+    def execute(_call: PlannedCall) -> None:
+        raise error
+
+    return execute
+
+
+def test_an_artifact_collision_in_a_loop_step_costs_the_step_and_not_the_run(
+    tmp_path: Path,
+) -> None:
+    """D-088's stated intent, with the exception type it did not cover.
+
+    A `full_agent` cell was lost to this. The loop asked `check_stability` for `split: test` after
+    the checklist had run it on the fitting split -- a correct and useful request, an out-of-sample
+    regime check the in-sample run could hide -- and the tool's artifact names carry no split, so
+    the second call tried to rebind `stability.auc_by_regime`. `ArtifactError` is not a `ToolError`,
+    so it went straight past the loop's guard and ended a run that had already been paid for.
+    """
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="collision")
+    steps = follow_up_plan(
+        scripted(
+            {"tool": "check_stability", "args": {"split": "test"}, "why": "out-of-sample regime"},
+            {"stop": True},
+        ),
+        default_registry(),
+        load_package(MSR),
+        trace=trace,
+        execute=_raising(ArtifactError(COLLISION)),
+    )
+    assert [step.accepted for step in steps] == [True, False]
+    assert steps[0].executed is False
+    assert "stability.auc_by_regime" in steps[0].error
+    event = TraceReader(trace.path).events("plan_step")[0]
+    assert event.payload["executed"] is False
+    assert "stability.auc_by_regime" in event.payload["error"]
+
+
+def test_a_tool_error_in_a_loop_step_is_what_it_always_was() -> None:
+    """The guard D-088 wrote still does exactly what it did; D-190 only widens the type."""
+    steps = follow_up_plan(
+        scripted(
+            {"tool": "check_stability", "args": {"split": "test"}, "why": "x"},
+            {"stop": True},
+        ),
+        default_registry(),
+        load_package(MSR),
+        execute=_raising(ToolError("the split has one row")),
+    )
+    assert steps[0].accepted and steps[0].executed is False
+    assert steps[0].error == "the split has one row"
+
+
+def test_the_loop_goes_on_to_its_next_step_after_a_collision() -> None:
+    """The point of the whole change: the run keeps what it has already paid for."""
+    steps = follow_up_plan(
+        scripted(
+            {"tool": "check_stability", "args": {"split": "test"}, "why": "collides"},
+            {"tool": "profile_data", "args": {"splits": ["test"]}, "why": "still useful"},
+            {"stop": True},
+        ),
+        default_registry(),
+        load_package(MSR),
+        max_steps=3,
+        execute=_raising(ArtifactError(COLLISION)),
+    )
+    assert [step.accepted for step in steps] == [True, True, False]
+    assert [step.action.tool for step in steps[:2]] == ["check_stability", "profile_data"]
+    assert steps[0].executed is False and "stability.auc_by_regime" in steps[0].error

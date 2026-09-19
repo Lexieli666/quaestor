@@ -30,7 +30,7 @@ from typing import Any, ClassVar, Generic, TypeVar
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from ..artifacts import Artifact, ArtifactStore
-from ..errors import ToolError
+from ..errors import ArtifactError, ToolError
 from ..findings import FindingCandidate
 from ..hashing import stable_hash
 from ..package import ModelPackage
@@ -305,8 +305,16 @@ class ToolRegistry:
 
         Raises:
             ToolError: The tool is unknown, the arguments do not validate, or the check cannot run.
-                A failure after the arguments validate is still traced, with ``ok: false``, so a
-                run that died inside a tool leaves a record of which one.
+            ArtifactError: The tool tried to rebind a logical name the store already holds, which
+                is what a tool called twice in one run does when its artifact names do not carry
+                the argument that differs (DECISIONS D-190).
+
+        Note:
+            A failure after the arguments validate is still traced, with ``ok: false`` and the
+            message on ``error``, so a run that died inside a tool leaves a record of which one and
+            why. Both kinds are traced: before D-190 an ``ArtifactError`` was raised without an
+            event, so a trace of such a run simply stopped, with the last thing in it being the
+            model call that asked for the step.
         """
         tool = self.get(name)
         parsed = tool.parse(args)
@@ -314,7 +322,7 @@ class ToolRegistry:
         started = time.monotonic()
         try:
             result = tool.run(parsed, ctx)
-        except ToolError as exc:
+        except (ToolError, ArtifactError) as exc:
             self._emit(ctx, name, args_hash, time.monotonic() - started, None, error=exc.message)
             raise
         self._emit(ctx, name, args_hash, time.monotonic() - started, result)
@@ -334,7 +342,9 @@ class ToolRegistry:
         A failed call carries the tool's own message on ``error``, as ``plan_step`` has carried it
         for a loop-requested call since D-088. Before this the event said ``ok: false`` and nothing
         else, so a trace could say which check died and not why -- and once a dead check no longer
-        ends the run (D-177), the trace is the only place the reason is written in full.
+        ends the run (D-177), the trace is the only place the reason is written in full. The same
+        argument covers an ``ArtifactError`` (D-190): a step refused for a name collision is a step
+        a reader of the trace has to be able to see.
         """
         if ctx.trace is None:
             return

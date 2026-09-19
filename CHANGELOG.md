@@ -9,6 +9,21 @@ run that was not committed.
 
 ### Fixed
 
+- **A loop step refused for an artifact name collision ended the whole run, because `ArtifactError`
+  is not a `ToolError`.** The retry of a rejected `full_agent` cell died **29.2 s in for $0.2952**
+  on `the logical name 'stability.auc_by_regime' already holds artifact 960f708fa38d007d`. Step 3
+  of the bounded loop had asked `check_stability` for `split: test`, because "regime-wise AUC and
+  coefficient comparison was only run on the fitting split" — **a correct and useful request**, the
+  out-of-sample check that can expose instability the in-sample run hides. What refused it was
+  **naming, not the question**: `check_stability` writes twenty-two logical names and none carries
+  the split, while `compute_metrics`, asked twice in that same run for two sub-populations,
+  succeeded both times. D-088 says a loop-requested failure costs the step and not the run, and the
+  guard caught only `ToolError`; it now catches `(ToolError, ArtifactError)`. `registry.call` also
+  traces an `ArtifactError` as it traces a `ToolError` — before this the event was never written,
+  which is why the failed run's trace simply stops after the model call that asked for the step
+  (**D-190**). The naming itself is **not** changed and is filed for after Phase 12: those names are
+  pinned to the byte by `examples/golden_report/` and the Probatio case inputs (**D-191**).
+
 - **The repair loop now re-asks a section for a malformed citation, not only for a claim that did
   not verify.** A `full_agent` cell ran 1,400.7 s, cost **$6.6781** and was rejected on
   `these double-bracket tokens are not well-formed citations`. Unlike D-187 the rule was **right**:

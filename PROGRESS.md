@@ -1471,3 +1471,30 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   src/quaestor` clean over 60 source files; **`python tests/probatio/casebuilder.py` rebuilds all
   ten cases byte-identical — 0 move**, no prompt text changed. **[stranded]** `pytest
   tests/probatio --cassette=replay` unchanged at **7 failed, 33 passed**.
+- 2026-09-19 — **Phase 12, a loop step that cost a run: `ArtifactError` joins `ToolError`** — **one
+  paid attempt, $0.2952, and no other paid run**. The D-189 retry of
+  `full_agent/control_msr_perturbed` cleared its directory correctly and then died **29.2 s in** on
+  `the logical name 'stability.auc_by_regime' already holds artifact 960f708fa38d007d`. From the
+  cell's last tape, step 3 of the bounded loop had asked `check_stability` for `split: test`
+  because "regime-wise AUC and coefficient comparison was only run on the fitting split, so an
+  out-of-sample regime check could expose instability the in-sample run hid" — **a correct and
+  useful request**, and **what refused it was naming, not the question**: `check_stability` writes
+  twenty-two logical names and not one carries the split, where `compute_metrics`, asked twice in
+  that same run for two sub-populations, answered both. It ended the run because **`ArtifactError`
+  is a `QuaestorError` and not a `ToolError`**, so it walked past the guard D-088 wrote for exactly
+  this; the loop's `execute` now catches `(ToolError, ArtifactError)`, which is D-088's stated
+  intent applied to a type it did not have in front of it. `registry.call` now traces an
+  `ArtifactError` too — before this none was written, which is why the failed trace simply stops
+  after the model call that asked for the step (**D-190**). Non-deterministic by nature: the first
+  attempt at this same cell reached rendering after 1,400 s and this one died at 29 s, because the
+  loop asked for something different (D-179). **Not fixed and filed for after Phase 12**:
+  `stability.auc_by_regime` and the twenty `stability.<feature>.coef_or_importance_by_regime` want
+  the split in their names, and renaming them moves names `examples/golden_report/` and the
+  Probatio case inputs pin to the byte (**D-191**). `_run_checklist` is deliberately untouched —
+  the collision needs a *second* call and the rule-based plan makes one. Gate: offline suite
+  excluding `tests/probatio` **1,734 passed**, 0 failed, 0 skipped, 0 xfailed (1,731 → 1,734, three
+  added, two of them verified to fail against the old source with `ArtifactError` escaping); `ruff
+  check` and `ruff format --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor`
+  clean over 60 source files. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at
+  **7 failed, 33 passed**. `full_agent` stands at 3 of 18 done, `control_msr_perturbed` failed and
+  retried by the next chunk; **$52.21** spent.

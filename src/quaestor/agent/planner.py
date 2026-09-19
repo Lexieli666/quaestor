@@ -40,7 +40,7 @@ from typing import Any, Final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ..errors import ToolError
+from ..errors import ArtifactError, ToolError
 from ..findings import FindingCandidate
 from ..llm.base import LLM
 from ..llm.structured import structured
@@ -609,7 +609,7 @@ def follow_up_plan(
         if execute is not None:
             try:
                 result = execute(call)
-            except ToolError as exc:
+            except (ToolError, ArtifactError) as exc:
                 error = exc.message
             else:
                 executed = True

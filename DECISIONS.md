@@ -7002,3 +7002,88 @@ here and recorded.
   chance to disagree with it (D-084's rule). **Extending `plain_llm` too**, which has no repair
   round at all by construction (D-072) and must not grow one: it is the baseline, and a baseline
   that self-corrects is not measuring what the study is comparing against.
+
+## D-190. `ArtifactError` is caught where `ToolError` is: D-088 meant the failure, not the type
+
+- **Date:** 2026-09-19 (Phase 12, found by the D-189 retry of `full_agent/control_msr_perturbed`)
+- **Q:** The retry of the rejected cell died **29.2 s in** for **$0.2952** on `the logical name
+  'stability.auc_by_regime' already holds artifact 960f708fa38d007d and cannot be replaced by
+  f8a99daaffa18678`. D-186's clearing worked — the trace shows a clean run — so this is a new
+  thing. What asked for it, and why did it end the run?
+- **A:** **The loop asked a good question and the store refused it on a technicality, and the
+  refusal escaped the guard that exists for exactly this.**
+
+  From the cell's last tape, step 3 of the bounded loop asked, verbatim:
+
+  ```json
+  {"tool": "check_stability", "args": {"split": "test"},
+   "why": "regime-wise AUC and coefficient comparison was only run on the fitting split, so an
+           out-of-sample regime check could expose instability the in-sample run hid"}
+  ```
+
+  **That request is correct and useful.** Regime stability measured only on the split the model was
+  fitted on is the weaker half of the question; the out-of-sample check is the one that can expose
+  instability the in-sample run hides, and a validator that did not ask it would be missing
+  something. **What refused it was naming, not the question**: `check_stability` writes
+  `stability.auc_by_regime` and twenty-one siblings with **no split in any of them**, so a second
+  call can only try to rebind names the first already holds. `compute_metrics`, asked twice in that
+  same run for two different sub-populations, succeeded both times — its names carry the argument
+  that differs.
+
+  **Why it cost the run.** D-088 says a `ToolError` from a *loop-requested* call is the step's
+  failure and not the run's, and the loop catches `ToolError`. `ArtifactError` is a `QuaestorError`
+  and **not** a `ToolError`, so it went straight past the guard. The fix is one tuple: the loop's
+  `execute` guard catches `(ToolError, ArtifactError)`. That is D-088's stated intent applied to an
+  exception type D-088 did not have in front of it, not a new policy.
+
+  **And the step becomes visible.** `registry.call` emitted its `tool_call` event only on success
+  or on `ToolError`, so an `ArtifactError` was raised with **no event at all** — which is why the
+  failed retry's trace simply stops, the last thing in it being the model call that asked for the
+  step. It now traces both, with the message on `error`, which is the same argument D-177 made
+  about a dead check: the trace is where the reason is written in full.
+- **Why:** The failure this removes is the expensive and arbitrary one. A loop step is the model's
+  own choice and varies run to run (D-179), so this is **non-deterministic**: the first attempt at
+  this very cell reached rendering after 1,400 s and this one died at 29 s, on the same package,
+  because the loop asked for something different. Across the fourteen `full_agent` cells still to
+  run, at about $5.40 each, a defect that ends a paid run on a name collision is a defect that
+  charges a random subset of the arm for a question the validator was right to ask.
+  **`_run_checklist` is deliberately left alone.** The collision arises from a *second* call to one
+  tool, and the rule-based plan calls each tool once, so there is no evidence of this on that path
+  and no need to widen a second catch on a guess.
+  Rejected alternatives. **Catching `QuaestorError` in the loop**, which would also swallow a
+  `SandboxError` or a `PackageError` whose right home is the run's failure, on no evidence.
+  **Letting the store overwrite a logical name**, which is D-186's rejected alternative and leaves
+  every citation against the old hash resolving to nothing. **Fixing the naming instead** — the
+  real root cause, and D-191 records why it is not done here.
+
+## D-191. `check_stability`'s artifact names carry no split, and that is filed for after Phase 12
+
+- **Date:** 2026-09-19 (Phase 12; filed rather than fixed, at the human's instruction)
+- **Q:** D-190 catches the collision so it costs a step instead of a run. The root cause is that
+  `check_stability` cannot be called twice in one run. Is that fixed now?
+- **A:** **No, and it should not be, mid-study.** The tool writes twenty-two logical names, none of
+  which carries the split it was computed on. The two the loop actually collided on are
+
+  * **`stability.auc_by_regime`**, and
+  * **`stability.<feature>.coef_or_importance_by_regime`** — twenty of them, one per feature, with
+    `stability.<feature>.sign_flip` beside each.
+
+  The fix is to parameterise them by split, as `compute_metrics` already does:
+  `metrics.out_of_time.sub.burnout_high.auc` carries both the split and the sub-population, which
+  is why that tool answered two different questions in the same run without complaint.
+
+  **Why not now.** Those names are **pinned to the byte** in two places that a rename would break:
+  `examples/golden_report/` — whose files are hash-pinned in `MANIFEST.json` and in D-011's table,
+  and which the gate requires to be byte-identical to its introducing commit — and the Probatio
+  case inputs, which D-138 asserts are byte-identical to what the case builder produces *and* that
+  the prompt a case builds is the prompt the pipeline sent. Renaming an artifact changes every
+  prompt that shows it, which moves case files, which strands tapes; seven are stranded already.
+  Doing that in the middle of a paid arm would mean re-recording the tape layer and re-pinning the
+  golden set while fourteen cells are outstanding.
+- **Why filed as its own entry:** so the next session does not have to rediscover it from a trace.
+  The evidence is a single run's last tape, the symptom is a name collision twenty-nine seconds
+  into a six-dollar cell, and without this entry the chain from one to the other has to be walked
+  again. **After Phase 12** the change is: add the split to those twenty-two names, re-record the
+  affected Probatio cases, re-pin the golden set with a dated D-011 row, and remove D-190's catch
+  only if the loop can then ask for any split without colliding — D-190 is worth keeping either
+  way, because it is about the exception type and not about this one tool.
