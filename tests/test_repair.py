@@ -27,14 +27,20 @@ from quaestor.report.repair import (
     wrap_unverified,
     wrapped_values,
 )
+from quaestor.report.schema import check_structure, malformed_citations
 from quaestor.report.sections import artifact_briefs, brief_for
 from quaestor.trace import TraceReader, TraceWriter
 from quaestor.verifier import ClaimStatus, extract, match_claims
 from quaestor.verifier.extract import extraction_from
-from quaestor.vocab import ReportSection
+from quaestor.vocab import Configuration, ReportSection
 from reportsupport import SectionFake
 
 SECTION = ReportSection.outcomes
+
+MINIMAL_REPORT_FOR_TOKENS = "\n".join(
+    ["---", "schema_version: 1", "---", "", "# Validation report", "", "BODY"]
+)
+"""Enough of a report for the token check; the heading rules fail and are not what is asserted."""
 
 
 @pytest.fixture
@@ -584,3 +590,114 @@ def test_a_near_zero_and_a_true_zero_in_one_section_both_verify(tmp_path: Path) 
     matches = match_claims(extraction.claims, store, unattributed=extraction.unattributed_ids)
     assert [m for m in matches if m.status is not ClaimStatus.verified] == []
     assert wrap_unverified(markdown, matches) == markdown, "nothing to wrap, so nothing is wrapped"
+
+
+# --- a malformed citation is a repairable problem (D-189) -------------------------------------
+
+
+BRACE = "[[art:22858a09:run.model_summary#vif_threshold}]]"
+"""The token that cost a `full_agent` cell $6.6781: a JSON brace that leaked into a citation."""
+
+CLEAN = "[[art:22858a09:run.model_summary#vif_threshold]]"
+"""The same citation as the model wrote it correctly elsewhere in the same run."""
+
+
+def test_the_repair_loop_and_the_renderer_read_one_grammar(store: ArtifactStore) -> None:
+    """`malformed_citations` is the renderer's own check, so the two cannot disagree.
+
+    A repair that "fixed" a token the renderer still refuses would cost a paid call and the cell
+    as well, which is the whole failure this closes.
+    """
+    assert malformed_citations(f"a {BRACE} b") == [BRACE]
+    assert malformed_citations(f"a {CLEAN} b") == []
+    problems = check_structure(
+        MINIMAL_REPORT_FOR_TOKENS.replace("BODY", BRACE), configuration=Configuration.rules_only
+    )
+    assert any(BRACE in problem for problem in problems)
+    assert not [
+        problem
+        for problem in check_structure(
+            MINIMAL_REPORT_FOR_TOKENS.replace("BODY", CLEAN),
+            configuration=Configuration.rules_only,
+        )
+        if "well-formed citations" in problem
+    ]
+
+
+def test_a_table_directive_is_well_formed_in_a_draft_and_not_in_a_report() -> None:
+    """The one deliberate difference; flagging it would make the loop unsatisfiable."""
+    assert malformed_citations("[[table:calibration.test]]") == []
+    assert malformed_citations("[[reg:SR26-2:III.1.a]]") == []
+
+
+def test_a_section_whose_only_problem_is_a_malformed_citation_is_re_drafted(
+    store: ArtifactStore, tmp_path: Path
+) -> None:
+    """Every claim verifies, so before D-189 the loop had nothing to say and the report died."""
+    citation = store.artifact("metrics.test.auc").citation()
+    markdown = f"The AUC is 0.7412 {citation}.\nThe VIF screen is described there {BRACE}."
+    draft = draft_of(store, markdown)
+    assert not draft.failures, "the malformed line carries no number, so it yields no claim"
+    assert draft.malformed == [BRACE]
+    assert draft.needs_repair
+    assert any("not well-formed" in problem for problem in draft.problems)
+
+    trace = TraceWriter(tmp_path / "trace.jsonl", run_id="repair")
+    outcome = repair_sections(
+        [draft],
+        drafter=drafter_returning(
+            f"The AUC is 0.7412 {citation}.\nThe VIF screen is described there {CLEAN}."
+        ),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+        trace=trace,
+    )
+    assert outcome.rounds == 1
+    assert outcome.drafts[0].malformed == []
+    assert CLEAN in outcome.drafts[0].markdown and BRACE not in outcome.drafts[0].markdown
+    event = TraceReader(trace.path).events("repair")[0]
+    assert event.payload["malformed"] == [BRACE]
+    assert event.payload["still_malformed"] == []
+    assert event.payload["flagged"] == []
+
+
+def test_the_round_is_scoped_to_the_malformed_line_and_changes_nothing_else(
+    store: ArtifactStore,
+) -> None:
+    """A malformed citation produces no claim, so without this the scoping sees no line at all."""
+    citation = store.artifact("metrics.test.auc").citation()
+    previous = f"Untouched line.\nThe AUC is 0.7412 {citation}.\nSee the VIF screen {BRACE}."
+    redraft = f"Rewritten elsewhere.\nThe AUC is 0.7412 {citation}.\nSee the VIF screen {CLEAN}."
+    scoped = scope_to_flagged_lines(previous, redraft, [], malformed=[BRACE])
+    assert scoped.scoped
+    assert scoped.lines_redrafted == 1
+    assert scoped.markdown.startswith("Untouched line.")
+    assert CLEAN in scoped.markdown and BRACE not in scoped.markdown
+
+
+def test_with_no_malformed_token_the_scoping_is_what_it_was(store: ArtifactStore) -> None:
+    """D-109's guarantee is untouched on every section that has no malformed citation."""
+    citation = store.artifact("metrics.test.auc").citation()
+    previous = f"The AUC is 0.7412 {citation}.\nThe Brier score is 0.68."
+    draft = draft_of(store, previous)
+    assert draft.failures and not draft.malformed
+    redraft = f"The AUC is 0.7412 {citation}.\nThe Brier score is 0.68 {citation}."
+    assert scope_to_flagged_lines(previous, redraft, draft.failures) == scope_to_flagged_lines(
+        previous, redraft, draft.failures, malformed=[]
+    )
+
+
+def test_a_malformed_citation_the_re_draft_does_not_fix_stops_after_two_rounds(
+    store: ArtifactStore,
+) -> None:
+    """The bound is the same two rounds; a model that will not fix it does not cost a third."""
+    citation = store.artifact("metrics.test.auc").citation()
+    markdown = f"The AUC is 0.7412 {citation}.\nThe VIF screen is described there {BRACE}."
+    outcome = repair_sections(
+        [draft_of(store, markdown)],
+        drafter=drafter_returning(markdown, markdown, markdown),
+        verify=verify_with(store),
+        inputs={SECTION: DraftInputs()},
+    )
+    assert outcome.rounds == 2
+    assert outcome.drafts[0].malformed == [BRACE]

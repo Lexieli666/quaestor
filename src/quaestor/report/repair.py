@@ -44,6 +44,7 @@ from ..verifier.match import Match
 from ..verifier.tokens import NUMERIC_TOKEN_RE, eligible_numbers, numeric_tokens, token_value
 from ..vocab import ReportSection
 from .drafter import Drafter, GuidanceSpan, NotRunCheck
+from .schema import malformed_citations
 from .sections import ArtifactBrief, FollowUp, SectionBrief
 
 __all__ = [
@@ -175,9 +176,31 @@ class SectionDraft:
         return [match for match in self.matches if match.claim.status is not ClaimStatus.verified]
 
     @property
+    def malformed(self) -> list[str]:
+        """The double-bracket tokens the renderer would refuse this section for (D-189)."""
+        return malformed_citations(self.markdown)
+
+    @property
     def problems(self) -> list[str]:
-        """The verifier's sentences for the claims that did not verify, for the repair prompt."""
-        return [match.message for match in self.failures if match.message]
+        """What the repair prompt is told is wrong: unverified claims, then malformed tokens."""
+        return [match.message for match in self.failures if match.message] + [
+            f"the citation {token} is not well-formed, so it resolves to nothing and the report "
+            f"cannot be written with it; rewrite it as [[art:<8 hex>:<logical name>]] with an "
+            f"optional #fragment, copying the form of the citations around it"
+            for token in dict.fromkeys(self.malformed)
+        ]
+
+    @property
+    def needs_repair(self) -> bool:
+        """Whether this section has anything a round could fix.
+
+        Two kinds of thing, and the second was added after a `full_agent` cell was lost to it: a
+        claim that did not verify, and a citation the renderer would refuse the whole report for.
+        Both are fixed by asking the drafter again with the problem named, which is the mechanism
+        this module already is -- and the second costs about $0.30 against the $5.40 of losing the
+        cell (DECISIONS D-189).
+        """
+        return bool(self.failures or self.malformed)
 
 
 @dataclass
@@ -308,7 +331,13 @@ class ScopedRedraft(NamedTuple):
     scoped: bool
 
 
-def scope_to_flagged_lines(previous: str, redraft: str, failures: Sequence[Match]) -> ScopedRedraft:
+def scope_to_flagged_lines(
+    previous: str,
+    redraft: str,
+    failures: Sequence[Match],
+    *,
+    malformed: Sequence[str] = (),
+) -> ScopedRedraft:
     """Take from a re-draft only the lines that carried a flagged claim (DECISIONS D-109).
 
     A repair round asks for the whole section because a sentence cannot be corrected out of its
@@ -329,6 +358,11 @@ def scope_to_flagged_lines(previous: str, redraft: str, failures: Sequence[Match
         previous: The section as it stood before this round.
         redraft: What the drafter returned.
         failures: The claims that did not verify, whose ``text`` is the line each sits on.
+        malformed: Tokens the renderer would refuse the report for. A line carrying one is flagged
+            exactly as a line carrying a failed claim is, because it needs the same thing done to
+            it -- and because a malformed citation produces no claim at all, so without this the
+            line it sits on is invisible to the scoping and the round rewrites nothing
+            (DECISIONS D-189).
 
     Returns:
         The section with the flagged lines re-drafted and nothing else changed, how many of those
@@ -336,6 +370,7 @@ def scope_to_flagged_lines(previous: str, redraft: str, failures: Sequence[Match
     """
     lines = previous.split("\n")
     flagged = _flagged_line_numbers(lines, failures)
+    flagged |= {index for index, line in enumerate(lines) for token in malformed if token in line}
     if not flagged:
         # Nothing in the previous draft carries a flagged claim -- the section was drafted from a
         # prose the failures did not come from -- so there is no line to scope the re-draft to.
@@ -444,9 +479,10 @@ def repair_sections(
     outcome = RepairOutcome(drafts=list(drafts))
     for position, draft in enumerate(outcome.drafts):
         for _ in range(max_rounds):
-            failures = draft.failures
-            if not failures:
+            if not draft.needs_repair:
                 break
+            failures = draft.failures
+            malformed = list(dict.fromkeys(draft.malformed))
             problems = draft.problems
             given = inputs.get(draft.section, DraftInputs())
             returned = drafter.draft(
@@ -461,7 +497,7 @@ def repair_sections(
                 previous=draft.markdown,
                 problems=problems,
             )
-            scoped = scope_to_flagged_lines(draft.markdown, returned, failures)
+            scoped = scope_to_flagged_lines(draft.markdown, returned, failures, malformed=malformed)
             markdown = scoped.markdown
             extraction, matches = verify(draft.section, markdown)
             rows, removed = _round_records(draft.section, failures, matches)
@@ -481,6 +517,7 @@ def repair_sections(
                     section=draft.section.value,
                     round=draft.rounds,
                     flagged=[match.claim.id for match in failures],
+                    malformed=malformed,
                     instructions=problems,
                     repaired=[row.claim_id for row in rows if row.after.status == "verified"],
                     removed=removed,
@@ -491,6 +528,7 @@ def repair_sections(
                         for match in matches
                         if match.claim.status is not ClaimStatus.verified
                     ],
+                    still_malformed=list(dict.fromkeys(draft.malformed)),
                 )
     return outcome
 

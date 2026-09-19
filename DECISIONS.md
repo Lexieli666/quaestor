@@ -6945,3 +6945,60 @@ here and recorded.
   sentence is a claim this repository cannot demonstrate, and the study should not publish it. That
   is the reason this is a numbered entry rather than a note: it is a known gap between what the
   documentation says and what the artefacts do, and it is owed an answer before Phase 12 publishes.
+
+## D-189. The repair loop re-asks for a malformed citation, not only for a claim that did not verify
+
+- **Date:** 2026-09-19 (Phase 12, the `full_agent` arm's first rejection)
+- **Q:** `full_agent/control_msr_perturbed` ran 1,400.7 s, cost **$6.6781** and was rejected:
+  `these double-bracket tokens are not well-formed citations`. D-187 was the same shape and turned
+  out to be an over-broad rule. Is this one too — does the artifact exist, is the logical name
+  real, and is a `#fragment` a form the grammar is supposed to accept?
+- **A:** **No: the rejection was correct, and the grammar is right.** Every component checks out.
+  `22858a09` is `22858a0935a2b0e6`, kind `json`, in that cell's own index; `run.model_summary` is a
+  real logical name; `vif_threshold` is a real field of it with value `10.0`; and the pattern
+  carries `(#[A-Za-z0-9_.-]+)?`, so `#vif_threshold` is accepted by design. What the model actually
+  wrote, read byte for byte out of the cell's tapes, was
+
+  ```
+  [[art:22858a09:run.model_summary#vif_threshold}]]
+                                               ^ a stray closing brace
+  ```
+
+  a `}` that leaked out of the JSON envelope into the citation. **The same fragment appears
+  well-formed in other tapes of the same cell**, so the model knows the form and slipped. The
+  reported token looked clean only because the brace is easy to lose in a paste; `ANY_TOKEN_RE` is
+  `\[\[[^\]]+\]\]`, so the brace is inside the token the message printed.
+
+  **Measured rate:** **2 malformed tokens in 93 tapes, in 1 cell of 5**, and every rendered report
+  in the study is clean. The rejected cell cost **$6.6781**, the dearest of the four `full_agent`
+  cells run so far ($5.7352 / $4.9393 / $6.0894 / $6.6781).
+
+  **The fix is the mechanism that was already there, in the gap D-187 named.** `full_agent` has a
+  repair loop at `pipeline.py:1021` that re-asks a section with its problems listed, and it ran
+  only for claims that did not verify. It now also runs for a citation the renderer would refuse
+  the report for: `SectionDraft.malformed` reads `report.schema.malformed_citations` — **the
+  renderer's own check, single-sourced**, so a repair that "fixed" a token the renderer still
+  rejects is not possible — `needs_repair` is the union, and the prompt is told which token and
+  what form to write instead. One drafting call of about **$0.30** against the **$5.40** of losing
+  the cell.
+  Two details that are the difference between working and not. A `[[table:...]]` directive is
+  well-formed in drafter output and a failure in a rendered report, so `malformed_citations`
+  accepts it; flagging it would put the loop into a round it could never satisfy. And **a
+  malformed citation produces no claim at all**, so `scope_to_flagged_lines` saw no line to scope
+  to and the round would have rewritten nothing — the malformed token's own line is now flagged
+  exactly as a line carrying a failed claim is. The two-round bound is unchanged, the trace's
+  `repair` event gains `malformed` and `still_malformed`, and `python tests/probatio/casebuilder.py`
+  rebuilds every case **byte-identical**: 0 of 10 move, because no prompt text changed.
+- **Why option 3 was refused.** Loosening the grammar to tolerate a trailing brace would make the
+  citation pattern accept a token that **resolves to nothing** — and a report whose citations do
+  not resolve is the one thing this project must not emit. It is the guarantee the artifact store,
+  the claim grammar and the whole differentiator rest on; buying a $5.40 cell with it is not a
+  trade. Carrying on and accepting the loss was the other option: at 1 cell in 5, the fourteen
+  remaining `full_agent` cells were worth **$11–17** of stray braces, which is more than the fix
+  cost to write.
+  Rejected alternatives. **Sanitising the token in the renderer**, which silently repairs the
+  evidence chain and is the same objection as option 3 with a friendlier face. **A separate
+  structural pre-check before drafting**, which is a second expression of the grammar and a second
+  chance to disagree with it (D-084's rule). **Extending `plain_llm` too**, which has no repair
+  round at all by construction (D-072) and must not grow one: it is the baseline, and a baseline
+  that self-corrects is not measuring what the study is comparing against.

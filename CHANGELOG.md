@@ -9,6 +9,22 @@ run that was not committed.
 
 ### Fixed
 
+- **The repair loop now re-asks a section for a malformed citation, not only for a claim that did
+  not verify.** A `full_agent` cell ran 1,400.7 s, cost **$6.6781** and was rejected on
+  `these double-bracket tokens are not well-formed citations`. Unlike D-187 the rule was **right**:
+  artifact `22858a09` exists, `run.model_summary` is a real logical name, `vif_threshold` is a real
+  field of it worth `10.0`, and `#fragment` is in the grammar by design. What the model wrote was
+  `[[art:22858a09:run.model_summary#vif_threshold**}**]]` — a JSON brace that leaked into the
+  citation, with the same fragment well-formed elsewhere in the same run. Measured: **2 malformed
+  tokens in 93 tapes, in 1 cell of 5**. `SectionDraft.malformed` reads the renderer's own check,
+  single-sourced so the two cannot disagree, and one re-ask of about **$0.30** replaces a **$5.40**
+  lost cell. A `[[table:…]]` directive is well-formed in a draft and a failure in a report, so it
+  is accepted here; and because a malformed citation produces no claim, its line is now flagged for
+  scoping exactly as a failed-claim line is, without which the round would rewrite nothing. The
+  two-round bound is unchanged and every Probatio case rebuilds byte-identical (**D-189**).
+  Loosening the grammar to tolerate the brace was refused: a citation that resolves to nothing is
+  the one thing this project must not emit.
+
 - **A paid cell was lost because the compliance rule read the whole report, and "certified domain"
   is model-risk English.** `plain_llm/msr__C1__oversampled_hazard` ran 522.8 s, made its eight
   calls, cost **$1.7452** and produced nothing: the renderer refused it on

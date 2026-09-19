@@ -39,6 +39,7 @@ __all__ = [
     "REQUIRED_HEADINGS",
     "check_front_matter",
     "check_structure",
+    "malformed_citations",
     "front_matter_of",
     "required_renderer_blocks",
 ]
@@ -100,6 +101,12 @@ REGULATORY_CITATION_RE: Final = re.compile(
 """A well-formed ``[[reg:...]]`` citation."""
 
 ANY_TOKEN_RE: Final = re.compile(r"\[\[[^\]]+\]\]")
+"""Any double-bracket token at all, well-formed or not; what the two checks below sort out."""
+
+TABLE_DIRECTIVE_RE: Final = re.compile(
+    REPORT_SCHEMA["x-quaestor-citation-patterns"]["table_directive_in_drafter_output"].strip("^$")
+)
+"""A table directive, which is well-formed in a *drafted section* and a failure in a report."""
 """Anything written in double brackets, well-formed or not."""
 
 
@@ -277,6 +284,37 @@ def _forbidden(report: str) -> list[str]:
         if found:
             problems.append(f"{sorted(set(found))} in {scope}: {rule['why']}")
     return problems
+
+
+def malformed_citations(markdown: str) -> list[str]:
+    """Return the double-bracket tokens of a *drafted section* that are not well-formed.
+
+    The same three patterns :func:`check_structure` applies to a rendered report, applied to one
+    section while the drafter can still be asked to fix it. It is here, beside the check that
+    refuses the report, so that the repair loop and the renderer cannot come to different answers
+    about the same token: a repair that "fixed" something the renderer still rejects would cost a
+    paid call and the cell as well (DECISIONS D-189).
+
+    The one difference from the rendered-report check is deliberate: a ``[[table:...]]`` directive
+    is legitimate in drafter output and is expanded by the renderer, so it is well-formed *here*
+    and a failure *there*. Flagging it would put the repair loop into a round it can never satisfy.
+
+    Args:
+        markdown: One section's prose, as drafted.
+
+    Returns:
+        The malformed tokens, in prose order, with duplicates kept -- a section that made the same
+        slip twice is told about it twice.
+    """
+    return [
+        token
+        for token in ANY_TOKEN_RE.findall(markdown)
+        if not (
+            ARTIFACT_CITATION_RE.fullmatch(token)
+            or REGULATORY_CITATION_RE.fullmatch(token)
+            or TABLE_DIRECTIVE_RE.fullmatch(token)
+        )
+    ]
 
 
 def _front_matter_and_summary(report: str) -> str:

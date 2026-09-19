@@ -1448,3 +1448,26 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   unchanged at `{E1 low}` and `{}`. **[stranded]** `pytest tests/probatio --cassette=replay`
   unchanged at **7 failed, 33 passed** — this commit moves no prompt and no case file, deliberately.
   Not pushed.
+- 2026-09-19 — **Phase 12, the `full_agent` arm's first rejection: repair learns to fix a citation**
+  — **no paid run for the fix; diagnosed from the rejected cell's own tapes**.
+  `full_agent/control_msr_perturbed` ran 1,400.7 s, cost **$6.6781** — the dearest of the four
+  `full_agent` cells so far — and was rejected on `these double-bracket tokens are not well-formed
+  citations`. **Unlike D-187 the rule was right**: `22858a09` is a real artifact,
+  `run.model_summary`
+  a real logical name, `vif_threshold` a real field worth `10.0`, and `#fragment` is in the grammar
+  by design; what the model wrote was `#vif_threshold}]]`, a JSON brace that leaked into the
+  citation, with the same fragment well-formed in other tapes of the same cell. Measured rate: **2
+  malformed tokens in 93 tapes, in 1 cell of 5**, every rendered report clean. The fix is the
+  mechanism already there in the gap D-187 named — `full_agent`'s repair loop at `pipeline.py:1021`
+  now re-asks for a malformed citation as well as an unverified claim, reading
+  `report.schema.malformed_citations`, **the renderer's own check single-sourced**, at about
+  **$0.30** a re-ask against **$5.40** a lost cell (**D-189**). Two details decided it: a
+  `[[table:…]]` directive is well-formed in a draft and a failure in a report, so flagging it would
+  make the loop unsatisfiable; and a malformed citation produces **no claim**, so its line had to be
+  flagged for scoping or the round would rewrite nothing. Loosening the grammar was refused — a
+  citation that resolves to nothing is what the project must not emit. Gate: offline suite
+  excluding `tests/probatio` **1,731 passed**, 0 failed, 0 skipped, 0 xfailed (1,725 → 1,731, six
+  added); `ruff check` and `ruff format --check` clean on `src tests eval subjects`; `mypy --strict
+  src/quaestor` clean over 60 source files; **`python tests/probatio/casebuilder.py` rebuilds all
+  ten cases byte-identical — 0 move**, no prompt text changed. **[stranded]** `pytest
+  tests/probatio --cassette=replay` unchanged at **7 failed, 33 passed**.
