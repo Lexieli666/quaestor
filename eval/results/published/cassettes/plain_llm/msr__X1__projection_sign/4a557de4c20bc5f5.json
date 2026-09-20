@@ -1,0 +1,102 @@
+{
+  "calls": 1,
+  "completion": {
+    "cost_usd": 0.15332099999999999,
+    "latency_ms": 38323.0,
+    "model": "claude-opus-5[1m]",
+    "raw": {
+      "api_error_status": null,
+      "duration_api_ms": 38323,
+      "duration_ms": 37544,
+      "fast_mode_disabled_reason": "sdk_opt_in_required",
+      "fast_mode_state": "off",
+      "is_error": false,
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "contextWindow": 200000,
+          "costUSD": 0.003521,
+          "inputTokens": 3456,
+          "maxOutputTokens": 32000,
+          "outputTokens": 13,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        },
+        "claude-opus-5[1m]": {
+          "cacheCreationInputTokens": 6719,
+          "cacheReadInputTokens": 600,
+          "canonicalModel": "claude-opus-5",
+          "contextWindow": 1000000,
+          "costUSD": 0.1498,
+          "inputTokens": 2,
+          "maxOutputTokens": 64000,
+          "outputTokens": 3292,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        }
+      },
+      "num_turns": 1,
+      "permission_denials": [],
+      "quaestor_bare": false,
+      "result": "{\"claims\":[{\"line\":3,\"value\":0,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:b764932a:run.model_summary]]\",\"rounding\":null},{\"line\":3,\"value\":43,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:b764932a:run.model_summary]]\",\"rounding\":null},{\"line\":3,\"value\":0,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":59,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":5,\"unit\":\"count\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":59,\"unit\":\"months\",\"metric\":null,\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":53,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":100,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.003295,\"unit\":\"ratio\",\"metric\":\"baseline_hazard\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":43,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.00231,\"unit\":\"ratio\",\"metric\":\"baseline_hazard\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":5},{\"line\":5,\"value\":101,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":30,\"unit\":\"percent\",\"metric\":\"baseline_hazard\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":5,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":9.76,\"unit\":\"percent\",\"metric\":\"cpr\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":19.53,\"unit\":\"percent\",\"metric\":\"cpr\",\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":9.66,\"unit\":\"percent\",\"metric\":\"predicted_cpr\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":20.43,\"unit\":\"percent\",\"metric\":\"predicted_cpr\",\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":4.6,\"unit\":\"percent\",\"metric\":null,\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":7,\"value\":0.997,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null}]}",
+      "session_id": "fcf4e1f1-f2ac-4768-8abc-d8873625dfd2",
+      "stop_reason": "end_turn",
+      "subtype": "success",
+      "terminal_reason": "completed",
+      "time_to_request_ms": 125,
+      "total_cost_usd": 0.15332099999999999,
+      "ttft_ms": 29324,
+      "ttft_stream_ms": 1230,
+      "type": "result",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 6719,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 6719,
+        "cache_read_input_tokens": 600,
+        "inference_geo": "not_available",
+        "input_tokens": 2,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 6719,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 6719,
+            "cache_read_input_tokens": 600,
+            "input_tokens": 2,
+            "output_tokens": 3292,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 3292,
+        "output_tokens_details": {
+          "thinking_tokens": 2185
+        },
+        "server_tool_use": {
+          "web_fetch_requests": 0,
+          "web_search_requests": 0
+        },
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "uuid": "813d0ad2-3678-4cee-a2c8-541ebeefe154"
+    },
+    "text": "{\"claims\":[{\"line\":3,\"value\":0,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:b764932a:run.model_summary]]\",\"rounding\":null},{\"line\":3,\"value\":43,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:b764932a:run.model_summary]]\",\"rounding\":null},{\"line\":3,\"value\":0,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":59,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":5,\"unit\":\"count\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":59,\"unit\":\"months\",\"metric\":null,\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":53,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":100,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.003295,\"unit\":\"ratio\",\"metric\":\"baseline_hazard\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":43,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.00231,\"unit\":\"ratio\",\"metric\":\"baseline_hazard\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":5},{\"line\":5,\"value\":101,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":30,\"unit\":\"percent\",\"metric\":\"baseline_hazard\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":5,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":9.76,\"unit\":\"percent\",\"metric\":\"cpr\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":19.53,\"unit\":\"percent\",\"metric\":\"cpr\",\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":9.66,\"unit\":\"percent\",\"metric\":\"predicted_cpr\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":20.43,\"unit\":\"percent\",\"metric\":\"predicted_cpr\",\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":4.6,\"unit\":\"percent\",\"metric\":null,\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":7,\"value\":0.997,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null}]}",
+    "tokens_in": 7321,
+    "tokens_out": 3292
+  },
+  "key": "4a557de4c20bc5f5",
+  "provider": "claude-cli",
+  "request": {
+    "params": {
+      "model": "claude-opus-5[1m]"
+    },
+    "prompt": "You are extracting the numeric claims of one section of a model-validation report, so that each\ncan be checked against the artifact it cites. Section: sensitivity.\n\nThe prose is printed below one line per line, each prefixed with its own number and a vertical\nbar. List EVERY number that appears in the prose, in the order it appears, including numbers that\nappear inside a citation's logical name and numbers written with a thousands separator or a per\ncent sign. For each one:\n\n- \"line\" is the number printed to the left of the line the number appears on. Give the number\n  only; do not copy the line's text back, and do not count the prefix itself as a number.\n- \"value\" is the number as written, with thousands separators and the per cent sign removed:\n  \"3,500\" is 3500, \"22.0%\" is 22.0.\n- \"unit\" is \"percent\" when the number is written with a per cent sign, \"count\" for a number of\n  rows, features or events, \"currency\", \"bp\" for basis points, \"months\" for a horizon, and\n  \"ratio\" for every other dimensionless quantity (AUC, PSI, VIF, a coefficient, a lift).\n- \"metric\" is what the number measures, taken from the logical name of the artifact it cites\n  (auc, brier, psi, vif, calibration_slope, delta_auc, coefficient, event_rate, ...), or null.\n- \"split\" is train, test, out_of_time or vintage_holdout, or null.\n- \"comparison\" is \"eq\" for a number that equals its artifact; \"delta\" for a difference written\n  \"from a to b\" or \"a gap of x\", whose value is the second cited artifact minus the first; and\n  \"ratio\" for a number written as one artifact divided by another. A delta or ratio carries TWO\n  adjacent citations, in that order.\n- \"citation\" is the [[art:...]] token the number carries, copied exactly, or null when the\n  sentence carries none. Do not invent a citation and do not move one from another number.\n- \"rounding\" is the number of decimals the prose wrote when it wrote fewer than the artifact has\n  (2 for a lift written 2.24), or null.\n\nReturn every number even when it has no citation: a number you leave out is still counted, and\ncounted against the report.\n\nProse:\n1| No formal sensitivity or scenario study was registered; a projection artifact [[art:cbc0b707:run.projection]] exists but no scenario grid, rate-shock ladder or one-way sensitivity table was produced. The analysis below is therefore derived from the fitted baseline and the observed split behaviour.\n2| \n3| **Age/seasoning profile.** The baseline hazard in [[art:b764932a:run.model_summary]] is monotone increasing from age 0 through its maximum at age 43 and monotone decreasing thereafter, with no local reversals. Within the support of the data (ages 0–59) the curve is correctly signed and correctly shaped for a prepayment ramp, and the response is smooth across all five knots. **No non-monotonicity or sign error is present inside the estimation range.**\n4| \n5| **Extrapolation risk.** The curve is nonetheless published far outside its support: training loan ages top out at 59 months and the highest spline knot is 53, yet the baseline is tabulated beyond age 100. Roughly the entire second half of the tabulated curve — and, for MSR purposes, the bulk of the discounted cash-flow horizon for seasoned collateral — is determined by the spline's boundary behaviour rather than by any observation. The extrapolated tail decays gently (from 0.003295 at age 43 to about 0.00231 at age 101, a decline of only 30% over five years), which imposes a strong and untested assumption that long-seasoned loans continue to prepay at roughly two-thirds of peak speed indefinitely. An alternative and equally defensible burnout assumption would materially change long-horizon CPR and hence MSR value. This is flagged as a scenario/extrapolation defect.\n6| \n7| **Implicit rate-shock evidence.** The out-of-time split functions as an unplanned upward-incentive shock: actual CPR doubles from 9.76% to 19.53%, and the model's predicted CPR moves from 9.66% to 20.43%, an over-response of 4.6% relative with a calibration slope of 0.997. The model's rate sensitivity is therefore directionally correct and close to the right magnitude at the one large shock observed. This is the single most informative piece of sensitivity evidence available, and it is favourable. It does not substitute for a symmetric shock ladder: no downward-incentive (extension) scenario was tested at all, and MSR valuation is most exposed to the extension tail.\n8| \n9| **Untested dimensions.** No sensitivity was run on credit score, LTV, loan size or seasonality; no turnover floor or S-curve saturation behaviour was demonstrated; and no stress of the burnout path functional was performed. Because coefficient values were not available in the registered summary, validation could not verify that the incentive response saturates rather than growing without bound at extreme incentive, which is the standard failure mode of a linear-in-incentive hazard specification under a large rally.\n\n\nAnswer with one JSON object and nothing else: no prose before or after it, no explanation, no markdown fence. It must validate against this JSON schema:\n{\"$defs\": {\"Comparison\": {\"description\": \"What the claimed value is asserted to equal.\\n\\n``delta`` and ``ratio`` are cited by two adjacent ``[[art:...]]`` tokens, in order (D-012).\\nThe enum is not nullable: ``eq`` is the explicit default, so \\\"this number equals its artifact\\\"\\nhas one spelling and not two (D-018).\\n\\nAttributes:\\n    eq: The value matches the cited artifact.\\n    delta: The value matches ``second - first``.\\n    ratio: The value matches ``second / first``.\", \"enum\": [\"eq\", \"delta\", \"ratio\"], \"title\": \"Comparison\", \"type\": \"string\"}, \"ExtractedClaim\": {\"additionalProperties\": false, \"description\": \"One claim as the model returns it: the grammar minus the fields the caller already knows.\\n\\n``text``, ``section``, ``id`` and ``source`` are not asked for. The caller knows which section\\nit passed in, the id is a hash of the other three fields, the source of an extraction is\\nalways ``report``, and the text is the line the model named -- which the caller has in front\\nof it, so asking for it back costs output tokens and adds a way for the answer to disagree\\nwith the prose (D-063, D-085).\\n\\nAttributes:\\n    line: The 1-based number of the line the number appears on, as the prompt printed it.\\n    value: The number as written, separators and per cent sign removed.\\n    unit: How it is written.\\n    metric: What it measures, or ``None``.\\n    split: Which split it is about, or ``None``.\\n    comparison: ``eq``, ``delta`` or ``ratio``.\\n    citation: The citation the number carries, or ``None``.\\n    rounding: Decimals the prose used, or ``None``.\", \"properties\": {\"line\": {\"minimum\": 1, \"title\": \"Line\", \"type\": \"integer\"}, \"value\": {\"title\": \"Value\", \"type\": \"number\"}, \"unit\": {\"$ref\": \"#/$defs/Unit\", \"default\": \"ratio\"}, \"metric\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Metric\"}, \"split\": {\"anyOf\": [{\"$ref\": \"#/$defs/SplitName\"}, {\"type\": \"null\"}], \"default\": null}, \"comparison\": {\"$ref\": \"#/$defs/Comparison\", \"default\": \"eq\"}, \"citation\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Citation\"}, \"rounding\": {\"anyOf\": [{\"minimum\": 0, \"type\": \"integer\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Rounding\"}}, \"required\": [\"line\", \"value\"], \"title\": \"ExtractedClaim\", \"type\": \"object\"}, \"SplitName\": {\"description\": \"The splits a claim may be stated on, exactly as ``CLAIMS_SCHEMA.json`` enumerates them.\\n\\nAttributes:\\n    train: The development split.\\n    test: The held-out split.\\n    out_of_time: A later-period split; hazard subjects.\\n    vintage_holdout: One origination year held out; hazard subjects.\", \"enum\": [\"train\", \"test\", \"out_of_time\", \"vintage_holdout\"], \"title\": \"SplitName\", \"type\": \"string\"}, \"Unit\": {\"description\": \"How a number is written, which decides how it is normalised before matching.\\n\\nAttributes:\\n    ratio: Every dimensionless quantity not written with a ``%`` -- AUC, PSI, VIF, a\\n        coefficient, a lift.\\n    percent: Written with a ``%``; normalised against a unit-interval artifact by dividing\\n        by 100.\\n    count: A number of rows, features or events. Matched to half a unit, so integers match\\n        exactly.\\n    currency: A money amount.\\n    bp: Basis points, as a rate shock is written.\\n    months: A horizon.\", \"enum\": [\"ratio\", \"percent\", \"count\", \"currency\", \"bp\", \"months\"], \"title\": \"Unit\", \"type\": \"string\"}}, \"additionalProperties\": false, \"description\": \"The JSON object the extractor is asked for: a list of claims under one key.\\n\\nA bare JSON array is a shape more models get wrong than a single-key object, and\\n:func:`~quaestor.llm.structured.structured` validates a ``BaseModel``, not a list.\\n\\nAttributes:\\n    claims: The claims, in the order the numbers appear.\", \"properties\": {\"claims\": {\"items\": {\"$ref\": \"#/$defs/ExtractedClaim\"}, \"title\": \"Claims\", \"type\": \"array\"}}, \"title\": \"ExtractedClaims\", \"type\": \"object\"}",
+    "system": null
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T183409Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Residual multicollinearity: no post-removal VIF published, and three counterintuitive coefficient signs",
+      "narrative": "The developer screened candidate features at a declared VIF threshold of 10.0 and removed bill_last (VIF 164.11) and utilisation_mean_6m (VIF 38.98). No VIF values, condition number, or correlation matrix has been published for the ten features that were retained, so the final specification has not been shown to satisfy the developer's own threshold. The retained set still contains three co-moving blocks: pay_ratio_last with pay_ratio_mean_6m; delinq_last with delinq_count_6m and delinq_max_6m; and bill_mean_6m with bill_trend_6m and with utilisation. Removing the two worst members of a correlated block typically leaves the survivors carrying unstable coefficients rather than curing the condition, and the expected symptom is visible: limit_bal takes a positive coefficient (+0.0794), implying a larger granted limit raises default odds; bill_mean_6m takes a negative coefficient (-0.2543), implying a larger average outstanding balance lowers them; and bill_trend_6m takes a negative coefficient (-0.2207), implying a rising balance trajectory is protective. Since inputs are standardised these magnitudes are directly comparable, and bill_mean_6m is the second-largest absolute coefficient in the model, so the anomaly is not confined to a negligible term. Recommend recomputing VIF and the design-matrix condition number on the final ten-feature matrix, publishing the values against the declared threshold, and reporting bootstrap coefficient distributions to establish whether the three signs are stable.",
+      "evidence": [
+        "15071cdb",
+        "abbb748e"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No effective challenge: no challenger model of any kind was built",
+      "narrative": "The artifact store contains no challenger model, no benchmark, and no baseline. The ten-feature logistic regression has not been compared against a single-feature delinq_last scorecard, against a parsimonious three-to-four feature specification, or against a more flexible alternative such as gradient boosting. Without any benchmark, the adequacy of the 0.7337 holdout AUC cannot be judged, the incremental contribution of the seven weakest features cannot be established, and the three counterintuitive coefficients cannot be shown to be earning their place in the specification. Effective challenge is a required element of model validation and its complete absence leaves the champion's selection unevidenced. Note that this finding asserts an absence of evidence rather than a demonstrated threshold breach: no challenger has been shown to beat the champion, because no challenger exists. Recommend building and registering at least two challengers, one deliberately simpler and one more flexible, and reporting holdout AUC, Gini, and Brier for each alongside the champion's 0.7337, 0.4673, and 0.1536.",
+      "evidence": [
+        "15071cdb",
+        "6ce7b4d6"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No drift measurement performed, and the holdout is not out-of-time",
+      "narrative": "No population stability index, score distribution comparison, or cohort-level breakdown exists anywhere in the artifact store, for either the features or the model output. The underlying data carry an application_cohort field spanning 2013 to 2016 with mean 2014.51, so the vintage information required to measure drift was present in the source and simply was not used. Compounding this, the holdout does not appear to be out-of-time: the split manifest records no temporal basis, and the training split's client_id values span the full 1 to 5,000 range with a mean of 2,511 against a 2,500.5 expectation for a uniform random draw, which is the signature of a random row-level partition across pooled vintages. A random split across four cohorts cannot detect drift by construction, since both sides of the comparison are mixtures of the same years in the same proportions. The model's stability over time is therefore entirely unevidenced and, under the current design, unmeasurable. No PSI threshold breach is asserted, because no PSI was computed. Recommend recutting the holdout out-of-time, fitting on 2013 to 2015 and testing on 2016, and publishing feature-level and score-level PSI between the fitting window and each subsequent vintage against a stated threshold of 0.10 for investigation and 0.25 for action.",
+      "evidence": [
+        "1013df27",
+        "7ea4b8e1",
+        "929365b0"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "X1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No scenario or sensitivity analysis; three response curves run the wrong way",
+      "narrative": "No sensitivity analysis, stress specification, shocked input set, or response curve exists in the artifact store. Because the specification is linear in the standardised features with no splines, interactions, or binning, each feature's response curve is monotone in the log-odds by construction, so a monotonicity check cannot fail. What the curves would reveal is direction, and on the fitted coefficients three of the ten slope the wrong way: predicted default probability falls as average billed balance rises (bill_mean_6m, -0.2543) and as the balance trajectory steepens (bill_trend_6m, -0.2207), and rises as the granted credit limit rises (limit_bal, +0.0794). Under a scenario in which a client's balances grow while the limit is held fixed, this model reports the client as becoming safer. The wrong-signed curves are visible directly in the coefficient vector, which is why this is raised despite no scenario artifact having been produced. The linear form also cannot represent the threshold behaviour that delinquency counts usually exhibit, and no evidence has been offered that the linear approximation is adequate. Recommend producing univariate response curves for all ten features, a coefficient-stability exercise over bootstrap or leave-one-cohort-out resamples, and an adverse shock test on utilisation and the delinquency block reporting the shift in mean predicted probability.",
+      "evidence": [
+        "15071cdb",
+        "abbb748e"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "O1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Out-of-sample degradation of 0.0354 AUC on a single unreplicated split",
+      "narrative": "AUC falls from 0.7690 in-sample to 0.7337 out-of-sample, a gap of 0.0354. Gini falls from 0.5381 to 0.4673, a 13.2 percent relative loss of ranking power, and KS falls from 0.4426 to 0.4096. The AUC gap sits below the 0.05 threshold customarily applied for a material degradation finding, and for a ten-parameter model fitted on 3,500 rows with roughly 785 events (about 79 events per parameter) some in-sample optimism is expected and benign. It is recorded at low severity for two reasons: the relative Gini loss is not trivial, and the package contains no cross-validation folds, no bootstrap confidence interval, and no repeated-split evidence, so a reviewer cannot distinguish ordinary optimism from a genuine overfit. A single train/test partition yields a point estimate with no dispersion around it. Recommend reporting k-fold cross-validated AUC with its standard deviation so that the observed gap can be judged against sampling variability.",
+      "evidence": [
+        "1013df27",
+        "6ce7b4d6"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-006",
+      "defect_class": "C1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Calibration evidenced only at the grand mean; no slope or bucketed observed-versus-expected",
+      "narrative": "Aggregate calibration is good: mean predicted probability on the holdout is 0.2292 against an observed event rate of 0.2240, an absolute over-prediction of 0.0052 and a relative over-prediction of 2.3 percent, conservative in direction and inside any reasonable tolerance band. The in-sample agreement of 0.2243 against 0.2243 is the arithmetic consequence of fitting an intercept by maximum likelihood and is not independent evidence. No calibration diagnostic below the grand mean has been produced: there is no calibration slope from a regression of outcome on log-odds, no decile or bucketed observed-versus-expected table, no Hosmer-Lemeshow statistic, and no reliability curve. A model can match the population mean exactly while being badly miscalibrated in the upper deciles that actually drive credit decisions, with over- and under-prediction cancelling in the average. The scored tables contain everything needed to build these diagnostics and they were simply not built. Severity is low because the aggregate evidence available is reassuring and no band breach can be demonstrated. Recommend publishing a ten-bucket observed-versus-expected table and a calibration slope from the existing prediction tables.",
+      "evidence": [
+        "6ce7b4d6",
+        "9936180e",
+        "fc881548"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-007",
+      "defect_class": "L2",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Train/test disjointness not demonstrated; only whole-split hashes are published",
+      "narrative": "The split manifest records distinct whole-split digests, 16cd92c5 for the 3,500-row training split and 0ab5339f for the 1,500-row test split. These confirm that the two splits are not the same set of rows, but they carry no information about row-level or client-level overlap between them. The training profile shows client_id ranging from 1 to 5,000, and 3,500 plus 1,500 sums exactly to 5,000, so a clean disjoint partition of distinct clients is the most probable reading of the design. That reading has not been demonstrated: no per-row or per-client intersection count exists in the store, and no contamination check appears to have been run. This finding records the check as unexecuted rather than as failed; no overlap above any threshold is asserted. Recommend publishing the intersection count of client_id between the train and test tables, and confirming that the partition is by client rather than by row so that no client contributes observations to both sides.",
+      "evidence": [
+        "1013df27",
+        "7ea4b8e1",
+        "929365b0"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-008",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No test-split profile for the missingness comparison; untreated extreme outliers in bill_trend_6m",
+      "narrative": "The required integrity check, that missingness rates do not differ materially between the development and holdout extracts, cannot be executed because no profile artifact exists for the test split. The training profile reports zero missingness in every one of thirteen columns, which is unusual for retail credit data and means the model carries no evidence about its behaviour when an input is absent; no imputation or missing-indicator policy is documented. Weak indirect evidence that both extracts were drawn the same way comes from the near-identical event rates, 0.2243 on train against 0.2240 on test. Separately, bill_trend_6m has mean -246.3 and standard deviation 3,095.6 but a minimum of -67,201.4 and a maximum of 27,398.0, roughly -21.7 and +8.9 standard deviations; bill_mean_6m is similarly skewed with a maximum of 443,112 against a mean of 47,238. In a standardised logistic regression, observations at twenty-odd sigma dominate the standardisation constants and can materially move the fitted coefficient, and no winsorisation, clipping, or transformation is documented for either field. Both features carry counterintuitive negative signs, so the interaction between untreated outliers and coefficient estimation is a plausible contributing cause. Recommend profiling the test split and refitting with both balance features winsorised at the 1st and 99th percentiles as a sensitivity check.",
+      "evidence": [
+        "1013df27",
+        "7ea4b8e1",
+        "929365b0"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-009",
+      "defect_class": "T1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Declared VIF threshold of 10.0 not demonstrably satisfied by the final specification",
+      "narrative": "The model summary declares vif_threshold: 10.0 and standardised: true, and reports VIF values only for the two features that were removed, bill_last at 164.11 and utilisation_mean_6m at 38.98. No VIF is reported for any of the ten features that were retained. The implicit claim carried by a declared threshold is that the delivered specification meets it, and that claim is undemonstrated on the published evidence. Given the correlated blocks that remain in the retained set, it is not safe to assume that removing the two worst offenders brought all survivors below 10.0; iterative VIF elimination routinely requires several passes, and only one pass is documented. This is recorded separately from the multicollinearity finding because the issue here is the unsubstantiated threshold claim rather than the statistical condition itself. Recommend publishing final-specification VIF values for all ten retained features against the declared threshold, and documenting whether the screen was applied iteratively or in a single pass.",
+      "evidence": [
+        "15071cdb"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-010",
+      "defect_class": "L1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Leakage screened by developer declaration only; no independent verification or per-feature AUC",
+      "narrative": "The feature inventory declares twelve candidates with timing labels: two at_origination, ten before_period_start, zero during_period, and zero after_outcome. On the declared timing there is no forward-looking information in the design, and the dominant coefficient, delinq_last at 0.7518, is economically the correct variable to dominate a next-month default model. No single feature can plausibly be carrying leakage-level signal given that the full ten-feature model reaches only 0.7690 in-sample and 0.7337 out-of-sample AUC, which bounds any individual contribution well below a leakage-suggestive level. However, the timing declarations have not been independently verified against extraction timestamps or source-system cut dates, and no per-feature univariate AUC table was produced, so the screen rests entirely on the developer's own labelling. No leakage is indicated and no remediation is attached; this is recorded as an observation so that the basis of the clean leakage assessment is transparent. Recommend publishing per-feature univariate AUCs and confirming the timing labels against extraction metadata at the next review.",
+      "evidence": [
+        "15071cdb",
+        "6ce7b4d6",
+        "abbb748e"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

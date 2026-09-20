@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T190251Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Residual multicollinearity: extreme VIF block only partially treated and never re-verified",
+      "narrative": "The developer removed bill_last (VIF 160.888514) and utilisation_mean_6m (VIF 36.356335) against a declared vif_threshold of 10.0. A VIF of 161 indicates an extremely tight collinear block, and dropping its two most extreme members does not necessarily dissolve it. No post-removal VIF recomputation and no design-matrix condition number appear anywhere in the artifact store, so compliance with the developer's own 10.0 threshold on the final ten-feature design is asserted rather than demonstrated. The surviving coefficients show the classic behavioural fingerprint of residual collinearity: delinq_max_6m is negative (-0.032214) inside an otherwise positive delinquency block (delinq_last +0.733422, delinq_count_6m +0.122580); pay_ratio_last (+0.102591) and pay_ratio_mean_6m (-0.355372) measure the same construct at two horizons with opposite signs; and bill_mean_6m (-0.372628) and bill_trend_6m (-0.222475) are both strongly negative after their collinear partner bill_last was dropped. Because the features are standardised, these magnitudes are directly comparable and the affected effects are not negligible. Recommendation: recompute VIFs and the condition number on the final design; consolidate the delinquency, payment-ratio and billing blocks or apply a ridge penalty, and re-verify signs.",
+      "evidence": [
+        "74c10f15",
+        "abbb748e"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "X1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Four of ten implied value curves run in the wrong direction",
+      "narrative": "No sensitivity or scenario artifacts were produced at all, so the implied value curves were reconstructed analytically from the standardised coefficients, which fully determine each feature's monotone response. Four of the ten run against credit logic: delinq_max_6m at -0.032214 means the worst delinquency observed in six months lowers predicted default probability; pay_ratio_last at +0.102591 means a higher recent payment ratio raises it, in direct opposition to its own six-month mean; limit_bal at +0.072656 means a larger granted limit raises predicted risk; and bill_mean_6m at -0.372628 is a large negative effect that is in fact the second-strongest driver in the whole model. Presented as scenarios to a credit officer, each of these would be rejected as economically wrong. The practical consequence is that the score may rank-order acceptably in aggregate (test AUC 0.747989) while giving indefensible answers to individual counterfactual questions, so it is not safe for limit-setting, affordability simulation, or customer-level reason codes as it stands. Recommendation: impose sign constraints or reduce the feature set per the multicollinearity finding, and require a documented economic rationale for every retained coefficient before approval.",
+      "evidence": [
+        "74c10f15",
+        "aebcad6a"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "C1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Calibration evidenced only at the mean; no slope, decile table, or reliability curve",
+      "narrative": "Aggregate calibration is good and raises no defect in itself: on test, mean predicted 0.221105 against an observed event rate of 0.224667, a 1.59% relative under-prediction well inside any reasonable tolerance on 1,500 rows and 337 events; on train, mean predicted 0.224623 against observed 0.224571, essentially exact as maximum-likelihood logistic regression with an intercept guarantees. However, the mean is the only calibration evidence in the store. No calibration slope or intercept was fitted, no bucketed observed-versus-expected table was produced, and no reliability curve exists. A model can match on the mean while being materially miscalibrated in the tails, and for credit decisioning the tails are where the model is actually used. The raw material is present in the scored prediction tables and the test simply was not run. Recommendation: fit a calibration slope and intercept on the test predictions and publish a decile observed-versus-expected table.",
+      "evidence": [
+        "66bafeec",
+        "6fd8f98a",
+        "aebcad6a"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "S1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Population and score drift entirely unassessed",
+      "narrative": "No population stability index, characteristic analysis, or score-distribution comparison exists anywhere in the artifact store. The only drift-adjacent evidence available is that the two splits have near-identical event rates (0.224571 train, 0.224667 test) and that mean predicted score moves only from 0.224623 to 0.221105 between them. That demonstrates the random partition is internally stable and says nothing whatever about stability over time, because both splits are drawn from the same period and the split manifest shows no out-of-time division. Drift is therefore unassessed rather than assessed-and-clean, and this report should not be read as evidence of stability. Recommendation: construct an out-of-time holdout and compute feature-level and score-level PSI against the development sample before deployment, with conventional 0.10 amber and 0.25 red triggers thereafter.",
+      "evidence": [
+        "3b6b0a38",
+        "aebcad6a"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No test-split data profile; undocumented cap on pay_ratio_last and heavy-tailed billing features",
+      "narrative": "The training split profile reports 0.0 missingness across all thirteen columns including the target, so completeness on the training data is not a concern. No equivalent profile was supplied for the test split, so the standard cross-split missingness and distribution comparison could not be performed, and no conclusion on differential missingness can be drawn in either direction. Separately, the training profile shows pay_ratio_last with a maximum of exactly 2.0 against a maximum of 1.638541 for its own six-month mean; a round-number ceiling of this kind is a capping or winsorisation rule, and no such transformation is documented in the model summary or the feature inventory. This matters more than it otherwise would because the same feature also carries a wrong sign. Finally, bill_trend_6m has a standard deviation of 3,118.55 against a range of -67,201.41 to 27,397.95 \u2014 roughly twenty-two standard deviations at the lower tail \u2014 and bill_mean_6m is similarly skewed (mean 47,885.13, maximum 506,280.67), so a small number of clients exert leverage on those two large negative coefficients out of proportion to their number. Recommendation: publish the test-split profile, document the capping rule, and bootstrap the billing coefficients to assess tail leverage.",
+      "evidence": [
+        "26fbbf1d",
+        "6a89f2be",
+        "74c10f15"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-006",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No challenger model; effective challenge not demonstrated",
+      "narrative": "The artifact store contains a single fitted object \u2014 the champion logistic regression \u2014 and a single set of metrics, its own. No challenger, benchmark, or parsimonious baseline was fitted, so the claim that the ten-feature specification earns its complexity is untested. This is materially relevant here rather than a procedural box-tick: delinq_last alone carries a coefficient of 0.733422 on the standardised scale, an odds ratio of 2.08 per standard deviation and roughly double the next-largest effect, while four of the remaining nine coefficients are wrong-signed. A two- or three-feature challenger built on delinq_last and utilisation may well match the 0.747989 test AUC with none of the sign pathology, in which case the champion should be retired in its favour. No breach of an effective-challenge threshold is asserted, because no comparison was run. Recommendation: fit and document at least one parsimonious challenger and one non-linear benchmark, and record the comparison.",
+      "evidence": [
+        "74c10f15",
+        "aebcad6a"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-007",
+      "defect_class": "R1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Regime and segment stability untested; no out-of-time or segmented evaluation exists",
+      "narrative": "No segmentation of outcomes or coefficients was performed \u2014 not by vintage, limit band, utilisation band, or delinquency status \u2014 and no out-of-time sample exists. The train/test split appears from the manifest and the near-identical event rates to be a random partition of a single 5,000-client population rather than a time-based division, so even the two splits available cannot stand in for a regime comparison. Whether the dominant delinq_last effect or any other coefficient is stable across economic regimes or across the book is therefore unknown. No instability is alleged and none was detected, because the test was not executable on this evidence base. This is recorded at informational severity so that the absence of evidence is not later mistaken for evidence of stability; the remediation is folded into the out-of-time revalidation recommended under the drift finding.",
+      "evidence": [
+        "3b6b0a38",
+        "abbb748e",
+        "aebcad6a"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-008",
+      "defect_class": "O1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Out-of-sample degradation within tolerance; no overfitting detected",
+      "narrative": "The train-to-test AUC gap is 0.010447 (0.758436 falling to 0.747989), about 1.4% in relative terms, with Gini falling 0.020893 (0.516871 to 0.495978) and KS falling 0.026872 (0.445140 to 0.418268). Log loss rises only 0.002290, and the test Brier score of 0.148851 is in fact fractionally better than the train Brier of 0.148915. For a ten-parameter linear model fitted on 3,500 observations \u2014 roughly 79 events per parameter at an event rate of 0.2246 \u2014 a gap of this size is comfortably explained by sampling variation alone and sits well below any conventional degradation threshold. No overfitting finding is raised and no remediation is attached. The observation is recorded as a positive control confirming that the fitting process did not memorise the training sample, which is relevant context for the medium findings above: the model's problems lie in its coefficient structure and its missing evidence, not in its generalisation.",
+      "evidence": [
+        "3b6b0a38",
+        "aebcad6a"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

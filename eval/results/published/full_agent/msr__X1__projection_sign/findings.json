@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "msr_prepayment-full_agent-20260920T202713Z-e61d346a",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "X1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "run_scenarios",
+      "title": "The projected servicing value is not monotone in the parallel rate shock, and the realised convexity comes out positive where the package declares it negative.",
+      "narrative": "At the largest down-shock the projected value is 1765000 [[art:cbc0b707:run.projection#value_by_shock.-300]], above the 742500 [[art:cbc0b707:run.projection#value_by_shock.-200]] reached at the next down-shock and above the base-case 1597000 [[art:cbc0b707:run.projection#value_by_shock.0]], so the value curve turns back on itself inside the down-shocks.\n\n[[table:scenario.value_by_shock]]\n\nThe change from the base case at the largest down-shock is 168100 [[art:e1211d5d:scenario.value_change.-300]] and the change at the largest up-shock is 168100 [[art:38e75872:scenario.value_change.300]], identical in both sign and magnitude where a fall and a rise in rates should move servicing value in opposite directions.\n\nFirst-year CPR at the largest down-shock is 0.0005476 [[art:cbc0b707:run.projection#cpr_by_shock.-300]] and first-year CPR at the largest up-shock is 0.0005476 [[art:cbc0b707:run.projection#cpr_by_shock.300]], the same prepayment response at opposite ends of the grid, while at the next down-shock CPR is 0.2519 [[art:cbc0b707:run.projection#cpr_by_shock.-200]].\n\nThe realised convexity, the change at the largest down-shock taken together with the change at the largest up-shock, is 336100 [[art:6d2d7838:scenario.convexity]] and is positive, the opposite of the negative convexity the package declares.\n\nThe validator concludes that the extreme down-shock grid point does not carry a distinct rate path through the projection but reproduces the extreme up-shock result, so the down-shock leg of the scenario grid does not represent the behaviour a parallel shift of a single rate path would produce and the declared convexity sign is contradicted by the run's own output.\n\nThe developer should trace how the shock grid is applied to the rate path in the projection code, repair the extreme down-shock path so that prepayment speeds and value respond to it as they do at the intermediate down-shocks, re-run the scenario set, and either restate the declared convexity sign in package.yaml or explain the economics that would justify the declared sign against the repaired output.",
+      "evidence": [
+        "38e75872",
+        "6d2d7838",
+        "89c9bef7",
+        "cbc0b707",
+        "e1211d5d"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 2
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ]
+  }
+}

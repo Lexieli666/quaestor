@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T012036Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "T1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The model package breaches a bound it declares for itself: the calibration slope on test sits below the package's own stated minimum.",
+      "narrative": "The package declares a minimum calibration slope on test of 0.8 [[art:95fdb848:threshold.package.calibration_slope.test.min]].\nThe slope recomputed by this validation on test is 0.7952 [[art:b2bc94fc:calibration_slope.test]], below that minimum.\nThe validator concludes that the model does not meet an acceptance limit the developer set for it, so the breach is measured against the developer's own standard rather than one introduced by this review.\nThe developer should either recalibrate so that the slope on test returns above the declared minimum, or restate the declared minimum with a documented rationale for the wider limit, recording the change and the response so the exception can be tracked [[reg:SR26-2:VI.3]].",
+      "evidence": [
+        "95fdb848",
+        "b2bc94fc"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 5
+    },
+    {
+      "id": "F-002",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "Predicted probabilities are miscalibrated on both splits, in slope and in level, and the level error is large.",
+      "narrative": "The calibration slope on train is 0.7656 [[art:1151c8e4:calibration_slope.train]] and on test is 0.7952 [[art:b2bc94fc:calibration_slope.test]], each below the bottom of the acceptable slope band at 0.8 [[art:749634ae:threshold.C1.calibration_slope.min]].\nOn train the mean predicted probability is 0.4427 [[art:bbe07926:metrics.train.mean_predicted]] against an observed event rate of 0.2246 [[art:133a5ff8:metrics.train.event_rate]], a relative gap of 0.9715 [[art:0abea673:calibration.mean_rel_gap.train]] against a tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\nOn test the mean predicted probability is 0.4379 [[art:aa68c658:metrics.test.mean_predicted]] against an observed event rate of 0.2247 [[art:9209d200:metrics.test.event_rate]], a relative gap of 0.9491 [[art:376ae2d7:calibration.mean_rel_gap.test]], likewise above that tolerance.\nRanked rather than differenced or ratioed, the relative level gap on train is the larger of the two, and the slope on train is the further below the band's lower edge.\nThe decile tables below show where in the predicted range the level error concentrates.\n\n[[table:calibration.train]]\n\n[[table:calibration.test]]\n\nThe validator concludes that the scores overstate risk in level on both splits and are too flat in slope on both splits, so the output is usable as a ranking only with an explicit caveat and is not usable as a probability of default without correction.\nThe developer should refit or post-fit the score to the observed base rate, re-examine the training objective and any class weighting or resampling that could produce a systematic level shift of this size, and report the slope and the level gap on both splits after the correction.",
+      "evidence": [
+        "0abea673",
+        "1151c8e4",
+        "133a5ff8",
+        "20e93a8c",
+        "34673c01",
+        "376ae2d7",
+        "749634ae",
+        "9209d200",
+        "aa68c658",
+        "b2bc94fc",
+        "bbe07926",
+        "ffcc3994"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 6
+    },
+    {
+      "id": "F-003",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A routine benchmark challenger beats the champion on test by more than the margin at which effective challenge is treated as unmet.",
+      "narrative": "The champion's AUC on test is 0.7764 [[art:06c7c666:metrics.test.auc]], while a histogram gradient boosting challenger reaches 0.824 [[art:bf5be719:challenger.auc]] on the same split.\nThe challenger's lead over the champion is 0.0476 [[art:a86db8b1:challenger.delta_auc]], above the effective-challenge threshold of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\nThe validator concludes that an alternative specification available at low cost delivers materially better discrimination, so the choice of the current form has not been shown to be the better one on evidence.\nThe developer should document why the champion form was selected over this alternative on grounds other than discrimination, such as interpretability, stability or implementation constraints, or else promote the stronger specification and validate it in turn.",
+      "evidence": [
+        "06c7c666",
+        "a86db8b1",
+        "bf5be719",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

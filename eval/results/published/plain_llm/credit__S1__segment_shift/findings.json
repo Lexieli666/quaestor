@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T185539Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Model under-predicts default probability out of sample by 5.6% relative",
+      "narrative": "On the test split the mean predicted probability is 0.2121848 against an observed event rate of 0.2246667, an absolute shortfall of 0.0124819 and a relative under-prediction of 5.6%. On train the two agree to five decimal places (0.2436878 predicted against 0.2437116 observed), but that agreement is the maximum-likelihood fitting identity for a logistic regression with a free intercept and carries no evidence about calibration quality. The direction of the test result is notable: the test event rate is lower than the train event rate, yet the model still under-predicts, meaning the score distribution shifted down by more than the outcome rate did and the test population scores as materially safer than it behaved. Discrimination is unaffected, so rank-ordering uses such as cut-off strategies remain sound, but any expected-loss, provisioning, or pricing use would understate exposure by roughly one twentieth before any other source of error. The improvement in Brier (0.1636 to 0.1524) and log loss (0.4967 to 0.4717) does not offset this: both are base-rate sensitive and fall mechanically on a test set with a 1.90 point lower event rate. No calibration slope, intercept, or decile reliability table was lodged, so it cannot be determined whether this is a uniform level shift correctable by intercept recalibration or a slope defect, and that distinction determines the remedy.",
+      "evidence": [
+        "0accf706",
+        "5d347554",
+        "616e04cb",
+        "fdbe7077"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Severe multicollinearity (VIF 331) with residual wrong-signed coefficients after removal",
+      "narrative": "The development run removed three features against a declared VIF threshold of 10.0: bill_last at VIF 331.00, utilisation_mean_6m at 59.82, and bill_mean_6m at 15.57. A VIF of 331 indicates near-exact linear dependence among the billing and utilisation family, and the removal screen was the right response. However, the screen did not resolve the problem, and the fitted coefficients on the nine retained features show the classic signature of residual collinearity. delinq_max_6m carries -0.003169, which is both wrong-signed (the worst delinquency in six months cannot reduce default risk) and effectively zero, indicating its signal has been absorbed by correlated neighbours. pay_ratio_mean_6m at -0.4569 and pay_ratio_last at +0.1877 are the same quantity at two horizons entering with opposite signs, with the mean carrying the second-largest absolute standardised weight in the entire model; no coherent credit story supports paying more on average lowering risk while paying more last month raises it. bill_trend_6m at -0.0787 is a third questionable sign. Critically, post-removal VIFs for the nine retained features were not reported, and no condition number was lodged, so the developer's own declared control at threshold 10.0 cannot be verified as satisfied for the final specification. The coefficients being standardised makes the instability directly visible and comparable across features.",
+      "evidence": [
+        "abbb748e",
+        "b82670e1"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "S1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Unexplained 1.90 point event-rate differential between splits with no PSI computed",
+      "narrative": "The training split has an event rate of 0.2437116 and the test split 0.2246667, a 1.90 percentage point absolute and 7.8% relative decline. For an allocation that should be exchangeable, a gap of this size at n = 1,500 is larger than sampling variation comfortably explains and suggests either a time-ordered split that was never declared as such or a non-random allocation rule. The same differential is the mechanism behind the calibration shortfall reported separately, so it is not a cosmetic observation. Compounding this, no population stability index was computed at all: neither feature-level PSI between the two data tables nor score-level PSI between the two prediction tables was lodged, so the standard drift test has no result on file and the event-rate gap is the only drift signal available. The split proportions are themselves unusual at 54.4% train against 45.6% test, which is a defensible choice for a small sample but was not justified and leaves a thin training base for a nine-parameter model fitted after a collinearity screen. The developer should declare whether the split is random or time-ordered and compute feature and score PSI against the training baseline.",
+      "evidence": [
+        "0accf706",
+        "5d347554",
+        "616e04cb",
+        "bc07261a",
+        "fdbe7077",
+        "fff035ab"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Unaccounted population attrition and no cross-split missingness comparison",
+      "narrative": "The population accounting does not close. client_id in the training profile runs from 1 to 5,000, while the two splits together account for only 1,789 + 1,500 = 3,289 rows. Roughly a third of the identifier space is unaccounted for, with no exclusion log, no stated filter criteria, and no statement of whether the dropped records were ineligible, incomplete, or simply unsampled. If those exclusions correlate with default risk, every metric in this review is conditioned on a population that was never characterised. Separately, the missingness comparison that data-integrity review requires could not be executed: only the training profile was lodged, which reports missing = 0.0 across all eleven analysed columns, and no equivalent profile exists for the test split, so nothing establishes that the clean result transfers to the held-out data. Two preprocessing decisions visible in the training profile also lack documentation: pay_ratio_last is capped at exactly 2.0 while pay_ratio_mean_6m maxes at 1.6385, a round-number cap that reshapes the right tail of a positively-weighted feature, and utilisation reaches 1.1297, meaning the feature is not bounded at unity as its name implies. Remediation is to publish exclusion criteria and counts and to lodge a test-split profile.",
+      "evidence": [
+        "616e04cb",
+        "bc07261a",
+        "fff035ab"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

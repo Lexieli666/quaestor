@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T182619Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "M1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Near-duplicate features bill_last and bill_last_adj produce severe multicollinearity and wrong-signed coefficients",
+      "narrative": "The training profile shows bill_last (mean 47,409.0966, sd 44,429.8135, min 513.48) and bill_last_adj (mean 47,412.8452, sd 44,429.8166, min 513.5673) to be statistically indistinguishable: their standard deviations agree to six significant figures and their means differ by 0.008%. The pairwise correlation is necessarily within rounding distance of 1.0, implying a VIF in the thousands. The fitted model shows the textbook consequences of this variance inflation. The pair receives large opposed loadings of -0.5348 and -0.5619 that are individually uninterpretable, and the contamination spreads to the third member of the billing family, bill_mean_6m, at +0.6805. The net effect is that a coherent one-standard-deviation rise across all three billing measures changes the log-odds by 0.6805 - 0.5348 - 0.5619 = -0.4162, i.e. the model predicts that clients with larger outstanding bills are less likely to default, taking baseline predicted risk from 19.8% down to 14.0%. That is the wrong economic sign on the model's most important balance driver. The same pathology appears in two other correlated families: pay_ratio_mean_6m loads -0.3621 (correct sign) while pay_ratio_last loads +0.1093 (wrong sign), and delinq_last (+0.7357) and delinq_count_6m (+0.1219) are opposed by delinq_max_6m (-0.0322). Three sign reversals concentrated inside three correlated families are not coincidence; they are the fingerprint of an unaddressed collinearity problem. The practical consequence is that the coefficient vector cannot support reason codes, adverse-action explanations, driver attribution, or per-feature sensitivity analysis. Discrimination is unaffected (test AUC 0.7505) because a duplicate carries no incremental information, so ranking use survives, but interpretation does not. Remediation is to drop whichever of the pair lacks a documented definition, refit, and confirm that the billing block's net response turns positive and pay_ratio_last recovers its expected negative sign.",
+      "evidence": [
+        "c522fc63",
+        "f2e0e9a7",
+        "f79bb8bb"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "T1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Declared VIF screen at threshold 10.0 removed no features despite a feature pair correlated at approximately 1.0",
+      "narrative": "The model summary declares a developer-set control, vif_threshold: 10.0, and reports its outcome as removed: [] \u2014 no feature was eliminated. This is impossible to reconcile with the data. bill_last and bill_last_adj have standard deviations of 44,429.8135 and 44,429.8166 in the training profile, agreeing to six significant figures, and means differing by 0.008%; their correlation is within rounding distance of unity and their variance inflation factors run into the thousands. No screen at any conventional threshold, let alone 10.0, would pass such a pair. The declared control was therefore either not executed, executed against a different feature matrix than the one actually fitted, or its result was overridden without documentation. Either way the developer's own stated threshold is breached, and the breach is the direct cause of the multicollinearity finding recorded separately. The control's failure is compounded by a documentation gap: nothing in the artifact store defines what the _adj suffix on bill_last_adj adjusts for, which is precisely the documentation that would have prompted a reviewer to question the pair. Remediation requires re-running the screen against the fitted design matrix, publishing the full VIF vector and the matrix condition number as first-class artifacts, and recording an explicit disposition for every feature the screen flags. Where a flagged feature is deliberately retained, the override and its justification must be documented rather than silently absorbed into an empty removal list.",
+      "evidence": [
+        "c522fc63",
+        "f2e0e9a7"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Undocumented capping, out-of-range values, and severe skew in the training features",
+      "narrative": "Several integrity anomalies are visible in the training profile and none is declared in the feature manifest or model summary. First, pay_ratio_last has an exact maximum of 2.0000 to full precision while its six-month counterpart pay_ratio_mean_6m peaks at 1.6385; a maximum landing on a round 2.0 is a winsorisation cap, not a natural bound, and a capped variable that has then been standardised carries a distorted upper tail into the fit. Second, utilisation reaches 1.1297 and utilisation_mean_6m reaches 1.4310; over-limit balances are legitimate in credit data, but a six-month mean exceeding the last-month maximum implies sustained over-limit behaviour that should be confirmed rather than assumed. Third, bill_trend_6m is severely left-skewed, with mean -237.59 and standard deviation 3,118.55 against a minimum of -67,201 (about 21 standard deviations) and a maximum of +27,398 (about 9); standardisation does not correct skew of this order, and the feature's near-zero coefficient of -0.0240 is consistent with the tail dominating the scale and flattening the informative central range. Fourth, missingness is reported as exactly zero for all fifteen columns including every six-month aggregate, which is unusual for a behavioural panel where short-tenure clients normally lack full history; this suggests an upstream inner join that dropped those clients, or imputation performed before profiling, either of which is a selection effect invisible in these artifacts. The severity is low because none of these individually undermines the fitted model, but collectively they indicate an undocumented preprocessing layer. Remediation is a published variable dictionary recording every cap, floor, imputation rule and join condition, plus confirmation that caps applied in development are reproduced identically in production scoring \u2014 a cap present in training but absent at scoring time is a silent source of score drift.",
+      "evidence": [
+        "c522fc63",
+        "f79bb8bb"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "C1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Mild aggregate under-prediction on the test split, with calibration slope untested",
+      "narrative": "On the test split the mean predicted probability is 0.2214797 against an observed event rate of 0.2246667, an absolute shortfall of 0.0031869 and a relative under-prediction of 1.42%. At n=1,500 with a 22.5% base rate the standard error of the observed rate is about 0.0108, so the deviation is roughly 0.3 standard errors and is not statistically or practically material. Training calibration is essentially exact (0.2245529 predicted against 0.2245714 observed), as expected of a maximum-likelihood logistic fit with an intercept, and Brier scores are effectively identical across splits at 0.1486067 and 0.1486259. No remediation is attached to the deviation itself. The observation is recorded because it is the only calibration evidence in the entire artifact store. Matching one aggregate number to another is the weakest available calibration test: a model can reproduce the overall mean exactly while being badly miscalibrated in the upper and lower deciles, and the deciles are where a default model actually drives cutoff and pricing decisions. No calibration slope, reliability curve, decile table, or binned partition was produced, even though the per-row prediction tables for both splits exist in the store and would have supported all of them directly. The calibration slope is therefore untested rather than acceptable. Before any use that depends on the probability level rather than the rank ordering, a decile calibration table and a fitted calibration slope should be produced on the test split.",
+      "evidence": [
+        "71768746",
+        "c3cfe7db",
+        "c586d0a7"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

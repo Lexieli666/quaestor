@@ -1,0 +1,102 @@
+{
+  "calls": 1,
+  "completion": {
+    "cost_usd": 0.238249,
+    "latency_ms": 77634.0,
+    "model": "claude-opus-5[1m]",
+    "raw": {
+      "api_error_status": null,
+      "duration_api_ms": 77634,
+      "duration_ms": 76937,
+      "fast_mode_disabled_reason": "sdk_opt_in_required",
+      "fast_mode_state": "off",
+      "is_error": false,
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "contextWindow": 200000,
+          "costUSD": 0.003739,
+          "inputTokens": 3679,
+          "maxOutputTokens": 32000,
+          "outputTokens": 12,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        },
+        "claude-opus-5[1m]": {
+          "cacheCreationInputTokens": 6920,
+          "cacheReadInputTokens": 600,
+          "canonicalModel": "claude-opus-5",
+          "contextWindow": 1000000,
+          "costUSD": 0.23451,
+          "inputTokens": 2,
+          "maxOutputTokens": 64000,
+          "outputTokens": 6600,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        }
+      },
+      "num_turns": 1,
+      "permission_denials": [],
+      "quaestor_bare": false,
+      "result": "{\"claims\":[{\"line\":1,\"value\":0.0,\"unit\":\"ratio\",\"metric\":\"missing\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":1789,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":21,\"unit\":\"ratio\",\"metric\":\"age\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":62,\"unit\":\"ratio\",\"metric\":\"age\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":10000,\"unit\":\"currency\",\"metric\":\"limit_bal\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":88000,\"unit\":\"currency\",\"metric\":\"limit_bal\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":1.1297,\"unit\":\"ratio\",\"metric\":\"utilisation\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":2.0,\"unit\":\"ratio\",\"metric\":\"pay_ratio_last\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":1.6385,\"unit\":\"ratio\",\"metric\":\"pay_ratio_mean_6m\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":1,\"unit\":\"count\",\"metric\":\"client_id\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":5000,\"unit\":\"count\",\"metric\":\"client_id\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":1789,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":\"[[art:bc07261a:run.data_train]]\",\"rounding\":null},{\"line\":3,\"value\":1500,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:fff035ab:run.data_test]]\",\"rounding\":null},{\"line\":3,\"value\":3289,\"unit\":\"count\",\"metric\":\"rows\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:616e04cb:run.splits]]\",\"rounding\":null},{\"line\":5,\"value\":1789,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":1500,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":54.4,\"unit\":\"percent\",\"metric\":null,\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":5,\"value\":45.6,\"unit\":\"percent\",\"metric\":null,\"split\":\"test\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":11,\"value\":0.2437,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":\"[[art:616e04cb:run.splits]]\",\"rounding\":null},{\"line\":11,\"value\":0.2247,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:0accf706:run.metrics]]\",\"rounding\":null},{\"line\":11,\"value\":1.90,\"unit\":\"percent\",\"metric\":\"event_rate\",\"split\":null,\"comparison\":\"delta\",\"citation\":null,\"rounding\":2},{\"line\":11,\"value\":7.8,\"unit\":\"percent\",\"metric\":\"event_rate\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":11,\"value\":1500,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":4,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null}]}",
+      "session_id": "f9279283-4e3a-46a9-8dd2-232a44a259cf",
+      "stop_reason": "end_turn",
+      "subtype": "success",
+      "terminal_reason": "completed",
+      "time_to_request_ms": 156,
+      "total_cost_usd": 0.238249,
+      "ttft_ms": 66630,
+      "ttft_stream_ms": 1273,
+      "type": "result",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 6920,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 6920,
+        "cache_read_input_tokens": 600,
+        "inference_geo": "not_available",
+        "input_tokens": 2,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 6920,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 6920,
+            "cache_read_input_tokens": 600,
+            "input_tokens": 2,
+            "output_tokens": 6600,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 6600,
+        "output_tokens_details": {
+          "thinking_tokens": 5226
+        },
+        "server_tool_use": {
+          "web_fetch_requests": 0,
+          "web_search_requests": 0
+        },
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "uuid": "fed149e2-f956-4c69-bdf8-e70a4d29da90"
+    },
+    "text": "{\"claims\":[{\"line\":1,\"value\":0.0,\"unit\":\"ratio\",\"metric\":\"missing\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":1789,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":21,\"unit\":\"ratio\",\"metric\":\"age\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":62,\"unit\":\"ratio\",\"metric\":\"age\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":10000,\"unit\":\"currency\",\"metric\":\"limit_bal\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":88000,\"unit\":\"currency\",\"metric\":\"limit_bal\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":1.1297,\"unit\":\"ratio\",\"metric\":\"utilisation\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":2.0,\"unit\":\"ratio\",\"metric\":\"pay_ratio_last\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":1.6385,\"unit\":\"ratio\",\"metric\":\"pay_ratio_mean_6m\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":1,\"unit\":\"count\",\"metric\":\"client_id\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":5000,\"unit\":\"count\",\"metric\":\"client_id\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":3,\"value\":1789,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":\"[[art:bc07261a:run.data_train]]\",\"rounding\":null},{\"line\":3,\"value\":1500,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:fff035ab:run.data_test]]\",\"rounding\":null},{\"line\":3,\"value\":3289,\"unit\":\"count\",\"metric\":\"rows\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:616e04cb:run.splits]]\",\"rounding\":null},{\"line\":5,\"value\":1789,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":1500,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":54.4,\"unit\":\"percent\",\"metric\":null,\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":5,\"value\":45.6,\"unit\":\"percent\",\"metric\":null,\"split\":\"test\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":11,\"value\":0.2437,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":\"train\",\"comparison\":\"eq\",\"citation\":\"[[art:616e04cb:run.splits]]\",\"rounding\":null},{\"line\":11,\"value\":0.2247,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:0accf706:run.metrics]]\",\"rounding\":null},{\"line\":11,\"value\":1.90,\"unit\":\"percent\",\"metric\":\"event_rate\",\"split\":null,\"comparison\":\"delta\",\"citation\":null,\"rounding\":2},{\"line\":11,\"value\":7.8,\"unit\":\"percent\",\"metric\":\"event_rate\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":1},{\"line\":11,\"value\":1500,\"unit\":\"count\",\"metric\":\"rows\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":4,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null}]}",
+    "tokens_in": 7522,
+    "tokens_out": 6600
+  },
+  "key": "bf8fb6e3149e5c9a",
+  "provider": "claude-cli",
+  "request": {
+    "params": {
+      "model": "claude-opus-5[1m]"
+    },
+    "prompt": "You are extracting the numeric claims of one section of a model-validation report, so that each\ncan be checked against the artifact it cites. Section: data_integrity.\n\nThe prose is printed below one line per line, each prefixed with its own number and a vertical\nbar. List EVERY number that appears in the prose, in the order it appears, including numbers that\nappear inside a citation's logical name and numbers written with a thousands separator or a per\ncent sign. For each one:\n\n- \"line\" is the number printed to the left of the line the number appears on. Give the number\n  only; do not copy the line's text back, and do not count the prefix itself as a number.\n- \"value\" is the number as written, with thousands separators and the per cent sign removed:\n  \"3,500\" is 3500, \"22.0%\" is 22.0.\n- \"unit\" is \"percent\" when the number is written with a per cent sign, \"count\" for a number of\n  rows, features or events, \"currency\", \"bp\" for basis points, \"months\" for a horizon, and\n  \"ratio\" for every other dimensionless quantity (AUC, PSI, VIF, a coefficient, a lift).\n- \"metric\" is what the number measures, taken from the logical name of the artifact it cites\n  (auc, brier, psi, vif, calibration_slope, delta_auc, coefficient, event_rate, ...), or null.\n- \"split\" is train, test, out_of_time or vintage_holdout, or null.\n- \"comparison\" is \"eq\" for a number that equals its artifact; \"delta\" for a difference written\n  \"from a to b\" or \"a gap of x\", whose value is the second cited artifact minus the first; and\n  \"ratio\" for a number written as one artifact divided by another. A delta or ratio carries TWO\n  adjacent citations, in that order.\n- \"citation\" is the [[art:...]] token the number carries, copied exactly, or null when the\n  sentence carries none. Do not invent a citation and do not move one from another number.\n- \"rounding\" is the number of decimals the prose wrote when it wrote fewer than the artifact has\n  (2 for a lift written 2.24), or null.\n\nReturn every number even when it has no citation: a number you leave out is still counted, and\ncounted against the report.\n\nProse:\n 1| The training profile is clean in the narrow sense. All eleven analysed columns report `missing: 0.0` across 1,789 rows, and the value ranges are plausible throughout: `age` spans 21 to 62, `limit_bal` spans 10,000 to 88,000, and `delinq_last`, `delinq_count_6m`, and `delinq_max_6m` take small non-negative integer values. Two items in the profile warrant note. `utilisation` reaches a maximum of 1.1297, meaning balances above the limit; this is realistic for a revolving product but it means the feature is not bounded at unity as its name suggests. `pay_ratio_last` maxes at exactly 2.0 while `pay_ratio_mean_6m` maxes at 1.6385, which is the signature of a cap applied to the point-in-time variable. A cap at a round number is a preprocessing decision that should be documented, because it changes the shape of the right tail of a feature that carries a positive coefficient.\n 2| \n 3| The population accounting does not close. `client_id` runs from 1 to 5,000 in the training profile, and the two splits together account for 1,789 + 1,500 = 3,289 rows ([[art:616e04cb:run.splits]], [[art:bc07261a:run.data_train]], [[art:fff035ab:run.data_test]]). Roughly a third of the identifier space is unaccounted for, with no exclusion log, no filter criteria, and no statement of whether the dropped records were ineligible, incomplete, or simply not sampled. If the exclusions correlate with risk, every metric in this report is conditioned on a population that was never characterised.\n 4| \n 5| The split proportions are also unusual. A 1,789/1,500 allocation is 54.4% train and 45.6% test. Holding out nearly half the data is defensible for a small sample, but it was not justified, and it leaves the training set thin for a nine-parameter model fitted after a collinearity screen.\n 6| \n 7| Missingness could not be compared across splits. Only the training profile was lodged; no equivalent profile exists for the test split, so the cross-split missingness test central to data-integrity review cannot be executed against [[art:fff035ab:run.data_test]]. The zero-missingness result for training does not transfer.\n 8| \n 9| On contamination, the two `rows_hash` values in [[art:616e04cb:run.splits]] are distinct, which confirms only that the two row sets are not identical. No client-level overlap check was lodged, and because the model is behavioural and a single `client_id` could plausibly contribute rows to both splits, the absence of a de-duplication attestation is a real gap. There is no positive evidence of overlap, so no L2 finding is raised, but the check should be executed and recorded.\n10| \n11| On drift, no PSI was computed for either the population or the score, on either the features or the predictions ([[art:fdbe7077:run.predictions_test]], [[art:5d347554:run.predictions_train]]). The one drift signal available is the event rate, which falls from 0.2437 in train to 0.2247 in test ([[art:616e04cb:run.splits]], [[art:0accf706:run.metrics]]), a 1.90 percentage point absolute and 7.8% relative decline. For a split that should be exchangeable, this is larger than sampling noise comfortably explains at n = 1,500 and suggests either a time-ordered split that was not declared as such or a non-random allocation. It is also the mechanism behind the calibration gap in section 4.\n\n\nAnswer with one JSON object and nothing else: no prose before or after it, no explanation, no markdown fence. It must validate against this JSON schema:\n{\"$defs\": {\"Comparison\": {\"description\": \"What the claimed value is asserted to equal.\\n\\n``delta`` and ``ratio`` are cited by two adjacent ``[[art:...]]`` tokens, in order (D-012).\\nThe enum is not nullable: ``eq`` is the explicit default, so \\\"this number equals its artifact\\\"\\nhas one spelling and not two (D-018).\\n\\nAttributes:\\n    eq: The value matches the cited artifact.\\n    delta: The value matches ``second - first``.\\n    ratio: The value matches ``second / first``.\", \"enum\": [\"eq\", \"delta\", \"ratio\"], \"title\": \"Comparison\", \"type\": \"string\"}, \"ExtractedClaim\": {\"additionalProperties\": false, \"description\": \"One claim as the model returns it: the grammar minus the fields the caller already knows.\\n\\n``text``, ``section``, ``id`` and ``source`` are not asked for. The caller knows which section\\nit passed in, the id is a hash of the other three fields, the source of an extraction is\\nalways ``report``, and the text is the line the model named -- which the caller has in front\\nof it, so asking for it back costs output tokens and adds a way for the answer to disagree\\nwith the prose (D-063, D-085).\\n\\nAttributes:\\n    line: The 1-based number of the line the number appears on, as the prompt printed it.\\n    value: The number as written, separators and per cent sign removed.\\n    unit: How it is written.\\n    metric: What it measures, or ``None``.\\n    split: Which split it is about, or ``None``.\\n    comparison: ``eq``, ``delta`` or ``ratio``.\\n    citation: The citation the number carries, or ``None``.\\n    rounding: Decimals the prose used, or ``None``.\", \"properties\": {\"line\": {\"minimum\": 1, \"title\": \"Line\", \"type\": \"integer\"}, \"value\": {\"title\": \"Value\", \"type\": \"number\"}, \"unit\": {\"$ref\": \"#/$defs/Unit\", \"default\": \"ratio\"}, \"metric\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Metric\"}, \"split\": {\"anyOf\": [{\"$ref\": \"#/$defs/SplitName\"}, {\"type\": \"null\"}], \"default\": null}, \"comparison\": {\"$ref\": \"#/$defs/Comparison\", \"default\": \"eq\"}, \"citation\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Citation\"}, \"rounding\": {\"anyOf\": [{\"minimum\": 0, \"type\": \"integer\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Rounding\"}}, \"required\": [\"line\", \"value\"], \"title\": \"ExtractedClaim\", \"type\": \"object\"}, \"SplitName\": {\"description\": \"The splits a claim may be stated on, exactly as ``CLAIMS_SCHEMA.json`` enumerates them.\\n\\nAttributes:\\n    train: The development split.\\n    test: The held-out split.\\n    out_of_time: A later-period split; hazard subjects.\\n    vintage_holdout: One origination year held out; hazard subjects.\", \"enum\": [\"train\", \"test\", \"out_of_time\", \"vintage_holdout\"], \"title\": \"SplitName\", \"type\": \"string\"}, \"Unit\": {\"description\": \"How a number is written, which decides how it is normalised before matching.\\n\\nAttributes:\\n    ratio: Every dimensionless quantity not written with a ``%`` -- AUC, PSI, VIF, a\\n        coefficient, a lift.\\n    percent: Written with a ``%``; normalised against a unit-interval artifact by dividing\\n        by 100.\\n    count: A number of rows, features or events. Matched to half a unit, so integers match\\n        exactly.\\n    currency: A money amount.\\n    bp: Basis points, as a rate shock is written.\\n    months: A horizon.\", \"enum\": [\"ratio\", \"percent\", \"count\", \"currency\", \"bp\", \"months\"], \"title\": \"Unit\", \"type\": \"string\"}}, \"additionalProperties\": false, \"description\": \"The JSON object the extractor is asked for: a list of claims under one key.\\n\\nA bare JSON array is a shape more models get wrong than a single-key object, and\\n:func:`~quaestor.llm.structured.structured` validates a ``BaseModel``, not a list.\\n\\nAttributes:\\n    claims: The claims, in the order the numbers appear.\", \"properties\": {\"claims\": {\"items\": {\"$ref\": \"#/$defs/ExtractedClaim\"}, \"title\": \"Claims\", \"type\": \"array\"}}, \"title\": \"ExtractedClaims\", \"type\": \"object\"}",
+    "system": null
+  },
+  "schema_version": 1
+}

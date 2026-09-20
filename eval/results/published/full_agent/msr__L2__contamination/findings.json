@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "msr_prepayment-full_agent-20260920T183556Z-e61d346a",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L2",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "check_leakage",
+      "title": "Rows of the test split repeat feature vectors of the training split while carrying identifiers of their own, so the held-out evaluation is not independent of the data the model was fitted on.",
+      "narrative": "The share of test rows whose feature values also appear in train is 0.02997 [[art:bcbccff8:leakage.overlap.features]].\n\nThat share was read against a bound of 0.005 [[art:1ee888c5:threshold.L2.overlap.features_effective]], which the rule took as the larger of the declared contamination bound of 0.005 [[art:9f336eaf:threshold.L2.overlap]] and a term scaled from the within-train duplicate share.\n\nThe observed share lies above that bound, and the comparison reported here is the difference between the two rather than their ratio.\n\nThe share of train rows whose feature values are not unique within train is 0 [[art:4474c227:leakage.duplicates.train]], so the repetition arises across the split boundary rather than from duplication inside train, and the repeated rows may be a re-keyed copy.\n\nThe validator concludes that test-set performance for this package is measured in part on rows the model has already seen, so any accuracy, discrimination or calibration statistic computed on that split overstates out-of-sample behaviour by an amount this section does not attempt to quantify.\n\nThe model developer should trace the provenance of the repeated rows, establish whether the identifiers were reassigned during extraction, rebuild the train and test split so that no feature vector crosses it, and rerun the performance evidence on the rebuilt split before the package is relied on.",
+      "evidence": [
+        "1ee888c5",
+        "4474c227",
+        "9f336eaf",
+        "bcbccff8"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ],
+    "run_scenarios": [
+      "X1"
+    ]
+  }
+}

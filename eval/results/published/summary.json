@@ -1,0 +1,958 @@
+{
+  "schema_version": 1,
+  "generated": "2026-09-20T23:31:20Z",
+  "results_dir": "eval/results/20260918T065257Z",
+  "variants_dir": "eval/variants",
+  "taxonomy": "eval/taxonomy.yaml",
+  "configurations": {
+    "full_agent": {
+      "configuration": "full_agent",
+      "runs": 18,
+      "seeded_scored": 14,
+      "detected": [
+        "credit__C1__smote_uncalibrated",
+        "credit__D1__test_only_missingness",
+        "credit__L1__after_outcome_declared",
+        "credit__L1__after_outcome_hidden",
+        "credit__L2__contamination",
+        "credit__M1__vif_reintroduced",
+        "credit__R1__regime_flip",
+        "credit__S1__segment_shift",
+        "credit__T1__false_claim",
+        "msr__C1__oversampled_hazard",
+        "msr__L1__eom_balance",
+        "msr__L2__contamination",
+        "msr__S1__vintage_shift",
+        "msr__X1__projection_sign"
+      ],
+      "missed": [],
+      "not_scorable": [],
+      "no_report": [],
+      "per_class": {
+        "C1": {
+          "seeded": 2,
+          "detected": 2,
+          "variants": [
+            "credit__C1__smote_uncalibrated",
+            "msr__C1__oversampled_hazard"
+          ],
+          "missed": []
+        },
+        "D1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__D1__test_only_missingness"
+          ],
+          "missed": []
+        },
+        "L1": {
+          "seeded": 3,
+          "detected": 3,
+          "variants": [
+            "credit__L1__after_outcome_declared",
+            "credit__L1__after_outcome_hidden",
+            "msr__L1__eom_balance"
+          ],
+          "missed": []
+        },
+        "L2": {
+          "seeded": 2,
+          "detected": 2,
+          "variants": [
+            "credit__L2__contamination",
+            "msr__L2__contamination"
+          ],
+          "missed": []
+        },
+        "M1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__M1__vif_reintroduced"
+          ],
+          "missed": []
+        },
+        "R1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__R1__regime_flip"
+          ],
+          "missed": []
+        },
+        "S1": {
+          "seeded": 2,
+          "detected": 2,
+          "variants": [
+            "credit__S1__segment_shift",
+            "msr__S1__vintage_shift"
+          ],
+          "missed": []
+        },
+        "T1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__T1__false_claim"
+          ],
+          "missed": []
+        },
+        "X1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "msr__X1__projection_sign"
+          ],
+          "missed": []
+        }
+      },
+      "false_alarms": [],
+      "controls_with_unmeasured_baseline": [],
+      "collateral": [
+        {
+          "variant": "credit__C1__smote_uncalibrated",
+          "class": "T1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the seeded miscalibration breaches the package's own declared calibration_slope bound, which is a true statement about the model as delivered",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "credit__L1__after_outcome_declared",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the leak distorts the champion, so the fitted probabilities really are miscalibrated",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "credit__L1__after_outcome_hidden",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the leak distorts the champion, so the fitted probabilities really are miscalibrated",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "credit__S1__segment_shift",
+          "class": "T1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the seeded population shift breaches the package's own declared psi bound, which is a true statement about the model as delivered",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "msr__L1__eom_balance",
+          "class": "X1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the leaked end-of-month balance dominates the projection, so the scenario curve really is inconsistent",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "T1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the seeded population shift breaches the package's own declared psi bound, which is a true statement about the model as delivered",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the seeded vintage shift trains the hazard through 2019 and tests it on the 2020-21 refinancing wave, so the model really does under-predict prepayment on the tested split: this is the same mechanism D-161 measured on the real MSR control and recorded there as a true finding, and a mechanism cannot be true on a real panel and spurious on a synthetic one built to carry it",
+          "decided": "2026-09-17, D-182 amendment, at scoring time"
+        }
+      ],
+      "collateral_spurious": 0,
+      "collateral_unjudged": 0,
+      "unevidenced_findings": 0,
+      "precision": 1.0,
+      "grounding": {
+        "pre_repair_mean": 0.9950277777777777,
+        "pre_repair_min": 0.984,
+        "post_repair_mean": 1.0,
+        "post_repair_min": 1.0
+      }
+    },
+    "plain_llm": {
+      "configuration": "plain_llm",
+      "runs": 18,
+      "seeded_scored": 14,
+      "detected": [
+        "credit__C1__smote_uncalibrated",
+        "credit__L1__after_outcome_declared",
+        "credit__L1__after_outcome_hidden",
+        "credit__M1__vif_reintroduced",
+        "msr__C1__oversampled_hazard",
+        "msr__L1__eom_balance",
+        "msr__S1__vintage_shift",
+        "msr__X1__projection_sign"
+      ],
+      "missed": [
+        "credit__D1__test_only_missingness",
+        "credit__L2__contamination",
+        "credit__R1__regime_flip",
+        "credit__S1__segment_shift",
+        "credit__T1__false_claim",
+        "msr__L2__contamination"
+      ],
+      "not_scorable": [],
+      "no_report": [],
+      "per_class": {
+        "C1": {
+          "seeded": 2,
+          "detected": 2,
+          "variants": [
+            "credit__C1__smote_uncalibrated",
+            "msr__C1__oversampled_hazard"
+          ],
+          "missed": []
+        },
+        "D1": {
+          "seeded": 1,
+          "detected": 0,
+          "variants": [
+            "credit__D1__test_only_missingness"
+          ],
+          "missed": [
+            "credit__D1__test_only_missingness"
+          ]
+        },
+        "L1": {
+          "seeded": 3,
+          "detected": 3,
+          "variants": [
+            "credit__L1__after_outcome_declared",
+            "credit__L1__after_outcome_hidden",
+            "msr__L1__eom_balance"
+          ],
+          "missed": []
+        },
+        "L2": {
+          "seeded": 2,
+          "detected": 0,
+          "variants": [
+            "credit__L2__contamination",
+            "msr__L2__contamination"
+          ],
+          "missed": [
+            "credit__L2__contamination",
+            "msr__L2__contamination"
+          ]
+        },
+        "M1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__M1__vif_reintroduced"
+          ],
+          "missed": []
+        },
+        "R1": {
+          "seeded": 1,
+          "detected": 0,
+          "variants": [
+            "credit__R1__regime_flip"
+          ],
+          "missed": [
+            "credit__R1__regime_flip"
+          ]
+        },
+        "S1": {
+          "seeded": 2,
+          "detected": 1,
+          "variants": [
+            "credit__S1__segment_shift",
+            "msr__S1__vintage_shift"
+          ],
+          "missed": [
+            "credit__S1__segment_shift"
+          ]
+        },
+        "T1": {
+          "seeded": 1,
+          "detected": 0,
+          "variants": [
+            "credit__T1__false_claim"
+          ],
+          "missed": [
+            "credit__T1__false_claim"
+          ]
+        },
+        "X1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "msr__X1__projection_sign"
+          ],
+          "missed": []
+        }
+      },
+      "false_alarms": [
+        {
+          "variant": "control_credit_clean",
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_credit_clean",
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_credit_perturbed",
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_credit_perturbed",
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_credit_perturbed",
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_credit_perturbed",
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_clean",
+          "class": "C1",
+          "severity": "high"
+        },
+        {
+          "variant": "control_msr_clean",
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_clean",
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_clean",
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_clean",
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_clean",
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_perturbed",
+          "class": "D1",
+          "severity": "high"
+        },
+        {
+          "variant": "control_msr_perturbed",
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_perturbed",
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "variant": "control_msr_perturbed",
+          "class": "X1",
+          "severity": "medium"
+        }
+      ],
+      "controls_with_unmeasured_baseline": [],
+      "collateral": [
+        {
+          "variant": "credit__C1__smote_uncalibrated",
+          "class": "E1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__C1__smote_uncalibrated",
+          "class": "T1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the seeded miscalibration breaches the package's own declared calibration_slope bound, which is a true statement about the model as delivered",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "credit__C1__smote_uncalibrated",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__C1__smote_uncalibrated",
+          "class": "X1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__D1__test_only_missingness",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__D1__test_only_missingness",
+          "class": "E1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__D1__test_only_missingness",
+          "class": "T1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L1__after_outcome_declared",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L1__after_outcome_hidden",
+          "class": "T1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L1__after_outcome_hidden",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L1__after_outcome_hidden",
+          "class": "E1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L1__after_outcome_hidden",
+          "class": "X1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L2__contamination",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L2__contamination",
+          "class": "X1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L2__contamination",
+          "class": "S1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__L2__contamination",
+          "class": "E1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__M1__vif_reintroduced",
+          "class": "T1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__R1__regime_flip",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__R1__regime_flip",
+          "class": "E1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__R1__regime_flip",
+          "class": "S1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__S1__segment_shift",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__S1__segment_shift",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__T1__false_claim",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "credit__T1__false_claim",
+          "class": "X1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__C1__oversampled_hazard",
+          "class": "L2",
+          "severity": "high",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__C1__oversampled_hazard",
+          "class": "D1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__C1__oversampled_hazard",
+          "class": "X1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__C1__oversampled_hazard",
+          "class": "S1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__C1__oversampled_hazard",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L1__eom_balance",
+          "class": "L2",
+          "severity": "high",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L1__eom_balance",
+          "class": "C1",
+          "severity": "high",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L1__eom_balance",
+          "class": "T1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L1__eom_balance",
+          "class": "S1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L1__eom_balance",
+          "class": "X1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the leaked end-of-month balance dominates the projection, so the scenario curve really is inconsistent",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "msr__L2__contamination",
+          "class": "C1",
+          "severity": "high",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L2__contamination",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L2__contamination",
+          "class": "X1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L2__contamination",
+          "class": "D1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__L2__contamination",
+          "class": "S1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "D1",
+          "severity": "high",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "C1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the seeded vintage shift trains the hazard through 2019 and tests it on the 2020-21 refinancing wave, so the model really does under-predict prepayment on the tested split: this is the same mechanism D-161 measured on the real MSR control and recorded there as a true finding, and a mechanism cannot be true on a real panel and spurious on a synthetic one built to carry it",
+          "decided": "2026-09-17, D-182 amendment, at scoring time"
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "X1",
+          "severity": "high",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "D1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "L2",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "M1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__X1__projection_sign",
+          "class": "L2",
+          "severity": "high",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__X1__projection_sign",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__X1__projection_sign",
+          "class": "D1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        },
+        {
+          "variant": "msr__X1__projection_sign",
+          "class": "S1",
+          "severity": "medium",
+          "verdict": "unjudged",
+          "why": "no judgement was decided in advance for this pairing; docs/STUDY.md section 9 owes one, with its date, before this finding enters a published number",
+          "decided": null
+        }
+      ],
+      "collateral_spurious": 0,
+      "collateral_unjudged": 46,
+      "unevidenced_findings": 0,
+      "precision": 0.3333333333333333,
+      "grounding": {
+        "pre_repair_mean": 0.00037777777777777777,
+        "pre_repair_min": 0.0,
+        "post_repair_mean": 0.00037777777777777777,
+        "post_repair_min": 0.0
+      }
+    },
+    "rules_only": {
+      "configuration": "rules_only",
+      "runs": 18,
+      "seeded_scored": 14,
+      "detected": [
+        "credit__C1__smote_uncalibrated",
+        "credit__D1__test_only_missingness",
+        "credit__L1__after_outcome_declared",
+        "credit__L1__after_outcome_hidden",
+        "credit__L2__contamination",
+        "credit__M1__vif_reintroduced",
+        "credit__R1__regime_flip",
+        "credit__S1__segment_shift",
+        "credit__T1__false_claim",
+        "msr__C1__oversampled_hazard",
+        "msr__L1__eom_balance",
+        "msr__L2__contamination",
+        "msr__S1__vintage_shift",
+        "msr__X1__projection_sign"
+      ],
+      "missed": [],
+      "not_scorable": [],
+      "no_report": [],
+      "per_class": {
+        "C1": {
+          "seeded": 2,
+          "detected": 2,
+          "variants": [
+            "credit__C1__smote_uncalibrated",
+            "msr__C1__oversampled_hazard"
+          ],
+          "missed": []
+        },
+        "D1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__D1__test_only_missingness"
+          ],
+          "missed": []
+        },
+        "L1": {
+          "seeded": 3,
+          "detected": 3,
+          "variants": [
+            "credit__L1__after_outcome_declared",
+            "credit__L1__after_outcome_hidden",
+            "msr__L1__eom_balance"
+          ],
+          "missed": []
+        },
+        "L2": {
+          "seeded": 2,
+          "detected": 2,
+          "variants": [
+            "credit__L2__contamination",
+            "msr__L2__contamination"
+          ],
+          "missed": []
+        },
+        "M1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__M1__vif_reintroduced"
+          ],
+          "missed": []
+        },
+        "R1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__R1__regime_flip"
+          ],
+          "missed": []
+        },
+        "S1": {
+          "seeded": 2,
+          "detected": 2,
+          "variants": [
+            "credit__S1__segment_shift",
+            "msr__S1__vintage_shift"
+          ],
+          "missed": []
+        },
+        "T1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "credit__T1__false_claim"
+          ],
+          "missed": []
+        },
+        "X1": {
+          "seeded": 1,
+          "detected": 1,
+          "variants": [
+            "msr__X1__projection_sign"
+          ],
+          "missed": []
+        }
+      },
+      "false_alarms": [],
+      "controls_with_unmeasured_baseline": [],
+      "collateral": [
+        {
+          "variant": "credit__C1__smote_uncalibrated",
+          "class": "T1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the seeded miscalibration breaches the package's own declared calibration_slope bound, which is a true statement about the model as delivered",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "credit__L1__after_outcome_declared",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the leak distorts the champion, so the fitted probabilities really are miscalibrated",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "credit__L1__after_outcome_hidden",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the leak distorts the champion, so the fitted probabilities really are miscalibrated",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "credit__S1__segment_shift",
+          "class": "T1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the seeded population shift breaches the package's own declared psi bound, which is a true statement about the model as delivered",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "msr__L1__eom_balance",
+          "class": "X1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the leaked end-of-month balance dominates the projection, so the scenario curve really is inconsistent",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "T1",
+          "severity": "high",
+          "verdict": "true_consequence",
+          "why": "the seeded population shift breaches the package's own declared psi bound, which is a true statement about the model as delivered",
+          "decided": "2026-09-09, D-136, before any variant was run"
+        },
+        {
+          "variant": "msr__S1__vintage_shift",
+          "class": "C1",
+          "severity": "medium",
+          "verdict": "true_consequence",
+          "why": "the seeded vintage shift trains the hazard through 2019 and tests it on the 2020-21 refinancing wave, so the model really does under-predict prepayment on the tested split: this is the same mechanism D-161 measured on the real MSR control and recorded there as a true finding, and a mechanism cannot be true on a real panel and spurious on a synthetic one built to carry it",
+          "decided": "2026-09-17, D-182 amendment, at scoring time"
+        }
+      ],
+      "collateral_spurious": 0,
+      "collateral_unjudged": 0,
+      "unevidenced_findings": 0,
+      "precision": 1.0,
+      "grounding": {
+        "pre_repair_mean": 1.0,
+        "pre_repair_min": 1.0,
+        "post_repair_mean": 1.0,
+        "post_repair_min": 1.0
+      }
+    }
+  },
+  "variants_without_an_answer_key": []
+}

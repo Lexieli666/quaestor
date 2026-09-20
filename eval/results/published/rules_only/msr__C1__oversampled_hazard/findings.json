@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "rules_only",
+  "run_id": "msr_prepayment-rules_only-20260918T065337Z-568d25f5",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "A `C1` finding, raised by `compute_metrics` at severity `medium`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.\nThe value of `calibration.mean_rel_gap.out_of_time` is 3.342 [[art:5b8375ec:calibration.mean_rel_gap.out_of_time]].\nThe value of `calibration.mean_rel_gap.test` is 3.716 [[art:15d5555b:calibration.mean_rel_gap.test]].\nThe value of `calibration.mean_rel_gap.train` is 3.604 [[art:324eb124:calibration.mean_rel_gap.train]].\nThe value of `calibration.mean_rel_gap.vintage_holdout` is 4.36 [[art:a691b5ed:calibration.mean_rel_gap.vintage_holdout]].\nThe value of `metrics.out_of_time.event_rate` is 0.01795 [[art:83ccf5c0:metrics.out_of_time.event_rate]].\nThe value of `metrics.out_of_time.mean_predicted` is 0.07793 [[art:921d185b:metrics.out_of_time.mean_predicted]].\nThe value of `metrics.test.event_rate` is 0.008061 [[art:570cc08a:metrics.test.event_rate]].\nThe value of `metrics.test.mean_predicted` is 0.03802 [[art:122af437:metrics.test.mean_predicted]].\nThe value of `metrics.train.event_rate` is 0.008525 [[art:b9ef3327:metrics.train.event_rate]].\nThe value of `metrics.train.mean_predicted` is 0.03925 [[art:68f41b88:metrics.train.mean_predicted]].\nThe value of `metrics.vintage_holdout.event_rate` is 0.004817 [[art:e3590a16:metrics.vintage_holdout.event_rate]].\nThe value of `metrics.vintage_holdout.mean_predicted` is 0.02582 [[art:348107ae:metrics.vintage_holdout.mean_predicted]].\nThe value of `sign_check.burnout.agrees` is 0 [[art:56826e40:sign_check.burnout.agrees]].\nThe value of `sign_check.burnout.coef_sign` is -1 [[art:dcfb2de4:sign_check.burnout.coef_sign]].\nThe value of `sign_check.burnout.univariate_direction` is 1 [[art:bfc96bb2:sign_check.burnout.univariate_direction]].\nThe value of `sign_check.note_rate.agrees` is 0 [[art:a453463d:sign_check.note_rate.agrees]].\nThe value of `sign_check.note_rate.coef_sign` is -1 [[art:aecf7ccb:sign_check.note_rate.coef_sign]].\nThe value of `sign_check.note_rate.univariate_direction` is 1 [[art:61f6e1ac:sign_check.note_rate.univariate_direction]].\nThe value of `sign_check.sato.agrees` is 0 [[art:b3755963:sign_check.sato.agrees]].\nThe value of `sign_check.sato.coef_sign` is -1 [[art:265915cf:sign_check.sato.coef_sign]].\nThe value of `sign_check.sato.univariate_direction` is 1 [[art:c08233a6:sign_check.sato.univariate_direction]].\nThe value of `threshold.C1.mean_ratio_rel` is 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\n[[table:calibration.out_of_time]]\n[[table:calibration.test]]\n[[table:calibration.train]]\n[[table:calibration.vintage_holdout]]",
+      "evidence": [
+        "122af437",
+        "15d5555b",
+        "20e93a8c",
+        "324eb124",
+        "348107ae",
+        "392a629c",
+        "570cc08a",
+        "5b8375ec",
+        "68f41b88",
+        "83ccf5c0",
+        "8417f6b7",
+        "921d185b",
+        "a691b5ed",
+        "a8585045",
+        "b9ef3327",
+        "e3590a16",
+        "fd5aec5a"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 4
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ],
+    "run_scenarios": [
+      "X1"
+    ]
+  }
+}

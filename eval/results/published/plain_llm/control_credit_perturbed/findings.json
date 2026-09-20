@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T073410Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Residual multicollinearity unverified after VIF-based feature removal, with sign instability as evidence",
+      "narrative": "The developer declared a VIF threshold of 10.0 and removed two features that breached it: f_bill_last at VIF 160.89 and f_utilisation_mean_6m at VIF 36.36. That action was correct, but no post-removal VIFs and no design-matrix condition number were reported, so there is no evidence that the ten retained features satisfy the developer's own declared threshold. The retained set still contains three delinquency measures over the same six-month window (f_delinq_last, f_delinq_count_6m, f_delinq_max_6m), two payment ratios (f_pay_ratio_last, f_pay_ratio_mean_6m), a level-and-trend pair on billing (f_bill_mean_6m, f_bill_trend_6m), and f_utilisation whose six-month sibling was removed precisely for collinearity. The coefficient vector bears the classic fingerprint of residual dependence: within each correlated family the weaker member's sign has flipped (f_pay_ratio_last +0.1026 against f_pay_ratio_mean_6m -0.3554; f_delinq_max_6m -0.0322 against f_delinq_last +0.7334) while joint fit is unharmed, as shown by the small 0.0104 train-to-test AUC gap. Collinearity inflates coefficient variance and readily reverses the sign of a correlated term without degrading discrimination, which is exactly the pattern observed. Remediation: re-report VIFs and the condition number for the retained ten, consolidate the dependent families into single measures, or re-fit under a ridge or elastic-net penalty.",
+      "evidence": [
+        "aebcad6a",
+        "f181acb8"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "X1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Four retained coefficients are economically wrong-signed, producing non-monotone risk surfaces across correlated feature families",
+      "narrative": "No scenario or sensitivity artifacts were emitted, so the implied value curves were derived analytically from the coefficient vector; for a logistic model with linear terms, each univariate curve's direction is fully determined by the sign of its coefficient. Four of the ten slope against economic expectation. f_pay_ratio_last enters at +0.1026, making a larger paydown of the most recent bill risk-increasing, while f_pay_ratio_mean_6m enters at -0.3554 and makes the same behaviour risk-reducing on average. f_delinq_max_6m enters at -0.0322, so a worse peak delinquency in the window reduces predicted risk, directly contradicting f_delinq_last at +0.7334 and f_delinq_count_6m at +0.1226. f_bill_trend_6m enters at -0.2225, making rising balances protective. f_limit_bal enters at +0.0727, implying that the lender's own underwriter-assigned limits are positively associated with default. Read as families rather than individually, the surfaces are not merely wrong-signed but non-monotone: a borrower whose delinquency deepens on all three measures simultaneously does not move monotonically in predicted risk, and the same holds along the payment-ratio dimension. Aggregate rank-ordering survives because the offsetting terms net out within the correlated block, but the model cannot support reason codes, adverse-action explanations, affordability what-ifs or pricing sensitivities. Remediation: every retained coefficient must carry a defensible sign before any coefficient-level use; produce univariate value curves over each feature's observed range; prohibit explanation-based use in the interim.",
+      "evidence": [
+        "f181acb8"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "E1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No challenger model was fitted, so effective challenge of the champion is absent",
+      "narrative": "The store contains exactly one fitted model, the ten-feature standardised logistic regression described in the model summary, and one set of metrics. No challenger of any kind was estimated: not a penalised logistic regression, not a tree ensemble, not even a trivial single-feature scorecard on f_delinq_last, which at +0.7334 is the dominant term and would establish how much of the 0.7480 test AUC the remaining nine features actually contribute. Without a benchmark there is no way to judge whether 0.7480 extracts the information available in these twelve candidate features or leaves material signal unused, and no way to test whether a specification free of the sign anomalies would perform as well. Effective challenge is a requirement rather than an enhancement, and its absence cannot be cured by the champion's own in-sample-period stability. Remediation: fit at least one challenger on the identical split, report its test AUC beside the champion's, and revisit the champion specification if the margin is material. A penalised re-fit would satisfy this finding and the multicollinearity finding together.",
+      "evidence": [
+        "2922931d",
+        "aebcad6a",
+        "f181acb8"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No out-of-time sample and no PSI computation, so population and score stability are entirely untested",
+      "narrative": "The split manifest reports train n=3,500 with event rate 0.2245714 and test n=1,500 with event rate 0.2246667, a difference of 0.01 percentage point. Agreement that tight is the signature of an event-rate-stratified random split, not a temporal one, and no date or vintage field appears anywhere in the training profile's thirteen columns. A random split cannot detect drift by construction, because it guarantees both partitions are drawn from the same period and therefore the same regime. Consistent with this, the store contains no PSI computation for either the feature distributions or the score distribution, and no out-of-time or out-of-universe holdout. The defect reported is therefore the absence of the test rather than an observed drift breach: no drift finding can be raised on this evidence, but no stability assurance can be given either, and a credit model validated only within its development period has no demonstrated durability. Remediation: construct a genuine out-of-time sample, report AUC and calibration on it against the in-period baselines of 0.7480 and 0.2211 mean predicted, and compute feature-level and score-level PSI against the development population.",
+      "evidence": [
+        "05bbd6f4",
+        "10c3b98e",
+        "3b6b0a38",
+        "7c66774a"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "C1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Calibration slope never estimated; only the agreement of means is evidenced",
+      "narrative": "Aggregate calibration is good as far as it is measured. On test, mean predicted probability is 0.221105 against an observed event rate of 0.224667, an under-prediction of 0.36 percentage points and a predicted-to-observed ratio of 0.984; on train the two agree to 0.00005, as maximum-likelihood estimation of an intercept guarantees. The test Brier of 0.148851 against the no-skill reference p(1-p) = 0.224667 x 0.775333 = 0.174204 implies a Brier skill score of 0.146. However, agreement of the means is a necessary but not sufficient condition for calibration: a model that is over-confident at the top of the score distribution and under-confident at the bottom reproduces the mean exactly while carrying a calibration slope well away from 1.0. No calibration slope, calibration intercept, decile table or reliability curve was emitted, so nothing can be concluded about calibration across the score range, which is what matters for any probability-based decision or pricing use. The per-row prediction tables required to compute all of these are already in the store, so this is a cheap documentation gap rather than an observed failure, and it is graded low accordingly. Remediation: compute the calibration slope and intercept and a ten-bin reliability table from the test predictions and confirm the slope falls inside its band.",
+      "evidence": [
+        "aebcad6a",
+        "c734ca2d",
+        "dea9574d"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-006",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Undocumented capping, over-limit utilisation, universal zero missingness, and no test-split profile for cross-split comparison",
+      "narrative": "The training profile is clean on its face, with missing 0.0 on all thirteen columns over 3,500 rows and a target mean of 0.22457 that reconciles exactly with the declared training event rate. Three qualifications apply. First, f_pay_ratio_last has a maximum of exactly 2.0 to full reported precision, while its six-month counterpart f_pay_ratio_mean_6m tops out at 1.6385; a maximum resting on a round number is the signature of a winsorisation or cap, and no capping rule is documented in any emitted artifact, which matters because a cap changes the interpretation of the +0.1026 coefficient on that feature. Second, f_utilisation reaches 1.1297, i.e. balances exceeding the assigned limit; this is genuinely possible through over-limit fees and interest accrual and is not treated as an error, but taken together with the counterintuitive positive sign on f_limit_bal it warrants confirmation that the ratio uses the contemporaneous limit as its denominator. Third, universal zero missingness across every raw column, including six-month aggregates that require a complete payment history, is unusual for retail credit data and implies either an undocumented completeness filter on the population, which would materially restrict where the model may be applied, or silent upstream imputation. Separately, the standard cross-split missingness comparison could not be performed at all, because only the training-split profile was emitted and no profile of the test split exists in the store. Remediation: document the capping rule and the utilisation denominator, state whether a completeness filter was applied, and emit a test-split profile.",
+      "evidence": [
+        "05bbd6f4",
+        "10c3b98e",
+        "7c66774a",
+        "f181acb8"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-007",
+      "defect_class": "R1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No segment or regime analysis, so coefficient sign stability and discrimination across sub-populations are untested",
+      "narrative": "Performance and coefficients are reported only for the pooled population. No segment-level or regime-level breakdown exists in the store: there is no AUC by age band, limit band, utilisation band or delinquency status, and no re-estimation of the coefficient vector within sub-populations. Because the split is random and within a single period, the two partitions do not constitute distinct regimes and cannot substitute for this analysis. The exposure is concentrated in one term: f_delinq_last dominates the model at +0.7334, roughly twice the magnitude of the next largest coefficient, so if its sign or strength is driven by one sub-population the pooled 0.7480 test AUC would overstate performance elsewhere. The four wrong-signed coefficients identified elsewhere in this report raise the same question from the other direction, since sign flips confined to a segment are a common consequence of heterogeneous populations pooled into one linear specification. Remediation: report AUC, KS and calibration separately across age, limit and utilisation bands, together with the sign and magnitude of f_delinq_last within each, and confirm the specification is not driven by a single sub-population.",
+      "evidence": [
+        "3b6b0a38",
+        "aebcad6a",
+        "f181acb8"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-008",
+      "defect_class": "L2",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Train/test disjointness is consistent with a clean split but not independently demonstrated",
+      "narrative": "No contamination was observed and none is alleged. The split manifest carries distinct row hashes for the two partitions, 3e28943d for test and e028347d for train, which is consistent with disjoint row sets. The counts reconcile with a clean partition of a single population: 3,500 train plus 1,500 test equals 5,000, and client_id in the training profile ranges from 1 to 5,000 with a mean of 2,513.91 against the 2,500.5 expected under uniform sampling from 5,000 distinct clients. Overlap is therefore unlikely. What is missing is the direct test: the manifest provides one aggregate hash per split and no identifier-level intersection count, so disjointness is inferred rather than demonstrated. Two residual risks remain unaddressed by the hashes alone. Identical hashes would prove overlap, but distinct hashes only prove the row multisets differ, not that they share no rows. And if any client contributes more than one row to the modelling table, row-level disjointness would not imply client-level disjointness, which is the form of contamination that actually inflates held-out performance. Recorded as informational with no remediation beyond emitting an explicit client_id intersection count between the two splits.",
+      "evidence": [
+        "05bbd6f4",
+        "10c3b98e",
+        "3b6b0a38",
+        "7c66774a"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-009",
+      "defect_class": "O1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Train-to-test AUC gap of 0.0104 is well within tolerance",
+      "narrative": "Recorded as an observation with no remediation attached, since the tested condition passes. Discrimination degrades only marginally out of sample: AUC falls from 0.758436 on train to 0.747989 on test, a gap of 0.010447; Gini from 0.516871 to 0.495978; KS from 0.445140 to 0.418268. Log loss rises by only 0.00229, from 0.465001 to 0.467291, and the Brier score is in fact fractionally better on test (0.148851) than on train (0.148915), which is noise at this sample size but confirms there is no overfitting to remediate. The result is what the specification predicts: ten standardised coefficients fitted on 3,500 rows with roughly 786 events gives about 79 events per estimated parameter, ample for a stable linear fit. The metrics file is also internally self-consistent on this point, since 2(0.747989) - 1 = 0.495978 and 2(0.758436) - 1 = 0.516871 both reconcile exactly to the reported Gini values, indicating the train and test figures come from a single coherent run rather than being assembled from separate fits. No out-of-sample degradation defect is raised. Note that this conclusion is confined to the development period; it says nothing about stability over time, which is covered separately.",
+      "evidence": [
+        "3b6b0a38",
+        "aebcad6a",
+        "f181acb8"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-010",
+      "defect_class": "L1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Timing declarations show no post-outcome features and no single feature can plausibly dominate",
+      "narrative": "Recorded as an observation with no remediation attached, since the tested conditions pass. The feature inventory declares 12 candidate features with after_outcome = 0 and during_period = 0; two are declared at_origination (f_limit_bal, f_age) and ten are declared before_period_start. Taken at face value, the declarations are consistent with a model that forecasts next-month default using only information available at the start of the period, and the complete absence of post-outcome or contemporaneous features is a genuine strength of the specification rather than merely the absence of a problem. On the second limb of the leakage test, no single-feature AUC screen was emitted, so no predictor has been individually cleared against the 0.90 bar. That residual risk is judged immaterial by arithmetic: the full ten-feature model reaches only 0.747989 on test, and since adding features cannot reduce in-sample discrimination, no individual feature can plausibly approach 0.90. The largest standardised coefficient, f_delinq_last at +0.7334, is a behavioural delinquency measure whose predictive strength is expected and legitimate rather than suspicious. The one caveat is that the timing declarations are the developer's own assertions and no artifact in the store independently verifies the observation windows against the outcome definition.",
+      "evidence": [
+        "2f9cb453",
+        "aebcad6a",
+        "f181acb8"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

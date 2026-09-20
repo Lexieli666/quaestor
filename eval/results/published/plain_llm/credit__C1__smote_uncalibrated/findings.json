@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T081650Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "C1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Systematic over-prediction: mean predicted probability is 1.95x the observed event rate",
+      "narrative": "Mean predicted probability on the test split is 0.43790 against an observed event rate of 0.22467, a ratio of 1.95:1; the same bias is present in train (0.44275 vs 0.22457). In log-odds terms the score sits approximately 0.99 too high (logit 0.2247 = -1.2385; logit 0.4379 = -0.2497). On the 1,500-row test book the model expects roughly 657 defaults where 337 occurred. The error is severe enough to dominate the model's genuine discrimination: the test Brier score of 0.19288 and log loss of 0.59350 are both worse than those of a constant predictor set at the base rate (0.17420 and 0.53281), by 10.7% and 11.4% respectively. Any downstream use that multiplies the score by an exposure -- expected loss, provisioning, risk-based pricing, limit assignment -- would roughly double the loss estimate. The root cause is visible in the model summary: with standardised features the linear predictor has mean equal to the intercept, and the fitted intercept of +0.06740 implies a central predicted probability near 0.517 on a population with prevalence 0.2246, which is the signature of an estimation sample balanced to 50/50. Remediation is inexpensive -- refit on the unweighted population or apply a prior-correction offset of about -0.99 -- but until it is done and evidenced with a decile-level observed-versus-expected table and a calibration slope, the model must not be used for any probability-based decision.",
+      "evidence": [
+        "3986de2e",
+        "3b6b0a38",
+        "d89e6798"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "A base-rate constant predictor outperforms the champion on both Brier and log loss",
+      "narrative": "No challenger model was submitted for this validation, which is itself a gap in effective challenge. More seriously, the evidence already in the store shows the champion losing to the most trivial benchmark available. A constant predictor assigning every account the test-split base rate of 0.22467 achieves a Brier score of p(1-p) = 0.17420 and a log loss of 0.53281. The subject model records 0.19288 and 0.59350 -- worse on both. The model's AUC of 0.7764 confirms it carries real rank-ordering information, so this is not a discrimination failure but the arithmetic consequence of the calibration defect; nonetheless, a champion that cannot beat the portfolio average on probabilistic accuracy has not passed effective challenge. The developer should produce at least a penalised logistic fit and a gradient-boosted benchmark, and report AUC, Brier and log loss for all candidates against the base-rate floor, after the recalibration in finding 1 is complete.",
+      "evidence": [
+        "3986de2e",
+        "3b6b0a38",
+        "d89e6798"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "T1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Declared class_weight of null cannot be reconciled with the fitted intercept",
+      "narrative": "The model summary declares class_weight: null and standardised: true. Those two declarations together are testable: when every feature is centred at zero, the mean of the linear predictor equals the intercept, so an unweighted fit on a population with a 22.46% event rate should produce an intercept near logit(0.2246) = -1.239. The reported intercept is +0.06740, corresponding to a central probability near 0.517 -- almost exactly what a sample balanced to 50/50 would yield, and consistent with the observed mean predicted probabilities of 0.4428 (train) and 0.4379 (test). Either class balancing, resampling, or weighting was applied and not declared, or the intercept was not fitted against the population prevalence. This is a breach of a developer declaration in its own right, and it is the mechanism behind the calibration finding. The developer must reconcile the training configuration with the summary artifact: if resampling or weighting was applied it must be documented along with the base-rate correction applied at scoring time; if it was not, the intercept requires explanation.",
+      "evidence": [
+        "3986de2e",
+        "3b6b0a38",
+        "d89e6798"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Residual collinearity after VIF screening: three counterintuitive coefficient signs",
+      "narrative": "The VIF screen was run against a declared threshold of 10.0 and removed bill_last (VIF 160.89) and utilisation_mean_6m (VIF 36.36), so the declared threshold was honoured. The presence of a VIF of 161 in the candidate set nonetheless establishes that the billing and utilisation block was severely collinear, and the retained specification still contains three overlapping balance constructs (utilisation, bill_mean_6m, bill_trend_6m) and three overlapping delinquency constructs (delinq_last, delinq_count_6m, delinq_max_6m). No post-removal VIF values and no design-matrix condition number were reported, so the validator cannot confirm the retained model is well conditioned. The empirical symptom is visible in the coefficients: bill_mean_6m at -0.27627 and bill_trend_6m at -0.21804 both imply that larger and rising balances reduce default odds, and limit_bal at +0.01627 implies that a higher underwritten limit raises them. All three contradict credit intuition and are consistent with utilisation absorbing the risk signal while the correlated billing terms take offsetting negative loadings. The coefficients therefore cannot be used for reason-code generation or adverse-action explanation, and their stability across refits is doubtful. The developer should publish post-removal VIFs and the condition number, and either drop the redundant billing terms or replace the three balance constructs with a single orthogonalised factor, confirming that discrimination is not materially harmed.",
+      "evidence": [
+        "3986de2e",
+        "abbb748e"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "X1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Negative billing coefficients invert the model's response to a balance-growth stress",
+      "narrative": "No scenario grid, stress result, partial-dependence output, or value curve exists in the artifact store, so the scenario test could not be executed as specified and this finding is derived from the fitted coefficients. Because bill_mean_6m carries -0.27627 and bill_trend_6m carries -0.21804, totalling -0.49430 on standardised inputs, a scenario in which balances rise across the book -- the ordinary form of a consumer credit downturn -- pushes predicted default probability down through those two channels, partially or wholly offsetting the increase arriving through utilisation at +0.47685. The response curve to the single most obvious adverse scenario is therefore of indeterminate and possibly wrong sign, and the net effect cannot be resolved from the artifacts because the correlation structure between the three terms is not reported. A closely related concentration issue compounds this: delinq_last at +1.02284 carries more than twice the weight of any other term, so the model's stress behaviour is effectively a single-variable response with a perverse balance offset. The developer should produce an explicit scenario grid over utilisation and balance growth, demonstrate monotonicity of predicted risk in each stress direction, and re-specify the balance block if monotonicity cannot be achieved.",
+      "evidence": [
+        "3986de2e",
+        "6a89f2be"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-006",
+      "defect_class": "S1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No drift measurement of any kind, and the split is not out-of-time",
+      "narrative": "The artifact store contains no population stability index, no score PSI, and no characteristic-level drift measure. The only cross-split comparison available is target prevalence, which is 0.22457 in train against 0.22467 in test -- stable, but silent as to covariate or score distribution. The split also appears to be random rather than temporal: the two partitions of 3,500 and 1,500 rows exactly exhaust the 1-5,000 client identifier range, the event rates are near-identical to four decimal places, and no vintage or period field appears in the feature inventory. Consequently the stability test could not be performed, and even if it had been, a random split cannot evidence temporal stability. The model has never been tested on a forward period. The developer should construct an out-of-time holdout, report score and characteristic PSI against the development distribution, and re-report discrimination and calibration on that window before production use.",
+      "evidence": [
+        "26fbbf1d",
+        "3b6b0a38",
+        "6a89f2be",
+        "abbb748e"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-007",
+      "defect_class": "R1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No regime, vintage, or segment stability analysis was performed",
+      "narrative": "The validation standard requires evidence that top-feature signs and discrimination hold across regimes. No by-regime, by-vintage, or by-segment metrics exist in the store: the metric block reports only pooled train and test figures, and no time or segment identifier appears in the feature inventory. The stability of the dominant coefficient -- delinq_last at +1.02284, which carries the majority of the model's signal -- is therefore entirely untested, as is the stability of the three counterintuitive signs identified separately. This is recorded as a coverage gap rather than a demonstrated instability; the validator makes no claim that a flip or an AUC divergence exists, only that neither has been ruled out. The developer should segment at minimum by vintage and by limit band, and report per-segment AUC together with refitted coefficient signs for the top five features.",
+      "evidence": [
+        "3986de2e",
+        "abbb748e",
+        "d89e6798"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-008",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No test-split profile for missingness comparison; undocumented cap on pay_ratio_last",
+      "narrative": "A data profile was supplied for the training split only. It reports 3,500 rows with zero missing values across all thirteen columns -- 45,500 cells with no gaps, which is unusual for retail credit data and suggests either a pre-cleaned extract or an undocumented imputation step upstream of profiling. Because no corresponding profile of the test table was provided, the required split-to-split missingness comparison could not be performed and the data integrity test is open rather than passed. Three further integrity items in the training profile are undocumented: pay_ratio_last has a maximum of exactly 2.0000 against a minimum of 0.00077, the fingerprint of a cap rather than a natural bound (pay_ratio_mean_6m reaches only 1.6385, consistent with the cap binding on the single-month series); utilisation extends to 1.1297, so over-limit accounts are retained, which is defensible but unstated; and bill_mean_6m (429 to 506,281) and bill_trend_6m (-67,201 to +27,398) receive no winsorisation despite extreme tails that standardisation rescales but does not tame. The developer should publish the test-split profile, document the cap and the missingness treatment, and state the outlier policy for the balance fields.",
+      "evidence": [
+        "26fbbf1d",
+        "3b6b0a38",
+        "6a89f2be"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-009",
+      "defect_class": "L2",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Split disjointness asserted by row hash alone; no overlap statistic computed",
+      "narrative": "The split manifest records distinct row hashes for the two partitions (train e028347d..., test 3e28943d...) and the sizes reconcile with n_train in the model summary. Distinct hashes establish only that the two row sets are not identical; they do not establish that no individual client appears in both, and no overlap count on client_id was computed. Two observations keep this open rather than closed. First, client_id spans 1 to 5,000 across a universe of 5,000 rows and the splits sum to exactly 5,000, which is consistent with a disjoint partition but also with any other allocation. Second, the train-to-test AUC gap is -0.0001 and both Brier and log loss are better on test than on train -- a degree of agreement at the outer edge of what a random split ordinarily produces, though not in itself abnormal for a ten-parameter logistic model on 3,500 rows. The validator raises no claim of contamination; the defect is that the check was never run. The developer should publish the count of client_id values common to both partitions.",
+      "evidence": [
+        "26fbbf1d",
+        "3b6b0a38",
+        "6a89f2be",
+        "d89e6798"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

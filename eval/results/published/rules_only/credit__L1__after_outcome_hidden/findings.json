@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "rules_only",
+  "run_id": "credit_default-rules_only-20260918T065322Z-bd5861e9",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "check_leakage",
+      "title": "A `L1` finding, raised by `check_leakage` at severity `high`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.",
+      "evidence": [
+        "12cb4333",
+        "5b5e98c2",
+        "742bcd24",
+        "878d82fa",
+        "c29e7a34"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "A `C1` finding, raised by `compute_metrics` at severity `medium`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.\nThe value of `calibration_slope.train` is 1.383 [[art:45dafd11:calibration_slope.train]].\nThe value of `leakage.target_corr.max_single_feature_auc` is 0.945 [[art:5b5e98c2:leakage.target_corr.max_single_feature_auc]].\nThe value of `leakage.timing.n_flagged` is 0 [[art:742bcd24:leakage.timing.n_flagged]].\nThe value of `sign_check.bill_mean_6m.agrees` is 0 [[art:4df8b747:sign_check.bill_mean_6m.agrees]].\nThe value of `sign_check.bill_mean_6m.coef_sign` is 1 [[art:a457c04a:sign_check.bill_mean_6m.coef_sign]].\nThe value of `sign_check.bill_mean_6m.univariate_direction` is -1 [[art:23b89c5d:sign_check.bill_mean_6m.univariate_direction]].\nThe value of `sign_check.bill_trend_6m.agrees` is 0 [[art:c0f6d07d:sign_check.bill_trend_6m.agrees]].\nThe value of `sign_check.bill_trend_6m.coef_sign` is 1 [[art:abd4aaba:sign_check.bill_trend_6m.coef_sign]].\nThe value of `sign_check.bill_trend_6m.univariate_direction` is -1 [[art:a9bff389:sign_check.bill_trend_6m.univariate_direction]].\nThe value of `sign_check.delinq_max_6m.agrees` is 0 [[art:c946359c:sign_check.delinq_max_6m.agrees]].\nThe value of `sign_check.delinq_max_6m.coef_sign` is -1 [[art:a07d68ab:sign_check.delinq_max_6m.coef_sign]].\nThe value of `sign_check.delinq_max_6m.univariate_direction` is 1 [[art:b9088f4a:sign_check.delinq_max_6m.univariate_direction]].\nThe value of `sign_check.limit_bal.agrees` is 0 [[art:0278aad1:sign_check.limit_bal.agrees]].\nThe value of `sign_check.limit_bal.coef_sign` is 1 [[art:6af6aef2:sign_check.limit_bal.coef_sign]].\nThe value of `sign_check.limit_bal.univariate_direction` is -1 [[art:56d284d6:sign_check.limit_bal.univariate_direction]].\nThe value of `sign_check.pay_ratio_last.agrees` is 0 [[art:79abee77:sign_check.pay_ratio_last.agrees]].\nThe value of `sign_check.pay_ratio_last.coef_sign` is 1 [[art:f018263e:sign_check.pay_ratio_last.coef_sign]].\nThe value of `sign_check.pay_ratio_last.univariate_direction` is -1 [[art:f8e46d75:sign_check.pay_ratio_last.univariate_direction]].\nThe value of `sign_check.pay_ratio_mean_6m.agrees` is 0 [[art:51914c14:sign_check.pay_ratio_mean_6m.agrees]].\nThe value of `sign_check.pay_ratio_mean_6m.coef_sign` is 1 [[art:8547787e:sign_check.pay_ratio_mean_6m.coef_sign]].\nThe value of `sign_check.pay_ratio_mean_6m.univariate_direction` is -1 [[art:24dcef24:sign_check.pay_ratio_mean_6m.univariate_direction]].\nThe value of `threshold.C1.calibration_slope.max` is 1.2 [[art:b6672579:threshold.C1.calibration_slope.max]].\nThe value of `threshold.L1.single_feature_auc` is 0.9 [[art:c29e7a34:threshold.L1.single_feature_auc]].\n[[table:calibration.train]]\n[[table:leakage.target_corr]]\n[[table:leakage.timing]]",
+      "evidence": [
+        "309e30bb",
+        "45dafd11",
+        "b6672579"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ]
+  }
+}

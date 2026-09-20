@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "rules_only",
+  "run_id": "credit_default-rules_only-20260918T065332Z-bd5861e9",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "T1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "A `T1` finding, raised by `compute_metrics` at severity `high`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.",
+      "evidence": [
+        "5a6a40fb",
+        "fbb5a9d1"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "profile_data",
+      "title": "A `S1` finding, raised by `profile_data` at severity `medium`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.",
+      "evidence": [
+        "278b9016",
+        "c312ae78"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A `E1` finding, raised by `challenger_compare` at severity `low`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.\nThe value of `challenger.auc` is 0.8221 [[art:9a3da49b:challenger.auc]].\nThe value of `challenger.delta_auc` is 0.06961 [[art:ce2a1ab8:challenger.delta_auc]].\nThe value of `metrics.test.auc` is 0.7525 [[art:2a5ea4af:metrics.test.auc]].\nThe value of `psi.limit_bal` is 1.196 [[art:c312ae78:psi.limit_bal]].\nThe value of `psi.max` is 1.196 [[art:5a6a40fb:psi.max]].\nThe value of `sign_check.delinq_max_6m.agrees` is 0 [[art:c946359c:sign_check.delinq_max_6m.agrees]].\nThe value of `sign_check.delinq_max_6m.coef_sign` is -1 [[art:a07d68ab:sign_check.delinq_max_6m.coef_sign]].\nThe value of `sign_check.delinq_max_6m.univariate_direction` is 1 [[art:b9088f4a:sign_check.delinq_max_6m.univariate_direction]].\nThe value of `sign_check.pay_ratio_last.agrees` is 0 [[art:79abee77:sign_check.pay_ratio_last.agrees]].\nThe value of `sign_check.pay_ratio_last.coef_sign` is 1 [[art:f018263e:sign_check.pay_ratio_last.coef_sign]].\nThe value of `sign_check.pay_ratio_last.univariate_direction` is -1 [[art:f8e46d75:sign_check.pay_ratio_last.univariate_direction]].\nThe value of `threshold.E1.delta_auc` is 0.03 [[art:e042774c:threshold.E1.delta_auc]].\nThe value of `threshold.S1.psi` is 0.25 [[art:278b9016:threshold.S1.psi]].\nThe value of `threshold.package.psi.max` is 0.25 [[art:fbb5a9d1:threshold.package.psi.max]].",
+      "evidence": [
+        "2a5ea4af",
+        "9a3da49b",
+        "ce2a1ab8",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1"
+    ],
+    "compute_metrics": [
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

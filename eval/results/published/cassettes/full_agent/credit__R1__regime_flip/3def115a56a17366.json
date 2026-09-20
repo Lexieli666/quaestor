@@ -1,0 +1,102 @@
+{
+  "calls": 1,
+  "completion": {
+    "cost_usd": 0.129369,
+    "latency_ms": 20268.0,
+    "model": "claude-opus-5[1m]",
+    "raw": {
+      "api_error_status": null,
+      "duration_api_ms": 20268,
+      "duration_ms": 19435,
+      "fast_mode_disabled_reason": "sdk_opt_in_required",
+      "fast_mode_state": "off",
+      "is_error": false,
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "contextWindow": 200000,
+          "costUSD": 0.004364,
+          "inputTokens": 4294,
+          "maxOutputTokens": 32000,
+          "outputTokens": 14,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        },
+        "claude-opus-5[1m]": {
+          "cacheCreationInputTokens": 7362,
+          "cacheReadInputTokens": 600,
+          "canonicalModel": "claude-opus-5",
+          "contextWindow": 1000000,
+          "costUSD": 0.125005,
+          "inputTokens": 2,
+          "maxOutputTokens": 64000,
+          "outputTokens": 2043,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        }
+      },
+      "num_turns": 1,
+      "permission_denials": [],
+      "quaestor_bare": false,
+      "result": "{\"claims\":[{\"line\":7,\"value\":0.7,\"unit\":\"ratio\",\"metric\":\"auc\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:8bfd02cc:threshold.package.auc.test.min]]\",\"rounding\":null},{\"line\":7,\"value\":0.7337,\"unit\":\"ratio\",\"metric\":\"auc\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:3255122a:metrics.test.auc]]\",\"rounding\":null},{\"line\":10,\"value\":0.2,\"unit\":\"ratio\",\"metric\":\"brier\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:d0f98b9c:threshold.package.brier.test.max]]\",\"rounding\":null},{\"line\":10,\"value\":0.1536,\"unit\":\"ratio\",\"metric\":\"brier\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:3cd28a53:metrics.test.brier]]\",\"rounding\":null},{\"line\":12,\"value\":0.8,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:95fdb848:threshold.package.calibration_slope.test.min]]\",\"rounding\":null},{\"line\":12,\"value\":1.2,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:0adb7a89:threshold.package.calibration_slope.test.max]]\",\"rounding\":null},{\"line\":13,\"value\":0.8701,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:7002f467:calibration_slope.test]]\",\"rounding\":null},{\"line\":17,\"value\":0.25,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:fbb5a9d1:threshold.package.psi.max]]\",\"rounding\":null},{\"line\":17,\"value\":0.02385,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:4a5ae1a0:psi.max]]\",\"rounding\":null},{\"line\":22,\"value\":0.05,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:42f1351e:rule.calibration_first_event_rate]]\",\"rounding\":null},{\"line\":23,\"value\":0.05,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:42f1351e:rule.calibration_first_event_rate]]\",\"rounding\":null}]}",
+      "session_id": "497db336-95cb-4855-90ad-cbecaeeb1e98",
+      "stop_reason": "end_turn",
+      "subtype": "success",
+      "terminal_reason": "completed",
+      "time_to_request_ms": 110,
+      "total_cost_usd": 0.129369,
+      "ttft_ms": 12863,
+      "ttft_stream_ms": 1130,
+      "type": "result",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 7362,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 7362,
+        "cache_read_input_tokens": 600,
+        "inference_geo": "not_available",
+        "input_tokens": 2,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 7362,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 7362,
+            "cache_read_input_tokens": 600,
+            "input_tokens": 2,
+            "output_tokens": 2043,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 2043,
+        "output_tokens_details": {
+          "thinking_tokens": 1168
+        },
+        "server_tool_use": {
+          "web_fetch_requests": 0,
+          "web_search_requests": 0
+        },
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "uuid": "9b329901-d002-4692-afd7-1929b55fe362"
+    },
+    "text": "{\"claims\":[{\"line\":7,\"value\":0.7,\"unit\":\"ratio\",\"metric\":\"auc\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:8bfd02cc:threshold.package.auc.test.min]]\",\"rounding\":null},{\"line\":7,\"value\":0.7337,\"unit\":\"ratio\",\"metric\":\"auc\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:3255122a:metrics.test.auc]]\",\"rounding\":null},{\"line\":10,\"value\":0.2,\"unit\":\"ratio\",\"metric\":\"brier\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:d0f98b9c:threshold.package.brier.test.max]]\",\"rounding\":null},{\"line\":10,\"value\":0.1536,\"unit\":\"ratio\",\"metric\":\"brier\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:3cd28a53:metrics.test.brier]]\",\"rounding\":null},{\"line\":12,\"value\":0.8,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:95fdb848:threshold.package.calibration_slope.test.min]]\",\"rounding\":null},{\"line\":12,\"value\":1.2,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:0adb7a89:threshold.package.calibration_slope.test.max]]\",\"rounding\":null},{\"line\":13,\"value\":0.8701,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:7002f467:calibration_slope.test]]\",\"rounding\":null},{\"line\":17,\"value\":0.25,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:fbb5a9d1:threshold.package.psi.max]]\",\"rounding\":null},{\"line\":17,\"value\":0.02385,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:4a5ae1a0:psi.max]]\",\"rounding\":null},{\"line\":22,\"value\":0.05,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":\"test\",\"comparison\":\"eq\",\"citation\":\"[[art:42f1351e:rule.calibration_first_event_rate]]\",\"rounding\":null},{\"line\":23,\"value\":0.05,\"unit\":\"ratio\",\"metric\":\"event_rate\",\"split\":null,\"comparison\":\"eq\",\"citation\":\"[[art:42f1351e:rule.calibration_first_event_rate]]\",\"rounding\":null}]}",
+    "tokens_in": 7964,
+    "tokens_out": 2043
+  },
+  "key": "3def115a56a17366",
+  "provider": "claude-cli",
+  "request": {
+    "params": {
+      "model": "claude-opus-5[1m]"
+    },
+    "prompt": "You are extracting the numeric claims of one section of a model-validation report, so that each\ncan be checked against the artifact it cites. Section: monitoring.\n\nThe prose is printed below one line per line, each prefixed with its own number and a vertical\nbar. List EVERY number that appears in the prose, in the order it appears, including numbers that\nappear inside a citation's logical name and numbers written with a thousands separator or a per\ncent sign. For each one:\n\n- \"line\" is the number printed to the left of the line the number appears on. Give the number\n  only; do not copy the line's text back, and do not count the prefix itself as a number.\n- \"value\" is the number as written, with thousands separators and the per cent sign removed:\n  \"3,500\" is 3500, \"22.0%\" is 22.0.\n- \"unit\" is \"percent\" when the number is written with a per cent sign, \"count\" for a number of\n  rows, features or events, \"currency\", \"bp\" for basis points, \"months\" for a horizon, and\n  \"ratio\" for every other dimensionless quantity (AUC, PSI, VIF, a coefficient, a lift).\n- \"metric\" is what the number measures, taken from the logical name of the artifact it cites\n  (auc, brier, psi, vif, calibration_slope, delta_auc, coefficient, event_rate, ...), or null.\n- \"split\" is train, test, out_of_time or vintage_holdout, or null.\n- \"comparison\" is \"eq\" for a number that equals its artifact; \"delta\" for a difference written\n  \"from a to b\" or \"a gap of x\", whose value is the second cited artifact minus the first; and\n  \"ratio\" for a number written as one artifact divided by another. A delta or ratio carries TWO\n  adjacent citations, in that order.\n- \"citation\" is the [[art:...]] token the number carries, copied exactly, or null when the\n  sentence carries none. Do not invent a citation and do not move one from another number.\n- \"rounding\" is the number of decimals the prose wrote when it wrote fewer than the artifact has\n  (2 for a lift written 2.24), or null.\n\nReturn every number even when it has no citation: a number you leave out is still counted, and\ncounted against the report.\n\nProse:\n 1| Ongoing monitoring evaluates the extent to which this model continues to perform as expected given potential changes in products, exposures, activities, clients, data relevance, or market conditions, and it is the mechanism by which the limitations recorded in this report are reassessed over time [[reg:SR26-2:V.2]].\n 2| \n 3| ### Quantities, frequencies, and bounds\n 4| \n 5| The monitoring plan should recompute the same quantities this validation checked, on each production vintage, against the bounds already declared in the package rather than against new ones introduced at monitoring time.\n 6| \n 7| Rank-ordering performance should be recomputed on each scored cohort once outcomes mature and compared with the declared floor of 0.7 [[art:8bfd02cc:threshold.package.auc.test.min]], the bound against which the evaluation-split value of 0.7337 [[art:3255122a:metrics.test.auc]] was assessed here.\n 8| Because the evaluation-split value sits above that floor but within the range where ordinary vintage-to-vintage variation could carry it down to the floor, a quarterly cadence for this quantity is appropriate, with escalation on the first cohort that reaches or crosses the floor rather than on a trailing average alone.\n 9| \n10| Probabilistic accuracy should be recomputed on the same cadence and compared with the declared ceiling of 0.2 [[art:d0f98b9c:threshold.package.brier.test.max]], the bound under which the evaluation-split value of 0.1536 [[art:3cd28a53:metrics.test.brier]] fell.\n11| \n12| The regression of the outcome on the logit of the predicted probability should be refitted on each cohort and compared with the declared band whose lower edge is 0.8 [[art:95fdb848:threshold.package.calibration_slope.test.min]] and whose upper edge is 1.2 [[art:0adb7a89:threshold.package.calibration_slope.test.max]].\n13| The evaluation-split slope of 0.8701 [[art:7002f467:calibration_slope.test]] lies above the lower edge and below the upper edge, and monitoring should treat movement toward either edge as grounds for review, since drift downward and drift upward carry different consequences for how scores are used in cutoffs and pricing.\n14| When the slope leaves the declared band on a cohort, the response should be considered in the terms the guidance sets out for persistent deviations outside established performance thresholds: overlay, recalibration, or redevelopment [[reg:SR26-2:V.1.b]].\n15| \n16| Population shift should be recomputed monthly, at a higher frequency than the outcome-dependent quantities above, because it can be measured before outcomes mature and therefore serves as the early indicator for the rest of the panel.\n17| The comparison population should be the production vintage against the development population, and the bound remains the declared cap of 0.25 [[art:fbb5a9d1:threshold.package.psi.max]], against which the largest train-to-test shift observed here, 0.02385 [[art:4a5ae1a0:psi.max]], was assessed.\n18| Monitoring should report the per-feature shifts and the score shift separately rather than the maximum alone, and should state for each cohort whether it is reporting the shift of a feature or of the score, so that a moving score distribution is not masked by stable inputs or the reverse.\n19| \n20| ### Ordering of the monitoring report\n21| \n22| This report ordered discrimination ahead of calibration for the evaluation split, because the observed event rate on that split was at or above 0.05 [[art:42f1351e:rule.calibration_first_event_rate]].\n23| For any future cohort whose observed event rate falls below 0.05 [[art:42f1351e:rule.calibration_first_event_rate]], the monitoring report covering that cohort should lead with calibration instead, since at low event rates the absolute accuracy of the predicted probabilities, not the rank-ordering, is what governs whether the scores can still be read as probabilities.\n24| The monitoring report should record the observed event rate for each cohort alongside that bound, so the ordering decision is auditable rather than implicit.\n25| \n26| ### Benchmarking\n27| \n28| This validation compared the champion with a challenger, and monitoring should extend that comparison in the way development data cannot: by refitting the challenger on production vintages and comparing its outputs with the champion's on the same cohorts.\n29| That is the benchmark meant here — the challenger refitted on production vintages, not an external or vendor reference — because it isolates the effect of the newer data from the effect of a different modeling approach.\n30| Discrepancies between the champion and the refitted challenger should trigger investigation into the sources and degree of the differences and an examination of whether they fall within an expected range given the nature of the comparison, and close agreement should be interpreted with caution rather than taken as confirmation [[reg:SR11-7:V.1.b]].\n31| \n32| ### What this validation could not cover\n33| \n34| This validation was conducted on fixed development and evaluation splits, so it could not observe the model's behavior on cohorts booked after those splits, and monitoring must supply that evidence through back-testing over the full performance window rather than through holdout analysis alone.\n35| Process verification was outside the scope of the checks reported here: whether the production scoring code reproduces the validated model, whether the input feeds remain accurate and complete, and whether changes to either are logged and controlled are matters monitoring should verify on an ongoing basis [[reg:SR11-7:V.1.b]].\n36| User overrides of model output cannot be observed before deployment, and monitoring should track the override rate and the realized performance of overridden cases, since a high override rate or overrides that consistently improve outcomes indicates the model itself needs revision.\n37| Stability of performance across sub-populations over time is likewise something a static evaluation split cannot establish; monitoring should report sub-population results cohort by cohort, and when it compares a gap across sub-populations it should state whether it is reporting the difference or the ratio, because sub-populations with matching absolute gaps can differ materially on the ratio.\n38| The frequency and scope of these reports should be revisited as the model's materiality, the availability of new data, and the availability of new modeling approaches change, and the plan itself should be reassessed at each periodic review rather than fixed at approval [[reg:SR26-2:V.2]].\n\n\nAnswer with one JSON object and nothing else: no prose before or after it, no explanation, no markdown fence. It must validate against this JSON schema:\n{\"$defs\": {\"Comparison\": {\"description\": \"What the claimed value is asserted to equal.\\n\\n``delta`` and ``ratio`` are cited by two adjacent ``[[art:...]]`` tokens, in order (D-012).\\nThe enum is not nullable: ``eq`` is the explicit default, so \\\"this number equals its artifact\\\"\\nhas one spelling and not two (D-018).\\n\\nAttributes:\\n    eq: The value matches the cited artifact.\\n    delta: The value matches ``second - first``.\\n    ratio: The value matches ``second / first``.\", \"enum\": [\"eq\", \"delta\", \"ratio\"], \"title\": \"Comparison\", \"type\": \"string\"}, \"ExtractedClaim\": {\"additionalProperties\": false, \"description\": \"One claim as the model returns it: the grammar minus the fields the caller already knows.\\n\\n``text``, ``section``, ``id`` and ``source`` are not asked for. The caller knows which section\\nit passed in, the id is a hash of the other three fields, the source of an extraction is\\nalways ``report``, and the text is the line the model named -- which the caller has in front\\nof it, so asking for it back costs output tokens and adds a way for the answer to disagree\\nwith the prose (D-063, D-085).\\n\\nAttributes:\\n    line: The 1-based number of the line the number appears on, as the prompt printed it.\\n    value: The number as written, separators and per cent sign removed.\\n    unit: How it is written.\\n    metric: What it measures, or ``None``.\\n    split: Which split it is about, or ``None``.\\n    comparison: ``eq``, ``delta`` or ``ratio``.\\n    citation: The citation the number carries, or ``None``.\\n    rounding: Decimals the prose used, or ``None``.\", \"properties\": {\"line\": {\"minimum\": 1, \"title\": \"Line\", \"type\": \"integer\"}, \"value\": {\"title\": \"Value\", \"type\": \"number\"}, \"unit\": {\"$ref\": \"#/$defs/Unit\", \"default\": \"ratio\"}, \"metric\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Metric\"}, \"split\": {\"anyOf\": [{\"$ref\": \"#/$defs/SplitName\"}, {\"type\": \"null\"}], \"default\": null}, \"comparison\": {\"$ref\": \"#/$defs/Comparison\", \"default\": \"eq\"}, \"citation\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Citation\"}, \"rounding\": {\"anyOf\": [{\"minimum\": 0, \"type\": \"integer\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Rounding\"}}, \"required\": [\"line\", \"value\"], \"title\": \"ExtractedClaim\", \"type\": \"object\"}, \"SplitName\": {\"description\": \"The splits a claim may be stated on, exactly as ``CLAIMS_SCHEMA.json`` enumerates them.\\n\\nAttributes:\\n    train: The development split.\\n    test: The held-out split.\\n    out_of_time: A later-period split; hazard subjects.\\n    vintage_holdout: One origination year held out; hazard subjects.\", \"enum\": [\"train\", \"test\", \"out_of_time\", \"vintage_holdout\"], \"title\": \"SplitName\", \"type\": \"string\"}, \"Unit\": {\"description\": \"How a number is written, which decides how it is normalised before matching.\\n\\nAttributes:\\n    ratio: Every dimensionless quantity not written with a ``%`` -- AUC, PSI, VIF, a\\n        coefficient, a lift.\\n    percent: Written with a ``%``; normalised against a unit-interval artifact by dividing\\n        by 100.\\n    count: A number of rows, features or events. Matched to half a unit, so integers match\\n        exactly.\\n    currency: A money amount.\\n    bp: Basis points, as a rate shock is written.\\n    months: A horizon.\", \"enum\": [\"ratio\", \"percent\", \"count\", \"currency\", \"bp\", \"months\"], \"title\": \"Unit\", \"type\": \"string\"}}, \"additionalProperties\": false, \"description\": \"The JSON object the extractor is asked for: a list of claims under one key.\\n\\nA bare JSON array is a shape more models get wrong than a single-key object, and\\n:func:`~quaestor.llm.structured.structured` validates a ``BaseModel``, not a list.\\n\\nAttributes:\\n    claims: The claims, in the order the numbers appear.\", \"properties\": {\"claims\": {\"items\": {\"$ref\": \"#/$defs/ExtractedClaim\"}, \"title\": \"Claims\", \"type\": \"array\"}}, \"title\": \"ExtractedClaims\", \"type\": \"object\"}",
+    "system": null
+  },
+  "schema_version": 1
+}

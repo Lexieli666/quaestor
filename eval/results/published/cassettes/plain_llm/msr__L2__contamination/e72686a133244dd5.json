@@ -1,0 +1,102 @@
+{
+  "calls": 1,
+  "completion": {
+    "cost_usd": 0.136366,
+    "latency_ms": 30291.0,
+    "model": "claude-opus-5[1m]",
+    "raw": {
+      "api_error_status": null,
+      "duration_api_ms": 30291,
+      "duration_ms": 29612,
+      "fast_mode_disabled_reason": "sdk_opt_in_required",
+      "fast_mode_state": "off",
+      "is_error": false,
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "contextWindow": 200000,
+          "costUSD": 0.003406,
+          "inputTokens": 3336,
+          "maxOutputTokens": 32000,
+          "outputTokens": 14,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        },
+        "claude-opus-5[1m]": {
+          "cacheCreationInputTokens": 6515,
+          "cacheReadInputTokens": 600,
+          "canonicalModel": "claude-opus-5",
+          "contextWindow": 1000000,
+          "costUSD": 0.13296,
+          "inputTokens": 2,
+          "maxOutputTokens": 64000,
+          "outputTokens": 2700,
+          "provider": "firstParty",
+          "webSearchRequests": 0
+        }
+      },
+      "num_turns": 1,
+      "permission_denials": [],
+      "quaestor_bare": false,
+      "result": "{\"claims\":[{\"line\":1,\"value\":4,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":10,\"unit\":\"percent\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":20,\"unit\":\"percent\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":10,\"unit\":\"percent\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.10,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.25,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":2019,\"unit\":\"ratio\",\"metric\":null,\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":2.2,\"unit\":\"ratio\",\"metric\":null,\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":12,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":0.72,\"unit\":\"ratio\",\"metric\":\"auc\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":0.85,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":1.15,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":0.80,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":1.20,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":0.25,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":0.80,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":1.20,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":150,\"unit\":\"bp\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null}]}",
+      "session_id": "2dab8009-4962-49dc-8942-f9c920e0b0f4",
+      "stop_reason": "end_turn",
+      "subtype": "success",
+      "terminal_reason": "completed",
+      "time_to_request_ms": 189,
+      "total_cost_usd": 0.136366,
+      "ttft_ms": 22417,
+      "ttft_stream_ms": 873,
+      "type": "result",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 6515,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 6515,
+        "cache_read_input_tokens": 600,
+        "inference_geo": "not_available",
+        "input_tokens": 2,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 6515,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 6515,
+            "cache_read_input_tokens": 600,
+            "input_tokens": 2,
+            "output_tokens": 2700,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 2700,
+        "output_tokens_details": {
+          "thinking_tokens": 1717
+        },
+        "server_tool_use": {
+          "web_fetch_requests": 0,
+          "web_search_requests": 0
+        },
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "uuid": "946f2a01-d1e0-4925-80b9-220e5bb841e8"
+    },
+    "text": "{\"claims\":[{\"line\":1,\"value\":4,\"unit\":\"ratio\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":10,\"unit\":\"percent\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":20,\"unit\":\"percent\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":1,\"value\":10,\"unit\":\"percent\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.10,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":0.25,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":2019,\"unit\":\"ratio\",\"metric\":null,\"split\":\"train\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":2.2,\"unit\":\"ratio\",\"metric\":null,\"split\":\"out_of_time\",\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":5,\"value\":12,\"unit\":\"months\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":0.72,\"unit\":\"ratio\",\"metric\":\"auc\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":0.85,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":1.15,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":0.80,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":7,\"value\":1.20,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":0.25,\"unit\":\"ratio\",\"metric\":\"psi\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":0.80,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":1.20,\"unit\":\"ratio\",\"metric\":\"calibration_slope\",\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null},{\"line\":11,\"value\":150,\"unit\":\"bp\",\"metric\":null,\"split\":null,\"comparison\":\"eq\",\"citation\":null,\"rounding\":null}]}",
+    "tokens_in": 7117,
+    "tokens_out": 2700
+  },
+  "key": "e72686a133244dd5",
+  "provider": "claude-cli",
+  "request": {
+    "params": {
+      "model": "claude-opus-5[1m]"
+    },
+    "prompt": "You are extracting the numeric claims of one section of a model-validation report, so that each\ncan be checked against the artifact it cites. Section: monitoring.\n\nThe prose is printed below one line per line, each prefixed with its own number and a vertical\nbar. List EVERY number that appears in the prose, in the order it appears, including numbers that\nappear inside a citation's logical name and numbers written with a thousands separator or a per\ncent sign. For each one:\n\n- \"line\" is the number printed to the left of the line the number appears on. Give the number\n  only; do not copy the line's text back, and do not count the prefix itself as a number.\n- \"value\" is the number as written, with thousands separators and the per cent sign removed:\n  \"3,500\" is 3500, \"22.0%\" is 22.0.\n- \"unit\" is \"percent\" when the number is written with a per cent sign, \"count\" for a number of\n  rows, features or events, \"currency\", \"bp\" for basis points, \"months\" for a horizon, and\n  \"ratio\" for every other dimensionless quantity (AUC, PSI, VIF, a coefficient, a lift).\n- \"metric\" is what the number measures, taken from the logical name of the artifact it cites\n  (auc, brier, psi, vif, calibration_slope, delta_auc, coefficient, event_rate, ...), or null.\n- \"split\" is train, test, out_of_time or vintage_holdout, or null.\n- \"comparison\" is \"eq\" for a number that equals its artifact; \"delta\" for a difference written\n  \"from a to b\" or \"a gap of x\", whose value is the second cited artifact minus the first; and\n  \"ratio\" for a number written as one artifact divided by another. A delta or ratio carries TWO\n  adjacent citations, in that order.\n- \"citation\" is the [[art:...]] token the number carries, copied exactly, or null when the\n  sentence carries none. Do not invent a citation and do not move one from another number.\n- \"rounding\" is the number of decimals the prose wrote when it wrote fewer than the artifact has\n  (2 for a lift written 2.24), or null.\n\nReturn every number even when it has no citation: a number you leave out is still counted, and\ncounted against the report.\n\nProse:\n 1| **Monthly.** Report actual versus predicted CPR at the portfolio level and by the primary MSR strata (vintage, note rate band, loan age bucket, servicer), as an actual-to-expected ratio. Given the bias documented in section 4, the A/E ratio is the primary control: amber at a sustained deviation beyond +/-10%, red beyond +/-20% or at any three consecutive months of same-signed deviation beyond 10%. Same-signed persistence should escalate even inside the band, because the defect found here is directional rather than noisy.\n 2| \n 3| **Monthly.** Track the mean predicted SMM and the realized event rate side by side, and track the score distribution's mean and dispersion against the stored training baseline.\n 4| \n 5| **Quarterly.** Compute PSI for every model feature and for the score against the training baseline, with the usual 0.10 and 0.25 action levels. Given that the training window ends in December 2019 and the out-of-time evidence already shows a 2.2x shift in mean predicted hazard, the rate-driven features (`incentive`, `sato`, `rate_change_12m`) should be expected to breach first and should be reviewed on every refinance-wave transition regardless of the calendar.\n 6| \n 7| **Quarterly.** Recompute AUC, KS and the calibration slope on the trailing twelve months of realized performance. Discrimination should be alerted below an AUC of 0.72; the calibration slope should be alerted outside 0.85–1.15 and escalated outside 0.80–1.20.\n 8| \n 9| **Quarterly.** Back-test the prior quarter's projection against realized runoff, reporting the CPR error and the implied MSR value error, cumulatively and by stratum. This is the only control that tests the extrapolated portion of the baseline hazard, and it is the one that matters most for the valuation use.\n10| \n11| **Annually, or on trigger.** Refit the baseline hazard and re-estimate the model on a panel extended through the most recent data, and re-run the challenger comparison. Triggers for an off-cycle refit: a red A/E breach, a feature PSI above 0.25, a calibration slope outside 0.80–1.20, or a sustained market rate move beyond 150bp from the level prevailing at the last refit.\n\n\nAnswer with one JSON object and nothing else: no prose before or after it, no explanation, no markdown fence. It must validate against this JSON schema:\n{\"$defs\": {\"Comparison\": {\"description\": \"What the claimed value is asserted to equal.\\n\\n``delta`` and ``ratio`` are cited by two adjacent ``[[art:...]]`` tokens, in order (D-012).\\nThe enum is not nullable: ``eq`` is the explicit default, so \\\"this number equals its artifact\\\"\\nhas one spelling and not two (D-018).\\n\\nAttributes:\\n    eq: The value matches the cited artifact.\\n    delta: The value matches ``second - first``.\\n    ratio: The value matches ``second / first``.\", \"enum\": [\"eq\", \"delta\", \"ratio\"], \"title\": \"Comparison\", \"type\": \"string\"}, \"ExtractedClaim\": {\"additionalProperties\": false, \"description\": \"One claim as the model returns it: the grammar minus the fields the caller already knows.\\n\\n``text``, ``section``, ``id`` and ``source`` are not asked for. The caller knows which section\\nit passed in, the id is a hash of the other three fields, the source of an extraction is\\nalways ``report``, and the text is the line the model named -- which the caller has in front\\nof it, so asking for it back costs output tokens and adds a way for the answer to disagree\\nwith the prose (D-063, D-085).\\n\\nAttributes:\\n    line: The 1-based number of the line the number appears on, as the prompt printed it.\\n    value: The number as written, separators and per cent sign removed.\\n    unit: How it is written.\\n    metric: What it measures, or ``None``.\\n    split: Which split it is about, or ``None``.\\n    comparison: ``eq``, ``delta`` or ``ratio``.\\n    citation: The citation the number carries, or ``None``.\\n    rounding: Decimals the prose used, or ``None``.\", \"properties\": {\"line\": {\"minimum\": 1, \"title\": \"Line\", \"type\": \"integer\"}, \"value\": {\"title\": \"Value\", \"type\": \"number\"}, \"unit\": {\"$ref\": \"#/$defs/Unit\", \"default\": \"ratio\"}, \"metric\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Metric\"}, \"split\": {\"anyOf\": [{\"$ref\": \"#/$defs/SplitName\"}, {\"type\": \"null\"}], \"default\": null}, \"comparison\": {\"$ref\": \"#/$defs/Comparison\", \"default\": \"eq\"}, \"citation\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Citation\"}, \"rounding\": {\"anyOf\": [{\"minimum\": 0, \"type\": \"integer\"}, {\"type\": \"null\"}], \"default\": null, \"title\": \"Rounding\"}}, \"required\": [\"line\", \"value\"], \"title\": \"ExtractedClaim\", \"type\": \"object\"}, \"SplitName\": {\"description\": \"The splits a claim may be stated on, exactly as ``CLAIMS_SCHEMA.json`` enumerates them.\\n\\nAttributes:\\n    train: The development split.\\n    test: The held-out split.\\n    out_of_time: A later-period split; hazard subjects.\\n    vintage_holdout: One origination year held out; hazard subjects.\", \"enum\": [\"train\", \"test\", \"out_of_time\", \"vintage_holdout\"], \"title\": \"SplitName\", \"type\": \"string\"}, \"Unit\": {\"description\": \"How a number is written, which decides how it is normalised before matching.\\n\\nAttributes:\\n    ratio: Every dimensionless quantity not written with a ``%`` -- AUC, PSI, VIF, a\\n        coefficient, a lift.\\n    percent: Written with a ``%``; normalised against a unit-interval artifact by dividing\\n        by 100.\\n    count: A number of rows, features or events. Matched to half a unit, so integers match\\n        exactly.\\n    currency: A money amount.\\n    bp: Basis points, as a rate shock is written.\\n    months: A horizon.\", \"enum\": [\"ratio\", \"percent\", \"count\", \"currency\", \"bp\", \"months\"], \"title\": \"Unit\", \"type\": \"string\"}}, \"additionalProperties\": false, \"description\": \"The JSON object the extractor is asked for: a list of claims under one key.\\n\\nA bare JSON array is a shape more models get wrong than a single-key object, and\\n:func:`~quaestor.llm.structured.structured` validates a ``BaseModel``, not a list.\\n\\nAttributes:\\n    claims: The claims, in the order the numbers appear.\", \"properties\": {\"claims\": {\"items\": {\"$ref\": \"#/$defs/ExtractedClaim\"}, \"title\": \"Claims\", \"type\": \"array\"}}, \"title\": \"ExtractedClaims\", \"type\": \"object\"}",
+    "system": null
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,12 @@
+{
+  "commit": "8959d5c0823fa66cbe9e8cbcef3d152779f75e5d",
+  "model": "claude-opus-5[1m]",
+  "provider": "ClaudeCLILLM",
+  "data_mode": "synthetic",
+  "cells": 54,
+  "scored": "2026-09-20T23:31:20Z",
+  "source_results_dir": "eval/results/20260918T065257Z",
+  "ledger_cost_usd": 127.265707,
+  "ledger_cost_note": "last attempt per cell only; discarded attempts excluded, see docs/STUDY.md section 9",
+  "cassettes_sha256": "c006a2c40da970e497479b31df24746a8849a4d7a0dc5bbbc7a1f1eaff525e8e"
+}

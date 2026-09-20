@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T074524Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L2",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "check_leakage",
+      "title": "Rows of the test split repeat feature vectors of the training split while carrying identifiers of their own, so the test split is contaminated.",
+      "narrative": "The share of test rows whose feature values also appear in train is 0.03 [[art:dc2d0a43:leakage.overlap.features]], above the bound the rule applied of 0.005 [[art:1ee888c5:threshold.L2.overlap.features_effective]].\n\nThat applied bound sits at the declared contamination threshold of 0.005 [[art:9f336eaf:threshold.L2.overlap]], because the share of train rows whose feature values are not unique within train is 0 [[art:4474c227:leakage.duplicates.train]].\n\nThe validator concludes that repetition inside the training split does not account for the overlap, so the recomputed test metrics are measured in part on rows the model has already seen and overstate held-out performance by an amount this validation cannot bound.\n\nThe developer should trace how the repeated feature vectors came to carry distinct identifiers, rebuild the splits so that no test row reproduces a training feature vector, and re-report test performance on the rebuilt split before the model is relied on.",
+      "evidence": [
+        "1ee888c5",
+        "4474c227",
+        "9f336eaf",
+        "dc2d0a43"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A gradient-boosting challenger outperforms the champion on test by a margin past the effective-challenge threshold.",
+      "narrative": "The challenger reaches an AUC on test of 0.8346 [[art:d1533f6e:challenger.auc]], against the champion's 0.748 [[art:33170ddf:metrics.test.auc]].\n\nThe challenger's lead over the champion is 0.08651 [[art:95cce9d6:challenger.delta_auc]], above the effective-challenge threshold of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\n\nThe validator concludes that signal available in the same features is not captured by the champion's functional form, and notes that both AUCs were computed on the split addressed in F-001, so the comparison should be repeated once that split is rebuilt.\n\nThe developer should document the rationale for retaining the champion over a better-performing alternative, or adopt the alternative, and record that rationale where recommendations, responses, and exceptions are tracked [[reg:SR26-2:VI.3]].",
+      "evidence": [
+        "33170ddf",
+        "95cce9d6",
+        "d1533f6e",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

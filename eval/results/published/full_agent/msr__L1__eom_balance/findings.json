@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "msr_prepayment-full_agent-20260920T181437Z-e61d346a",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "check_leakage",
+      "title": "A single input separates the outcome perfectly on its own, so the model's discrimination is carried by a quantity that cannot be a genuine predictor of the event it precedes.",
+      "narrative": "The strongest single feature, `bom_balance_log`, reaches an AUC of 1 [[art:7f74c0d5:leakage.target_corr.max_single_feature_auc]] on train, above the declared ceiling of 0.9 [[art:c29e7a34:threshold.L1.single_feature_auc]] for what one feature may reach alone.\n\nThe number of features whose declared timing places them during or after the outcome is 0 [[art:742bcd24:leakage.timing.n_flagged]], so the declared timing table does not by itself account for the separation and the defect lies in how the feature is constructed rather than in how it is labelled.\n\n[[table:leakage.target_corr]]\n\n[[table:leakage.timing]]\n\nThe validator concludes that a feature at the maximum attainable single-feature AUC is contemporaneous with or derived from the outcome, and that every downstream performance statistic for this package is therefore uninterpretable as evidence of predictive skill.\n\nThe developer should trace `bom_balance_log` to its source field, establish the period in which its value becomes fixed relative to the prepayment outcome, and either rebuild it from information available at the as-of period or drop it and refit, then resubmit the package with the single-feature screen re-run.",
+      "evidence": [
+        "742bcd24",
+        "7f74c0d5",
+        "8cdad1c5",
+        "c29e7a34",
+        "ce82a409"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "X1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "run_scenarios",
+      "title": "The servicing value profile across the rate shock grid curves in the opposite direction to the one the package declares, so the model misstates the sign of the asset's second-order rate sensitivity.",
+      "narrative": "The change in servicing value at the deepest downward rate shock on the grid is -92.11 [[art:0f83fead:scenario.value_change.-300]] and the change at the largest upward rate shock on the grid is 232.8 [[art:a0678af4:scenario.value_change.300]], the rise in the up-shock being the larger of the two in magnitude.\n\nThe realised convexity taken from those two changes is 140.7 [[art:4451c907:scenario.convexity]], a positive quantity, where `package.yaml` declares the convexity of this asset to be negative.\n\nThe subject's own projection record carries the same positive figure at 140.7 [[art:7d3ba32d:run.projection#convexity]], so the discrepancy is between the package's declared behaviour and its implemented behaviour rather than between two recomputations.\n\nFirst-year CPR does move in the expected direction across the grid, at 0.0007734 [[art:7d3ba32d:run.projection#cpr_by_shock.-300]] under the deepest downward rate shock and 0.0006902 [[art:7d3ba32d:run.projection#cpr_by_shock.300]] under the largest upward rate shock, which places the defect in the transmission from prepayment speed to value rather than in the prepayment response itself.\n\n[[table:scenario.value_by_shock]]\n\nThe validator concludes that the shock grid reports rate sensitivity with the wrong curvature, so hedging, limit-setting or valuation decisions taken from this grid would be directed against the exposure they are meant to offset.\n\nThe developer should reconcile the cashflow and discounting path that maps prepayment speed to servicing value against the declared negative convexity, determine whether the declaration or the implementation is in error, correct the one that is wrong and re-run the shock grid before the package is used.",
+      "evidence": [
+        "0f83fead",
+        "4451c907",
+        "7d3ba32d",
+        "a0678af4",
+        "c4d5cb25"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L2"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ]
+  }
+}

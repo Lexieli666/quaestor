@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T092037Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "R1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "check_stability",
+      "title": "The coefficient on `bill_trend_6m`, a top-ranked feature, reverses sign between application cohorts while staying large and sharply resolved in each of them, so the relationship the model fits to this feature does not hold across the regimes the model is applied in.",
+      "narrative": "The regime sign-reversal condition for this feature evaluates to 1 [[art:4dc17324:stability.bill_trend_6m.sign_flip]], which requires the per-regime refit coefficient to exceed the declared magnitude bound of 0.05 [[art:aca84377:threshold.R1.sign_flip_coef]] and to reach the declared absolute-z bound of 2 [[art:2e4428c7:threshold.R1.sign_flip_z]] in every regime while changing sign between them.\n\nThe per-regime standardised refit, with the standard error and z of each coefficient, is reproduced below.\n\n[[table:stability.bill_trend_6m.coef_or_importance_by_regime]]\n\nBecause both cohort refits clear the magnitude bound and the significance bound, the validator concludes that the reversal is not an artefact of weak identification in one regime but a genuine change in the fitted direction, and that predictions for a cohort therefore inherit a direction estimated partly from a cohort where the direction is opposite.\n\nThe developer should establish whether the cohort variable belongs in the specification as an interaction or a stratification, re-estimate with that structure, and if the reversal survives, either drop the feature or document the cohort range over which the fitted direction is asserted to hold and constrain use accordingly.",
+      "evidence": [
+        "2e4428c7",
+        "4114d577",
+        "4dc17324",
+        "aca84377"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A routine hist_gradient_boosting challenger outperforms the champion on the test split by more than the margin the effective-challenge rule tolerates, so the champion's functional form is not supported as the best available for this use.",
+      "narrative": "The challenger reaches an AUC on test of 0.7898 [[art:2b3381be:challenger.auc]] against the champion's recomputed 0.7337 [[art:3255122a:metrics.test.auc]].\n\nThe comparison the rule makes is the difference between the two, which is 0.05613 [[art:9cbcc544:challenger.delta_auc]] and lies above the declared effective-challenge bound of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\n\nThe validator concludes that discriminatory power is being left on the table by the chosen specification rather than by the data, and that the loss is large enough to require a stated reason for keeping the champion.\n\nThe developer should either record the interpretability, stability or implementation grounds on which the champion is preferred despite the gap, or bring the challenger forward as a candidate and subject it to the same validation, noting that the regime instability in F-001 is one such ground only if it is shown to be absent from the challenger.",
+      "evidence": [
+        "2b3381be",
+        "3255122a",
+        "9cbcc544",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

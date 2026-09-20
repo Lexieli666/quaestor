@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "msr_prepayment-full_agent-20260920T200607Z-e61d346a",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "T1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The largest train-to-test population stability index recomputed in this run sits far above the maximum the package itself declares for that quantity.",
+      "narrative": "The package declares a maximum of 0.25 [[art:fbb5a9d1:threshold.package.psi.max]] for the population stability index, and the largest value recomputed between train and test, the score included, is 3.016 [[art:4fae32c6:psi.max]], which is above that maximum.\n\nThe validator concludes that the package breaches a limit its own configuration sets, so the recomputed behaviour of the model is outside the range the developer declared as acceptable, and this is a defect in the package as submitted and not a difference of methodology between developer and validator.\n\nThe developer should either re-establish the model on data whose train-to-test movement falls within the declared maximum of 0.25 [[art:fbb5a9d1:threshold.package.psi.max]], or restate the limit with an argued basis and resubmit, and in the interim state the breach to model users as a limitation on use.",
+      "evidence": [
+        "4fae32c6",
+        "fbb5a9d1"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 4
+    },
+    {
+      "id": "F-002",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "profile_data",
+      "title": "The train and test populations differ enough on the model's own inputs, and on the score it produces, that fitted relationships learned on train are not being evaluated on a comparable population.",
+      "narrative": "Against a threshold of 0.25 [[art:278b9016:threshold.S1.psi]], the population stability index between train and test is 3.016 [[art:1d35a583:psi.burnout]] on `burnout`, the largest of the comparisons reported here.\n\nThe same index is 1.68 [[art:987aabe4:psi.loan_age]] on `loan_age`, 1.342 [[art:2f1cb70b:psi.note_rate]] on `note_rate`, and 0.8734 [[art:0f61188c:psi.incentive]] on `incentive`, each above that threshold.\n\nThe score's own distribution moves as well, at 0.8372 [[art:92ac1652:psi.y_score]], above the same threshold of 0.25 [[art:278b9016:threshold.S1.psi]], so the drift is not confined to the inputs but reaches the model output.\n\nThe validator concludes that drift of this extent limits what the test results establish about performance on the training population, and that it is a plausible contributor to the calibration defect recorded below rather than an independent observation.\n\nThe developer should document what changed between the two samples, say whether the split is chronological or otherwise structured, and show either that the split is the intended one for the model's use or that a comparable split leaves the fitted relationships intact.",
+      "evidence": [
+        "0f61188c",
+        "1d35a583",
+        "278b9016",
+        "2f1cb70b",
+        "92ac1652",
+        "987aabe4"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The mean predicted probability stands above the observed event rate on every split reported here, by a relative margin beyond the declared tolerance in each case.",
+      "narrative": "Against a relative tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]], the mean predicted probability on test is 0.02283 [[art:1c1a1d8d:metrics.test.mean_predicted]] where the observed rate is 0.01795 [[art:d222aedf:metrics.test.event_rate]], a relative gap of 0.2718 [[art:04dcea16:calibration.mean_rel_gap.test]].\n\nOn out_of_time the mean predicted probability is 0.02283 [[art:4d7aa98b:metrics.out_of_time.mean_predicted]] against an observed rate of 0.01795 [[art:83ccf5c0:metrics.out_of_time.event_rate]], a relative gap of 0.2718 [[art:c5239af4:calibration.mean_rel_gap.out_of_time]], again above that tolerance.\n\nOn vintage_holdout the mean predicted probability is 0.006157 [[art:914aeeba:metrics.vintage_holdout.mean_predicted]] against an observed rate of 0.004817 [[art:e3590a16:metrics.vintage_holdout.event_rate]], a relative gap of 0.2782 [[art:2eba48c2:calibration.mean_rel_gap.vintage_holdout]].\n\nThe comparison drawn across these splits is the relative gap and not the absolute difference: the predicted and observed levels on vintage_holdout are both well below those on test, while the relative gap on vintage_holdout is the larger of the two, so a reader should not treat the splits as alike on the absolute scale on the strength of their similar relative gaps.\n\nThe decile tables below show where in the predicted range the over-prediction sits on each split.\n\n[[table:calibration.test]]\n\n[[table:calibration.out_of_time]]\n\n[[table:calibration.vintage_holdout]]\n\nThe validator concludes that the level of the model's output is biased upward on every split reported here, that the bias persists on the vintage holdout as well as on the in-period splits, and that any use of the predictions as probabilities rather than as a ranking is affected by it.\n\nThe developer should recalibrate the output level against observed experience, report the recomputed relative gaps against the tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]] on each split, and confirm that the test and out_of_time splits are drawn from distinct populations given that their recomputed predicted and observed values coincide.",
+      "evidence": [
+        "04dcea16",
+        "07848a4c",
+        "1c1a1d8d",
+        "20e93a8c",
+        "2eba48c2",
+        "4d7aa98b",
+        "83ccf5c0",
+        "914aeeba",
+        "a16e1248",
+        "a402f077",
+        "c5239af4",
+        "d222aedf",
+        "e3590a16"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 12
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1"
+    ],
+    "compute_metrics": [
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ],
+    "run_scenarios": [
+      "X1"
+    ]
+  }
+}

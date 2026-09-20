@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260919T034749Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "An alternative specification out-performs the champion on held-out discrimination by a margin wider than the declared effective-challenge bound, so the retained model is not the strongest candidate on the evidence reviewed.",
+      "narrative": "A gradient-boosted challenger reaches an AUC of 0.824 [[art:bf5be719:challenger.auc]] on the test split, against the champion's 0.748 [[art:5c6c2bfc:metrics.test.auc]] on the same split.\n\nThe challenger's lead over the champion is 0.07598 [[art:c9e502ae:challenger.delta_auc]], above the declared effective-challenge bound of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\n\nThe validator concludes that the choice of the champion's functional form is not supported by discrimination on the test split alone, and that the margin is wide enough relative to the declared bound that the decision to retain the champion rests on grounds the package has not set out.\n\nThe model developer should either record the reasons the champion is retained in spite of the challenger's lead \u2014 interpretability, stability under monitoring, implementation constraints or the cost of the richer form \u2014 or carry the challenger forward as a candidate replacement and submit it for validation, and in either case document the decision so that the response can be tracked [[reg:SR26-2:VI.3]].",
+      "evidence": [
+        "5c6c2bfc",
+        "bf5be719",
+        "c9e502ae",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 2
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

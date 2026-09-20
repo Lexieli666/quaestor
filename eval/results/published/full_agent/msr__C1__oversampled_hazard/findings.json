@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "msr_prepayment-full_agent-20260920T173052Z-e61d346a",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The predicted prepayment level overstates the observed prepayment rate on every split evaluated, by a relative margin well beyond the declared calibration tolerance.",
+      "narrative": "On train, mean predicted is 0.03925 [[art:68f41b88:metrics.train.mean_predicted]] against an observed rate of 0.008525 [[art:b9ef3327:metrics.train.event_rate]], a relative gap of 3.604 [[art:324eb124:calibration.mean_rel_gap.train]] against a declared tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\n\nOn test, mean predicted is 0.03802 [[art:122af437:metrics.test.mean_predicted]] against an observed rate of 0.008061 [[art:570cc08a:metrics.test.event_rate]], a relative gap of 3.716 [[art:15d5555b:calibration.mean_rel_gap.test]], again above the declared tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\n\nOn out_of_time, mean predicted is 0.07793 [[art:921d185b:metrics.out_of_time.mean_predicted]] against an observed rate of 0.01795 [[art:83ccf5c0:metrics.out_of_time.event_rate]], a relative gap of 3.342 [[art:5b8375ec:calibration.mean_rel_gap.out_of_time]], above the same declared tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\n\nOn vintage_holdout, mean predicted is 0.02582 [[art:348107ae:metrics.vintage_holdout.mean_predicted]] against an observed rate of 0.004817 [[art:e3590a16:metrics.vintage_holdout.event_rate]], a relative gap of 4.36 [[art:a691b5ed:calibration.mean_rel_gap.vintage_holdout]], the furthest above the declared tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]] of the four splits reported here.\n\nThe overstatement is in the same direction on the in-sample split and on each held-out split, so it is a property of the fitted level rather than a holdout artifact.\n\nThe decile evidence behind each split follows.\n\n[[table:calibration.train]]\n\n[[table:calibration.test]]\n\n[[table:calibration.out_of_time]]\n\n[[table:calibration.vintage_holdout]]\n\nThe validator concludes that the model's output cannot be read as a prepayment probability in a valuation that multiplies it by balances or cash flows, because a level biased this far above the observed rate propagates directly into servicing-run-off and MSR value, while rank ordering on test remains at an AUC of 0.7758 [[art:2f4cab3e:metrics.test.auc]] and is not what the defect concerns.\n\nThe model developer should identify the source of the level bias, recalibrate the predicted level against the observed rate, and re-report the relative gap and the decile calibration on each split against the declared tolerance of 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]] before the package is used to produce valuation output.",
+      "evidence": [
+        "122af437",
+        "15d5555b",
+        "20e93a8c",
+        "324eb124",
+        "348107ae",
+        "392a629c",
+        "570cc08a",
+        "5b8375ec",
+        "68f41b88",
+        "83ccf5c0",
+        "8417f6b7",
+        "921d185b",
+        "a691b5ed",
+        "a8585045",
+        "b9ef3327",
+        "e3590a16",
+        "fd5aec5a"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 20
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ],
+    "run_scenarios": [
+      "X1"
+    ]
+  }
+}

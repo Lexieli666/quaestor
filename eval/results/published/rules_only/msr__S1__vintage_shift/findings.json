@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "rules_only",
+  "run_id": "msr_prepayment-rules_only-20260918T065352Z-568d25f5",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "T1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "A `T1` finding, raised by `compute_metrics` at severity `high`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.",
+      "evidence": [
+        "4fae32c6",
+        "fbb5a9d1"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "profile_data",
+      "title": "A `S1` finding, raised by `profile_data` at severity `medium`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.",
+      "evidence": [
+        "0f61188c",
+        "1d35a583",
+        "278b9016",
+        "2f1cb70b",
+        "92ac1652",
+        "987aabe4"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "A `C1` finding, raised by `compute_metrics` at severity `medium`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.\nThe value of `calibration.mean_rel_gap.out_of_time` is 0.2718 [[art:c5239af4:calibration.mean_rel_gap.out_of_time]].\nThe value of `calibration.mean_rel_gap.test` is 0.2718 [[art:04dcea16:calibration.mean_rel_gap.test]].\nThe value of `calibration.mean_rel_gap.vintage_holdout` is 0.2782 [[art:2eba48c2:calibration.mean_rel_gap.vintage_holdout]].\nThe value of `metrics.out_of_time.event_rate` is 0.01795 [[art:83ccf5c0:metrics.out_of_time.event_rate]].\nThe value of `metrics.out_of_time.mean_predicted` is 0.02283 [[art:4d7aa98b:metrics.out_of_time.mean_predicted]].\nThe value of `metrics.test.event_rate` is 0.01795 [[art:d222aedf:metrics.test.event_rate]].\nThe value of `metrics.test.mean_predicted` is 0.02283 [[art:1c1a1d8d:metrics.test.mean_predicted]].\nThe value of `metrics.vintage_holdout.event_rate` is 0.004817 [[art:e3590a16:metrics.vintage_holdout.event_rate]].\nThe value of `metrics.vintage_holdout.mean_predicted` is 0.006157 [[art:914aeeba:metrics.vintage_holdout.mean_predicted]].\nThe value of `psi.burnout` is 3.016 [[art:1d35a583:psi.burnout]].\nThe value of `psi.incentive` is 0.8734 [[art:0f61188c:psi.incentive]].\nThe value of `psi.loan_age` is 1.68 [[art:987aabe4:psi.loan_age]].\nThe value of `psi.max` is 3.016 [[art:4fae32c6:psi.max]].\nThe value of `psi.note_rate` is 1.342 [[art:2f1cb70b:psi.note_rate]].\nThe value of `psi.y_score` is 0.8372 [[art:92ac1652:psi.y_score]].\nThe value of `sign_check.note_rate.agrees` is 0 [[art:a453463d:sign_check.note_rate.agrees]].\nThe value of `sign_check.note_rate.coef_sign` is -1 [[art:aecf7ccb:sign_check.note_rate.coef_sign]].\nThe value of `sign_check.note_rate.univariate_direction` is 1 [[art:61f6e1ac:sign_check.note_rate.univariate_direction]].\nThe value of `threshold.C1.mean_ratio_rel` is 0.25 [[art:20e93a8c:threshold.C1.mean_ratio_rel]].\nThe value of `threshold.S1.psi` is 0.25 [[art:278b9016:threshold.S1.psi]].\nThe value of `threshold.package.psi.max` is 0.25 [[art:fbb5a9d1:threshold.package.psi.max]].\n[[table:calibration.out_of_time]]\n[[table:calibration.test]]\n[[table:calibration.vintage_holdout]]",
+      "evidence": [
+        "04dcea16",
+        "07848a4c",
+        "1c1a1d8d",
+        "20e93a8c",
+        "2eba48c2",
+        "4d7aa98b",
+        "83ccf5c0",
+        "914aeeba",
+        "a16e1248",
+        "a402f077",
+        "c5239af4",
+        "d222aedf",
+        "e3590a16"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 3
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1"
+    ],
+    "compute_metrics": [
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_stability": [
+      "R1"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ],
+    "run_scenarios": [
+      "X1"
+    ]
+  }
+}

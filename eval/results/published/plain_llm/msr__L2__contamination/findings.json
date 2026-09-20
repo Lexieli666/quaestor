@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "msr_prepayment-plain_llm-20260918T214026Z-986f3824",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "C1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Vintage holdout is materially miscalibrated: slope 0.836 and predicted CPR 22% above realized",
+      "narrative": "On the vintage_holdout split the calibration slope is 0.8363, outside any conventional acceptance band for a valuation model, and the level bias is large: mean predicted SMM is 0.0059139 against a realized event rate of 0.0048171, an over-prediction of 22.8%. In valuation units the model predicts 6.87 CPR against 5.63 realized, an overstatement of 124 basis points of CPR, or 22% in relative terms. Discrimination on this same split is essentially intact (AUC 0.7722, KS 0.4492), so the failure is one of level and scale, not of rank-ordering: the model places loans in the right order but assigns hazards that are too high and too dispersed. The vintage_holdout population is the most seasoned of the four (48.3 rows per loan against 26.1 in train, from 666 loans and 32,177 rows) and has the lowest realized event rate, which points at under-modelled burnout as the mechanism -- the fitted hazard does not decay fast enough for loans that have already passed through refinance opportunities without acting. Because CPR is a direct input to MSR fair value, a 22% CPR error propagates into the valuation; the direction understates MSR value, which is conservative for the asset but is not conservative for hedging or amortization decisions built on the same projection. The model should not be used to produce MSR fair value until it is recalibrated and the burnout specification is re-examined, with the recalibration validated out of sample.",
+      "evidence": [
+        "3e60c932",
+        "3f2870ab",
+        "940d14da",
+        "b7f67f98"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Over-prediction is one-directional across all four splits and grows with distance from the training regime",
+      "narrative": "The model over-predicts prepayment in every evaluated population, without a single exception, and the magnitude increases monotonically as the evaluation population moves away from the training regime: train +1.0% (0.0086936 predicted against 0.0086089 realized), test +3.8% (0.0083640 against 0.0080614), out_of_time +8.4% (0.0194506 against 0.0179489), and vintage_holdout +22.8% (0.0059139 against 0.0048171). The calibration slope degrades in parallel on the in-regime splits, from 0.9958 in train to 0.9390 in test to 0.8363 on the vintage holdout. In CPR terms the out-of-time split alone is overstated by 146 basis points (21.00% predicted against 19.53% realized). A bias that never changes sign across four independent populations, and that scales with regime distance, is a structural level error in the fitted hazard rather than sampling variation. This finding is recorded separately from the vintage-holdout failure because the remediation differs: the vintage-holdout gap may be a specification problem in the burnout term, whereas the pervasive positive bias indicates the intercept/baseline level itself is high and that the error will grow, not shrink, as the production population drifts further from the December 2019 end of the training window. Remediation should include an explicit level recalibration plus a decomposition of calibration error by loan age, incentive and burnout bucket.",
+      "evidence": [
+        "3e60c932",
+        "3f2870ab",
+        "c1dbcaa3",
+        "ce5d5d56",
+        "d02960f5"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "X1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Baseline hazard is extrapolated far beyond the observed loan-age support, and the projection could not be reviewed",
+      "narrative": "The training panel contains loan ages from 0 to 59 months and the outermost age spline knot sits at 53 (age_spline_knots [1, 10, 19, 31, 53]). The tabulated baseline hazard in run.model_summary nonetheless extends beyond loan age 101, and the MSR use requires evaluation out to the full remaining amortization term. Everything beyond roughly age 55 is therefore spline extrapolation rather than estimation. Within the supported range the curve is plausible: it rises smoothly from 0.0008706 at age 0 to a peak of 0.0034253 at age 40, a recognisable seasoning ramp. Beyond the data, however, it decays continuously and without plateau, reaching 0.0018010 by age 101 -- roughly half the peak -- which is the behaviour a constrained spline produces outside its knots rather than a behaviour the data supports. An economically motivated seasoning curve typically plateaus; a monotonically decaying tail systematically lengthens projected MSR life and inflates projected value in exactly the region where the evidence is weakest. Compounding this, run.projection exists in the store but its contents were not available for review, and no S-curve, rate-shock grid, or value-versus-rate table appears anywhere in the artifact set. I am not asserting that the realized value curve is non-monotone or wrong-signed; I am recording that the extrapolated hazard tail is unsupported by data and that the scenario evidence needed to confirm the curve's shape and sign does not exist in reviewable form. Remediation: impose a plateau beyond the last knot or extend the estimation panel to older loans, and publish the S-curve and a +/-200bp value grid for independent review.",
+      "evidence": [
+        "74d4436f",
+        "8e6d6768",
+        "d4375126"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "D1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Two declared model features are absent from the data profile, and no non-training split was profiled",
+      "narrative": "run.features declares twelve inputs, but two of them -- bom_balance_log and rate_change_12m -- do not appear among the thirteen columns of the raw training profile, which contains only loan_id, period, note_rate, orig_ltv, credit_score, orig_upb_log, sato, loan_age, incentive, burnout, season_sin, season_cos and prepaid. Either these two features are derived downstream of the profiled table, in which case their construction and lineage are undocumented and their distributions are entirely unevidenced, or the feature manifest and the estimation data disagree. Two of twelve model inputs therefore have no distributional evidence of any kind, including no range checks and no missingness measurement. Separately, every profiled column reports exactly zero missingness. A servicing panel with no missing credit_score is not characteristic of real agency data and indicates either a synthetic panel or silent upstream imputation; neither is documented, and if imputation is occurring it is invisible to this review. Finally, profiles exist only for the training split: no comparable profile was produced for test, vintage_holdout or out_of_time, so the cross-split missingness and distribution comparison that this class of test requires cannot be performed at all. Remediation: profile all four splits on all twelve model features, document the derivation of bom_balance_log and rate_change_12m, and state explicitly what imputation, if any, precedes the profiled table.",
+      "evidence": [
+        "61276a96",
+        "74d4436f",
+        "7ddcc721",
+        "940d14da",
+        "f0ac9fe8"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Large regime shift across splits with no PSI computed and no stored drift baseline",
+      "narrative": "The realized monthly prepayment rate differs by a factor of 3.7 across the four evaluation populations: 0.0048171 on vintage_holdout, 0.0086089 on train, 0.0080614 on test and 0.0179489 on out_of_time -- from 5.6 CPR to 19.5 CPR. The score distribution shifts with it, mean predicted SMM rising 2.2x from 0.0086936 in train to 0.0194506 out of time, which confirms the covariates are tracking a genuine regime change rather than the model being blind to it. Despite a shift of this magnitude, no population stability index was computed for any feature or for the score, on any split, and no baseline distribution was stored against which future production drift could be measured. The training window closes at period 201912, so the production population will by construction sit outside the estimation regime, and the calibration bias documented in C1-02 is already larger out of time (+8.4%) than in sample (+1.0%) -- meaning drift and calibration failure are coupled here, not independent. The severity is medium rather than high because the shift is visible and the model's discrimination survives it (out-of-time AUC 0.7871, essentially equal to train); the defect is the absence of the measurement and of the baseline, which leaves the model without any drift control at deployment. Remediation: compute PSI for all twelve features and for the score, store the training distribution as the production baseline, and set 0.10/0.25 action levels with the rate-driven features monitored on every refinance-wave transition.",
+      "evidence": [
+        "3e60c932",
+        "3f2870ab",
+        "74d4436f",
+        "7ddcc721"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-006",
+      "defect_class": "M1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Rate-block features are collinear by construction, and no VIF or condition number was produced",
+      "narrative": "Four of the twelve inputs -- note_rate, sato, incentive and rate_change_12m -- are all linear functions of a note rate and a market rate observed at two dates. sato is the spread of the note rate over the market rate at origination; incentive is the spread over the current market rate; their difference is, up to sign and scaling, the change in market rate since origination, which rate_change_12m partly measures again over a twelve-month window. The block is therefore close to rank-deficient by construction. No VIF, condition number, or correlation matrix appears anywhere in the artifact store, so the degree of the resulting instability is unmeasured. The severity is low because near-collinearity does not bias fitted values and the model's discrimination is stable across four populations, so the predictive use is not directly impaired. It matters for two secondary uses. First, the individual coefficients on the rate terms should not be interpreted or attributed economically, and no coefficient-level review is possible in any case since the covariate coefficients are not present in the available portion of run.model_summary. Second, and more practically, any scenario generator must shock the underlying market rate and rebuild all four derived features consistently from it; shocking incentive in isolation will trace a path the fit does not support and can produce a rate response of the wrong magnitude or sign. Remediation: publish VIF and the design-matrix condition number, and document the scenario generator's feature-rebuild logic.",
+      "evidence": [
+        "61276a96",
+        "8e6d6768"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-007",
+      "defect_class": "L2",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Split independence is asserted but not demonstrated; loan counts leave cross-split loan sharing open",
+      "narrative": "run.splits reports distinct rows_hash values for the four splits, which establishes that the split tables differ but says nothing about whether the same loans appear in more than one of them -- and in a loan-month panel, loan-level sharing is the contamination that matters, because rows from the same loan are strongly correlated and their presence on both sides of a split inflates apparent holdout performance. The declared loan counts sum to 2,976 (1,395 train, 400 test, 666 vintage_holdout, 515 out_of_time), while the maximum loan_id observed in the training profile is 2,461. If the loan identifier space is global and does not extend past the training maximum, then at least 515 loans are assigned to two splits; if instead other splits carry identifiers above 2,461, the splits may be entirely disjoint. The available artifacts do not resolve which is the case, so this is recorded as an unresolved control gap at low severity rather than as a confirmed contamination. Note that an out-of-time split reusing training loans at later periods is a legitimate and common design, but a vintage holdout sharing loans with train is not, and the two cannot be distinguished from what is published. The supporting evidence is weakly consistent with block structure: the row-weighted mean loan_id in train is 581.7 against a maximum of 2,461, far below the ~1,231 that random assignment over that range would give, indicating training loans are concentrated at low identifiers. Remediation: publish the distinct loan_id set size per split and all six pairwise intersection counts.",
+      "evidence": [
+        "3f2870ab",
+        "74d4436f"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-008",
+      "defect_class": "E1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No challenger model exists in the artifact store; effective challenge was not performed",
+      "narrative": "The artifact store contains exactly one model run and no challenger, benchmark, or alternative specification of any kind. There is consequently no evidence that a challenger outperforms the champion -- and equally no evidence that it does not. This is recorded as informational rather than as a substantive defect precisely because nothing was beaten: the class cannot be tested at all in the absence of a comparison model. It is nonetheless a gap in the validation package, since the central question the champion's 0.79 AUC and its systematic over-prediction raise is whether a different specification would do better on the same panel. Two comparisons would be informative and cheap: a plain logistic regression on the same twelve features and the same splits, which would establish how much the hazard structure and the age spline are contributing over a flat specification; and a published agency-style prepayment benchmark, which would establish whether the calibration bias documented in C1-01 and C1-02 is specific to this fit or is a property of the data. No remediation is attached to this finding beyond running those comparisons before the next validation cycle. Related to this, no developer-declared acceptance thresholds or model documentation exist in the store either, so no declared claim could be tested and no threshold-breach finding can be raised or cleared.",
+      "evidence": [
+        "07ba0043",
+        "3e60c932",
+        "5c222bcc"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

@@ -75,3 +75,5 @@ eval/results/**/run/*.csv
 # are what is committed. A variant built from real data would also carry rows of it, which is the
 # second reason this directory never enters the repository (CLAUDE.md, hard constraints).
 eval/variants/
+!eval/results/published/
+!eval/results/published/**

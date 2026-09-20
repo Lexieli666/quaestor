@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "package": "msr_prepayment",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "msr_prepayment-plain_llm-20260918T220554Z-986f3824",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L2",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Declared split populations cannot be mutually loan-disjoint; vintage holdout re-uses training loans",
+      "narrative": "The split manifest declares 934 loans in train, 400 in test, 666 in vintage_holdout and 515 in out_of_time, a total of 2,515 loan memberships. The training data profile shows loan_id ranging from 1 to 1,334, bounding the universe at 1,334 distinct loans, and train (934) plus test (400) sums to exactly 1,334 \u2014 consistent with those two samples partitioning the entire loan universe. The 666 vintage_holdout loans and 515 out_of_time loans must therefore be drawn from loans already used to fit the model. Distinct rows_hash values across the four splits prove only that the row sets are not identical; they say nothing about loan-level overlap. For the out_of_time split, re-observing the same loans in later periods is normal practice but must be disclosed, since it means the 0.7846 out-of-time AUC is not out-of-sample at the loan level. For the vintage_holdout the overlap defeats the split's stated purpose \u2014 testing transfer to unseen loan cohorts \u2014 so its 0.7718 AUC and its calibration results overstate true cohort-transfer performance by an unknown margin and cannot be treated as independent validation evidence. Remediation requires publishing the loan-ID intersection matrix across all four splits and rebuilding the vintage holdout as strictly loan- and vintage-disjoint before re-reporting performance.",
+      "evidence": [
+        "0356ef50",
+        "31ce3d08",
+        "dca79f2f"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Vintage holdout calibration slope 0.837 with 16.7% over-prediction of CPR",
+      "narrative": "On the vintage_holdout split the calibration slope is 0.8373, outside a conventional 0.90-1.10 acceptance band, and mean predicted hazard is 0.005647 against an observed event rate of 0.004817, a 17.2% relative over-statement. This carries through to the annualized figure: predicted CPR 6.570% versus actual CPR 5.630%, a 16.7% relative over-prediction. The reconciliation is exact under 1-(1-h)^12, so this is a genuine level bias and not a reporting artifact. A slope materially below one means the over-prediction is concentrated in the high-score tail: the model overstates prepayment most for exactly the loans it ranks as most likely to prepay. For MSR valuation this understates model value and understates duration in a systematic direction. The same directional over-dispersion appears more mildly on the test split (slope 0.9365), indicating a specification tendency rather than a single-split anomaly; train (0.9937) and out_of_time (0.9969) slopes are sound. Recalibration on a vintage-stratified basis, calibration reporting by score decile and by cohort, and quantification of the MSR value impact of the 16.7% bias are required before valuation use.",
+      "evidence": [
+        "31ce3d08",
+        "940d14da",
+        "afa7c750"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "D1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Two declared model features do not appear in the profiled training data",
+      "narrative": "The feature inventory declares twelve model inputs, including bom_balance_log and rate_change_12m, both tagged before_period_start. Neither field appears in any profiled column of the training data, which contains only loan_id, period, note_rate, orig_ltv, credit_score, orig_upb_log, sato, loan_age, incentive, burnout, season_sin, season_cos and the prepaid target. Either the data profile is incomplete or these two features are constructed in an undocumented downstream step. Either way, a validator cannot confirm the range, sign convention, distribution or missingness of two inputs that feed the fitted hazard. This matters most for bom_balance_log: a balance measured at any point after the period start would directly encode the termination event, so its before_period_start designation is the single assertion standing between the model and a leak, and that assertion is currently unverifiable. Compounding the gap, missingness profiles were registered only for the training split, so the standard cross-split differential-missingness comparison could not be performed for any feature. Remediation requires profiling all twelve inputs on all four splits with per-field missingness, plus a data dictionary fixing the measurement timestamp of bom_balance_log.",
+      "evidence": [
+        "0356ef50",
+        "61276a96",
+        "7ddcc721",
+        "940d14da",
+        "f0ac9fe8"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "X1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Baseline hazard extrapolated past loan age 100 on data supporting only ages 0-59",
+      "narrative": "The fitted baseline hazard is tabulated continuously beyond loan age 101, but the training data support loan_age only to a maximum of 59 months and the highest age-spline knot is at 53. Within the supported range the curve is well behaved and economically correct: it rises monotonically from 0.000885 at age 0 to a peak of 0.003295 at age 43, a 3.7x seasoning ramp, then declines smoothly with no local reversals or sign errors, consistent with seasoning followed by burnout. Beyond age 59, however, the curve is pure boundary extrapolation of the spline and carries no information from any observation. The extrapolated tail decays only gently, from 0.003295 at the age-43 peak to roughly 0.00231 at age 101 \u2014 about 30% over five years \u2014 which silently imposes the strong assumption that long-seasoned loans keep prepaying at around two-thirds of peak speed indefinitely. MSR valuation integrates the hazard across the full remaining term of 30-year collateral, so this unsupported region drives a large share of discounted value, and an equally defensible stronger-burnout assumption would change the valuation materially. The extrapolation is nowhere documented as an assumption. The published baseline should be truncated at the support boundary and the long-age tail replaced by an explicitly justified assumption tested under high and low burnout scenarios.",
+      "evidence": [
+        "0356ef50",
+        "b764932a"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Large unquantified regime shift across the time cut; no PSI or drift report registered",
+      "narrative": "The out_of_time split shows an event rate of 0.01795 against a training rate of 0.00852 \u2014 2.1 times higher \u2014 with actual CPR rising from 9.76% to 19.53%. The training window runs from period 201402 to 201912, so the out-of-time sample sits beyond a refinance regime boundary, and a doubling of the target rate is a material population shift. No population stability index, characteristic drift report or score-distribution comparison was registered for any split, so drift could not be compared against any threshold and no thresholds were documented. The model itself responds well: mean predicted hazard rises from 0.00843 to 0.01887, calibration slope on the out-of-time split is 0.9969, predicted CPR of 20.43% overstates actual by only 4.6%, and AUC is essentially preserved at 0.7846 versus 0.7883 in training. This is strong evidence that the incentive and rate covariates are doing real economic work rather than encoding a base rate. The defect is therefore one of missing evidence and missing monitoring infrastructure rather than demonstrated performance failure: PSI must be computed for every covariate and for the score, train against each holdout, with documented amber/red thresholds, and incentive, rate_change_12m and burnout treated as priority series.",
+      "evidence": [
+        "0356ef50",
+        "31ce3d08",
+        "7ddcc721",
+        "dca79f2f"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-006",
+      "defect_class": "M1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No collinearity diagnostics for an algebraically overlapping rate covariate set",
+      "narrative": "Five of the twelve covariates carry overlapping rate information: note_rate, sato (spread at origination), incentive and rate_change_12m are all algebraic functions of the same note rate and the prevailing mortgage rate, and burnout is a path functional of incentive. No variance inflation factor, condition number or correlation matrix was registered for the design matrix, so the degree of multicollinearity is unknown and could not be compared to any threshold. This specification is common practice and is not wrong in itself \u2014 predictive performance is largely insensitive to collinearity \u2014 but it is the standard setting in which individual coefficient signs and magnitudes become unstable, which matters here because MSR users interpret the incentive coefficient directly as a rate sensitivity. The registered model summary is truncated before the coefficient block, so neither the coefficients nor their standard errors were available to assess stability by inspection. Remediation is to publish VIFs and the design-matrix condition number alongside the full coefficient table, and, if they are elevated, to demonstrate coefficient stability by bootstrap before any coefficient is interpreted economically.",
+      "evidence": [
+        "61276a96",
+        "b764932a"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-007",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No challenger or benchmark model registered; effective challenge incomplete",
+      "narrative": "The artifact store contains no challenger model, no benchmark specification and no prior model version. There is no constant-hazard baseline, no parsimonious logistic alternative and no table-driven industry prepayment benchmark against which the champion's 0.7883 training AUC, its 0.9937 calibration slope or its spline baseline specification can be judged. Without a benchmark, validation cannot demonstrate that the five-knot age spline and the twelve-covariate specification add value over a materially simpler alternative, nor can it establish whether the observed discrimination is good or merely typical for this data. No challenger was found to beat the champion because no challenger was run at all; this is recorded as an unmet element of effective challenge rather than as demonstrated champion inferiority. Remediation is to fit at least a constant-hazard baseline and a parsimonious logistic challenger on identical splits and report AUC, calibration-slope and CPR-error deltas against the champion.",
+      "evidence": [
+        "31ce3d08",
+        "b764932a"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

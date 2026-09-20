@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T181914Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Residual multicollinearity: wrong and mutually opposed coefficient signs survive the VIF pruning",
+      "narrative": "The developer removed two features on VIF grounds \u2014 bill_last at VIF 161.13 and utilisation_mean_6m at VIF 36.45, against a declared threshold of 10.0 \u2014 but the retained ten-feature specification still carries the signature of collinearity. Within the three-variable delinquency block, delinq_last is +0.7279 and delinq_count_6m is +0.1244, both correct, while delinq_max_6m is -0.0305, implying that a deeper worst-case delinquency reduces default risk. In the payment-ratio pair, pay_ratio_mean_6m is -0.3768 while pay_ratio_last is +0.1180: two measures of the same behaviour over different windows entering with opposite signs. limit_bal is +0.0742, implying a larger granted credit line raises default probability, against the underwriting logic that better-assessed clients receive larger lines. Near-zero wrong-signed terms inside a correlated family, and same-family features flipping against each other, are the classic fingerprint of variance inflation that the pruning did not fully clear. No post-removal VIF table and no condition number were deposited, so the residual inflation could not be quantified directly; it is inferred from the sign structure. The consequence is that individual coefficients are not interpretable, the model cannot be defended to a credit committee on economic grounds, and the affected terms will be unstable under refit.",
+      "evidence": [
+        "259cdde6",
+        "abbb748e"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "X1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Non-monotone delinquency response and wrong-signed credit-limit response",
+      "narrative": "No scenario, stress or sensitivity artifact exists in the store, so the response surface was derived analytically from the fitted coefficients, which for a linear-in-logit model fully determine it. The derived delinquency value curve is non-monotone: risk rises with delinq_last (+0.7279) and with delinq_count_6m (+0.1244) but falls with delinq_max_6m (-0.0305). Since delinq_max_6m ranges from 0 to 8 with a mean of 2.09, this wrong-signed term operates across a wide range and partially offsets the correctly signed frequency term, so a client whose delinquency deepens is credited with a risk reduction along that axis. Any stress scenario in which portfolio delinquency severity worsens will therefore understate the deterioration. The same defect appears in limit_bal (+0.0742): under a limit-increase scenario, which is an obvious intended use of a model of this type, the model recommends the wrong direction. The payment-ratio pair compounds the problem by responding in opposite directions to the same underlying behaviour. These are not hypotheses about what a scenario analysis might reveal; they are what it will reveal when run, and the remediation is re-specification with sign constraints rather than documentation of the curves.",
+      "evidence": [
+        "259cdde6",
+        "3e5e172d"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No drift assessment and no out-of-time sample; the split is random rather than temporal",
+      "narrative": "No PSI calculation exists for either the population or the score distribution, and no out-of-time validation sample was deposited. The split appears to be random rather than temporal: train and test event rates are 0.224542 and 0.224667 respectively, a difference of roughly one part in ten thousand that no genuine out-of-time sample of a revolving credit portfolio would produce. A random split measures sampling variance, not stability, and provides no evidence that the model holds under a change of economic regime, underwriting policy or portfolio mix. The underlying obstacle is structural: no date or vintage column appears anywhere in the training profile, so an out-of-time split could not be constructed from the deposited data even retrospectively, and regime-segmented stability testing is equally foreclosed. For a behavioural credit-default model, whose predictors are six-month aggregates that are themselves sensitive to macroeconomic conditions, this is the single largest gap in the evidence base. Remediation requires restoring a date field, holding out the most recent period, and reporting discrimination, calibration and PSI on it.",
+      "evidence": [
+        "1b015759",
+        "26fbbf1d",
+        "3e5e172d",
+        "c005db79"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "E1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No challenger model; effective challenge not performed",
+      "narrative": "The store contains exactly one model summary and one metrics block. No challenger of any kind was fitted, so there is no evidence that the champion's AUC of 0.7480 is non-trivially better than a credible alternative, and no basis for concluding that the chosen specification is the right one. This matters more than usual here because delinq_last carries a standardised coefficient of +0.7279, roughly 2.7 times the next largest term, which raises the concrete possibility that a substantial share of the model's discrimination comes from a single variable. Without a univariate delinq_last baseline, the incremental value of the other nine features \u2014 including the four with problematic signs \u2014 is entirely unquantified, and the case for a ten-variable specification over a much simpler one has not been made. The minimum remediation is a three-way comparison against a single-variable delinq_last baseline, a penalised regression that retains the two VIF-dropped features rather than discarding their information, and a gradient-boosted benchmark to bound the loss from the linear functional form, with AUC deltas reported on the same holdout.",
+      "evidence": [
+        "259cdde6",
+        "4cb18aab"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "C1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Calibration evidenced only at the portfolio mean; no slope and no decile table",
+      "narrative": "Aggregate calibration passes: test mean predicted probability is 0.22130 against an observed event rate of 0.22467, an absolute gap of 0.0034 or about 1.5% relative, a slight under-prediction of risk, and the train figures agree almost exactly at 0.224615 against 0.224542 as expected from a fitted intercept. Brier scores of 0.14895 on test and 0.14904 on train corroborate reasonable probabilistic accuracy. However, mean-level agreement is a weak test: a model can match the portfolio average exactly while over-predicting in the top decile and under-predicting in the bottom, which is precisely where a credit cut-off operates. No calibration slope, no calibration intercept and no decile or bucket calibration table were deposited, so the C1 condition proper \u2014 slope outside its band \u2014 could not be evaluated. This is recorded on evidential grounds rather than because miscalibration was demonstrated. The scored prediction tables for both splits are present and contain everything required, so the remediation is inexpensive: report slope and intercept with confidence intervals and a ten-bucket predicted-versus-observed table on the test split.",
+      "evidence": [
+        "4cb18aab",
+        "9df50bd0",
+        "b0650ce2"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-006",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No test-split profile for cross-split comparison; undocumented zero missingness and an exact cap on pay_ratio_last",
+      "narrative": "The D1 test proper \u2014 whether missingness differs materially between splits \u2014 could not be executed, because a profile was deposited for the training split only. What the training profile does show raises two concerns. First, all thirteen columns report exactly zero missing values across 3,545 rows, including the six-month behavioural aggregates. Complete data across a behavioural panel is not what a real servicing extract yields; it indicates undocumented upstream imputation, dropping of incomplete accounts, or a filtered population, any of which would make the development sample unrepresentative of the population the model is scored on. Second, pay_ratio_last has a maximum of exactly 2.0 while its sibling pay_ratio_mean_6m reaches only 1.6385, an exact round bound on one variable and not the other that is the signature of an undocumented cap or winsorisation. This is not cosmetic: the capped feature is one half of the sign-flipped payment-ratio pair, and a truncated right tail is a sufficient mechanism to destabilise its coefficient. By contrast utilisation is left uncapped at 1.1298, so over-limit accounts pass through unmodified \u2014 economically real, but inconsistent treatment relative to the payment ratio. Remediation is to deposit a test-split profile and document the missingness handling and the cap.",
+      "evidence": [
+        "1b015759",
+        "26fbbf1d",
+        "3e5e172d"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-007",
+      "defect_class": "T1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Declared VIF threshold of 10.0 cannot be verified for the retained features",
+      "narrative": "The model summary declares a vif_threshold of 10.0 and documents two removals against it: bill_last at VIF 161.13 and utilisation_mean_6m at VIF 36.45. The removals were the correct action and the two reported figures are unambiguous breaches. What is missing is any evidence that the threshold is satisfied after the removals. No post-removal VIF table and no condition number were deposited for the ten retained features, so the developer's implicit claim that the final specification complies with its own declared threshold is unverifiable from the store. The claim is also affirmatively doubtful: the opposed signs within the delinquency block and the payment-ratio pair are consistent with at least one retained feature still exceeding a VIF of 10. Remediation is to recompute and deposit VIFs for all ten retained features together with the design-matrix condition number, and to continue pruning or re-specifying until the declared threshold actually holds.",
+      "evidence": [
+        "259cdde6"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-008",
+      "defect_class": "O1",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No material out-of-sample degradation: train-to-test AUC gap of 0.0109",
+      "narrative": "Recorded as a passed test rather than a defect. Test AUC is 0.7480 against train AUC 0.7589, a gap of 0.0109. Supporting metrics move consistently and by similarly small amounts: KS from 0.4447 to 0.4190, Gini from 0.5177 to 0.4961, log loss from 0.4650 to 0.4674, and the Brier score is marginally better out of sample at 0.14895 against 0.14904. For a ten-parameter linear model fitted on 3,545 rows, a gap of this size is well within sampling noise and indicates that the model has not memorised its development sample. The reported Gini values reconcile exactly with 2*AUC-1 on both splits, and the train event rate agrees across the metrics block, the split manifest and the raw profile at 0.22454, so the submission is internally consistent. No remediation is attached. The one qualification is that this result is a within-sample-period statement only: because the split is random rather than temporal, it bounds variance but says nothing about stability over time, which is addressed separately under S1.",
+      "evidence": [
+        "4cb18aab",
+        "c005db79"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-009",
+      "defect_class": "L2",
+      "severity": "info",
+      "suggested_severity": "info",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No train/test contamination found; row counts consistent with a disjoint partition",
+      "narrative": "Recorded as a passed check. Train n=3,545 and test n=1,500 sum to exactly 5,045, which matches the maximum observed client_id against a minimum of 1 in the training profile, and the two split row hashes differ (26a3b938... for train, 3e28943d... for test). The counts are therefore consistent with a clean disjoint partition of 5,045 distinct clients with no duplication, and no evidence of contamination above any threshold was found. The modest AUC of 0.7480 and the small train-to-test gap independently corroborate this: material row overlap would inflate holdout performance toward the training figure, which is not observed. The check is recorded as informational rather than clean because differing row hashes establish only that the two sets are not identical, not that they are disjoint at client level; an explicit client-level intersection count was not deposited. Depositing one would close the point at negligible cost.",
+      "evidence": [
+        "3e5e172d",
+        "4cb18aab",
+        "c005db79"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

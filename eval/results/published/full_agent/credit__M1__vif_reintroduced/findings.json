@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T080337Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "check_collinearity",
+      "title": "The design matrix is near-singular, so the fitted coefficients are not separately identified and no single one of them can be read as the contribution of its own feature.",
+      "narrative": "The largest variance inflation factor on train is 121913.6293 [[art:e6655d27:vif.max]], carried by the adjusted last-bill column at 121913.6293 [[art:5216ecf3:vif.bill_last_adj]], against a declared ceiling of 10 [[art:aeb4f33c:threshold.M1.vif]].\n\nThe raw last-bill column stands at 121617.0493 [[art:9139aeac:vif.bill_last]], the six-month mean bill at 175.6 [[art:964ad8e8:vif.bill_mean_6m]], the six-month mean utilisation at 50.25 [[art:5233c25b:vif.utilisation_mean_6m]] and utilisation at 49.46 [[art:09540d95:vif.utilisation]], each above that same ceiling.\n\nBelsley's condition number of the column-standardised design is 1023 [[art:36c154df:condition_number]], above the declared bound of 30 [[art:7e52fd7a:threshold.M1.condition_number]].\n\nThe validator concludes that the two bill columns are close to duplicates of one another and that the two utilisation columns overlap heavily, leaving the coefficient vector unstable under small perturbations of the training sample and leaving any economic reading of an individual coefficient unsupported.\n\nThe developer should drop or combine the redundant bill and utilisation columns, refit the model, and report the variance inflation factors and the condition number of the reduced design against those same declared bounds before any coefficient is interpreted or relied on for attribution.",
+      "evidence": [
+        "09540d95",
+        "36c154df",
+        "5216ecf3",
+        "5233c25b",
+        "7e52fd7a",
+        "9139aeac",
+        "964ad8e8",
+        "aeb4f33c",
+        "e6655d27"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A standard gradient-boosting challenger trained on the same data discriminates materially better than the champion, so the champion does not represent the discriminatory power available from its own inputs.",
+      "narrative": "The challenger reaches an AUC on test of 0.8249 [[art:9727c6a9:challenger.auc]] against the champion's 0.7505 [[art:3bbb3e37:metrics.test.auc]].\n\nThe challenger's lead over the champion is 0.07444 [[art:d7dbe8ff:challenger.delta_auc]], above the declared effective-challenge bound of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\n\nThe validator concludes that severity is low because the challenger is a benchmark rather than a proposed replacement, but that the margin is wide enough to show predictive structure the champion's functional form does not capture.\n\nThe developer should record the reasons the simpler form was retained over the challenger, in terms of interpretability, stability or deployment constraints, and should either evidence those reasons or bring the challenger forward as a candidate.",
+      "evidence": [
+        "3bbb3e37",
+        "9727c6a9",
+        "d7dbe8ff",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ]
+  }
+}

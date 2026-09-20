@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T171411Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "T1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The model's discrimination on the test split falls below the minimum the package itself declares.",
+      "narrative": "The package declares a minimum AUC on test of 0.78 [[art:5487ddda:threshold.package.auc.test.min]].\nThis validation's own recomputation of AUC on the test split returns 0.748 [[art:5c6c2bfc:metrics.test.auc]], which is below that declared minimum.\nThe validator concludes that the model does not meet the performance bound its own package sets for it, and that this is a deficiency in the model as submitted rather than in the way it is reported.\nThe model developer should either retrain or recalibrate until the recomputed test AUC clears the declared minimum, or revise the declared minimum with a documented justification tied to intended use and resubmit the package for validation.",
+      "evidence": [
+        "5487ddda",
+        "5c6c2bfc"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 4
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A simple challenger model outperforms the champion by a margin wider than the effective-challenge threshold, which indicates the champion's specification has not been adequately challenged.",
+      "narrative": "A gradient-boosting challenger reaches an AUC on test of 0.824 [[art:bf5be719:challenger.auc]] against the champion's 0.748 [[art:5c6c2bfc:metrics.test.auc]].\nThe challenger's lead over the champion is 0.07598 [[art:c9e502ae:challenger.delta_auc]], which is above the effective-challenge threshold of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\nThe validator concludes that available alternative specifications extract signal the champion does not, so the choice of the incumbent form is not supported by the evidence in the package.\nThe model developer should document why the champion form was retained in the face of the stronger alternative, or adopt a specification that closes the lead, and record the comparison in the development evidence [[reg:SR26-2:VI.3]].",
+      "evidence": [
+        "5c6c2bfc",
+        "bf5be719",
+        "c9e502ae",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 2
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

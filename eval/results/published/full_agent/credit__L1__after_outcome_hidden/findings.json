@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T071109Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "check_leakage",
+      "title": "One input feature separates the outcome on its own at a strength the leakage rule treats as contamination of the target rather than as legitimate predictive signal.",
+      "narrative": "The strongest single feature, `pay_amt_next`, reaches an AUC of 0.945 [[art:5b5e98c2:leakage.target_corr.max_single_feature_auc]] by itself, above the bound of 0.9 [[art:c29e7a34:threshold.L1.single_feature_auc]] that any one feature may reach.\n\nThe declared-timing evidence flags 0 [[art:742bcd24:leakage.timing.n_flagged]] features as observed during or after the outcome period, so the declared timing of the inputs does not on its own explain a separation of this size.\n\n[[table:leakage.target_corr]]\n\n[[table:leakage.timing]]\n\nThe validator concludes that the headline discrimination of 0.9755 [[art:8f522f3b:metrics.test.auc]] on test cannot be read as evidence of genuine predictive power while a feature of this strength sits in the design matrix, because the feature's name and its univariate strength together point to information about the payment that the outcome itself is defined on.\n\nThe developer should establish, from the source system and the observation window, the point in time at which `pay_amt_next` becomes known relative to the outcome date, and either restate its timing with support or drop the feature and refit, reporting the performance of the refitted model.",
+      "evidence": [
+        "12cb4333",
+        "5b5e98c2",
+        "742bcd24",
+        "878d82fa",
+        "c29e7a34"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The fitted probabilities are miscalibrated on the training split: the outcome moves with the logit of the prediction more steeply than the accepted band allows.",
+      "narrative": "The logistic regression of the outcome on the logit of the predicted probability gives a slope on train of 1.383 [[art:45dafd11:calibration_slope.train]], above the top of the accepted band at 1.2 [[art:b6672579:threshold.C1.calibration_slope.max]].\n\n[[table:calibration.train]]\n\nThe validator concludes that the scores are under-dispersed relative to the realised outcome on the split the model was fitted on, so the predicted probabilities are not usable as levels for pricing, provisioning or cut-off setting until they are corrected, even where the ranking they induce is retained.\n\nThe developer should recalibrate the scores, report the slope of the recalibrated scores on a split held out from the calibration fit, and state which downstream uses depend on the probability level rather than on the rank.",
+      "evidence": [
+        "309e30bb",
+        "45dafd11",
+        "b6672579"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 5
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ]
+  }
+}

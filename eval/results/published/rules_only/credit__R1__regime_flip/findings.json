@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "rules_only",
+  "run_id": "credit_default-rules_only-20260918T065329Z-bd5861e9",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "R1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "check_stability",
+      "title": "A `R1` finding, raised by `check_stability` at severity `medium`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.",
+      "evidence": [
+        "2e4428c7",
+        "4114d577",
+        "4dc17324",
+        "aca84377"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A `E1` finding, raised by `challenger_compare` at severity `low`.",
+      "narrative": "Its evidence is the artifacts cited in this section; the check's own account of it is recorded in `findings.json`.\nThe value of `challenger.auc` is 0.7898 [[art:2b3381be:challenger.auc]].\nThe value of `challenger.delta_auc` is 0.05613 [[art:9cbcc544:challenger.delta_auc]].\nThe value of `metrics.test.auc` is 0.7337 [[art:3255122a:metrics.test.auc]].\nThe value of `sign_check.age.agrees` is 0 [[art:5c2c50b8:sign_check.age.agrees]].\nThe value of `sign_check.age.coef_sign` is -1 [[art:6172eb93:sign_check.age.coef_sign]].\nThe value of `sign_check.age.univariate_direction` is 1 [[art:cac34cd5:sign_check.age.univariate_direction]].\nThe value of `sign_check.bill_mean_6m.agrees` is 0 [[art:4df8b747:sign_check.bill_mean_6m.agrees]].\nThe value of `sign_check.bill_mean_6m.coef_sign` is -1 [[art:cee1a18f:sign_check.bill_mean_6m.coef_sign]].\nThe value of `sign_check.bill_mean_6m.univariate_direction` is 1 [[art:82ba9862:sign_check.bill_mean_6m.univariate_direction]].\nThe value of `sign_check.limit_bal.agrees` is 0 [[art:0278aad1:sign_check.limit_bal.agrees]].\nThe value of `sign_check.limit_bal.coef_sign` is 1 [[art:6af6aef2:sign_check.limit_bal.coef_sign]].\nThe value of `sign_check.limit_bal.univariate_direction` is -1 [[art:56d284d6:sign_check.limit_bal.univariate_direction]].\nThe value of `stability.bill_trend_6m.sign_flip` is 1 [[art:4dc17324:stability.bill_trend_6m.sign_flip]].\nThe value of `threshold.E1.delta_auc` is 0.03 [[art:e042774c:threshold.E1.delta_auc]].\nThe value of `threshold.R1.sign_flip_coef` is 0.05 [[art:aca84377:threshold.R1.sign_flip_coef]].\nThe value of `threshold.R1.sign_flip_z` is 2 [[art:2e4428c7:threshold.R1.sign_flip_z]].\n[[table:stability.bill_trend_6m.coef_or_importance_by_regime]]",
+      "evidence": [
+        "2b3381be",
+        "3255122a",
+        "9cbcc544",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

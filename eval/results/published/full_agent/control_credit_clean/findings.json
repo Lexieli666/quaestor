@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260918T222547Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "The champion carried in this package is outperformed on the test split by a gradient-boosting challenger by a margin wider than the package's own effective-challenge bound.",
+      "narrative": "The challenger reaches an AUC of 0.824 [[art:bf5be719:challenger.auc]] on test, against the champion's recomputed AUC of 0.748 [[art:5c6c2bfc:metrics.test.auc]] on the same split.\n\nTaken as a difference, the challenger's lead is 0.07598 [[art:c9e502ae:challenger.delta_auc]], which sits above the effective-challenge bound of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\n\nThe validator concludes that an alternative specification discriminates better on the test split than the specification put forward, and that the package does not carry a recorded reason for preferring the weaker one; the severity stays low because the challenger is a benchmark fitted for comparison rather than a submitted production candidate, and the result speaks to the adequacy of the challenge rather than to an error inside the champion.\n\nThe model developer should record an explicit rationale for retaining the champion in the face of this lead, covering interpretability, stability and implementation constraints where those drive the choice, or else bring the stronger specification forward for validation in its own right.",
+      "evidence": [
+        "5c6c2bfc",
+        "bf5be719",
+        "c9e502ae",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

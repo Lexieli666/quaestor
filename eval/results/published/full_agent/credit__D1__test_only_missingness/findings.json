@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T034326Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "D1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "profile_data",
+      "title": "The training and test splits do not share the same missingness structure: the feature `pay_ratio_last` is missing at materially different rates across the two splits, so the test split is not a clean read on the population the model was fitted to.",
+      "narrative": "The per-feature missingness of the two splits is set out below, and the difference on that feature is larger than the declared split-gap limit of 0.1 [[art:9cce25ea:threshold.D1.missing_gap]].\n\n[[table:profile.train.missing]]\n\n[[table:profile.test.missing]]\n\nThe comparison drawn here is the absolute difference in missingness rate between the two splits on a single feature, not a ratio between them.\n\nThe validator concludes that test-split performance on this package is read through a feature whose availability differs from the one the estimator saw in training, which weakens any inference drawn from the test split about live behaviour.\n\nThe model developer should establish why the missingness on that feature diverges across splits, state whether the divergence reflects the sampling of the splits or the upstream source, and either reconstitute the splits on a common basis or re-estimate and re-evaluate with an imputation and missing-indicator treatment that is identical on both sides.",
+      "evidence": [
+        "0c6f5686",
+        "2dbb3988",
+        "9cce25ea"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A routine challenger outperforms the champion on the held-out test split by a margin wider than the threshold set for effective challenge, so the champion's specification is not demonstrated to be the better choice on this data.",
+      "narrative": "A history-gradient-boosting challenger reaches an AUC of 0.8249 [[art:6db67e77:challenger.auc]] on test, above the champion's recomputed AUC of 0.7446 [[art:21514080:metrics.test.auc]].\n\nExpressed as the difference between the two, and not as their ratio, the challenger's lead is 0.08022 [[art:19982ff0:challenger.delta_auc]], above the effective-challenge threshold of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\n\nThe validator concludes that the discriminatory power left on the table by the champion specification is wide enough on this data that the choice of the champion form cannot rest on performance alone.\n\nThe model developer should document the grounds on which the champion form was selected over a more flexible alternative, whether interpretability, stability, implementation constraint or use-case requirement, and record that rationale and the challenger comparison so the trade-off can be tracked and revisited [[reg:SR26-2:VI.3]].",
+      "evidence": [
+        "19982ff0",
+        "21514080",
+        "6db67e77",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

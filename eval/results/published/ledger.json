@@ -1,0 +1,1782 @@
+{
+  "schema_version": 2,
+  "remaining_in_last_plan": 0,
+  "done": 54,
+  "rejected": 0,
+  "failed": 0,
+  "cost_usd": 127.265707,
+  "cells": [
+    {
+      "configuration": "full_agent",
+      "variant": "control_credit_clean",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 5.735201,
+      "calls": 21,
+      "seconds": 1357.037,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/control_credit_clean",
+      "precision_pre": 0.9924,
+      "precision_post": 1.0,
+      "n_claims": 264,
+      "findings": [
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "control_credit_perturbed",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 4.939311,
+      "calls": 19,
+      "seconds": 1069.896,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/control_credit_perturbed",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 239,
+      "findings": [
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "control_msr_clean",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 6.089406,
+      "calls": 20,
+      "seconds": 1293.338,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/control_msr_clean",
+      "precision_pre": 0.9968,
+      "precision_post": 1.0,
+      "n_claims": 316,
+      "findings": [],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "control_msr_perturbed",
+      "status": "done",
+      "attempts": 3,
+      "cost_usd": 6.650524,
+      "calls": 20,
+      "seconds": 1328.653,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/control_msr_perturbed",
+      "precision_pre": 0.9971,
+      "precision_post": 1.0,
+      "n_claims": 349,
+      "findings": [],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__C1__smote_uncalibrated",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 5.407078,
+      "calls": 20,
+      "seconds": 1227.668,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__C1__smote_uncalibrated",
+      "precision_pre": 0.9956,
+      "precision_post": 1.0,
+      "n_claims": 226,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__D1__test_only_missingness",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 4.901005,
+      "calls": 18,
+      "seconds": 1115.676,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__D1__test_only_missingness",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 212,
+      "findings": [
+        {
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__L1__after_outcome_declared",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 5.15942,
+      "calls": 20,
+      "seconds": 1077.724,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__L1__after_outcome_declared",
+      "precision_pre": 0.9922,
+      "precision_post": 1.0,
+      "n_claims": 258,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__L1__after_outcome_hidden",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 5.399377,
+      "calls": 20,
+      "seconds": 1217.015,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__L1__after_outcome_hidden",
+      "precision_pre": 0.9963,
+      "precision_post": 1.0,
+      "n_claims": 270,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__L2__contamination",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 4.799146,
+      "calls": 18,
+      "seconds": 1092.938,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__L2__contamination",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 263,
+      "findings": [
+        {
+          "class": "L2",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__M1__vif_reintroduced",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 6.017121,
+      "calls": 22,
+      "seconds": 1465.925,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__M1__vif_reintroduced",
+      "precision_pre": 0.984,
+      "precision_post": 1.0,
+      "n_claims": 310,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__R1__regime_flip",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 4.462457,
+      "calls": 18,
+      "seconds": 1014.488,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__R1__regime_flip",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 239,
+      "findings": [
+        {
+          "class": "R1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__S1__segment_shift",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 5.158667,
+      "calls": 20,
+      "seconds": 1198.589,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__S1__segment_shift",
+      "precision_pre": 0.9951,
+      "precision_post": 1.0,
+      "n_claims": 204,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "credit__T1__false_claim",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 4.400807,
+      "calls": 18,
+      "seconds": 1001.818,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/credit__T1__false_claim",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 228,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "msr__C1__oversampled_hazard",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 6.597561,
+      "calls": 20,
+      "seconds": 1433.91,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/msr__C1__oversampled_hazard",
+      "precision_pre": 0.9974,
+      "precision_post": 1.0,
+      "n_claims": 379,
+      "findings": [
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "msr__L1__eom_balance",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 5.468368,
+      "calls": 20,
+      "seconds": 1279.11,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/msr__L1__eom_balance",
+      "precision_pre": 0.9879,
+      "precision_post": 1.0,
+      "n_claims": 326,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "X1",
+          "severity": "high"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "msr__L2__contamination",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 5.958546,
+      "calls": 22,
+      "seconds": 1300.602,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/msr__L2__contamination",
+      "precision_pre": 0.9968,
+      "precision_post": 1.0,
+      "n_claims": 311,
+      "findings": [
+        {
+          "class": "L2",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "msr__S1__vintage_shift",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 5.998875,
+      "calls": 20,
+      "seconds": 1266.065,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/msr__S1__vintage_shift",
+      "precision_pre": 0.994,
+      "precision_post": 1.0,
+      "n_claims": 334,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "full_agent",
+      "variant": "msr__X1__projection_sign",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 5.652943,
+      "calls": 20,
+      "seconds": 1240.081,
+      "out_dir": "eval/results/20260918T065257Z/full_agent/msr__X1__projection_sign",
+      "precision_pre": 0.9849,
+      "precision_post": 1.0,
+      "n_claims": 326,
+      "findings": [
+        {
+          "class": "X1",
+          "severity": "high"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "control_credit_clean",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 1.229095,
+      "calls": 8,
+      "seconds": 323.159,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/control_credit_clean",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 87,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        },
+        {
+          "class": "S1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "control_credit_perturbed",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.606696,
+      "calls": 8,
+      "seconds": 478.709,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/control_credit_perturbed",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 122,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "R1",
+          "severity": "low"
+        },
+        {
+          "class": "L2",
+          "severity": "info"
+        },
+        {
+          "class": "O1",
+          "severity": "info"
+        },
+        {
+          "class": "L1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "control_msr_clean",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.784082,
+      "calls": 8,
+      "seconds": 555.064,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/control_msr_clean",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 140,
+      "findings": [
+        {
+          "class": "C1",
+          "severity": "high"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "L2",
+          "severity": "low"
+        },
+        {
+          "class": "R1",
+          "severity": "info"
+        },
+        {
+          "class": "O1",
+          "severity": "info"
+        },
+        {
+          "class": "T1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "control_msr_perturbed",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.798485,
+      "calls": 8,
+      "seconds": 543.506,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/control_msr_perturbed",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 212,
+      "findings": [
+        {
+          "class": "D1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__C1__smote_uncalibrated",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.504074,
+      "calls": 8,
+      "seconds": 439.491,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__C1__smote_uncalibrated",
+      "precision_pre": 0.0068,
+      "precision_post": 0.0068,
+      "n_claims": 146,
+      "findings": [
+        {
+          "class": "C1",
+          "severity": "high"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "T1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "low"
+        },
+        {
+          "class": "R1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "L2",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__D1__test_only_missingness",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.469007,
+      "calls": 8,
+      "seconds": 434.533,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__D1__test_only_missingness",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 103,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "T1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        },
+        {
+          "class": "X1",
+          "severity": "low"
+        },
+        {
+          "class": "S1",
+          "severity": "low"
+        },
+        {
+          "class": "L2",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "R1",
+          "severity": "low"
+        },
+        {
+          "class": "O1",
+          "severity": "info"
+        },
+        {
+          "class": "L1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__L1__after_outcome_declared",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.295496,
+      "calls": 8,
+      "seconds": 349.963,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__L1__after_outcome_declared",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 104,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__L1__after_outcome_hidden",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.313087,
+      "calls": 8,
+      "seconds": 365.323,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__L1__after_outcome_hidden",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 82,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "T1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "S1",
+          "severity": "low"
+        },
+        {
+          "class": "L2",
+          "severity": "info"
+        },
+        {
+          "class": "O1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__L2__contamination",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.451283,
+      "calls": 8,
+      "seconds": 425.628,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__L2__contamination",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 92,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "T1",
+          "severity": "low"
+        },
+        {
+          "class": "O1",
+          "severity": "info"
+        },
+        {
+          "class": "L2",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__M1__vif_reintroduced",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.611295,
+      "calls": 8,
+      "seconds": 469.645,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__M1__vif_reintroduced",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 200,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "high"
+        },
+        {
+          "class": "T1",
+          "severity": "medium"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "C1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__R1__regime_flip",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.574571,
+      "calls": 8,
+      "seconds": 466.966,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__R1__regime_flip",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 130,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "low"
+        },
+        {
+          "class": "O1",
+          "severity": "low"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        },
+        {
+          "class": "L2",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "T1",
+          "severity": "low"
+        },
+        {
+          "class": "L1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__S1__segment_shift",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.455354,
+      "calls": 8,
+      "seconds": 432.043,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__S1__segment_shift",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 96,
+      "findings": [
+        {
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "credit__T1__false_claim",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.688822,
+      "calls": 8,
+      "seconds": 516.658,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/credit__T1__false_claim",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 124,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "low"
+        },
+        {
+          "class": "S1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "low"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        },
+        {
+          "class": "R1",
+          "severity": "info"
+        },
+        {
+          "class": "O1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "msr__C1__oversampled_hazard",
+      "status": "done",
+      "attempts": 2,
+      "cost_usd": 1.646727,
+      "calls": 8,
+      "seconds": 475.936,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/msr__C1__oversampled_hazard",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 168,
+      "findings": [
+        {
+          "class": "C1",
+          "severity": "high"
+        },
+        {
+          "class": "L2",
+          "severity": "high"
+        },
+        {
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "T1",
+          "severity": "low"
+        },
+        {
+          "class": "E1",
+          "severity": "info"
+        },
+        {
+          "class": "O1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "msr__L1__eom_balance",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.9036,
+      "calls": 8,
+      "seconds": 588.67,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/msr__L1__eom_balance",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 173,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "L2",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "high"
+        },
+        {
+          "class": "T1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "low"
+        },
+        {
+          "class": "D1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "msr__L2__contamination",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.855433,
+      "calls": 8,
+      "seconds": 593.388,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/msr__L2__contamination",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 171,
+      "findings": [
+        {
+          "class": "C1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "low"
+        },
+        {
+          "class": "L2",
+          "severity": "low"
+        },
+        {
+          "class": "E1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "msr__S1__vintage_shift",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.581196,
+      "calls": 8,
+      "seconds": 478.549,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/msr__S1__vintage_shift",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 144,
+      "findings": [
+        {
+          "class": "D1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "high"
+        },
+        {
+          "class": "X1",
+          "severity": "high"
+        },
+        {
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "class": "L2",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "O1",
+          "severity": "low"
+        },
+        {
+          "class": "T1",
+          "severity": "low"
+        },
+        {
+          "class": "E1",
+          "severity": "info"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "plain_llm",
+      "variant": "msr__X1__projection_sign",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 1.701591,
+      "calls": 8,
+      "seconds": 497.893,
+      "out_dir": "eval/results/20260918T065257Z/plain_llm/msr__X1__projection_sign",
+      "precision_pre": 0.0,
+      "precision_post": 0.0,
+      "n_claims": 191,
+      "findings": [
+        {
+          "class": "L2",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "class": "X1",
+          "severity": "medium"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "M1",
+          "severity": "low"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "control_credit_clean",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.594,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/control_credit_clean",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 210,
+      "findings": [
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "control_credit_perturbed",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.442,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/control_credit_perturbed",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 210,
+      "findings": [
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "control_msr_clean",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 5.158,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/control_msr_clean",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 311,
+      "findings": [],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "control_msr_perturbed",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 4.948,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/control_msr_perturbed",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 311,
+      "findings": [],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__C1__smote_uncalibrated",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.559,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__C1__smote_uncalibrated",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 215,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__D1__test_only_missingness",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.734,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__D1__test_only_missingness",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 200,
+      "findings": [
+        {
+          "class": "D1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__L1__after_outcome_declared",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.474,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__L1__after_outcome_declared",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 228,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__L1__after_outcome_hidden",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.503,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__L1__after_outcome_hidden",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 228,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__L2__contamination",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.312,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__L2__contamination",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 214,
+      "findings": [
+        {
+          "class": "L2",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__M1__vif_reintroduced",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.491,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__M1__vif_reintroduced",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 246,
+      "findings": [
+        {
+          "class": "M1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__R1__regime_flip",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.509,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__R1__regime_flip",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 229,
+      "findings": [
+        {
+          "class": "R1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__S1__segment_shift",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.239,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__S1__segment_shift",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 203,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "credit__T1__false_claim",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 2.734,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/credit__T1__false_claim",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 211,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "E1",
+          "severity": "low"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "msr__C1__oversampled_hazard",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 5.551,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/msr__C1__oversampled_hazard",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 330,
+      "findings": [
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "msr__L1__eom_balance",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 5.197,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/msr__L1__eom_balance",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 318,
+      "findings": [
+        {
+          "class": "L1",
+          "severity": "high"
+        },
+        {
+          "class": "X1",
+          "severity": "high"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "msr__L2__contamination",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 5.047,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/msr__L2__contamination",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 315,
+      "findings": [
+        {
+          "class": "L2",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "msr__S1__vintage_shift",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 4.471,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/msr__S1__vintage_shift",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 329,
+      "findings": [
+        {
+          "class": "T1",
+          "severity": "high"
+        },
+        {
+          "class": "S1",
+          "severity": "medium"
+        },
+        {
+          "class": "C1",
+          "severity": "medium"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    },
+    {
+      "configuration": "rules_only",
+      "variant": "msr__X1__projection_sign",
+      "status": "done",
+      "attempts": 1,
+      "cost_usd": 0.0,
+      "calls": 0,
+      "seconds": 4.944,
+      "out_dir": "eval/results/20260918T065257Z/rules_only/msr__X1__projection_sign",
+      "precision_pre": 1.0,
+      "precision_post": 1.0,
+      "n_claims": 314,
+      "findings": [
+        {
+          "class": "X1",
+          "severity": "high"
+        }
+      ],
+      "checks_failed": [],
+      "error": null,
+      "budget_stopped": false
+    }
+  ]
+}

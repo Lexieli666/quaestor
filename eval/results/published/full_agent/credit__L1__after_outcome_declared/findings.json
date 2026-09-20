@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T065312Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "check_leakage+load_package",
+      "title": "The package scores on a feature whose declared timing places it during or after the outcome, so its value is not knowable at the moment the model is applied.",
+      "narrative": "The package declares `pay_amt_next` with a timing that falls during or after the outcome period, and the count of features so declared is 1 [[art:e3a31f6a:leakage.timing.n_flagged]].\n\n[[table:leakage.timing]]\n\nThat same feature separates the outcome on its own at an AUC of 0.945 [[art:5b5e98c2:leakage.target_corr.max_single_feature_auc]], above the declared ceiling of 0.9 [[art:c29e7a34:threshold.L1.single_feature_auc]] for what any single feature may reach by itself.\n\n[[table:leakage.target_corr]]\n\nThe validator concludes that the declared timing and the single-feature separation point the same way: the discrimination attributed to this feature is not available at scoring time, so any performance the model shows while it is in the design matrix overstates what the model can do in use.\n\nThe model developer should remove `pay_amt_next` from the feature set, refit, and report the refitted performance and the refitted single-feature separation against the same declared ceiling; if the feature is retained, the developer should supply a timing declaration that shows the value is observable before the outcome window opens.",
+      "evidence": [
+        "0dad290e",
+        "12cb4333",
+        "5b5e98c2",
+        "c29e7a34",
+        "e3a31f6a"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 2
+    },
+    {
+      "id": "F-002",
+      "defect_class": "C1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The fitted probabilities on train are miscalibrated in slope, so the model's scores do not map onto observed outcome rates within the declared band.",
+      "narrative": "The logistic regression of the outcome on the model's logit has a slope on train of 1.383 [[art:45dafd11:calibration_slope.train]], above the top of the declared band at 1.2 [[art:b6672579:threshold.C1.calibration_slope.max]].\n\n[[table:calibration.train]]\n\nThe validator concludes that the breach is in the direction of predictions that are too compressed relative to the outcomes they are fitted to, and that it appears on the very data the model was fitted on, which is where a slope closest to agreement would ordinarily be expected.\n\nThe model developer should recalibrate the score-to-probability mapping and report the recalibrated slope against the same declared band, and should state whether the breach is driven by the design matrix as fitted or by the link and estimation procedure, since a refit following F-001 will change this quantity.",
+      "evidence": [
+        "309e30bb",
+        "45dafd11",
+        "b6672579"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 5
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1",
+      "S1"
+    ],
+    "compute_metrics": [
+      "T1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ],
+    "challenger_compare": [
+      "E1"
+    ]
+  }
+}

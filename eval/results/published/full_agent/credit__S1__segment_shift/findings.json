@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "full_agent",
+  "run_id": "credit_default-full_agent-20260920T093731Z-e2e51e00",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "T1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "compute_metrics",
+      "title": "The package's own declared ceiling on population stability is breached by the drift quaestor recomputed.",
+      "narrative": "The largest recomputed train-to-test population stability index, with the score included, is 1.196 [[art:5a6a40fb:psi.max]].\n\nThat value sits above the ceiling of 0.25 [[art:fbb5a9d1:threshold.package.psi.max]] declared in package.yaml, and the comparison here is the level of the index against the declared bound rather than any ratio between them.\n\nThe validator concludes that the model package does not hold to a limit it sets for itself, which is the most material of the defects recorded in this section because the bound is the developer's own statement of acceptable drift.\n\nThe developer should either re-establish a training population whose stability against the evaluation population falls under the declared ceiling, or revise the declared ceiling with a documented rationale and re-run the comparison so that the package and the recomputed evidence agree.",
+      "evidence": [
+        "5a6a40fb",
+        "fbb5a9d1"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 5
+    },
+    {
+      "id": "F-002",
+      "defect_class": "S1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "profile_data",
+      "title": "The train-to-test distribution of the credit-limit feature has shifted far enough to put the evaluation population outside the one the model was fitted on.",
+      "narrative": "The population stability index between train and test on `limit_bal` is 1.196 [[art:c312ae78:psi.limit_bal]].\n\nIt is read against the stability threshold of 0.25 [[art:278b9016:threshold.S1.psi]], and again the comparison is the level of the index against that threshold, not a ratio.\n\nThe breach is carried by the credit-limit feature rather than being spread evenly across the compared features, which points at a shift in that one input's distribution rather than a wholesale change of population.\n\nThe validator concludes that performance measured on the test split cannot be read as performance on the training population, and any monitoring built on this split inherits that gap.\n\nThe developer should document why the credit-limit distribution differs between the two splits, state whether the split was drawn by time or by some other key, and show that the intended use population resembles one of the two rather than neither.",
+      "evidence": [
+        "278b9016",
+        "c312ae78"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "E1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "challenger_compare",
+      "title": "A routine challenger outperforms the champion on the test split by a margin larger than the one the package treats as evidence of inadequate challenge.",
+      "narrative": "A hist_gradient_boosting challenger reaches an AUC on test of 0.8221 [[art:9a3da49b:challenger.auc]], while the champion's recomputed AUC on the same split is 0.7525 [[art:2a5ea4af:metrics.test.auc]].\n\nThe difference between the two, which is the comparison recorded here rather than their ratio, is 0.06961 [[art:ce2a1ab8:challenger.delta_auc]], and it is above the effective-challenge threshold of 0.03 [[art:e042774c:threshold.E1.delta_auc]].\n\nThe validator concludes that the champion's discriminatory power on this split is the smaller of the two and that the search over alternatives behind the champion selection has not been shown to be adequate; severity is low because the challenger was fitted for comparison and not proposed for use.\n\nThe developer should document the model selection that produced the champion, state what was traded away against the challenger's stronger test performance, such as interpretability or the sign constraints a scorecard form allows, and record that reasoning where it can be tracked alongside this report [[reg:SR26-2:VI.3]].",
+      "evidence": [
+        "2a5ea4af",
+        "9a3da49b",
+        "ce2a1ab8",
+        "e042774c"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {
+    "profile_data": [
+      "D1"
+    ],
+    "compute_metrics": [
+      "C1",
+      "O1"
+    ],
+    "check_leakage": [
+      "L1",
+      "L2"
+    ],
+    "check_collinearity": [
+      "M1"
+    ]
+  }
+}

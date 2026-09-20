@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T083124Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "L1",
+      "severity": "high",
+      "suggested_severity": "high",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Target leakage: `pay_amt_next` is declared observed after the outcome and dominates the fitted model",
+      "narrative": "The developer-submitted feature inventory classifies features by observation timing and reports `after_outcome: 1`. The feature so labelled is `pay_amt_next`, and it was retained through model fitting. In the fitted standardised logistic regression it carries a coefficient of -12.3667, against a next-largest absolute coefficient of 1.6512 (`bill_mean_6m`) and a largest delinquency coefficient of 0.9159 (`delinq_last`) \u2014 a term roughly 7.5 times the magnitude of any other and more than twice the intercept of -6.1028. The sign and magnitude are exactly what a leaked next-period payment amount produces: a large payment in the following period mechanically implies the account did not default, so the model is reading the outcome rather than predicting it. This is corroborated by the reported performance, where test AUC is 0.97551, Gini 0.95101, and KS 0.87844; discrimination at that level is not attainable on a next-month revolving-credit default model with legitimate behavioural inputs, where 0.75-0.85 AUC is a strong result. Every discrimination and calibration figure in the submission is therefore uninterpretable as an estimate of forward-looking performance, and the small train-to-test AUC gap of 0.00567 measures the stability of the leak rather than the stability of genuine signal. The feature is also unavailable at scoring time by construction, so the specification could not be deployed even if the statistics were accepted. Remediation: drop `pay_amt_next`, re-fit, and re-report all metrics; institute a hard pipeline gate that refuses to fit when any feature carries a timing label of `after_outcome` or `during_period`, since the label was present and correct here and the failure was that nothing acted on it. `bill_trend_6m` and `pay_ratio_last` should also be reviewed for partial-period contamination, as their construction windows are undocumented.",
+      "evidence": [
+        "65d0d3f7",
+        "7276ca89",
+        "e4b3fd0e"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Severe multicollinearity in the bill and utilisation block, with wrong-signed coefficients surviving the partial remediation",
+      "narrative": "The model summary records two features removed for multicollinearity against a declared VIF threshold of 10.0: `bill_last` at VIF 162.931 and `utilisation_mean_6m` at VIF 36.782. The removals are documented and the direction of the remediation was correct, but a VIF of 163 indicates near-linear dependence across the whole bill/utilisation block rather than two isolated offenders, and the submission provides no post-removal VIFs or design-matrix condition number to demonstrate that the declared threshold of 10.0 is actually met by the final eleven-feature specification. Residual instability is visible in the surviving coefficients. `delinq_max_6m` enters at -0.0999, implying that a worse maximum delinquency over six months lowers default odds once recent delinquency (`delinq_last`, +0.9159) and delinquency count (`delinq_count_6m`, +0.1073) are held fixed, which is economically wrong-signed and characteristic of correlated predictors splitting a shared effect. `limit_bal` enters at +0.4311, so a higher assigned credit limit raises default odds, which runs against the usual underwriting relationship in which limit is granted as a function of assessed quality. `bill_mean_6m` at 1.6512 outranks every delinquency variable, which is unexpected for a next-month default model where recent delinquency is normally the dominant legitimate driver. The raw training profile supports the collinearity reading: `bill_mean_6m` (mean 47,885, sd 44,975) and `utilisation` (mean 0.447, sd 0.234) are alternative scalings of the same exposure, and the removed `bill_last` and `utilisation_mean_6m` are lagged or averaged versions of both. Remediation: report post-removal VIFs and the condition number for the final specification after the leakage fix, consider consolidating the bill family into a single exposure measure, and apply sign constraints to the delinquency block.",
+      "evidence": [
+        "43dc824d",
+        "e4b3fd0e"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "C1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Aggregate over-prediction on the test split; no calibration slope or reliability curve submitted",
+      "narrative": "On the test split, mean predicted probability is 0.233018 against an observed event rate of 0.224667 \u2014 an absolute over-prediction of 0.00835 and a relative over-prediction of 3.7%. On the training split, mean predicted (0.224552) matches observed (0.224571) to within 2e-5, which is the expected in-sample identity for an unweighted maximum-likelihood logistic regression with an intercept and carries no independent validation information. The test-split discrepancy is modest and conservative in direction, and on its own would not bar use, but it is the one dimension on which the held-out sample behaves materially worse than the training sample, and it is recorded here so that it is tracked rather than lost. The severity is held at low because the magnitude is small; the interpretation is heavily qualified by the leakage finding, since aggregate calibration measured on a model that reads the outcome tells the validator little about the calibration of any remediated model. No calibration slope, no calibration intercept test, and no decile-level reliability table were submitted, so calibration could be assessed only at the aggregate mean level even though the row-level prediction tables for both splits exist in the artifact store. Remediation: produce a decile reliability table and a calibration slope and intercept from the existing test prediction table, and re-assess both after `pay_amt_next` has been removed and the model re-fitted.",
+      "evidence": [
+        "1eb04cca",
+        "65d0d3f7",
+        "ebd7a887"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}

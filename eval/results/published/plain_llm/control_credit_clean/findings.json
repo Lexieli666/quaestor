@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "package": "credit_default",
+  "version": "1.0",
+  "configuration": "plain_llm",
+  "run_id": "credit_default-plain_llm-20260918T081127Z-6e98ce62",
+  "illustrative": false,
+  "findings": [
+    {
+      "id": "F-001",
+      "defect_class": "M1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Residual multicollinearity unverified after VIF removal, with four economically wrong-signed coefficients",
+      "narrative": "The developer declared a VIF threshold of 10.0 and removed bill_last (VIF 160.89) and utilisation_mean_6m (VIF 36.36). No post-removal VIF vector and no design-matrix condition number were reported, so compliance with the developer's own threshold is unverified for the ten retained features. Three strongly correlated blocks remain by construction: delinq_last/delinq_count_6m/delinq_max_6m, pay_ratio_last/pay_ratio_mean_6m, and bill_mean_6m/bill_trend_6m. The fitted coefficients show the classic signature of this condition: delinq_max_6m is negative (-0.0322), so a more severe worst delinquency scores as safer; pay_ratio_mean_6m (-0.3554) opposes pay_ratio_last (+0.1026) although both measure the same behaviour over different windows; and bill_mean_6m (-0.3726) and bill_trend_6m (-0.2225) imply that larger and rising balances reduce default risk. Aggregate discrimination is unaffected, but individual coefficients cannot support adverse-action reasoning or reason codes in this state. Remediation: publish VIFs and the condition number for the fitted design, drop or combine one member of each block or impose sign constraints, and re-estimate until all retained signs are economically defensible.",
+      "evidence": [
+        "74c10f15",
+        "abbb748e"
+      ],
+      "section": "sensitivity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-002",
+      "defect_class": "E1",
+      "severity": "medium",
+      "suggested_severity": "medium",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No challenger or benchmark model was fitted, so performance is unanchored",
+      "narrative": "The artifact store contains a single model summary and a single metrics file. No benchmark and no challenger were built on the same split, so there is no basis for judging whether a test AUC of 0.7480 represents good use of the available data or a material underperformance. This gap is more consequential than usual here because one feature, delinq_last, carries roughly twice the standardised weight of any other term, which raises the question of how much of the 0.7480 a single-variable rule would reproduce on its own. Remediation: fit at least a univariate delinq_last benchmark and one non-linear challenger such as a gradient-boosted model on the identical train and test partitions, and report the AUC and log-loss deltas against the champion.",
+      "evidence": [
+        "74c10f15",
+        "aebcad6a"
+      ],
+      "section": "conceptual_soundness",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-003",
+      "defect_class": "C1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Calibration evidenced only at the mean; no slope or decile analysis produced",
+      "narrative": "The only calibration evidence in the record is the agreement between mean predicted probability and observed event rate: 0.2211 against 0.2247 on test, an absolute shortfall of 0.0036, and effectively exact agreement on train. That is a pass, but it is the weakest available test, since a model can reproduce the overall event rate while being badly miscalibrated in the score tails that drive cut-off decisions. No calibration slope or intercept, no decile or bucketed observed-versus-expected table, and no goodness-of-fit statistic was reported, even though the per-row prediction tables needed to compute all of them are in the store. Remediation: publish a decile calibration table and a calibration slope with a confidence interval before the output is used as a probability rather than as a rank.",
+      "evidence": [
+        "66bafeec",
+        "6fd8f98a",
+        "aebcad6a"
+      ],
+      "section": "outcomes",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-004",
+      "defect_class": "S1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "No PSI or drift analysis, and a random split that cannot detect temporal drift",
+      "narrative": "No population stability index or characteristic analysis was computed for any input or for the score. The train and test event rates are 0.224571 and 0.224667, essentially identical, but the split manifest and the client identifier range indicate a random partition of a single 5,000-client population rather than an out-of-time sample. The matching event rates are therefore a property of the split design and carry no information about stability over time, which is the drift that matters for a monthly default model. The model has never been evaluated on a period it was not fitted on. Remediation: construct an out-of-time holdout, and report input-level and score-level PSI against the development distribution with amber and red thresholds at 0.10 and 0.25.",
+      "evidence": [
+        "26fbbf1d",
+        "3b6b0a38",
+        "6a89f2be"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    },
+    {
+      "id": "F-005",
+      "defect_class": "D1",
+      "severity": "low",
+      "suggested_severity": "low",
+      "severity_reason": null,
+      "tool": "plain_llm",
+      "title": "Undocumented imputation and capping, and no missingness comparison between splits",
+      "narrative": "The training profile reports exactly zero missing values across all thirteen columns including the target, which is not a realistic outcome for credit bureau and billing data and indicates an upstream imputation step that is nowhere documented. The profile also shows pay_ratio_last with a maximum of precisely 2.0 against a mean of 0.784, the signature of an undocumented cap, with pay_ratio_mean_6m topping out at 1.639 consistent with the same cap applied to its components; utilisation reaches 1.1297 and so is not bounded at 1. No profile was produced for the test split, so missingness and distributional integrity could not be compared across the two partitions and the split-level integrity test could not be completed. Remediation: document the imputation and capping rules and their rationale, and publish a matched profile for the test split so that a like-for-like comparison is possible.",
+      "evidence": [
+        "26fbbf1d",
+        "6a89f2be",
+        "ecf908fa"
+      ],
+      "section": "data_integrity",
+      "candidates_merged": 1
+    }
+  ],
+  "candidates_not_promoted": [],
+  "checks_without_candidates": {}
+}
