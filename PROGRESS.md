@@ -1534,3 +1534,31 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   passed**. `full_agent` stands at 3 of 18 done; **`control_msr_perturbed` attempt 3 is unbanked at
   $3.6871 over 12 tapes** — it drafted all seven sections and died before the ledger write, which is
   only made when a cell finishes — and `study.lock`'s pid line is stale with the lock free.
+- 2026-09-19 — **Phase 12, the `--retry-rejected` chunk: both lost cells banked, and the fix not
+  exercised** — **one paid chunk, $12.0576, two cells, 40 calls, 42.6 minutes; no code changed**.
+  With D-192 in, `control_msr_perturbed` and `credit__C1__smote_uncalibrated` were re-attempted and
+  both reported. `control_msr_perturbed` (attempt 3, **$6.6505**, 20 calls, 1,328.7 s): grounding
+  **0.9971 → 1.0000** over 349 post-repair claims of 350, **no findings**, which is exactly its
+  taxonomy baseline `[]` (D-184). `credit__C1__smote_uncalibrated` (attempt 2, **$5.4071**, 20
+  calls, 1,227.7 s): **0.9956 → 1.0000** over 226 of 227, findings `T1` high, **`C1` medium** — the
+  seeded class — and `E1` low; not scored here, because scoring is `eval/score.py`'s under D-182.
+  The ledger reads **0 rejected, 0 failed**, `full_agent` **5 of 18**, study **$57.2914**.
+  **Said plainly: neither cell exercised D-192, and neither exercised D-189.** Both repair rounds
+  fired on an **`unsupported`** claim and both **removed** the number rather than rewriting it, so
+  `claims.repairs` is empty, **no Repairs table rendered in either report**, there is not one `⟪` in
+  either, and both `repair` events carry `malformed: []` and `still_malformed: []`. The extractor
+  did not slip this time, which at one slip in five cells is the expected outcome; what these runs
+  establish is that the fixed code ran live over 40 calls and two complete reports **without
+  regression** and that the two cells the defect had cost are banked, not that the fix caught
+  anything. The offline reproduction remains what confirms it. The thirteen `full_agent` cells still
+  to run are where the path will or will not be taken.
+  **A measurement worth the line:** the ledger's `cost_usd` is exactly the sum of its cells', and a
+  cell's is its **last attempt only**, so **$15.9583** of discarded attempts on these two cells
+  alone — $6.6781, $0.2952, $3.6871 and $5.2979 — is absent from the $57.2914 it reports, and
+  `control_msr_perturbed`'s `attempts` reads 3 where four were made. Against D-180's $170.15 that is
+  not a rounding error (**D-192 amendment**). Gate: unchanged from `861a061` and re-run on this
+  tree — offline suite excluding `tests/probatio` **1,736 passed**, 0 failed, 0 skipped, 0 xfailed;
+  `ruff check` and `ruff format --check` clean; `mypy --strict src/quaestor` clean over 60 source
+  files. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7 failed, 33
+  passed**. The results tree itself is gitignored under D-185; nothing of the run enters the
+  repository until `published/`.

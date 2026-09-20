@@ -7226,3 +7226,39 @@ here and recorded.
   design working as intended — the kernel drops a `flock` however the holder dies, and the file is
   deliberately left in place on release. The pid line is a record of the last holder, not a claim
   about the present one. Nothing to do.
+
+### D-192 amendment, 2026-09-19: the retry banked both cells and did not exercise the fix
+
+The `--retry-rejected` chunk ran both cells clean for **$12.0576** and the ledger now reads **0
+rejected, 0 failed**, `full_agent` 5 of 18:
+
+| cell | attempt | cost | calls | s | grounding | claims | findings |
+|---|---|---|---|---|---|---|---|
+| `control_msr_perturbed` | 3 | $6.6505 | 20 | 1,328.7 | 0.9971 → 1.0000 | 349 post, 350 pre | none, which is its taxonomy baseline `[]` |
+| `credit__C1__smote_uncalibrated` | 2 | $5.4071 | 20 | 1,227.7 | 0.9956 → 1.0000 | 226 post, 227 pre | `T1` high, **`C1` medium**, `E1` low |
+
+**But neither cell exercised D-192, and neither exercised D-189.** Both repair rounds fired on an
+**`unsupported`** claim — a number written with no citation — and both **removed** the number
+rather than rewriting it, so `claims.repairs` is empty, **no Repairs table rendered in either
+report**, and there is not one `⟪` in either. Both `repair` events carry `malformed: []` and
+`still_malformed: []`. The extractor simply did not slip this time, so there was no dangling
+malformed citation, so there was nothing for either fix to catch.
+
+So what these two runs establish is narrower than "the fix holds on real data" and is worth having
+written down before the next session reads the retry as proof: **the fixed code ran live over 40
+calls and two complete reports without regression, and the two cells the defect had cost are
+banked.** What confirms the fix itself is the offline reproduction, which fails against the old
+source with the production message and passes against the new one. D-192's own measurement says
+why that is the expected outcome — one extractor slip in five cells — and the thirteen `full_agent`
+cells still to run are where the path will or will not be taken.
+
+**And a measurement that strengthens the filed item.** The ledger's `cost_usd` is **exactly** the
+sum of its cells' `cost_usd`, and each cell's is its *last* attempt only, so every discarded
+attempt is missing from the study's running total. For these two cells alone that is **$15.9583**
+absent from the $57.2914 the ledger reports: `control_msr_perturbed`'s rejected attempt 1
+($6.6781), its D-190 crash ($0.2952) and its unrecorded killed attempt ($3.6871), and
+`credit__C1`'s rejected attempt 1 ($5.2979). The cell's own `attempts` counter says **3** where
+four attempts were made, because the killed one left no row at all. Against D-180's $170.15 that
+gap is not a rounding error, and it makes the case for the cheap half of the fix above — a
+`started` row written when a cell begins — stronger than when it was filed: without it the bill
+cannot be reconciled from the ledger even in principle.
