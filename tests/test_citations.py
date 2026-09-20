@@ -23,6 +23,7 @@ from quaestor.artifacts import (
     resolve,
 )
 from quaestor.errors import ArtifactError
+from quaestor.report.schema import is_report_citation, malformed_citations
 
 DECILES = [
     {"decile": 1, "count": 150, "events": 74, "event_rate": 0.493, "lift": 2.24},
@@ -193,11 +194,27 @@ def test_the_current_guidance_resolves_too(store: ArtifactStore) -> None:
 
 
 def dangling_message(text: str, store: ArtifactStore) -> str:
+    """Resolve a citation that must dangle, and hold every dangling message to its contract.
+
+    Two contracts, one per kind of token, applied here rather than in one test so that every
+    dangling site in `citations.py` is covered by the site that exercises it (DECISIONS D-192).
+
+    A token a rendered report may carry is named verbatim: the drafter has to recognise the form
+    it is being asked to rewrite. A token no report may carry -- a hash too short, a stray brace, a
+    `[[table:...]]` directive -- is named without its brackets, because the message is printed in
+    Appendix A's repairs table and `check_structure` reads the whole report.
+    """
     resolved = resolve(one(text), store)
     assert resolved.status is CitationStatus.dangling
     assert resolved.value is None
     message = resolved.message or ""
-    assert text in message, "a dangling message must quote the citation as it was written"
+    if is_report_citation(text):
+        assert text in message, "a dangling message must quote the citation as it was written"
+    else:
+        assert text not in message, "a diagnostic must not print a token no report may carry"
+        assert text.strip("[]") in message, "it must still name the token that failed"
+        assert "diagnostic" in message, "and say plainly that it is quoting one"
+    assert malformed_citations(message) == [], "no message may be refused by the renderer"
     return message
 
 
@@ -209,8 +226,10 @@ def test_a_guidance_section_the_document_does_not_have_dangles(store: ArtifactSt
 
 
 def test_a_guidance_document_that_was_never_ingested_dangles(store: ArtifactStore) -> None:
+    # `OCC2011-12` is not one of the two documents the citation grammar admits, so the token is
+    # malformed as well as unresolvable and the message names it without its brackets (D-192).
     message = dangling_message("[[reg:OCC2011-12:V]]", store)
-    assert "[[reg:OCC2011-12:V]]" in message
+    assert "⟪reg:OCC2011-12:V⟫" in message
     assert "SR11-7" in message and "SR26-2" in message
 
 
@@ -227,6 +246,30 @@ def test_a_hash8_that_is_not_a_prefix_of_the_named_artifact_dangles(store: Artif
 
 def test_a_hash8_that_is_too_short_dangles(store: ArtifactStore) -> None:
     assert "shorter than the 8" in dangling_message("[[art:4bb1:metrics.test.auc]]", store)
+
+
+def test_a_malformed_token_is_quoted_so_that_the_diagnostic_can_be_printed(
+    store: ArtifactStore,
+) -> None:
+    """DECISIONS D-192: the message is printed in Appendix A, so it may not carry the bad token.
+
+    The three things the quoting has to do at once: keep the report renderable, still name the
+    token that failed so a reader and the drafter can both find it, and say what it is doing.
+    """
+    message = dangling_message("[[art:4bb1:metrics.test.auc]]", store)
+    assert "⟪art:4bb1:metrics.test.auc⟫" in message
+    assert "[[" not in message and "]]" not in message
+    assert "diagnostic about a citation and not a citation" in message
+    # And the hash it should have carried, which is what the drafter is being asked to write.
+    assert store.entry("metrics.test.auc").hash[:8] in message
+    # A report carrying the message verbatim is renderable; one carrying the raw token is not.
+    assert check_structure_would_refuse("[[art:4bb1:metrics.test.auc]]")
+    assert not check_structure_would_refuse(message)
+
+
+def check_structure_would_refuse(text: str) -> bool:
+    """Whether the renderer's structural check would refuse a report carrying this text."""
+    return bool(malformed_citations(text))
 
 
 def test_a_missing_payload_file_dangles(store: ArtifactStore) -> None:

@@ -25,8 +25,31 @@ __all__ = [
     "citation_of",
     "masked_line",
     "prompt_kind",
+    "truncated_hash",
     "written",
 ]
+
+SHORT_HASH_KEPT = 6
+"""How many of a hash8's eight characters `truncated_hash` keeps: the slip that cost a paid cell.
+
+`full_agent/credit__C1__smote_uncalibrated` was rejected on `[[art:1151e4:calibration_slope.train]]`
+against a real `1151c8e4`, two characters short (DECISIONS D-192).
+"""
+
+
+def truncated_hash(citation: str, keep: int = SHORT_HASH_KEPT) -> str:
+    """Return an `[[art:...]]` citation with its hash prefix cut short of the eight it needs.
+
+    Args:
+        citation: A well-formed artifact citation, brackets included.
+        keep: How many characters of the hash prefix to keep.
+
+    Returns:
+        The same citation with a hash too short to be a citation, which resolves as `dangling` and
+        which no rendered report may carry.
+    """
+    head, hash8, tail = citation.split(":", 2)
+    return f"{head}:{hash8[:keep]}:{tail}"
 
 
 class SectionFake(OfflineLLM):
@@ -39,6 +62,9 @@ class SectionFake(OfflineLLM):
             that a test can make the repair loop run; a repair draft cites them.
         wrong_value_for: Logical name to the number the drafter writes instead of the artifact's,
             in every draft, so that a test can make two repair rounds fail.
+        truncate_hash_for: Logical names the first draft of a section cites with a hash prefix two
+            characters short, the way a real extractor mis-transcribed one out of its own JSON; a
+            repair draft cites them whole (DECISIONS D-192).
     """
 
     def __init__(
@@ -48,6 +74,7 @@ class SectionFake(OfflineLLM):
         plain_findings: Sequence[Mapping[str, Any]] = (),
         drop_citation_for: Sequence[str] = (),
         wrong_value_for: Mapping[str, float] | None = None,
+        truncate_hash_for: Sequence[str] = (),
         max_scalars: int = 6,
         **kwargs: Any,
     ) -> None:
@@ -57,6 +84,7 @@ class SectionFake(OfflineLLM):
         self.plain_findings_list = [dict(item) for item in plain_findings]
         self.drop_citation_for = list(drop_citation_for)
         self.wrong_value_for = dict(wrong_value_for or {})
+        self.truncate_hash_for = list(truncate_hash_for)
 
     def choose_scalars(self, items: Sequence[Mapping[str, Any]]) -> Sequence[Mapping[str, Any]]:
         """Write about the artifacts this fake was built to be wrong about, first.
@@ -65,7 +93,9 @@ class SectionFake(OfflineLLM):
         the first six would silently never mention `challenger.brier` and the defect it exists to
         produce would not appear in any draft.
         """
-        wanted = set(self.drop_citation_for) | set(self.wrong_value_for)
+        wanted = (
+            set(self.drop_citation_for) | set(self.wrong_value_for) | set(self.truncate_hash_for)
+        )
         targeted = [item for item in items if str(item["name"]) in wanted]
         rest = [item for item in items if str(item["name"]) not in wanted]
         return targeted + rest[: max(self.max_scalars - len(targeted), 0)]
@@ -78,6 +108,8 @@ class SectionFake(OfflineLLM):
             return f"The value of `{name}` is {written(self.wrong_value_for[name])} {citation}."
         if name in self.drop_citation_for and not repair:
             return f"The value of `{name}` is {written(value)}."
+        if name in self.truncate_hash_for and not repair:
+            return f"The value of `{name}` is {written(value)} {truncated_hash(citation)}."
         return super().scalar_sentence(item, repair=repair)
 
     def plan_action(self) -> dict[str, Any]:

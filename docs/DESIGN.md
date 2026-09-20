@@ -1770,3 +1770,33 @@ than at the third hour of a paid sitting. The four recipes that need a *column* 
 does not carry are skipped by name with their reason. The alternative — writing the four CSV
 transforms now — is the cut list's cut 3, and building them into the commit that cannot run them
 is how a Phase 12 session discovers at the shell that five variants do not build.
+
+## Phase 12 — A diagnostic is not a citation
+
+The renderer refuses a report carrying a double-bracket token that is not a well-formed citation,
+and a resolver's dangling message quotes the token that failed so that the repair loop can hand it
+straight back to the drafter. Those two rules are each right on their own and together they cost a
+paid cell: the message becomes `Repair.instruction`, Appendix A prints it in the repairs table, and
+`check_structure` reads the whole report. **The report was refused for faithfully quoting its own
+verifier.** It is only reachable when a repair round *succeeds* — a flagged claim the round cannot
+pair with a replacement is dropped and writes no row — so the first cell in the study to rewrite a
+claim was the first to hit it.
+
+So a malformed token is named in `⟪…⟫` rather than in its brackets, with a clause saying that this
+is a quoted diagnostic, and a well-formed one is still named verbatim because that is the form the
+drafter is being asked to recognise. The predicate is the renderer's own, factored out as
+`schema.is_report_citation` and shared by the structural check, the repair loop's
+`malformed_citations` and the resolver, because three expressions of one grammar are three chances
+to disagree about the same bytes.
+
+Two alternatives were rejected. **Neutralising double-bracket tokens in every markdown table cell**
+changes the renderer for all of its output to fix one column, and leaves the bad token being
+manufactured. **Scoping the structural check past the repairs table** puts a hole in the check
+exactly where a genuinely bad citation would next show up, and would hide it.
+
+D-189 refused to sanitise a malformed token in the renderer, and that refusal deliberately does not
+carry over here: **in prose the token is an evidence chain**, and a report whose citations resolve
+to nothing is the one thing this project must not emit, so quietly repairing one hides the failure
+the whole verifier exists to surface. A diagnostic quoted in an appendix is a sentence *about* a
+citation that failed — nothing resolves it and nothing is grounded on it — so re-quoting it removes
+no guarantee. The shapes are the same and the arguments are not.

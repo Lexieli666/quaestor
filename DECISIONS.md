@@ -7087,3 +7087,142 @@ here and recorded.
   affected Probatio cases, re-pin the golden set with a dated D-011 row, and remove D-190's catch
   only if the loop can then ask for any split without colliding — D-190 is worth keeping either
   way, because it is about the exception type and not about this one tool.
+
+## D-192. A diagnostic about a malformed citation is not a citation, and the report was refused for quoting its own verifier
+
+- **Date:** 2026-09-19 (Phase 12; found by reading the two rejected `full_agent` cells rather than
+  by paying for another)
+- **Q:** D-189 made the repair loop re-ask a section whose citation tokens are malformed, and two
+  `full_agent` cells were still rejected on `these double-bracket tokens are not well-formed
+  citations` — `control_msr_perturbed` on `[[art:22858a09:run.model_summary#vif_threshold}]]` and
+  `credit__C1__smote_uncalibrated` on `[[art:1151e4:calibration_slope.train]]`, together
+  **$11.9760**. The second token is a different shape from the first: `1151e4` is six characters,
+  not an eight-character prefix with a stray brace. Did the repair round fire, what did it produce,
+  and is this one defect or two?
+- **A:** **The round fired, it succeeded, and succeeding is what cost the cell.** Three findings, in
+  the order the evidence gives them.
+
+  **1. D-189 was not in either cell.** `repair_sections` emits `malformed` and `still_malformed` on
+  every `repair` event unconditionally. There are **three `repair` events in the whole results tree
+  and not one of them carries those fields**, so no cell of this study has ever run the D-189 code:
+  the chunk predates `cb3dc5a`. `control_msr_perturbed`'s side cannot be re-read at all — D-186's
+  clearing removed attempt 1's trace and its twelve tapes when attempt 2 ran, and again for attempt
+  3 — so what survives of the $6.6781 run is what D-189 recorded from it.
+
+  **2. The token was never in the prose, and the renderer printed it itself.** `credit__C1`'s round
+  is `section summary, round 1, scoped true, lines_redrafted 0, repaired [d353ab115aa089b2],
+  still_failing []`. The claim went from `dangling` on `[[art:1151e4:calibration_slope.train]]` to
+  `verified` on `[[art:1151c8e4:calibration_slope.train]]`. `lines_redrafted: 0` is not a failure,
+  it is the tell: the repair prompt's own `Previous draft:` block reads *"The same slope on the
+  development split, 0.7656 `[[art:1151c8e4:calibration_slope.train]]`"* — **the correct
+  eight-character hash**. `1151e4` appears in no drafter output anywhere in that cell. **The
+  extractor mis-transcribed the hash out of its own JSON**, dropping `c8`; the prose was right, so
+  there was no line to redraft and the round correctly changed nothing while fixing the claim.
+
+  The chain from there to the refusal is five hops, every one of them the code doing its job:
+
+  ```
+  extractor writes "[[art:1151e4:…]]" into the claim, not into the prose
+    → parse_citations accepts it (CITATION_RE's body is [^\[\]]+, so a short hash parses)
+    → _resolve_artifact  citations.py:306-311  dangling, and the message QUOTES citation.raw
+    → _round_records     repair.py:451         Repair.instruction = that message
+    → _appendix_a        renderer.py:469-481   the "instruction to the drafter" column, via _cell,
+                                               which escapes only "|" and newlines
+    → check_structure    schema.py:216-222     reads the WHOLE report, appendices included → refuse
+  ```
+
+  **The report was refused for faithfully quoting its own verifier's diagnostic.**
+
+  **3. It can only fire when a repair round *succeeds*.** A flagged claim the round cannot pair
+  with a replacement is `removed` and writes no `Repair` row at all. All three rendered `full_agent`
+  reports say *"0 claim(s) rewritten"* and **no Repairs table has ever been rendered in this
+  study** — `control_credit_clean` had two mismatches and `control_msr_clean` a dangling
+  `[[art:b764932a:run_model_summary#intercept]]`, and all three were dropped rather than rewritten.
+  `credit__C1` is the **first cell in which a repair round rewrote a claim**, and rewriting it is
+  what killed it. That is why a defect this old had never been seen: the failure mode is the
+  success path.
+
+  **The fix is option (c): `_dangling` must not embed `citation.raw` verbatim when the raw token is
+  itself malformed.** The message still names the token that failed — the drafter and a reader both
+  need to find it — but in `⟪…⟫` rather than in double brackets, with a clause saying plainly that
+  it is a quoted diagnostic and not a citation. It is single-sourced on the renderer's own grammar:
+  `schema.is_report_citation` is factored out of `check_structure`, `malformed_citations` and now
+  the resolver, so three callers cannot come to three answers about the same bytes (D-084). It is
+  imported at call time and not at module scope, because `quaestor.report` reaches back into
+  `quaestor.artifacts` through its renderer and its drafter and a module-level import leaves
+  `quaestor.artifacts` half-built; the comment at the import says so.
+  **Why (c) and not the other two.** **(a) neutralising double-bracket tokens in every table cell**
+  changes the renderer for all output to fix one column. **(b) scoping the structural check past the
+  repairs table** puts a hole in the check exactly where a genuinely bad citation would next appear
+  and go unseen. (c) fixes it where the token is manufactured, and covers every one of the twelve
+  `_dangling` sites at once rather than the one that happened to fire.
+  **D-189's rejected alternative does not carry over.** D-189 refused "sanitising the token in the
+  renderer" because **in prose the token is an evidence chain**: a report whose citations do not
+  resolve is the one thing this project must not emit, and quietly repairing one hides that. **A
+  diagnostic quoted in an appendix is not an evidence chain.** It is a sentence *about* a citation
+  that failed, addressed to the drafter and to a reader; nothing resolves it, nothing is grounded on
+  it, and re-quoting it removes no guarantee. The two cases share a shape and not an argument.
+  **D-189 is kept.** It fixes a different defect — a malformed token the *drafter* wrote into the
+  *prose* — which is real and which the loop is the right place to catch. But note that its stated
+  premise, *"a malformed citation produces no claim at all"*, is **false for both of this study's
+  tokens**: checked against the parser, `[[art:1151e4:calibration_slope.train]]` and
+  `[[art:22858a09:run.model_summary#vif_threshold}]]` both parse into a `Citation`, so both produce
+  a claim, both go `dangling`, and both reach Appendix A by the route above. For
+  `control_msr_perturbed` that cannot be proved — the tapes are gone — but D-189's own reading of
+  it, a brace that "leaked out of the **JSON envelope**", describes the extractor's JSON and not the
+  drafter's prose, and "the same fragment appears well-formed in other tapes of the same cell" is
+  what a transcription slip over correct prose looks like. On the evidence that survives, the two
+  cells are most likely **one defect, this one**, and D-189 fixed a second one that may never have
+  occurred in this study.
+  **What the new test found on its way in.** Holding every dangling site to the contract caught a
+  case nobody had in mind: `[[reg:OCC2011-12:V]]`. The corpus grammar admits only `SR11-7` and
+  `SR26-2` (D-055), so a citation to the deliberately un-ingested OCC bulletin is malformed as well
+  as unresolvable, and its diagnostic would have refused a report the same way.
+- **Tests.** `tests/test_pipeline.py` renders a full report end to end, offline, from a drafter that
+  cites `challenger.brier` two characters short: the round repairs the claim, Appendix A carries a
+  Repairs table, the instruction still names `art:d8a1d0:challenger.brier` and the eight-character
+  hash it should have carried, and `check_report` accepts the report. Verified to fail against the
+  old source with the production message, `these double-bracket tokens are not well-formed
+  citations: ['[[art:d8a1d0:challenger.brier]]']`. `tests/test_citations.py`'s `dangling_message`
+  helper now holds **every** dangling site to the contract rather than one test holding one site —
+  verbatim for a token a report may carry, re-quoted and named for a token it may not, and no
+  message may itself be refused by the renderer.
+- **Filed, not fixed: the claims table has the same exposure.** Appendix A's claim rows print
+  `claim.citation` verbatim, so a claim that is **still** malformed after two rounds refuses the
+  report by two routes at once — the prose it stayed in, and its own row. Measured offline with a
+  drafter that never complies: `['[[art:d8a1d0:challenger.brier]]', '[[art:d8a1d0:challenger.brier]]']`.
+  The prose route is arguably correct and should stay a refusal; what the appendix should print for
+  a claim whose citation resolves to nothing is a real design question — wrap it as the prose wraps
+  an unverified number, or print the claim with no citation and say why — and it is not one to
+  settle mid-arm on a path no live cell has reached. After Phase 12.
+- **Why this was free.** Both rejections were diagnosed from `trace.jsonl`, the surviving cassettes
+  and the source, with no paid run; the reproduction is a `SectionFake` knob and a synthetic panel.
+  The measured cost of not having it is $11.9760 across two cells, of which `credit__C1`'s $5.2979
+  is attributable to this defect with certainty.
+
+### Two things on disk the ledger does not know
+
+- **`control_msr_perturbed` attempt 3 is unbanked: $3.6871 over 12 tapes.** Run id
+  `msr_prepayment-full_agent-20260919T234701Z`, started 16:47:01 PDT — three minutes after D-190's
+  fix — it cleared that hazard (the bounded loop chose `compute_metrics` on all four steps and never
+  `check_stability`), drafted all seven sections, and stopped at 16:58:00 immediately after the
+  first `extract` call, with 21 summary claims all verified. `ledger.json` was last written at
+  00:20 and has no row for it: the cell still reads `failed`, attempts 2, $0.2952. The next chunk
+  will clear the directory under D-186 and pay for the whole of it again.
+  **Why it is unrecoverable, and whether that is worth changing.** The ledger is written **only
+  when a cell finishes** — which is the rule D-186 leans on, since a cell the ledger does not call
+  `done` is the cell a resumed chunk is entitled to clear and retry. The cost of that rule is this:
+  a run that does its work and dies before the write leaves its output on disk and no record of it,
+  and the retry pays twice. It is the same shape as D-186's first defect, one level up — there the
+  ledger had no row and the *directory* was reused; here the ledger has no row and the **money** is.
+  **Not changed now**, and on balance probably not worth changing at all: a per-call or per-section
+  checkpoint would have to be reconciled against a partial artifact store on resume, which is more
+  machinery and more ways to be wrong than the loss it prevents, and the loss is bounded by one
+  cell. The cheap half is worth doing — **`run_chunk` could flush a `started` row with the run id
+  when it begins a cell**, so a killed attempt leaves an attributable line and the bill can be
+  reconciled even though the work cannot be resumed. Filed for after Phase 12 with D-191.
+- **`study.lock` is stale but harmless.** It still names `pid 6404 since 2026-09-19T23:47:01+00:00`.
+  There is no such process and a non-blocking `flock` takes the lock immediately, which is D-186's
+  design working as intended — the kernel drops a `flock` however the holder dies, and the file is
+  deliberately left in place on release. The pid line is a record of the last holder, not a claim
+  about the present one. Nothing to do.

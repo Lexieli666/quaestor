@@ -18,8 +18,11 @@ existed, which is the point of a golden report. Five forms:
 
 Resolution is deterministic and has no model in it. A citation that names a hash the store does not
 hold, a hash8 that is not a prefix of the artifact the name points at, or a logical name the index
-has never heard of, is ``dangling``, and the message quotes the citation as it was written -- the
-repair loop hands that message straight back to the drafter.
+has never heard of, is ``dangling``, and the message names the citation -- the repair loop hands
+that message straight back to the drafter, and Appendix A prints it in the repairs table. It is
+named verbatim when it is a token a report may carry and re-quoted in ``⟪…⟫`` when it is not, so
+that a diagnostic about a malformed citation cannot get the report refused for carrying one
+(DECISIONS D-192).
 
 Path resolution is structural only: a path walks keys and list elements and never computes. A
 report that wants to cite "the number of features" cites an artifact that holds that count, which
@@ -271,9 +274,79 @@ def _resolve_guidance(citation: Citation, corpus: RegulatoryCorpus) -> ResolvedC
     return ResolvedCitation(citation=citation, status=CitationStatus.resolved, heading=span.heading)
 
 
+_DIAGNOSTIC_OPEN: Final = "⟪"
+"""How a diagnostic opens its quotation of a token no report may carry (DECISIONS D-192)."""
+
+_DIAGNOSTIC_CLOSE: Final = "⟫"
+"""How that quotation closes.
+
+Neither bracket is one :data:`CITATION_RE` or the report's structural check will read as a
+citation, which is the whole of the point. They are private because the *shape* of a diagnostic is
+not an interface: what is promised is that the message names the token and cannot be mistaken for
+one, which is what ``tests/test_citations.py`` asserts of every dangling site.
+"""
+
+
 def _dangling(citation: Citation, message: str) -> ResolvedCitation:
-    """Build a dangling resolution whose message quotes the citation as it was written."""
-    return ResolvedCitation(citation=citation, status=CitationStatus.dangling, message=message)
+    """Build a dangling resolution whose message names the citation as it was written.
+
+    A well-formed citation is named verbatim, in its double brackets, because that is the form the
+    drafter has to recognise and rewrite and because a report that printed it would be printing a
+    token the structural check accepts.
+
+    A **malformed** one is named in :data:`_DIAGNOSTIC_OPEN`/:data:`_DIAGNOSTIC_CLOSE` instead, and
+    the message says why. The message is not private: it becomes ``Repair.instruction``, which
+    Appendix A prints in the ``instruction to the drafter`` column of its repairs table, and
+    ``check_structure`` reads the whole rendered report, appendices included. So a diagnostic that
+    quoted a malformed token verbatim got a report refused for the token the report itself had
+    printed -- which is how ``full_agent/credit__C1__smote_uncalibrated`` was lost after a repair
+    round that had *succeeded* (DECISIONS D-192).
+
+    The quoting is done here, where the token is manufactured, and not in the renderer: the
+    renderer would have to neutralise double brackets in every table cell it writes, and the check
+    would have to grow a hole exactly where a genuinely bad citation would next appear.
+
+    Args:
+        citation: The citation that did not resolve.
+        message: Why it did not, with the raw token named in it.
+
+    Returns:
+        The dangling resolution, with the token quoted in whichever form is safe to print.
+    """
+    return ResolvedCitation(
+        citation=citation,
+        status=CitationStatus.dangling,
+        message=_quoted_for_a_report(citation.raw, message),
+    )
+
+
+def _quoted_for_a_report(raw: str, message: str) -> str:
+    """Re-quote a malformed token inside a diagnostic so that printing the diagnostic is safe.
+
+    Args:
+        raw: The token exactly as it was written, brackets included.
+        message: The diagnostic, which names ``raw`` verbatim.
+
+    Returns:
+        ``message`` unchanged when ``raw`` is a token a rendered report may carry, and otherwise
+        ``message`` with every occurrence of ``raw`` re-quoted and a clause saying that it is.
+    """
+    # Imported here and not at module scope: `quaestor.report` reaches back into
+    # `quaestor.artifacts` through its renderer and its drafter, so importing it while this module
+    # is still executing leaves `quaestor.artifacts` half-built and `findings.py` fails on it. The
+    # predicate is still single-sourced -- the report's own grammar answers the question, and this
+    # module does not carry a second copy of it (DECISIONS D-084, D-192).
+    from ..report.schema import is_report_citation
+
+    if is_report_citation(raw) or raw not in message:
+        return message
+    quoted = f"{_DIAGNOSTIC_OPEN}{raw.strip('[]')}{_DIAGNOSTIC_CLOSE}"
+    return (
+        f"{message.replace(raw, quoted)} -- the token is quoted as "
+        f"{_DIAGNOSTIC_OPEN}…{_DIAGNOSTIC_CLOSE} and not in its double brackets because this "
+        f"is a diagnostic about a citation and not a citation: a report that printed it as it was "
+        f"written would be refused for carrying a token that is not a well-formed citation"
+    )
 
 
 def _resolve_table_directive(citation: Citation, store: ArtifactStore) -> ResolvedCitation:

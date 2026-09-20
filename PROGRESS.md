@@ -1498,3 +1498,39 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   clean over 60 source files. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at
   **7 failed, 33 passed**. `full_agent` stands at 3 of 18 done, `control_msr_perturbed` failed and
   retried by the next chunk; **$52.21** spent.
+- 2026-09-19 — **Phase 12, the refusal the renderer wrote itself: a diagnostic is not a citation** —
+  **no paid run; both rejected cells read off disk**. The `full_agent` arm's two rejections, together
+  **$11.9760**, were `[[art:22858a09:run.model_summary#vif_threshold}]]` and
+  `[[art:1151e4:calibration_slope.train]]`. **D-189 was in neither cell**: `repair_sections` emits
+  `malformed` and `still_malformed` unconditionally and **not one of the three `repair` events in
+  the whole results tree carries them**. And it could not have saved `credit__C1` anyway — the token
+  was **never in the prose**. That cell's repair prompt carries the correct
+  `[[art:1151c8e4:calibration_slope.train]]` in its own `Previous draft:` block; the **extractor**
+  dropped `c8` transcribing it out of its JSON, so the claim went `dangling` while the sentence
+  stayed right, which is what `lines_redrafted: 0` beside `repaired [d353ab115aa089b2]` and
+  `still_failing []` was saying. From there the resolver quoted the bad token verbatim, the message
+  became `Repair.instruction`, and Appendix A printed it into a report `check_structure` reads end
+  to end — **the report was refused for faithfully quoting its own verifier** (**D-192**). It can
+  only fire when a repair round **succeeds**, since an unpaired claim is removed and writes no row;
+  all three rendered `full_agent` reports say "0 claim(s) rewritten" and **no Repairs table has ever
+  been rendered in this study**, so `credit__C1` is the first cell to rewrite a claim and rewriting
+  it is what killed it. Fixed where the token is manufactured: `_dangling` re-quotes a malformed
+  token in `⟪…⟫` and says it is a diagnostic, over the new single-sourced
+  `schema.is_report_citation`. Neutralising every table cell and holing the check were both refused;
+  D-189's refusal to sanitise does not carry over, because in prose the token is an evidence chain
+  and in an appendix it is not. **D-189 is kept**, though its premise that a malformed citation
+  produces no claim is **false for both tokens**, checked against the parser. **Filed for after
+  Phase 12**: Appendix A's claim rows print `claim.citation` verbatim, so a claim still malformed
+  after two rounds refuses the report by that route too — measured offline, two occurrences. Gate:
+  offline suite excluding `tests/probatio` **1,736 passed**, 0 failed, 0 skipped, 0 xfailed
+  (1,734 → 1,736, two added, the end-to-end one verified to fail against the old source with the
+  production message); line coverage **99%**, both changed files at **100%**; `ruff check` and
+  `ruff format --check` clean on `src tests eval subjects`; `mypy --strict src/quaestor` clean over
+  60 source files; `quaestor validate --synthetic --llm fake` renders both subjects;
+  `examples/golden_report/` untouched — its repairs table's two instructions carry no citation, so
+  no golden byte moves; **`python tests/probatio/casebuilder.py` rebuilds all ten cases
+  byte-identical — 0 move**, since only a malformed token's diagnostic changes and no case carries
+  one. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7 failed, 33
+  passed**. `full_agent` stands at 3 of 18 done; **`control_msr_perturbed` attempt 3 is unbanked at
+  $3.6871 over 12 tapes** — it drafted all seven sections and died before the ledger write, which is
+  only made when a cell finishes — and `study.lock`'s pid line is stale with the lock free.

@@ -31,7 +31,11 @@ from quaestor.errors import ToolError
 from quaestor.findings import DefectClass, Severity, open_items
 from quaestor.pipeline import UNEVIDENCED_PREFIX, ValidationRun
 from quaestor.report import UNVERIFIED_OPEN, check_report
-from quaestor.report.schema import FOLLOW_UPS_HEADING, OPEN_ITEMS_HEADING
+from quaestor.report.schema import (
+    FOLLOW_UPS_HEADING,
+    OPEN_ITEMS_HEADING,
+    malformed_citations,
+)
 from quaestor.tools.collinearity import CheckCollinearityTool
 from quaestor.tools.metrics import SCALAR_METRICS
 from quaestor.tools.run import RunModelTool
@@ -41,7 +45,7 @@ from quaestor.tools.thresholds import (
     SLICE_SHARE_FLOOR,
     Thresholds,
 )
-from reportsupport import SectionFake
+from reportsupport import SHORT_HASH_KEPT, SectionFake
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GOLDEN = REPO_ROOT / "examples" / "golden_report"
@@ -224,6 +228,43 @@ def test_one_repair_round_when_the_second_draft_cites_the_number(tmp_path: Path)
     assert repair.after.status.value == "verified"
     assert "no citation" in repair.instruction
     assert UNVERIFIED_OPEN not in run.report
+
+
+def test_a_repair_of_a_malformed_citation_renders_a_report_the_check_accepts(
+    tmp_path: Path,
+) -> None:
+    """DECISIONS D-192: the report may not be refused for quoting its own verifier's diagnostic.
+
+    A citation two characters short of a hash resolves as `dangling`, and the resolver's message
+    names the token that failed. That message becomes `Repair.instruction`, and Appendix A prints
+    it in the repairs table of the rendered report -- which `check_structure` then reads. Before
+    D-192 the token went in verbatim and the report was refused for a token the renderer had
+    printed itself, after a repair round that had *succeeded*; `full_agent/credit__C1__smote_uncali
+    brated` was lost that way for $5.2979.
+    """
+    llm = SectionFake(truncate_hash_for=["challenger.brier"])
+    run = run_validate(CREDIT, tmp_path / "out", llm=llm, synthetic=SMALL)
+
+    # The round ran, and it repaired the claim rather than dropping its number.
+    assert len(run.claims.repairs) == 1
+    repair = run.claims.repairs[0]
+    assert repair.before.status.value == "dangling"
+    assert repair.after.status.value == "verified"
+
+    # The diagnostic still names the token that failed, and names the hash it should have carried.
+    hash8 = run.store.entry("challenger.brier").hash[:8]
+    assert f"art:{hash8[:SHORT_HASH_KEPT]}:challenger.brier" in repair.instruction
+    assert "shorter than the 8 characters" in repair.instruction
+    assert hash8 in repair.instruction
+
+    # But not in a form the structural check will read as a citation, anywhere it is printed.
+    assert f"[[art:{hash8[:SHORT_HASH_KEPT]}:challenger.brier]]" not in repair.instruction
+    assert "Repairs:" in run.report
+    assert repair.instruction in run.report
+    assert malformed_citations(run.report) == []
+    assert check_report(run.report, run.configuration, run.claims.post_repair) == []
+    assert run.precision_pre < 1.0
+    assert run.precision_post == 1.0
 
 
 def test_two_failed_rounds_leave_the_number_wrapped_and_the_post_figure_lower(

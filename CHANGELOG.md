@@ -9,6 +9,28 @@ run that was not committed.
 
 ### Fixed
 
+- **A report was refused for faithfully quoting its own verifier's diagnostic.** Two `full_agent`
+  cells were rejected on `these double-bracket tokens are not well-formed citations` for
+  **$11.9760** together, and `credit__C1__smote_uncalibrated`'s token was never in its prose: the
+  repair prompt's own `Previous draft:` block carries the correct
+  `[[art:1151c8e4:calibration_slope.train]]`, and it was the **extractor** that mis-transcribed the
+  hash out of its JSON as `1151e4`. A short hash still parses, so the claim went `dangling`, the
+  resolver's message quoted the bad token as written, that message became `Repair.instruction`, and
+  Appendix A prints it in the `instruction to the drafter` column of a report `check_structure`
+  reads end to end, appendices included. **It can only fire when a repair round succeeds** -- an
+  unpaired claim is removed and writes no row -- which is why no report in this study had shown it
+  until `credit__C1` became the first cell to rewrite a claim. `_dangling` now re-quotes a
+  malformed token in `⟪…⟫` and says plainly that it is quoting a diagnostic,
+  single-sourced on the renderer's own grammar through the new `schema.is_report_citation`
+  (**D-192**). Neutralising double brackets in every table cell was refused as too broad, and
+  scoping the check past the repairs table as a hole where a genuinely bad citation would next
+  appear. D-189's refusal to sanitise does not carry over: in prose the token is an evidence chain,
+  and a diagnostic quoted in an appendix is not one. **D-189 is kept** -- it fixes a malformed
+  token the drafter wrote into the prose -- though its premise that such a token produces no claim
+  is false for both of this study's tokens, checked against the parser. Filed for after Phase 12:
+  Appendix A's claim rows print `claim.citation` verbatim, so a claim still malformed after two
+  rounds refuses the report by that route too.
+
 - **A loop step refused for an artifact name collision ended the whole run, because `ArtifactError`
   is not a `ToolError`.** The retry of a rejected `full_agent` cell died **29.2 s in for $0.2952**
   on `the logical name 'stability.auc_by_regime' already holds artifact 960f708fa38d007d`. Step 3

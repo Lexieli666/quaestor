@@ -39,6 +39,7 @@ __all__ = [
     "REQUIRED_HEADINGS",
     "check_front_matter",
     "check_structure",
+    "is_report_citation",
     "malformed_citations",
     "front_matter_of",
     "required_renderer_blocks",
@@ -213,11 +214,7 @@ def check_structure(
     for block in required_renderer_blocks():
         if str(block["begin"]) not in report:
             problems.append(f"the report has no {block['name']} renderer block")
-    bad = [
-        token
-        for token in ANY_TOKEN_RE.findall(report)
-        if not (ARTIFACT_CITATION_RE.fullmatch(token) or REGULATORY_CITATION_RE.fullmatch(token))
-    ]
+    bad = [token for token in ANY_TOKEN_RE.findall(report) if not is_report_citation(token)]
     if bad:
         problems.append(f"these double-bracket tokens are not well-formed citations: {bad}")
     problems.extend(_forbidden(report))
@@ -286,6 +283,29 @@ def _forbidden(report: str) -> list[str]:
     return problems
 
 
+def is_report_citation(token: str) -> bool:
+    """Whether a double-bracket token is one a *rendered report* is allowed to carry.
+
+    The one predicate its three callers share -- :func:`check_structure`, which refuses the report
+    for a token that is not one; :func:`malformed_citations`, which asks the same question of a
+    drafted section (D-189); and the resolver's diagnostics, which must not write a token into a
+    message when the renderer would refuse a report for carrying it (DECISIONS D-192). Three
+    expressions of one grammar are three chances to disagree about the same bytes (D-084), and the
+    third caller was added because a report was refused for faithfully quoting its own verifier.
+
+    A ``[[table:...]]`` directive is deliberately **not** one: it is well-formed in drafter output
+    and a failure in a rendered report, which is the single difference
+    :func:`malformed_citations` keeps and the reason that function cannot simply be this one.
+
+    Args:
+        token: A double-bracket token, brackets included, as :data:`ANY_TOKEN_RE` finds it.
+
+    Returns:
+        Whether it is a well-formed artifact or regulatory citation.
+    """
+    return bool(ARTIFACT_CITATION_RE.fullmatch(token) or REGULATORY_CITATION_RE.fullmatch(token))
+
+
 def malformed_citations(markdown: str) -> list[str]:
     """Return the double-bracket tokens of a *drafted section* that are not well-formed.
 
@@ -309,11 +329,7 @@ def malformed_citations(markdown: str) -> list[str]:
     return [
         token
         for token in ANY_TOKEN_RE.findall(markdown)
-        if not (
-            ARTIFACT_CITATION_RE.fullmatch(token)
-            or REGULATORY_CITATION_RE.fullmatch(token)
-            or TABLE_DIRECTIVE_RE.fullmatch(token)
-        )
+        if not (is_report_citation(token) or TABLE_DIRECTIVE_RE.fullmatch(token))
     ]
 
 
