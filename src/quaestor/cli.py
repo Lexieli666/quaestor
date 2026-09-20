@@ -1,18 +1,19 @@
-"""The ``quaestor`` console script: ``validate``, ``tool``, ``corpus ingest`` and ``study build``.
+"""The ``quaestor`` console script: ``validate``, ``tool``, ``corpus ingest`` and ``study``.
 
-Spec section 3.14 lists eight commands. Five of them exist today, and only those five have a
-parser: ``verifier-eval`` arrives with Phase 13 and ``mcp`` with Phase 15, and ``study score`` is
-``python eval/score.py``, which reads run directories and never runs anything. A flag that parses
-and then says "not implemented" is worse than no flag, because a reader of ``--help`` cannot tell
-the difference between what this program does and what it is going to do; the Phase 0 design
-paragraph on half-built flag surfaces is the whole argument, and it applies here (D-082).
+Spec section 3.14 lists eight commands. Six of them exist today, and only those six have a
+parser: ``verifier-eval`` arrives with Phase 13 and ``mcp`` with Phase 15. A flag that parses and
+then says "not implemented" is worse than no flag, because a reader of ``--help`` cannot tell the
+difference between what this program does and what it is going to do; the Phase 0 design
+paragraph on half-built flag surfaces is the whole argument, and it applies here (D-082), which
+is also why ``study score`` arrives now rather than earlier: this is the phase that scores.
 
-``study build`` and ``study run`` are the two commands whose implementation is not in this
-package. The seeded-defect generator lives in ``eval/seed.py`` and the study harness in
-``eval/run_study.py``, outside ``src/``, because the pipeline being measured must not be able to
-import the thing that plants the defects and because a study harness is a development tool that
-only makes sense inside a checkout; so each command loads its module from beside the taxonomy it
-was given, and says so when it is not there (DECISIONS D-127).
+``study build``, ``study run`` and ``study score`` are the three commands whose implementation is
+not in this package. The seeded-defect generator lives in ``eval/seed.py``, the study harness in
+``eval/run_study.py`` and the scorer in ``eval/score.py``, outside ``src/``, because the pipeline
+being measured must not be able to import the thing that plants the defects or the thing that
+marks its answers, and because a study harness is a development tool that only makes sense inside
+a checkout; so each command loads its module from beside the taxonomy it was given, and says so
+when it is not there (DECISIONS D-127, D-193).
 
 **Exit codes**, which are the interface a script sees:
 
@@ -27,12 +28,17 @@ was given, and says so when it is not there (DECISIONS D-127).
 Every message written to standard error names the command that fixes it, which is spec section
 3.1's rule about error messages applied to the program's own front door.
 
-**The exit code is not the whole answer, and two commands say so.** A ``validate`` whose checklist
-partly failed exits ``0`` and names the missing check in Appendix D, so a caller judging a run
-reads ``checks_failed`` and not the code (D-177). A ``study run`` that stopped on its cost ceiling
-exits ``0`` exactly as one that finished the study does, so a caller reruns the same command line
-until ``remaining_in_last_plan`` in ``ledger.json`` reads zero -- that field counts the last
-invocation's own plan, which is why a caller reruns *the same* command line.
+**The exit code is not the whole answer, and three commands say so.** A ``validate`` whose
+checklist partly failed exits ``0`` and names the missing check in Appendix D, so a caller judging
+a run reads ``checks_failed`` and not the code (D-177). A ``study run`` that stopped on its cost
+ceiling exits ``0`` exactly as one that finished the study does, so a caller reruns the same
+command line until ``remaining_in_last_plan`` in ``ledger.json`` reads zero -- that field counts
+the last invocation's own plan, which is why a caller reruns *the same* command line. And a
+``study score`` exits ``1`` for what it declined to score -- a variant whose check crashed, a
+control whose baseline nobody has measured, a collateral pairing nobody judged -- which is not a
+failure to produce: it wrote both documents, and the code says a person is owed something
+(D-182's refusals, D-193's reading of them). A **miss** is not one of those: a miss is a result,
+and it exits ``0``.
 """
 
 from __future__ import annotations
@@ -68,6 +74,7 @@ __all__ = [
     "EXIT_USAGE",
     "PROVIDERS",
     "RUN_STUDY_MODULE",
+    "SCORE_MODULE",
     "SEED_MODULE",
     "STUDY_ORDER",
     "build_parser",
@@ -98,11 +105,17 @@ SEED_MODULE: Final = "seed.py"
 RUN_STUDY_MODULE: Final = "run_study.py"
 """The study harness, looked for in the same place and loaded the same way."""
 
+SCORE_MODULE: Final = "score.py"
+"""The scorer, looked for in the same place again and loaded the same way (D-193)."""
+
 _SEED_ALIAS: Final = "quaestor_eval_seed"
 """What ``eval/seed.py`` is imported as, so it does not collide with anything on the path."""
 
 _RUN_STUDY_ALIAS: Final = "quaestor_eval_run_study"
 """What ``eval/run_study.py`` is imported as, for the same reason."""
+
+_SCORE_ALIAS: Final = "quaestor_eval_score"
+"""What ``eval/score.py`` is imported as, for the same reason again."""
 
 STUDY_ORDER: Final = (
     Configuration.rules_only.value,
@@ -320,21 +333,23 @@ def _add_corpus(commands: Any) -> None:
 
 
 def _add_study(commands: Any) -> None:
-    """Add ``quaestor study build`` and ``quaestor study run``.
+    """Add ``quaestor study build``, ``quaestor study run`` and ``quaestor study score``.
 
-    ``score`` is deliberately not an action: it reads finished run directories and runs nothing,
-    so it is ``python eval/score.py`` and not a verb of this program. ``quaestor study score``
-    stays an argparse "invalid choice", which is what D-082 asks of every command that does not
-    exist here.
+    All three are spec section 3.14's, all three are implemented outside this package, and all
+    three find their module beside the ``--taxonomy`` they were given. ``score`` runs nothing and
+    reads no prose: it is here because scoring a finished study is a thing an operator does from
+    the same command line as the run that produced it, and D-082's rule is that a command appears
+    in the phase that makes it work rather than before it (D-193).
     """
     study_parser = commands.add_parser(
         "study",
-        help="build the seeded-defect variants the evaluation runs on, and run the study",
+        help="build the seeded-defect variants, run the study, and score what it wrote",
         description=(
             "The seeded-defect study of 04-SEEDED-DEFECT-STUDY.md. `build` writes one variant "
             "package per row of the taxonomy, each with a SEED.yaml recording what was done to it "
             "that no validation run ever reads; `run` validates those variants under one or more "
-            "configurations, in resumable chunks. Scoring is `python eval/score.py`."
+            "configurations, in resumable chunks; `score` reads the finished run directories and "
+            "writes summary.json and report.md."
         ),
     )
     actions = study_parser.add_subparsers(dest="action", metavar="ACTION", required=True)
@@ -391,6 +406,7 @@ def _add_study(commands: Any) -> None:
     )
     build_parser.set_defaults(run=_run_study_build)
     _add_study_run(actions)
+    _add_study_score(actions)
 
 
 def _add_study_run(actions: Any) -> None:
@@ -509,6 +525,62 @@ def _add_study_run(actions: Any) -> None:
     run_parser.set_defaults(run=_run_study_run)
 
 
+def _add_study_score(actions: Any) -> None:
+    """Add ``quaestor study score``: the study's two documents, from its finished run directories.
+
+    The flag surface is ``build``'s and ``run``'s: ``--taxonomy`` with the same default and the
+    same role, ``--variants`` spelled as ``run`` spells it, and ``--out`` a directory. Spec
+    section 3.14 writes the command as ``--results DIR`` alone; ``--variants`` is required as well
+    because a study directory does not record where the answer keys are and a scorer that guessed
+    would score against a different taxonomy's variants without saying so (D-193).
+    """
+    score_parser = actions.add_parser(
+        "score",
+        help="score a finished study directory into summary.json and report.md",
+        description=(
+            "Read every run directory under --results, score it against the answer keys beside "
+            "the variants and the control baselines the taxonomy measured, and write summary.json "
+            "and report.md. Nothing is run and no report's prose is read: the numbers come from "
+            "findings.json, claims.json, trace.jsonl, artifacts/index.json and ledger.json. The "
+            "exit code is 1 when the scoring leaves something for a person -- a variant whose "
+            "check did not run, a control whose baseline is not measured, a collateral pairing "
+            "nobody judged, a cell that produced no report at all -- and 0 for a plain miss, "
+            "which is a result and not homework."
+        ),
+    )
+    score_parser.add_argument(
+        "--results",
+        metavar="DIR",
+        type=Path,
+        required=True,
+        help="the study directory `quaestor study run` wrote, or any directory of run directories",
+    )
+    score_parser.add_argument(
+        "--variants",
+        metavar="DIR",
+        type=Path,
+        required=True,
+        help="where `quaestor study build` wrote the variant packages, whose SEED.yaml is the "
+        "answer key",
+    )
+    score_parser.add_argument(
+        "--taxonomy",
+        metavar="FILE",
+        type=Path,
+        default=_DEFAULT_TAXONOMY,
+        help=f"the taxonomy whose measured control baselines are scored against (default: "
+        f"{_DEFAULT_TAXONOMY}); {SCORE_MODULE} is loaded from the same directory",
+    )
+    score_parser.add_argument(
+        "--out",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help="where summary.json and report.md go (default: the --results directory)",
+    )
+    score_parser.set_defaults(run=_run_study_score)
+
+
 def _load_eval_module(directory: Path, filename: str, alias: str, fix: str) -> ModuleType:
     """Import one module of ``eval/`` from a directory, under an alias of its own.
 
@@ -561,6 +633,16 @@ def _load_run_study_module(directory: Path) -> ModuleType:
         _RUN_STUDY_ALIAS,
         "quaestor study run --variants eval/variants --out eval/results/run --llm fake "
         "--synthetic --config rules_only",
+    )
+
+
+def _load_score_module(directory: Path) -> ModuleType:
+    """Import ``eval/score.py``, the scorer."""
+    return _load_eval_module(
+        directory,
+        SCORE_MODULE,
+        _SCORE_ALIAS,
+        "quaestor study score --results eval/results/run --variants eval/variants",
     )
 
 
@@ -666,6 +748,44 @@ def _run_study_run(args: argparse.Namespace) -> int:
         print(f"{record.cell.key}: reported without {tools}")
     print(f"{summary.remaining} cell(s) of this plan remaining; ledger: {ledger}")
     return EXIT_FAILED_RUN if summary.failed or summary.rejected else EXIT_OK
+
+
+def _run_study_score(args: argparse.Namespace) -> int:
+    """Run ``quaestor study score``: read the finished runs, write the study's two documents.
+
+    The return value is :data:`EXIT_FAILED_RUN` when the scoring leaves a person something to do,
+    which is ``eval/score.py``'s own exit code and not this program's usual meaning of ``1``: both
+    documents were written either way. A plain **miss** exits :data:`EXIT_OK`, because a miss is a
+    result the study publishes rather than homework (D-182, D-193).
+    """
+    taxonomy_path = Path(args.taxonomy)
+    fix = (
+        "quaestor study score --results eval/results/run --variants eval/variants "
+        "--taxonomy eval/taxonomy.yaml"
+    )
+    if not taxonomy_path.is_file():
+        return _fail(f"there is no taxonomy at {taxonomy_path}", fix)
+    try:
+        scorer = _load_score_module(taxonomy_path.parent)
+    except PackageError as exc:
+        return _fail(str(exc.message), exc.fix or "quaestor study score --help")
+    try:
+        result, runs, keys = scorer.assemble(args.results, args.variants, taxonomy_path)
+    except (ValueError, KeyError, OSError, QuaestorError) as exc:
+        return _fail(str(exc), fix)
+    try:
+        summary, report = scorer.publish(result, runs, keys, args.out or args.results)
+    except OSError as exc:
+        return _fail(
+            f"the study was scored and its documents could not be written: {exc}",
+            fix,
+            code=EXIT_FAILED_RUN,
+        )
+    for line in scorer.summary_lines(result):
+        print(line)
+    print(f"summary: {summary}")
+    print(f"report: {report}")
+    return EXIT_FAILED_RUN if scorer.owed(result) else EXIT_OK
 
 
 def _fail(message: str, fix: str, code: int = EXIT_USAGE) -> int:

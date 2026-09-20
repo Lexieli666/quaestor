@@ -416,9 +416,10 @@ def test_a_value_planted_in_seed_yaml_reaches_nothing_the_pipeline_writes(
 # --- the command line ----------------------------------------------------------------------------
 
 
-def test_study_build_writes_every_variant_and_study_score_is_still_refused(
+def test_study_build_writes_every_variant(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    """`study score` is a command of its own from Phase 12 on; `tests/test_score.py` drives it."""
     out = tmp_path / "variants"
     assert (
         cli_main(["study", "build", "--taxonomy", str(TAXONOMY_FILE), "--out", str(out)]) == EXIT_OK
@@ -426,9 +427,6 @@ def test_study_build_writes_every_variant_and_study_score_is_still_refused(
     printed = capsys.readouterr().out
     assert f"{SEEDED_VARIANTS + CONTROL_VARIANTS} variant(s) under" in printed
     assert (out / "credit__T1__false_claim" / seed_module.SEED_FILE).is_file()
-    with pytest.raises(SystemExit) as exit_code:
-        cli_main(["study", "score"])
-    assert exit_code.value.code == EXIT_USAGE
 
 
 def test_study_build_without_a_generator_beside_the_taxonomy_says_so(

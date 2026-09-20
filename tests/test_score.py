@@ -23,6 +23,8 @@ from typing import Any
 import pytest
 
 from conftest import REPO_ROOT, load_module
+from quaestor.cli import EXIT_FAILED_RUN, EXIT_OK, EXIT_USAGE
+from quaestor.cli import main as cli_main
 from quaestor.llm.offline import OfflineLLM
 from quaestor.pipeline import validate
 
@@ -35,6 +37,9 @@ SUBJECTS = REPO_ROOT / "subjects"
 
 PINNED = datetime(2026, 9, 18, 6, 52, 57, tzinfo=UTC)
 """A fixed instant, so a test can assert on `summary.json`'s bytes rather than on a clock."""
+
+FOUND_L1 = {"defect_class": "L1", "severity": "high", "evidence": ["aaaaaaaa"]}
+"""One detection, for the tests whose subject is the command line rather than the criterion."""
 
 SCORED = ("credit__T1__false_claim", "credit__C1__smote_uncalibrated", "control_credit_clean")
 """Three variants: a seeded one whose recipe is a `package.yaml` edit, one whose recipe is a
@@ -912,3 +917,350 @@ def test_the_command_line_names_a_no_report_cell_and_exits_one(
     assert code == 1
     assert "no report: refused (rejected) — counted as a miss" in printed
     assert "C1: 0/1; missed refused" in printed
+
+
+# --- `quaestor study score` ----------------------------------------------------------------------
+
+
+def _study(root: Path) -> tuple[Path, Path]:
+    """The two directories the command is given: the study tree and the variants beside it."""
+    return root / "results", root / "variants"
+
+
+def _cell(root: Path, variant: str, configuration: str = "rules_only", **fields: Any) -> Path:
+    """One cell of a study tree: `<results>/<configuration>/<variant>/`, as the harness writes."""
+    return _write_run(root / configuration, variant, configuration=configuration, **fields)
+
+
+def _score_command(root: Path, *extra: str) -> int:
+    """Run `quaestor study score` on a study tree, in this process so coverage measures it."""
+    results, variants = _study(root)
+    return cli_main(
+        [
+            "study",
+            "score",
+            "--results",
+            str(results),
+            "--variants",
+            str(variants),
+            "--taxonomy",
+            str(TAXONOMY_FILE),
+            *extra,
+        ]
+    )
+
+
+def _documents(out: Path) -> tuple[dict[str, Any], str]:
+    """The two files the command writes, parsed."""
+    return (
+        json.loads((out / scorer.SUMMARY_FILE).read_text(encoding="utf-8")),
+        (out / scorer.REPORT_FILE).read_text(encoding="utf-8"),
+    )
+
+
+def test_study_score_writes_the_two_documents_beside_the_runs_it_scored(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`04` section 4's headline table, control table and grounding table, from a study tree."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "credit__L1__leak", defect_class="L1")
+    _cell(results, "credit__L1__leak", findings=[FOUND_L1])
+    _write_key(variants, "control_credit_clean", status="control", defect_class=None)
+    _cell(
+        results,
+        "control_credit_clean",
+        findings=[{**FOUND_L1, "defect_class": "E1", "severity": "low"}],
+    )
+
+    assert _score_command(tmp_path) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "rules_only: 1/1 seeded variants detected" in printed
+    assert f"summary: {results / scorer.SUMMARY_FILE}" in printed
+    assert f"report: {results / scorer.REPORT_FILE}" in printed
+
+    payload, report = _documents(results)
+    assert payload["configurations"]["rules_only"]["detected"] == ["credit__L1__leak"]
+    assert "| defect class | seeded n | rules_only |" in report
+    assert "| `L1` | 1 | 1 |" in report
+    assert "| `control_credit_clean` | synthetic | 0 |" in report
+    assert "| `rules_only` | 2 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |" in report
+    assert "Every seeded variant that was scored was detected." in report
+    assert "Nothing was set aside: every run scored, and nothing is owed." in report
+
+
+def test_study_score_sets_aside_a_variant_whose_seeded_class_had_no_check_to_raise_it(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """D-182's first refusal: scoring a crash as a miss measures the crash, not the detector."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "credit__M1__collinear", defect_class="M1")
+    _cell(
+        results,
+        "credit__M1__collinear",
+        failed_tool=("check_collinearity", "the design matrix is singular"),
+    )
+
+    assert _score_command(tmp_path) == EXIT_FAILED_RUN
+    assert "not scored: credit__M1__collinear (M1)" in capsys.readouterr().out
+    payload, report = _documents(results)
+    block = payload["configurations"]["rules_only"]
+    assert block["not_scorable"] == [
+        {
+            "variant": "credit__M1__collinear",
+            "class": "M1",
+            "tool": "check_collinearity",
+            "message": "the design matrix is singular",
+        }
+    ]
+    assert "M1" not in block["per_class"]
+    assert not block["missed"] and not block["detected"]
+    assert "set aside: `check_collinearity` did not run: the design matrix is singular" in report
+
+
+def test_study_score_does_not_count_false_alarms_on_a_control_whose_baseline_is_null(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """D-182's second refusal: `null` is "not yet measured", and both `real` cells still are."""
+    results, variants = _study(tmp_path)
+    _write_key(
+        variants, "control_credit_perturbed", status="control", defect_class=None, mode="real"
+    )
+    _cell(
+        results,
+        "control_credit_perturbed",
+        findings=[{"defect_class": "M1", "severity": "medium", "evidence": ["bbbbbbbb"]}],
+    )
+
+    assert _score_command(tmp_path) == EXIT_FAILED_RUN
+    assert "its baseline is not measured" in capsys.readouterr().out
+    payload, report = _documents(results)
+    block = payload["configurations"]["rules_only"]
+    assert block["controls_with_unmeasured_baseline"] == ["control_credit_perturbed"]
+    assert not block["false_alarms"] and block["precision"] is None
+    assert "| `control_credit_perturbed` | real | not scored: baseline not measured |" in report
+    assert '`null` means "not yet measured" and never "empty"' in report
+
+
+def test_study_score_leaves_a_collateral_pairing_nobody_decided_in_advance_unjudged(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """D-182's third refusal: section 9 owes a dated judgement before the pairing is a number."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "credit__D1__missing", defect_class="D1")
+    _cell(
+        results,
+        "credit__D1__missing",
+        findings=[
+            {"defect_class": "D1", "severity": "medium", "evidence": ["aaaaaaaa"]},
+            {"defect_class": "X1", "severity": "high", "evidence": ["bbbbbbbb"]},
+        ],
+    )
+
+    assert _score_command(tmp_path) == EXIT_FAILED_RUN
+    assert "collateral unjudged: credit__D1__missing raised X1 high" in capsys.readouterr().out
+    payload, report = _documents(results)
+    block = payload["configurations"]["rules_only"]
+    assert block["collateral_unjudged"] == 1 and block["collateral_spurious"] == 0
+    (judged,) = [item for item in block["collateral"] if item["verdict"] == "unjudged"]
+    assert judged["class"] == "X1" and judged["decided"] is None
+    assert "section 9 owes one" in judged["why"]
+    assert block["precision"] == 1.0
+    assert "| `rules_only` | `credit__D1__missing` | `X1` | high | unjudged |" in report
+    assert "unjudged: no judgement was decided in advance for this pairing" in report
+
+
+def test_study_score_lists_each_miss_with_what_the_report_said_instead_and_its_path(
+    tmp_path: Path,
+) -> None:
+    """`04` section 4's miss list. A finding below the bar is what a reader most wants to see."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "credit__S1__shift", defect_class="S1")
+    _cell(
+        results,
+        "credit__S1__shift",
+        findings=[
+            {"defect_class": "S1", "severity": "low", "evidence": ["aaaaaaaa"]},
+            {"defect_class": "T1", "severity": "medium", "evidence": ["bbbbbbbb"]},
+        ],
+    )
+
+    assert _score_command(tmp_path) == EXIT_OK
+    _, report = _documents(results)
+    assert (
+        "- `credit__S1__shift` -- said instead: S1 low, T1 medium; report: "
+        "`rules_only/credit__S1__shift/report.md`" in report
+    )
+
+
+def test_study_score_lists_a_cell_that_produced_no_report_as_a_miss_with_its_reason(
+    tmp_path: Path,
+) -> None:
+    """A renderer refusal loses the three files, so the ledger is the only place it is written."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "credit__C1__smote", defect_class="C1")
+    _write_key(variants, "credit__L1__leak", defect_class="L1")
+    _cell(results, "credit__L1__leak", findings=[FOUND_L1])
+    _write_ledger(
+        results,
+        [
+            {
+                "configuration": "rules_only",
+                "variant": "credit__C1__smote",
+                "status": "rejected",
+                "error": "['certified'] in front matter and section 1",
+            }
+        ],
+    )
+
+    assert _score_command(tmp_path) == EXIT_FAILED_RUN
+    payload, report = _documents(results)
+    assert payload["configurations"]["rules_only"]["missed"] == ["credit__C1__smote"]
+    assert "| `C1` | 1 | 0 |" in report
+    assert "no report: the cell was recorded `rejected` -- ['certified']" in report
+    assert "there is no report to read" in report
+
+
+def test_study_score_writes_the_documents_where_out_says(tmp_path: Path) -> None:
+    """`--out` is a directory, because the command writes two files and not one (D-193)."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "v")
+    _cell(results, "v", findings=[FOUND_L1])
+    elsewhere = tmp_path / "published"
+
+    assert _score_command(tmp_path, "--out", str(elsewhere)) == EXIT_OK
+    assert (elsewhere / scorer.SUMMARY_FILE).is_file()
+    assert (elsewhere / scorer.REPORT_FILE).is_file()
+    assert not (results / scorer.SUMMARY_FILE).exists()
+
+
+def test_study_score_names_a_run_whose_variant_has_no_answer_key(tmp_path: Path) -> None:
+    """The fourth thing a person is owed: a directory nobody can say what was planted in."""
+    results, variants = _study(tmp_path)
+    variants.mkdir(parents=True)
+    _cell(results, "stranger", findings=[FOUND_L1])
+
+    assert _score_command(tmp_path) == EXIT_FAILED_RUN
+    payload, report = _documents(results)
+    assert payload["variants_without_an_answer_key"] == ["stranger"]
+    assert "there is no `SEED.yaml` for it under" in report
+
+
+def test_study_score_exits_zero_on_a_plain_miss(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A miss is a result the study publishes, not homework; the exit code keeps them apart."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "v")
+    _cell(
+        results,
+        "v",
+        findings=[{"defect_class": "C1", "severity": "high", "evidence": ["aaaaaaaa"]}],
+    )
+
+    assert _score_command(tmp_path) == EXIT_OK
+    assert "L1: 0/1; missed v" in capsys.readouterr().out
+
+
+def test_study_score_scores_a_flat_directory_of_validate_runs_too(tmp_path: Path) -> None:
+    """The free `rules_only` sweep wrote one directory per variant, with no configuration level."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "v")
+    _write_run(results, "v", findings=[FOUND_L1])
+
+    assert _score_command(tmp_path) == EXIT_OK
+    payload, _ = _documents(results)
+    assert payload["configurations"]["rules_only"]["detected"] == ["v"]
+
+
+@pytest.mark.parametrize(
+    ("missing", "needle"),
+    [
+        ("results", "no results directory"),
+        ("variants", "no variants directory"),
+    ],
+    ids=["no-results", "no-variants"],
+)
+def test_study_score_names_the_directory_that_is_not_there(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], missing: str, needle: str
+) -> None:
+    """A wrong request exits 2 and nothing is scored, which is the CLI's own rule."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "v")
+    _cell(results, "v", findings=[FOUND_L1])
+    code = cli_main(
+        [
+            "study",
+            "score",
+            "--results",
+            str(tmp_path / "nowhere" if missing == "results" else results),
+            "--variants",
+            str(tmp_path / "nowhere" if missing == "variants" else variants),
+            "--taxonomy",
+            str(TAXONOMY_FILE),
+        ]
+    )
+    assert code == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert needle in err and "fix: quaestor study score" in err
+
+
+def test_study_score_names_a_taxonomy_that_is_not_there(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    results, variants = _study(tmp_path)
+    _write_key(variants, "v")
+    _cell(results, "v", findings=[FOUND_L1])
+    code = cli_main(
+        [
+            "study",
+            "score",
+            "--results",
+            str(results),
+            "--variants",
+            str(variants),
+            "--taxonomy",
+            str(tmp_path / "nope.yaml"),
+        ]
+    )
+    assert code == EXIT_USAGE
+    assert "no taxonomy at" in capsys.readouterr().err
+
+
+def test_study_score_without_the_scorer_beside_the_taxonomy_says_so(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The same rule `study build` and `study run` follow: the module lives beside the taxonomy."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "v")
+    _cell(results, "v", findings=[FOUND_L1])
+    elsewhere = tmp_path / "eval" / "taxonomy.yaml"
+    elsewhere.parent.mkdir(parents=True)
+    elsewhere.write_text(TAXONOMY_FILE.read_text(encoding="utf-8"), encoding="utf-8")
+    code = cli_main(
+        [
+            "study",
+            "score",
+            "--results",
+            str(results),
+            "--variants",
+            str(variants),
+            "--taxonomy",
+            str(elsewhere),
+        ]
+    )
+    assert code == EXIT_USAGE
+    assert "score.py" in capsys.readouterr().err
+
+
+def test_study_score_says_so_when_its_documents_cannot_be_written(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The one outcome that is this program's own meaning of 1: it ran and produced nothing."""
+    results, variants = _study(tmp_path)
+    _write_key(variants, "v")
+    _cell(results, "v", findings=[FOUND_L1])
+    blocked = tmp_path / "published"
+    blocked.write_text("not a directory", encoding="utf-8")
+
+    assert _score_command(tmp_path, "--out", str(blocked)) == EXIT_FAILED_RUN
+    assert "its documents could not be written" in capsys.readouterr().err

@@ -1800,3 +1800,47 @@ to nothing is the one thing this project must not emit, so quietly repairing one
 the whole verifier exists to surface. A diagnostic quoted in an appendix is a sentence *about* a
 citation that failed — nothing resolves it and nothing is grounded on it — so re-quoting it removes
 no guarantee. The shapes are the same and the arguments are not.
+
+## `quaestor study score`: the command, and the two documents it writes
+
+`eval/score.py` was finished before it had an entry point in the program that spec §3.14 names it
+a command of, and for one phase the only way to reach it was `python eval/score.py` from a
+checkout. Phase 12 gives it `quaestor study score`, built exactly as `study build` and `study run`
+are: the module is loaded from beside the `--taxonomy` it was given (D-127), the flags are spelled
+as the other two actions spell them, and the failures are the same ones — a taxonomy that is not
+there, a module that is not beside it, a directory that holds no run.
+
+Three things about the module's interface did not fit a `study` action and the command moved
+rather than the module. **`--variants` is required** although spec §3.14 writes the command as
+`--results DIR` alone: a study directory records which variants ran and not where their answer
+keys are, and `SEED.yaml` is a file no pipeline code may open, so guessing `eval/variants` would
+score a tree against whichever keys that directory holds today. **`--out` is a directory here and
+stays a file in `eval/score.py`**, whose `--out` has meant "write `summary.json` to this path"
+since the eighteen free `rules_only` directories were scored with it; the action writes two
+documents and its `--out` defaults to `--results`, which is spec §8's own layout. And **the exit
+code is the scorer's**: `1` means the scoring left a person something to do and says so with both
+documents already written, where `1` elsewhere in `cli.py` means the command produced nothing. A
+miss exits `0`, because a miss is a result the study publishes.
+
+`report.md` is new and lives in `eval/score.py` beside the numbers rather than in `cli.py`. The
+CLI reaches the scorer through `importlib`, so every attribute of it is untyped to
+`mypy --strict`; a table-builder written against `Any` would be the one untyped corner of the
+shipped package, and it would put the study's tables in a second place from the file that computes
+them. The document carries `04` §4's four tables — the headline (rows the defect class; columns
+the seeded n and each configuration's detections), the controls, the grounding figures, the miss
+list — and two more that are the scorer's own: the collateral verdicts each with the date it was
+decided, and **what was not scored and why**, which is D-182's three refusals written where a
+reader will meet them. A study whose claim is that its misses are published cannot leave the
+refusals in a JSON file nobody opens.
+
+The miss list's "said instead" column is every finding the missed run raised, class and severity,
+**including those below `medium`**: a seeded class raised `low` is the near miss a reader most
+wants to see. It is the one figure in `report.md` that `summary.json` does not carry, and it is
+read from `findings.json`, not from the report — the report's path is printed, never its text,
+which is the rule the whole file is built on.
+
+Two alternatives were rejected. **Rebuilding an `argv` and calling `score.py`'s own `main()`**,
+which makes the CLI a string formatter for a second parser and throws away the run directories and
+answer keys a report has to be rendered from. **Putting the "said instead" column into
+`summary.json`**, which changes a schema D-182 fixed, and which the free sweep's eighteen
+directories were scored under, to carry a string only a reader of the prose report needs.

@@ -1,4 +1,4 @@
-"""The study's scorer: run directories in, `summary.json` out, no prose read on the way.
+"""The study's scorer: run directories in, `summary.json` and `report.md` out, no prose read.
 
 `04-SEEDED-DEFECT-STUDY.md` section 4 and `docs/STUDY.md` section 5. Every number the study
 publishes is computed here from four files of a run directory -- `findings.json`, `claims.json`,
@@ -44,6 +44,15 @@ that should not have been: false alarms on the controls, collateral findings jud
 Two columns `docs/STUDY.md` section 5 asks for are deliberately absent, and their absence is the
 cut list's, not an oversight: the descriptive open-items column and the cost and latency
 aggregation, both of which are recoverable from the traces and the ledger after the fact.
+
+**`report.md` is `04` section 4's four tables** -- the headline (rows the defect class; columns
+the seeded n and each configuration's detections), the controls, the grounding figures and the
+miss list -- and then two this file adds: the collateral verdicts each with the date it was
+decided, and what was not scored and why, because a study whose claim is that its misses are
+published cannot leave the three refusals above in a JSON file nobody opens. :func:`render`
+writes it and `quaestor study score` is the command that asks for it (D-193); this module's own
+`--out` keeps meaning "write `summary.json` to this path", which is what the run log's command
+lines mean by it.
 """
 
 from __future__ import annotations
@@ -61,10 +70,14 @@ import yaml
 
 from quaestor.configs import SCREENED_CLASSES
 from quaestor.findings import DefectClass, Severity, severity_rank
+from quaestor.vocab import Configuration
 
 __all__ = [
     "COLLATERAL_RULES",
+    "COLUMN_ORDER",
     "DETECTION_SEVERITY",
+    "REPORT_FILE",
+    "SUMMARY_FILE",
     "UNEVIDENCED_PREFIX",
     "Baselines",
     "ClassScore",
@@ -73,11 +86,16 @@ __all__ = [
     "RunDirectory",
     "NoReport",
     "StudyScore",
+    "assemble",
     "load_no_report",
     "load_runs",
     "main",
+    "owed",
+    "publish",
+    "render",
     "score",
     "stamp",
+    "summary_lines",
 ]
 
 DETECTION_SEVERITY: Final = Severity.medium
@@ -88,6 +106,24 @@ UNEVIDENCED_PREFIX: Final = "unevidenced:"
 
 LEDGER_FILE: Final = "ledger.json"
 """What `quaestor study run` wrote. The only record of a cell that produced no report at all."""
+
+SUMMARY_FILE: Final = "summary.json"
+"""Every number the study publishes, and the file the README and `docs/EVALUATION.md` quote."""
+
+REPORT_FILE: Final = "report.md"
+"""`04` section 4's four tables, written beside it by `quaestor study score` (D-193)."""
+
+COLUMN_ORDER: Final = (
+    Configuration.rules_only.value,
+    Configuration.plain_llm.value,
+    Configuration.full_agent.value,
+)
+"""The order `report.md` puts the configurations in: `04` section 4's own column order.
+
+Which is also the order they are run in -- cheapest first -- and deliberately not
+:class:`~quaestor.vocab.Configuration`'s declaration order, so that a reader comparing the study's
+tables with `docs/STUDY.md` section 3's protocol reads the arms in one order throughout.
+"""
 
 SEED_FILE: Final = "SEED.yaml"
 FINDINGS_FILE: Final = "findings.json"
@@ -891,7 +927,7 @@ def _grounding(runs: Sequence[RunDirectory]) -> dict[str, float | None]:
     return out
 
 
-def _lines(result: StudyScore) -> Iterator[str]:
+def summary_lines(result: StudyScore) -> Iterator[str]:
     """The human summary, which says the same things `summary.json` does and fits on a screen."""
     for name, item in sorted(result.configurations.items()):
         scored = len(item.detected) + len(item.missed)
@@ -931,6 +967,415 @@ def _lines(result: StudyScore) -> Iterator[str]:
         yield f"no answer key for: {', '.join(result.unknown_variants)}"
 
 
+# --- the two documents the study publishes -----------------------------------------------------
+
+
+def assemble(
+    results_dir: Path | str,
+    variants_dir: Path | str,
+    taxonomy_path: Path | str,
+    *,
+    generated: datetime | None = None,
+) -> tuple[StudyScore, list[RunDirectory], dict[str, VariantKey]]:
+    """Read a study directory and score it, returning what a report is rendered from as well.
+
+    The one place a study's score is assembled from three paths, so that `python eval/score.py`
+    and `quaestor study score` cannot drift into two readings of the same directory -- of which
+    variant counts as unknown, or of whether the ledger is read at all.
+
+    Args:
+        results_dir: The study directory, or any directory of run directories.
+        variants_dir: Where `quaestor study build` wrote the variant packages.
+        taxonomy_path: The taxonomy whose measured control baselines are scored against.
+        generated: The instant to stamp, or `None` for the clock.
+
+    Returns:
+        The score, the run directories it was computed from, and the answer keys. The last two
+        are what :func:`render` needs and `summary.json` does not carry: a miss list that says
+        what the report said instead has to read the missed run's own findings, and a control
+        table that lists a control raising nothing at all has to know which variants are controls.
+
+    Raises:
+        ValueError: There is no results directory, it holds no run, or there is no variants
+            directory.
+    """
+    runs = load_runs(results_dir)
+    keys = load_keys(variants_dir)
+    baselines = load_baselines(taxonomy_path)
+    result = StudyScore(
+        generated=generated or datetime.now(UTC),
+        results_dir=str(results_dir),
+        variants_dir=str(variants_dir),
+        taxonomy=str(taxonomy_path),
+        configurations=score(runs, keys, baselines, load_no_report(results_dir)),
+        unknown_variants=sorted({run.variant for run in runs} - set(keys)),
+    )
+    return result, runs, keys
+
+
+def owed(result: StudyScore) -> bool:
+    """Whether the scoring leaves something for a person, which is what an exit code of 1 means.
+
+    Args:
+        result: The score.
+
+    Returns:
+        `True` when a run has no answer key, a variant was set aside because the check that
+        screens its class did not run, a control's baseline is not measured, a collateral pairing
+        is unjudged, or a cell produced no report. An ordinary **miss** is none of these: a miss
+        is a result, and the study publishes it.
+    """
+    return bool(result.unknown_variants) or any(
+        item.controls_unmeasured or item.unjudged or item.not_scorable or item.no_report
+        for item in result.configurations.values()
+    )
+
+
+def publish(
+    result: StudyScore,
+    runs: Sequence[RunDirectory],
+    keys: Mapping[str, VariantKey],
+    out_dir: Path | str,
+) -> tuple[Path, Path]:
+    """Write the study's two documents, `summary.json` and `report.md`, into one directory.
+
+    Args:
+        result: The score.
+        runs: The run directories it was computed from.
+        keys: The answer keys.
+        out_dir: Where the two files go; created when it is not there.
+
+    Returns:
+        The path of `summary.json` and the path of `report.md`.
+    """
+    root = Path(out_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    summary, report = root / SUMMARY_FILE, root / REPORT_FILE
+    summary.write_text(json.dumps(result.to_payload(), indent=2) + "\n", encoding="utf-8")
+    report.write_text(render(result, runs, keys), encoding="utf-8")
+    return summary, report
+
+
+def render(result: StudyScore, runs: Sequence[RunDirectory], keys: Mapping[str, VariantKey]) -> str:
+    """Render `report.md`: `04-SEEDED-DEFECT-STUDY.md` section 4's four tables, and the refusals.
+
+    The headline table (rows the defect class; columns the seeded n and each configuration's
+    detections), the control table, the grounding table and the miss list -- then the collateral
+    verdicts, and last what the scorer declined to score and why, which is the part of the record
+    a study claiming to publish its misses cannot leave in a JSON file nobody opens.
+
+    No report's prose is read to build this, and no number in it is computed here: every figure is
+    one `summary.json` also carries, except the miss list's "said instead" column, which is read
+    from the missed run's own `findings.json`.
+
+    Args:
+        result: The score.
+        runs: The run directories it was computed from.
+        keys: The answer keys, which say which variants are controls and in which data mode.
+
+    Returns:
+        The markdown.
+    """
+    names = sorted(result.configurations, key=_configuration_order)
+    by_cell = {(run.configuration, run.variant): run for run in runs}
+    lines = [
+        "# Seeded-defect study: scores",
+        "",
+        f"Scored {stamp(result.generated)} from `{result.results_dir}`, against the answer keys "
+        f"in `{result.variants_dir}` and the control baselines measured in `{result.taxonomy}`.",
+        "",
+        "Detection is `04-SEEDED-DEFECT-STUDY.md` section 4's criterion unchanged: a finding of "
+        "the *seeded* class at severity at least `medium`. Counts, never percentages -- n is one "
+        "or two variants per class. Nothing here is read from a report's prose.",
+        "",
+    ]
+    lines += _detection_table(result, names)
+    lines += _control_table(result, runs, keys, names)
+    lines += _grounding_table(result, names)
+    lines += _miss_list(result, by_cell, names)
+    lines += _collateral_table(result, names)
+    lines += _set_aside(result, names)
+    return "\n".join(lines).rstrip("\n") + "\n"
+
+
+def _configuration_order(name: str) -> tuple[int, str]:
+    """Sort a configuration into :data:`COLUMN_ORDER`, an unknown one last and by name."""
+    return (COLUMN_ORDER.index(name) if name in COLUMN_ORDER else len(COLUMN_ORDER), name)
+
+
+def _class_order(name: str) -> tuple[int, str]:
+    """Sort a defect class into spec section 3.7's fixed order, which is not alphabetical."""
+    codes = [item.value for item in DefectClass]
+    return (codes.index(name) if name in codes else len(codes), name)
+
+
+def _number(value: float | None) -> str:
+    """Four decimal places, or `n/a` for a figure no run recorded."""
+    return "n/a" if value is None else f"{value:.4f}"
+
+
+def _table(header: Sequence[str], rows: Sequence[Sequence[str]]) -> list[str]:
+    """One markdown table, or nothing at all when there is no row to put in it."""
+    if not rows:
+        return []
+    return [
+        "| " + " | ".join(header) + " |",
+        "|" + "|".join("---" for _ in header) + "|",
+        *("| " + " | ".join(row) + " |" for row in rows),
+    ]
+
+
+def _said_instead(run: RunDirectory) -> str:
+    """What a report said, as classes and severities: the miss list's own column.
+
+    Every finding, not only those at or above the bar, because a seeded class raised at `low` is
+    exactly the near miss a reader of this list wants to see.
+    """
+    if not run.raised:
+        return "no finding at all"
+    return ", ".join(f"{cls} {severity}" for cls, severity in run.raised)
+
+
+def _detection_table(result: StudyScore, names: Sequence[str]) -> list[str]:
+    """The headline table, and one line per configuration under it."""
+    classes = sorted(
+        {cls for item in result.configurations.values() for cls in item.per_class},
+        key=_class_order,
+    )
+    rows: list[list[str]] = []
+    for cls in classes:
+        seeded = max(
+            item.per_class[cls].seeded
+            for item in result.configurations.values()
+            if cls in item.per_class
+        )
+        row = [f"`{cls}`", str(seeded)]
+        for name in names:
+            scored = result.configurations[name].per_class.get(cls)
+            if scored is None:
+                row.append("not run")
+            elif scored.seeded == seeded:
+                row.append(str(scored.detected))
+            else:
+                row.append(f"{scored.detected} (of {scored.seeded} scored)")
+        rows.append(row)
+    if rows:
+        total = ["**all**", f"**{sum(int(row[1]) for row in rows)}**"]
+        total += [f"**{len(result.configurations[name].detected)}**" for name in names]
+        rows.append(total)
+    out = ["## Detection", ""]
+    out += _table(["defect class", "seeded n", *names], rows) or ["No seeded variant was scored."]
+    out += [""]
+    for name in names:
+        item = result.configurations[name]
+        out.append(
+            f"- `{name}`: {len(item.detected)} detected, {len(item.missed)} missed over "
+            f"{item.runs} run(s); false alarms {len(item.false_alarms)}, collateral spurious "
+            f"{len(item.spurious)}, unevidenced findings {item.unevidenced}, precision "
+            f"{_number(item.precision)}"
+        )
+    return [*out, ""]
+
+
+def _control_table(
+    result: StudyScore,
+    runs: Sequence[RunDirectory],
+    keys: Mapping[str, VariantKey],
+    names: Sequence[str],
+) -> list[str]:
+    """The control table: every finding a control raised that its measured baseline does not."""
+    seen = {run.variant for run in runs} | {
+        entry.variant for item in result.configurations.values() for entry in item.no_report
+    }
+    controls = sorted(variant for variant in seen if variant in keys and keys[variant].is_control)
+    rows: list[list[str]] = []
+    for variant in controls:
+        row = [f"`{variant}`", keys[variant].mode]
+        for name in names:
+            row.append(_control_cell(result.configurations[name], runs, variant, name))
+        rows.append(row)
+    out = [
+        "## Controls",
+        "",
+        "Every finding at or above `medium` that the control's own measured baseline does not "
+        "carry is a false alarm (`04` section 4). A control whose baseline reads `null` in the "
+        'taxonomy is not scored for false alarms at all: there, `null` is "not yet measured" '
+        'and never "empty".',
+        "",
+    ]
+    out += _table(["control", "data mode", *names], rows) or ["No control was run."]
+    return [*out, ""]
+
+
+def _control_cell(
+    item: ConfigurationScore, runs: Sequence[RunDirectory], variant: str, configuration: str
+) -> str:
+    """One cell of the control table: a false-alarm count, or why there is no count."""
+    if variant in item.controls_unmeasured:
+        return "not scored: baseline not measured"
+    if not any(run.variant == variant and run.configuration == configuration for run in runs):
+        gone = [entry for entry in item.no_report if entry.variant == variant]
+        return f"no report ({gone[0].status})" if gone else "not run"
+    raised = [entry for entry in item.false_alarms if entry["variant"] == variant]
+    if not raised:
+        return "0"
+    classes = ", ".join(f"{entry['class']} {entry['severity']}" for entry in raised)
+    return f"{len(raised)} ({classes})"
+
+
+def _grounding_table(result: StudyScore, names: Sequence[str]) -> list[str]:
+    """The grounding table: mean and minimum per configuration, pre- and post-repair."""
+    rows = []
+    for name in names:
+        item = result.configurations[name]
+        rows.append(
+            [
+                f"`{name}`",
+                str(item.runs),
+                _number(item.grounding.get("pre_repair_mean")),
+                _number(item.grounding.get("pre_repair_min")),
+                _number(item.grounding.get("post_repair_mean")),
+                _number(item.grounding.get("post_repair_min")),
+            ]
+        )
+    out = ["## Grounding precision", ""]
+    out += _table(
+        ["configuration", "reports", "pre mean", "pre min", "post mean", "post min"], rows
+    ) or ["No report was scored."]
+    return [*out, ""]
+
+
+def _miss_list(
+    result: StudyScore, by_cell: Mapping[tuple[str, str], RunDirectory], names: Sequence[str]
+) -> list[str]:
+    """The miss list: the variant, the configuration, what it said instead and where to read it."""
+    out = [
+        "## Misses",
+        "",
+        "Every seeded variant whose class its configuration did not raise at `medium` or above, "
+        "with what its report said instead and the path to read it at.",
+        "",
+    ]
+    empty = True
+    for name in names:
+        item = result.configurations[name]
+        if not item.missed:
+            continue
+        empty = False
+        out += [f"### `{name}`", ""]
+        for variant in item.missed:
+            run = by_cell.get((name, variant))
+            if run is None:
+                gone = [entry for entry in item.no_report if entry.variant == variant]
+                said = (
+                    f"no report: the cell was recorded `{gone[0].status}` -- {gone[0].reason}"
+                    if gone
+                    else "no report and no ledger entry"
+                )
+                out.append(f"- `{variant}` -- {said}; there is no report to read")
+                continue
+            path = _relative(run.path / "report.md", result.results_dir)
+            out.append(f"- `{variant}` -- said instead: {_said_instead(run)}; report: `{path}`")
+        out.append("")
+    if empty:
+        out += ["Every seeded variant that was scored was detected.", ""]
+    return out
+
+
+def _relative(path: Path, root: Path | str) -> str:
+    """A run's path as it reads from the study directory, or absolute when it is not under one."""
+    try:
+        return str(path.relative_to(Path(root)))
+    except ValueError:
+        return str(path)
+
+
+def _collateral_table(result: StudyScore, names: Sequence[str]) -> list[str]:
+    """Every finding of a class the variant was not seeded with, and the verdict it carries."""
+    rows = [
+        [
+            f"`{name}`",
+            f"`{entry.variant}`",
+            f"`{entry.defect_class}`",
+            entry.severity,
+            entry.verdict,
+            entry.decided or "nobody has decided one",
+        ]
+        for name in names
+        for entry in result.configurations[name].collateral
+    ]
+    out = [
+        "## Collateral findings",
+        "",
+        "A finding of a class the variant was not seeded with. Only `spurious` counts against "
+        "precision and `unjudged` counts in neither half of it, so each verdict carries the date "
+        "it was decided: a rule fixed before the study reads differently from one written after "
+        "the numbers were seen.",
+        "",
+    ]
+    out += _table(
+        ["configuration", "variant", "class", "severity", "verdict", "decided"], rows
+    ) or ["No collateral finding was raised at or above `medium`."]
+    return [*out, ""]
+
+
+def _set_aside(result: StudyScore, names: Sequence[str]) -> list[str]:
+    """What the scorer declined to score, and the reason for each: D-182's three refusals."""
+    out = [
+        "## What was not scored, and why",
+        "",
+        "Each of these is a refusal rather than a number. A crash scored as a miss, an unmeasured "
+        "baseline read as an empty one, or an unforeseen collateral pairing called spurious would "
+        "each put a figure nobody decided into a published table (D-182).",
+        "",
+    ]
+    empty = True
+    for name in names:
+        rows = _set_aside_rows(result.configurations[name])
+        if rows:
+            empty = False
+            out += [f"### `{name}`", "", *rows, ""]
+    if result.unknown_variants:
+        empty = False
+        out += [
+            "### no answer key",
+            "",
+            *(
+                f"- `{variant}` -- there is no `SEED.yaml` for it under "
+                f"`{result.variants_dir}`, so nothing says what was planted in it"
+                for variant in result.unknown_variants
+            ),
+            "",
+        ]
+    if empty:
+        out += ["Nothing was set aside: every run scored, and nothing is owed.", ""]
+    return out
+
+
+def _set_aside_rows(item: ConfigurationScore) -> list[str]:
+    """One configuration's refusals, each with the reason the scorer recorded for it."""
+    rows = [
+        f"- `{skipped['variant']}` (seeded `{skipped['class']}`) -- set aside: "
+        f"`{skipped['tool']}` did not run: {skipped['message']}"
+        for skipped in item.not_scorable
+    ]
+    rows += [
+        f"- `{control}` -- not scored for false alarms: its baseline is not measured in the "
+        'taxonomy, where `null` means "not yet measured" and never "empty"'
+        for control in item.controls_unmeasured
+    ]
+    rows += [
+        f"- `{pending.variant}` raised `{pending.defect_class}` {pending.severity} -- "
+        f"unjudged: {pending.why}"
+        for pending in item.unjudged
+    ]
+    rows += [
+        f"- `{gone.variant}` -- {gone.status}, so it produced no report at all: {gone.reason}"
+        for gone in item.no_report
+    ]
+    return rows
+
+
 def main(argv: Sequence[str] | None = None, *, generated: datetime | None = None) -> int:
     """Score a directory of runs and print the summary. Returns an exit code.
 
@@ -957,32 +1402,22 @@ def main(argv: Sequence[str] | None = None, *, generated: datetime | None = None
         default=Path(__file__).resolve().parent / "taxonomy.yaml",
         help="where the measured control baselines are",
     )
-    parser.add_argument("--out", type=Path, default=None, help="write summary.json here")
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="write summary.json to this path; `quaestor study score` writes report.md too",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
-    runs = load_runs(args.results)
-    keys = load_keys(args.variants)
-    baselines = load_baselines(args.taxonomy)
-    no_report = load_no_report(args.results)
-    result = StudyScore(
-        generated=generated or datetime.now(UTC),
-        results_dir=str(args.results),
-        variants_dir=str(args.variants),
-        taxonomy=str(args.taxonomy),
-        configurations=score(runs, keys, baselines, no_report),
-        unknown_variants=sorted({run.variant for run in runs} - set(keys)),
-    )
-    for line in _lines(result):
+    result, _, _ = assemble(args.results, args.variants, args.taxonomy, generated=generated)
+    for line in summary_lines(result):
         print(line)
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(result.to_payload(), indent=2) + "\n", encoding="utf-8")
         print(f"summary: {args.out}")
-    owed = bool(result.unknown_variants) or any(
-        item.controls_unmeasured or item.unjudged or item.not_scorable or item.no_report
-        for item in result.configurations.values()
-    )
-    return 1 if owed else 0
+    return 1 if owed(result) else 0
 
 
 if __name__ == "__main__":  # pragma: no cover - the module's command-line entry point

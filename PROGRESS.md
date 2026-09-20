@@ -1562,3 +1562,50 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   files. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7 failed, 33
   passed**. The results tree itself is gitignored under D-185; nothing of the run enters the
   repository until `published/`.
+- 2026-09-20 — **Phase 12, the scorer gets its command: `quaestor study score`** — **no provider
+  call, no live data, no paid run; nothing of `eval/results/` read or written**. `eval/score.py` has
+  been complete since D-182 and had no entry point in the program that spec §3.14 names it a command
+  of: `quaestor study --help` offered `build` and `run`, and scoring meant knowing that
+  `python eval/score.py` exists. It now offers `score`, built exactly as the other two are — the
+  module loaded from beside the `--taxonomy` it was given (D-127), the same flag spellings, the same
+  error surface, the same `_fail` messages naming a fixing command — and **D-082 is applied rather
+  than amended**: its rule is that each command ships in the phase that makes it work, and this is
+  the phase that scores. Three things did not fit and the **command** moved, never the scorer
+  (**D-193**). `--variants` is **required** although §3.14 writes `--results DIR` alone, because a
+  study directory records which variants ran and not where their answer keys are, and `SEED.yaml` is
+  a file no pipeline code may open. `--out` is a **directory** here and stays a **file** in
+  `eval/score.py`, whose `--out` has meant "write summary.json to this path" in every run-log line
+  that scored the eighteen free `rules_only` directories. And the exit code is the scorer's: **1 for
+  what it declined to score, with both documents written anyway; 0 for a plain miss**, because a miss
+  is a result the study publishes and the five things D-182 refuses are homework.
+  **`report.md` is new** — nothing rendered it before this commit though `04` §4 has always said
+  `study score` does — and it is `render()` in `eval/score.py` rather than in `cli.py`, which reaches
+  the scorer through `importlib` and would have had to build the study's tables against `Any`. It
+  carries §4's four: the headline table (rows the defect class; columns the seeded n and each arm's
+  detections, a class an arm set aside reading `d (of s scored)` and one it never ran `not run`), the
+  control table, the grounding table and the miss list — then the collateral verdicts **each with the
+  date it was decided**, and **what was not scored and why**, which is D-182's three refusals written
+  where a reader meets them rather than left in a JSON file nobody opens. The miss list's "said
+  instead" column is every finding the missed run raised **including those below `medium`** — a
+  seeded class raised `low` is the near miss a reader wants — and it is the one figure in `report.md`
+  that `summary.json` does not carry. **`score.py` still opens no prose**: the missed report's *path*
+  is printed, never its text. Three functions were extracted so the two entry points cannot drift —
+  `assemble`, `owed`, `summary_lines` (was `_lines`) — and `main`'s behaviour and its tests are
+  unchanged. Tests: **14 added** (15 cases) in `tests/test_score.py`, every one through `cli.main`
+  on a hand-written study tree, offline; the three refusals are driven end to end and each is
+  asserted **set aside with its reason in `summary.json`** rather than scored — `not_scorable` with
+  the tool and the tool's own message and the class absent from `per_class`;
+  `controls_with_unmeasured_baseline` with `false_alarms` empty and precision `null`; a collateral
+  verdict `unjudged` with `decided: null`, counted in neither half of a precision that stays 1.0000 —
+  plus the miss list, a no-report ledger cell, `--out`, the flat sweep layout, and five usage errors.
+  `tests/test_cli.py` and `tests/test_seed.py` no longer assert that `study score` is an argparse
+  "invalid choice". **Not done, and named**: the results tree of 2026-09-18 was **not scored in this
+  session** — it is gitignored under D-185 and scoring it is the operator's step after the gate; and
+  `docs/STUDY.md`, which `eval/score.py`, D-182 and this line all cite by section, **still does not
+  exist in the repository** and is owed before Phase 12 publishes. Gate: offline suite excluding
+  `tests/probatio` **1,751 passed**, 0 failed, 0 skipped, 0 xfailed (1,736 → 1,751); line coverage of
+  `src/quaestor` **99%**, `cli.py` at **100%**; `ruff check` and `ruff format --check` clean on
+  `src tests eval subjects`; `mypy --strict src/quaestor` clean over 60 source files; `quaestor
+  validate --synthetic --llm fake` renders both subjects, grounding 1.0000 pre- and post-repair over
+  60 and 51 claims; `examples/golden_report/` untouched. **[stranded]** `pytest tests/probatio
+  --cassette=replay` not run and not touched, unchanged at **7 failed, 33 passed** (D-188).

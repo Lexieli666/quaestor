@@ -7262,3 +7262,78 @@ four attempts were made, because the killed one left no row at all. Against D-18
 gap is not a rounding error, and it makes the case for the cheap half of the fix above — a
 `started` row written when a cell begins — stronger than when it was filed: without it the bill
 cannot be reconciled from the ledger even in principle.
+
+## D-193. `quaestor study score` exists, and what the CLI had to adapt around `eval/score.py`
+
+- **Date:** 2026-09-20 (Phase 12, the scorer's command line)
+- **Q:** `eval/score.py` has been complete since D-182 and has no entry point in the program spec
+  3.14 names it a command of. `quaestor study --help` offers `build` and `run`, and D-082's
+  reading was that `score` "reads finished run directories and runs nothing, so it is not a verb
+  of this program". Does it become one, and if so, what does its flag surface look like, given
+  that the module's own `main` takes flags a `study` action cannot copy verbatim?
+- **A:** **It becomes one, and three things were adapted; none of `score.py`'s scoring changed.**
+
+  **D-082 is not amended, it is applied.** Its rule is that a command appears "in its own commit,
+  beside the code that makes it work", and Phase 12 is the phase that scores: `study run` has
+  written the directories the command reads. The sentence about `score` not being a verb was a
+  statement about the phase, not a principle; the principle is the one about half-built flag
+  surfaces, and this surface is not half-built.
+
+  **`--variants` is required, where spec 3.14 writes `quaestor study score --results DIR` alone.**
+  A study directory records what ran, not where the answer keys are — `ledger.json` carries the
+  variant *id* and no path — and the keys are `SEED.yaml`, which no pipeline code may open
+  (spec §5). Guessing `eval/variants` would score a tree against whichever variants that
+  directory happens to hold today, which on a machine that has rebuilt the taxonomy is a
+  different answer key with the same name. So the command asks, and the flag is spelled exactly
+  as `study run` spells it. `--taxonomy` keeps `build`'s and `run`'s default and role, and is
+  also the directory `score.py` itself is loaded from, which is D-127's rule unchanged.
+
+  **`--out` is a directory here and stays a file in `eval/score.py`.** The module's `--out` has
+  meant "write `summary.json` to this path" since D-182 and the run-log lines that scored the
+  eighteen free `rules_only` directories quote it that way; redefining it would silently write
+  somebody's `summary.json` into a directory named after it when they repeat a command from the
+  log. The `study` action writes **two** documents, so its `--out` names the directory that holds
+  them and defaults to `--results`, which is spec §8's own layout
+  (`eval/results/<ts>/summary.json report.md`).
+
+  **`report.md` is new code, and it lives in `eval/score.py`.** `04` §4 has always said `study
+  score` renders it and nothing rendered it before this commit. It is `render()` there rather than
+  in `cli.py` because the CLI reaches the scorer through `importlib` and every attribute of it is
+  untyped to `mypy --strict`; a table-builder written against `Any` in the shipped package would
+  be the one part of `src/quaestor` with no types, and it would put the study's tables in a second
+  place. The four tables are `04` §4's: the headline (rows the defect class, columns the seeded n
+  and each configuration's detections), the controls, the grounding figures and the miss list —
+  and then two sections that are this file's own, the collateral verdicts with their dates and
+  **what was not scored and why**, because a study whose claim is that its misses are published
+  cannot leave D-182's three refusals in a JSON file nobody opens.
+
+  **What the miss list says the report said instead.** Every finding the missed run raised, class
+  and severity, read from its `findings.json` — *including those below `medium`*, because a seeded
+  class raised `low` is the near miss a reader most wants to see, and it is the one thing in
+  `report.md` that `summary.json` does not carry. `score.py` still opens no prose: the report's
+  path is printed, not its text.
+
+  **Three functions were extracted so that two entry points cannot drift**: `assemble()` (the
+  eight lines `main` used to inline), `owed()` (the exit-code predicate) and `summary_lines()`
+  (`_lines`, made public). `main`'s behaviour is unchanged and its tests are untouched.
+
+  **The exit code is `score.py`'s and not `cli.py`'s usual one.** `1` here means the scoring left
+  a person something to do — a variant set aside, an unmeasured control baseline, an unjudged
+  pairing, a cell that produced no report, a run with no answer key — and **both documents were
+  written anyway**. A plain miss exits `0`. Two entry points to one scorer that disagreed about
+  what a directory means would be worse than a code that needs a sentence of explanation, and the
+  sentence is now in `cli.py`'s docstring beside `validate`'s and `study run`'s.
+- **Why:** The scorer was the one finished component of Phase 12 that an operator could only reach
+  by knowing the repository's internal layout, which is exactly the gap `quaestor study build` and
+  `quaestor study run` were given commands to close. Each adaptation above is the same shape: the
+  module's interface is older than the command's, and where they disagree the command moves,
+  because the module is what the study's numbers were computed with.
+  Rejected alternatives. **Calling `score.py`'s `main()` with a rebuilt `argv`**, which makes the
+  CLI a string formatter for another parser and loses the return values a report is rendered from.
+  **Rendering `report.md` in `cli.py`**, above. **Deriving `--variants` from the ledger**, which
+  would need `study run` to write a path into it that is true only on the machine that ran it.
+  **Redefining `eval/score.py --out` as a directory** so that the two entry points write the same
+  files, which breaks a command line in the run log to tidy a flag. **Putting the "said instead"
+  column into `summary.json`**, which changes a schema D-182 fixed and that the free sweep's
+  eighteen directories were scored under, to carry a string only a reader of the prose report
+  needs.
