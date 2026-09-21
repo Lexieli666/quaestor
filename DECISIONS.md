@@ -7450,3 +7450,74 @@ cannot be reconciled from the ledger even in principle.
   grammar, and that a run of a perfect extractor reports `0/24 (0.0000); 0 of 24 inside tolerance`
   — which says both things a reader needs, that nothing slipped through and that the tolerance was
   never the reason.
+
+## D-198. Amendment 1's "93 collateral findings" is a grep artefact; the published scoring says 46
+
+- **Date:** 2026-09-20 (Phase 16, writing the README's precision caveat)
+- **Q:** `docs/STUDY.md` §9 Amendment 1 says the run "produced 93 collateral findings outside
+  [the five pre-decided pairings] and `score.py` set every one aside as `unjudged`". The README
+  has to state that caveat with a number. Is 93 the number the published run produced?
+- **A:** **No. It is 46.** `eval/results/published/summary.json` carries
+  `collateral_unjudged: 46` for `plain_llm` and `0` for both `full_agent` and `rules_only`. Those
+  46 findings fall on **44 distinct `(variant, class)` pairings** — `msr__L2__contamination` raised
+  `C1` at high and at medium, and `msr__S1__vintage_shift` raised `D1` twice, so two pairings carry
+  two findings each. Collateral at or above `medium` across all three arms is 63 findings: 46
+  unjudged, 17 `true_consequence`, **0 spurious**. Counting every severity instead gives 126, and
+  no reading of the artefacts gives 93.
+
+  **Where 93 came from.** `grep -c unjudged eval/results/published/report.md` returns exactly 93.
+  The renderer prints each unjudged finding **twice** — once as a row of the "Collateral findings"
+  table and once as a bullet under "What was not scored, and why" — and one further line of prose
+  in the section preamble contains the word. 46 + 46 + 1 = 93. The figure is a line count of a
+  rendered document, not a count of findings.
+- **What was done:** the README states 46 findings over 44 pairings, sourced to `summary.json`, and
+  carries a short blockquote naming Amendment 1's 93 and explaining the miscount. `docs/STUDY.md`
+  §9 gains **Amendment 3**, dated 2026-09-20, which corrects the count, records where the wrong
+  number came from, and states that the rule Amendment 1 sets is unchanged — every collateral
+  pairing outside §5's five is `unjudged`, in neither half of precision. **Amendment 1 itself is
+  left as written.** It is a dated amendment to a frozen protocol, and silently rewriting a number
+  inside it would destroy the one property that makes a dated amendment worth anything; the
+  correction belongs in its own dated entry beside it, not on top of it.
+- **Why it matters beyond one number:** `CLAUDE.md` forbids a number in `docs/` that a committed
+  run did not produce, and this is one. It is also the exact failure mode Quaestor exists to catch
+  — a quantitative claim in prose that no artifact supports — committed in the project's own
+  protocol document, by hand, in the one place the tool does not read. Recorded here rather than
+  buried, because a project whose pitch is grounded claims does not get to fix its own ungrounded
+  claim quietly.
+
+## D-199. Three claims of the brief's prior-art section were wrong or stale on the day they were checked
+
+- **Date:** 2026-09-20 (Phase 16)
+- **Q:** `02-SPEC.md` §12 rejects "a comparison to ValidMind or deepchecks not verified against
+  their documentation on a stated date". Checked on 2026-09-20 against pages fetched that day
+  (`notes/prior-art.md` holds every URL and quotation): does `01-BRIEF.md` §3 still hold?
+- **A:** **Three claims do not, and none is carried into the README.**
+  1. **"ValidMind … is closed and enterprise" is wrong.** The hosted platform is proprietary, but
+     the ValidMind Library is dual-licensed **AGPL-3.0 or commercial**
+     (`github.com/validmind/validmind-library/blob/main/LICENSE`, fetched today), and *Atryum*,
+     their agent-governance layer, is **Apache-2.0**. The README says the platform is closed and
+     the library is not.
+  2. **"automates SR 11-7 documentation and testing" is stale.** ValidMind's current automation
+     page names "SR 26-2, E-23, SS1/23" and does not mention SR 11-7. The automation half stands;
+     the regulatory half is a year out of date, for the reason D-055 already recorded.
+  3. **"deepchecks … open source" needs the two facts the brief predates:** Check Point acquired
+     the company (team and IP) in **May 2026**, and the OSS project's last PyPI release is
+     **0.19.1, 2024-12-15**. It is unarchived and AGPLv3, and it cannot be called actively
+     maintained.
+
+  Softened rather than dropped: **"deepchecks follows no regulatory structure"**. They publish a
+  model-risk-management post quoting the OCC's 2011 guidance, so the accurate claim is narrower —
+  they do not claim conformance, do not structure output around the guidance's sections, and ship
+  a pass/fail `SuiteResult` rather than a validation document.
+
+  Held as stated, with their limits printed: **neither vendor publishes a detection rate against
+  seeded defects or a per-report grounding precision** — a *not found*, from searches recorded in
+  `notes/prior-art.md`, not a proof of absence. ValidMind's *Faithfulness* metric is named as the
+  closest analogue found and distinguished from detection.
+- **Not checked, therefore not compared:** Openlayer, ModelOp, CIMCON. §12's rule cuts both ways —
+  an unverified comparison is not published, and the README says so rather than leaving a reader
+  to wonder why the brief's list shrank.
+- **Why:** the brief's §3 ends "verify every claim about them against their current documentation
+  on the day you write the table". A prior-art paragraph that repeated a closed-source claim about
+  a company shipping AGPL code would be the cheapest possible way to lose a reader who knows the
+  space.

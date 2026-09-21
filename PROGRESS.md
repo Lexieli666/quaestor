@@ -141,9 +141,15 @@ are named in brackets.
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
   (`04` §3–5)
 - [x] **Phase 13** — Verifier component eval on FinQA / TAT-QA (`04` §6)
-  - the **harness only**: `eval/verifier_eval.py`'s live half and `quaestor verifier-eval` ship
-    here and **no live run was made**, so there is no status accuracy, no false-verified rate, no
-    extraction recall and no re-ask rate to quote yet; `docs/EVALUATION.md` says so in those words
+  - **the live run was made** on 2026-09-20, `claude-opus-5[1m]` through `ClaudeCLILLM`, over 100
+    items and their 300 sentences, $8.0857 over 100 model calls, with cassettes and
+    `verifier_eval.json` committed under `eval/results/verifier-eval/` (commits `b8b309a`,
+    `f3d9d19`, `f73bb4b`)
+  - status accuracy `verified` 1.0000, `mismatch` 0.9900, `unsupported` 1.0000; extraction recall
+    0.9967; **0** re-asks over 100 extractions; the one error in 300 sentences is a `mismatch` the
+    verifier did not flag. False-verified is 0 for all five perturbation types, and
+    `docs/EVALUATION.md` records why that zero is weaker than it looks: the tolerance boundary is
+    empty because no perturbation small enough to sit inside it was ever drawn
   - the sample is **50 items per dataset, 100 in total**, not `04` §6's 150 — the operator's cut,
     decided before the first live call (D-194) — and the note is a field of `verifier_eval.json`
     and the first line the command prints, so a figure read from a terminal carries it
@@ -154,6 +160,17 @@ are named in brackets.
 - [ ] **Phase 14** — Human anchor: the manual validation vs the copilot's (`04` §7)
 - [ ] **Phase 15** — MCP server + Claude Desktop demo (spec §3.15)
 - [ ] **Phase 16** — Prior art, docs, README, publish, resume bullets (spec §10, `05`)
+  - **first half only.** `notes/prior-art.md` and `README.md` are written; publishing, the resume
+    bullets and `docs/PROVENANCE.md` are not
+  - prior art checked live on 2026-09-20 (D-199): three of `01-BRIEF.md` §3's claims were wrong or
+    stale — ValidMind is **not** closed (AGPL-3.0 library, Apache-2.0 Atryum), its docs now cite
+    SR 26-2 rather than SR 11-7, and deepchecks was acquired by Check Point in May 2026 with no
+    release since 2024-12-15. None is carried forward
+  - the README's disclaimer uses D-055's required wording, "shaped after the interagency
+    model-validation guidance, SR 11-7 as revised by SR 26-2"
+  - **D-198:** `docs/STUDY.md` §9 Amendment 1's "93 collateral findings" is a grep line-count, not
+    a scoring figure; `summary.json` says **46** over 44 distinct pairings. The README publishes 46
+    and names the discrepancy; Amendment 1 is left for its signer to correct
 
 ## Run log
 
@@ -1672,3 +1689,36 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   subjects; `examples/golden_report/` untouched. **[stranded]** `pytest tests/probatio
   --cassette=replay` unchanged at **7 failed, 33 passed** (D-188), neither touched nor fixed here.
   No push.
+
+- **2026-09-20 — Phase 16, first half: prior art verified, README written.** No `src/` change; six
+  documents. `notes/prior-art.md` checks every claim `01-BRIEF.md` §3 makes about ValidMind and
+  deepchecks against pages fetched on the day, URL and quotation per claim, per `02-SPEC.md` §12.
+  **Three claims did not survive** (D-199): ValidMind is **not closed** — the ValidMind Library is
+  dual-licensed AGPL-3.0 or commercial and *Atryum* is Apache-2.0, only the hosted platform is
+  proprietary; ValidMind's current pages cite **SR 26-2**, not SR 11-7; and deepchecks was
+  **acquired by Check Point in May 2026** with no PyPI release since 0.19.1 on 2024-12-15, so it is
+  AGPLv3 and unarchived but cannot be called actively maintained. "deepchecks follows no regulatory
+  structure" is softened — they publish an MRM post quoting the OCC's 2011 guidance. "Neither
+  publishes a seeded-defect detection rate or a per-report grounding precision" holds, as a
+  recorded *not found* with its searches and their limits named, not as a proof of absence;
+  Openlayer, ModelOp and CIMCON were not checked and so are not compared. `README.md` is written in
+  `02-SPEC.md` §10's order with the compliance disclaimer in the first three lines, D-055's
+  required wording ("SR 11-7 as revised by SR 26-2"), and the headline result in its own section
+  immediately after the pitch rather than in an appendix: `full_agent` and `rules_only` both detect
+  **14 of 14 with 0 false alarms**, `plain_llm` **8 of 14 with 16 false alarms** and grounding
+  **0.0004**, so the LLM adds no detection over the deterministic checks on this study and what it
+  adds is narrative, guidance citations, the loop's two conditional slices and grounding **1.0000**
+  post-repair. Every number is sourced to `eval/results/published/{summary,ledger}.json`,
+  `published/report.md`, `docs/EVALUATION.md` or `docs/STUDY.md`. **D-198:** Amendment 1's "93
+  collateral findings" is a line count of the rendered report (46 + 46 + 1), not a scoring figure;
+  the data says **46 over 44 distinct pairings**, and `docs/STUDY.md` §9 gains **Amendment 3** to
+  correct the count while leaving Amendment 1 as written. Two stale statements corrected: the
+  heads of `docs/EVALUATION.md` and Phase 13 above both said the verifier component eval's live run
+  had not been made, which the same file's own last section contradicts. Gate: **1,813 passed**,
+  0 skipped, 0 xfailed; coverage of `src/quaestor` **99%** (6,527 statements, 2 missed); `ruff
+  check` and `ruff format --check` clean; `mypy --strict src/quaestor` clean over 60 source files;
+  `quaestor validate --synthetic --llm fake` renders both subjects; `examples/golden_report/`
+  untouched. **[stranded]** `pytest tests/probatio --cassette=replay` unchanged at **7 failed,
+  33 passed** (D-188), neither touched nor fixed here, and the README says so in those words. CI is
+  therefore red on gates 1 and 6, as it was before this session. Second half outstanding: publish,
+  resume bullets, `docs/PROVENANCE.md`. No push.

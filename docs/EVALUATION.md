@@ -13,17 +13,18 @@ come from the committed tapes under `tests/probatio/cassettes/` and from
 operator's observation across sittings rather than a committed artefact says so where it is used. Where a figure was computed from a file the repository deliberately
 does *not* hold — a real sample's rows — it says so at the point of use.
 
-This document is not yet the evaluation the project is for. The seeded-defect study of
-`04-SEEDED-DEFECT-STUDY.md` — detection precision and recall, false-alarm rate and per-report
-grounding precision across three configurations, misses included — is Phase 12, the verifier
-component eval on FinQA / TAT-QA is Phase 13, and the human anchor is Phase 14. Until those run,
-what this file records is the one thing already measured: what happened the first time the
-pipeline met a real model and a real sample.
+Section 1 of this file records what happened the first time the pipeline met a real model and a
+real sample. The evaluation the project is for is elsewhere and has now run: the seeded-defect
+study of `04-SEEDED-DEFECT-STUDY.md` — detection precision and recall, false-alarm rate and
+per-report grounding precision across three configurations, misses included — is published under
+`eval/results/published/`, with its protocol in `docs/STUDY.md` and its scores in
+`eval/results/published/summary.json`; the human anchor is `docs/anchor/COMPARISON.md`.
 
-Phase 13 has shipped the component eval's **harness** — `eval/verifier_eval.py` and
-`quaestor verifier-eval`, over a sample of 50 items per dataset rather than §6's 150 (D-194) — and
-**no live run of it has been made**. There is therefore no status accuracy, no false-verified rate,
-no extraction recall and no re-ask rate to quote here yet, and none is quoted.
+**The verifier component eval on FinQA / TAT-QA has been run live.** Its figures are in this file,
+under *Verifier component evaluation (Phase 13)* at the end — status accuracy, extraction recall,
+re-asks, and the false-verified rate by perturbation type, over 100 items rather than §6's 150 per
+dataset (D-194). The run is 2026-09-20, `claude-opus-5[1m]` through `ClaudeCLILLM`, with its
+cassettes and `verifier_eval.json` committed under `eval/results/verifier-eval/`.
 
 Nothing here is a compliance claim. The reports the runs below produce are SR 11-7-*shaped*.
 

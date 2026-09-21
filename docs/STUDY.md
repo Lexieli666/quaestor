@@ -301,3 +301,34 @@ the first line `quaestor verifier-eval` prints, so a figure read from a terminal
 carries its own qualification. Nothing else of §6 changed: seed 20260901, arithmetic-answer items
 only, the three sentences per item and their expected statuses, and the offline half on the ten
 committed fixtures, all stand as written.
+
+### Amendment 3 — 2026-09-20, correcting Amendment 1's collateral count
+
+1. **Amendment 1 item 1's figure of 93 is wrong. The count is 46.** Amendment 1 says the run
+   produced 93 collateral findings outside the five pairings §5 decided in advance. That figure was
+   taken from a line count of the rendered report, not from the data. The renderer prints each
+   unjudged finding **twice** — once as a row of the "Collateral findings" table and once as a
+   bullet under "What was not scored, and why" — and one further line of the section's prose
+   contains the word, giving 46 + 46 + 1 = 93.
+
+   The count in the data is `collateral_unjudged: 46` in `eval/results/published/summary.json`,
+   over **44 distinct `(variant, class)` pairings**, all of them in `plain_llm`; `full_agent` and
+   `rules_only` have none. Two pairings carry two findings each — `msr__L2__contamination` raised
+   `C1` at high and at medium, and `msr__S1__vintage_shift` raised `D1` twice — which is the whole
+   of the difference between 46 and 44. Collateral at or above `medium` across all three arms is 63
+   findings: 46 unjudged, 17 `true_consequence`, **0 spurious**.
+
+2. **The rule Amendment 1 states is unchanged.** Every collateral pairing outside §5's five is
+   published as `unjudged`, in neither the numerator nor the denominator of precision, and the
+   precision figures are precision **over the pairings decided in advance** — stated that way
+   wherever they are quoted. Only the count is corrected. No judgement is added, none is withdrawn,
+   and no figure in `summary.json` or `eval/results/published/report.md` changes: those files always
+   carried 46 and are what the scorer wrote.
+
+3. **Amendment 1 is left as written.** A dated amendment that is silently edited is not a dated
+   amendment, and the value of freezing a protocol comes entirely from the frozen text still saying
+   what it said. The correction lives here, in its own dated entry, and `README.md` quotes 46 over
+   44 pairings with `summary.json` named as the source.
+
+4. **Recorded as D-198**, which also notes what this was: a quantitative claim in prose that no
+   artifact supported, in the one document the verifier does not read.
