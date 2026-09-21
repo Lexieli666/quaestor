@@ -7521,3 +7521,62 @@ cannot be reconciled from the ledger even in principle.
   on the day you write the table". A prior-art paragraph that repeated a closed-source claim about
   a company shipping AGPL code would be the cheapest possible way to lose a reader who knows the
   space.
+
+## D-200. The Probatio replay leaves the blocking gate, and says in CI that it is known-red
+
+- **Date:** 2026-09-20 (Phase 16)
+- **Q:** `pytest tests/probatio --cassette=replay` has been 7 failed / 33 passed since D-188, and
+  gate 1 ran the whole suite, so **every CI run of the last three phases was red for one reason
+  and reported nothing about the other 2,004 tests.** A red badge that has been red for a month
+  tells a reader nothing. Do the failures get deselected, or does the gate change shape?
+- **A:** **The gate changes shape, and the failures get a step of their own.** Gates 1 and 2 run
+  `pytest -q --ignore=tests/probatio`; the replay runs after them as a named step,
+  `Gate 6 (known-red, D-188)`, with `continue-on-error: true`.
+
+  The distinction that matters is **non-blocking versus hidden**. A `--deselect` buried in gate 1
+  would have made the seven disappear: no output, no count, and no way to notice the day an eighth
+  joined them. A separate step still executes on every push, still prints its 7 failed / 33 passed,
+  and still shows a worse result in the summary. What it no longer does is make a true statement
+  about 2,004 offline tests unreadable.
+- **Consequences:** the step's comment names D-188 and says that whoever removes
+  `continue-on-error` should be removing it because D-188 is closed, and should delete the README's
+  two paragraphs about the failure in the same commit. `README.md` reports the status in both the
+  study limitations and the test-layer section, and `tests/test_docs_provenance.py` asserts both
+  sentences are present and sourced to `PROGRESS.md`'s run log.
+- **Why:** a project that publishes a false-alarm rate does not get to run a CI badge that has been
+  crying wolf for three phases. Rejected alternative: fixing D-188 here. It is a real question about
+  prompt construction, it is orthogonal to writing documentation, and guessing at it in the phase
+  that ships the release is how a release slips.
+
+## D-201. `docs/PROVENANCE.md` indexes the README and names what it does not cover
+
+- **Date:** 2026-09-20 (Phase 16)
+- **Q:** Probatio's `PROVENANCE.md` sweeps `README.md` and `CHANGELOG.md` numeral by numeral
+  because its changelog states no measurement. Quaestor's states a great many: 405 distinct
+  numerals over twelve phases, and `docs/EVALUATION.md` holds 667. Does the same rule scale, and if
+  not, what replaces it?
+- **A:** **Three regimes, each named in the document, and a test that refuses to let a document sit
+  outside all three.**
+  1. **Indexed and swept**: `README.md` and the `0.1.0` changelog entry. Every numeral is either a
+     row in the measurements table with a derivation the test recomputes, or a pattern in the
+     not-measurements table. A number added to either fails until somebody names its file.
+  2. **Guarded by re-derivation**: `docs/EVALUATION.md`. Its figures are recomputed from the traces
+     they name by `tests/test_live_credit_attempt1..5.py`, `test_live_credit.py`, `test_live_msr.py`
+     and `test_archive_fixtures.py`. That is a *stronger* guarantee than a table row — the row
+     checks a string is present, the module checks the arithmetic — and an index of 667 numerals
+     would have been the weaker of the two.
+  3. **Not swept, with the reason written down**: `CHANGELOG.md`'s build history, `docs/DESIGN.md`,
+     `docs/CHECKLIST.md`, `docs/REPORT_SCHEMA.md` and
+     `docs/anchor/manual_credit_default.md`. Each has a one-line reason, and the reasons are
+     different: history already gated, argument quoting indexed figures, a schema guarded by the
+     schema test, and — the one that matters — the human's own pre-registered validation, which is
+     evidence precisely because it was **not** edited to agree with a later scoring.
+
+  `test_every_document_that_prints_a_number_is_either_indexed_or_declared_unswept` asserts the
+  three lists partition every `*.md` under `docs/` plus `README.md` and `CHANGELOG.md`, so a
+  document added without a decision fails rather than slipping into regime four, the unexamined one.
+- **Why:** the honest failure mode for a provenance file is not a wrong row, it is silence about
+  coverage. A reader who sees a measurements table assumes everything is in it. Naming the gaps and
+  testing that the naming is exhaustive is the only version of this document worth shipping — and
+  it is the same argument `score.py` makes when it publishes `unjudged` instead of guessing
+  (D-182, D-198).

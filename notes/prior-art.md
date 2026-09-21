@@ -177,9 +177,12 @@ layer, are dual-licensed with a real open-source path.
 
 ### 1.8 Reachability
 
-`docs.validmind.ai` — the domain `01-BRIEF.md` §3 implicitly points at — is now a **legacy domain**.
-Fetches of specific paths under it returned a bare "Redirect" with no destination captured. The
-live documentation is at **`docs.validmind.com`**, and that is the domain cited above.
+<https://docs.validmind.ai> — the domain `01-BRIEF.md` §3 implicitly points at — is now a **legacy
+domain**. Fetches of specific paths under it (for example
+<https://docs.validmind.ai/about/overview-model-risk-management.html>) returned a bare "Redirect"
+with no destination captured. The live documentation is at <https://docs.validmind.com>, and that is
+the domain cited above. <https://pypi.org/project/validmind/> also failed to load on two attempts
+today, which is why §1.5 leans on the GitHub LICENSE file instead.
 
 ---
 

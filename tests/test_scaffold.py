@@ -24,7 +24,7 @@ import pytest
 import quaestor
 from quaestor.cli import main
 
-EXPECTED_VERSION = "0.1.0.dev0"
+EXPECTED_VERSION = "0.1.0"  # Phase 16: the release; `tests/test_docs_provenance.py` pins it
 DISTRIBUTION = "quaestor-mrm"
 
 # Every directory of the CLAUDE.md `src/quaestor/` layout, as an importable module name. Each is a

@@ -45,7 +45,7 @@ from .trace import EventType, TraceEvent, TraceReader, TraceWriter
 from .verifier import Claim, ClaimsDocument, ClaimStatus, VerifiedClaim
 from .vocab import Configuration, ReportSection
 
-__version__ = "0.1.0.dev0"
+__version__ = "0.1.0"
 
 __all__ = [
     "LLM",

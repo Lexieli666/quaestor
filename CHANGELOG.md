@@ -7,6 +7,55 @@ run that was not committed.
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.1.0] — 2026-09-20
+
+The first release. Quaestor takes a model package, runs a fixed set of deterministic checks over it
+in a capped subprocess, and drafts a validation report shaped after the interagency
+model-validation guidance, SR 11-7 as revised by SR 26-2, in which every numeric claim carries a
+machine-checked citation to a computed artifact and no finding exists without one. It is not a
+compliance product and says so on its first screen.
+
+**What the study found, because it is the reason to read the repository at all.** On the 54-cell
+synthetic run published under `eval/results/published/`, `full_agent` and `rules_only` both detect
+14 of 14 seeded defects with 0 false alarms on the four controls, so **the LLM adds no detection
+over the deterministic checks on this study**. `plain_llm` detects 8 of 14, raises 16 false alarms
+and reaches grounding precision 0.0004. What the LLM adds is narrative, guidance citations, the
+bounded loop's conditional slices, and grounding precision 1.0000 after repair against 0.9950
+before it. Every figure is in `README.md` with its source, and every miss is listed by variant.
+
+Known-red at release, in writing rather than in silence: `pytest tests/probatio --cassette=replay`
+stands at 7 failed, 33 passed (D-188), the study is synthetic on both subjects, stability repeats
+and the real-data bridge runs were cut, and the MCP server specified in `02-SPEC.md` §3.15 is not
+implemented. `docs/STUDY.md` §9 and the README's "What this study is not" carry the full list.
+
+### Added
+
+- **`docs/PROVENANCE.md`** and `tests/test_docs_provenance.py`: every measurement in `README.md`
+  indexed to the committed file behind it, with a sweep that fails on any numeral the index does
+  not account for, and a statement of which documents are guarded by re-derivation instead and
+  which are not swept at all.
+- **`notes/prior-art.md`**: every claim about ValidMind and deepchecks verified against pages
+  fetched on 2026-09-20, with URLs, as `02-SPEC.md` §12 requires before either is named.
+- **`README.md`**: written in `02-SPEC.md` §10's order, with the result stated in its own section
+  rather than in an appendix.
+- **`docs/STUDY.md` Amendment 3** (D-198), correcting Amendment 1's collateral count.
+
+### Changed
+
+- **CI splits the Probatio replay out of the blocking gate.** Gates 1 and 2 run
+  `pytest --ignore=tests/probatio`, and the replay runs as its own named `continue-on-error` step
+  so the D-188 failures stay visible instead of masking every other result.
+- `docs/EVALUATION.md` and `PROGRESS.md` no longer say the verifier component eval has not been
+  run; it has, and both now point at it.
+
+## Build history, phases 0 to 15
+
+Everything below is the entry-by-entry record of how 0.1.0 was built, one phase at a time. It is
+history: each figure in it was checked by the gate of the phase that introduced it and is quoted
+from that phase's line in `PROGRESS.md`. `docs/PROVENANCE.md` says why it is not re-swept.
+
 ### Fixed
 
 - **A report was refused for faithfully quoting its own verifier's diagnostic.** Two `full_agent`
