@@ -34,8 +34,9 @@ Violating any of these is a defect, even if tests pass.
   whose claims appendix is missing or whose grounding precision is not printed.
 - **`run_model` executes subjects in a subprocess** with a wall-clock cap, a memory cap and network
   disabled; never `import`ed into the validator's process.
-- **Nothing proprietary, nothing personal.** No Huatai, Youphoria or bank material. No Freddie Mac
-  rows in the repo. No API keys anywhere.
+- **Nothing proprietary, nothing personal.** No former-employer or client material of any kind; the
+  employer names stay on the resume and out of this repository, including out of this sentence. No
+  Freddie Mac rows in the repo. No API keys anywhere.
 - **`src/` layout, Python 3.11+.** Import path `quaestor`.
 - **Runtime dependencies are exactly:** `pydantic>=2`, `PyYAML`, `numpy`, `pandas`,
   `scikit-learn`, `jsonschema`. Optional extras: `anthropic`, `mcp`, `xgboost`. Dev: `pytest`,
