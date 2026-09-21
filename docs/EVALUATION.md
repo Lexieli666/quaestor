@@ -1426,3 +1426,32 @@ scales to 11.07 h for 62 and agrees with the measurement to within 2%.
 **The layer's running total.** The Probatio tape layer has cost about $90 (the entry above); these
 three runs add $12.3290 of validation spend beside the six committed live runs' own totals. No
 figure in this file comes from a run that was not made.
+
+## Verifier component evaluation (Phase 13)
+
+Run 2026-09-20 on `claude-opus-5[1m]` through `ClaudeCLILLM`, 100 items (50 FinQA, 50 TAT-QA) and
+their 300 sentences, $8.0857 over 100 model calls, cassettes committed under
+`eval/results/verifier-eval/`. `04-SEEDED-DEFECT-STUDY.md` §6 fixes 150 items per dataset; the
+operator cut the sample to 50 to fit the study's budget (D-194), and every figure below is over
+those 100 items.
+
+| expected status | accuracy |
+| --- | ---: |
+| `verified` | 1.0000 |
+| `mismatch` | 0.9900 |
+| `unsupported` | 1.0000 |
+
+Extraction recall 0.9967; re-asks 0 over 100 extractions.
+
+**False-verified by perturbation type, and why every cell is zero.** `relative_up` 0/24,
+`relative_down` 0/19, `digit_transposition` 0/19, `decimal_shift` 0/20, `percent_ratio_confusion`
+0/18. **Not one of the 100 perturbations landed inside the tolerance.** Under D-069 a claim
+verifies when the artifact rounds to the value as written at the precision the prose used, and the
+templates render four decimals, so a 5–15% perturbation is essentially always outside it. The
+zero is therefore a property of the tolerance rule meeting this perturbation size, not evidence
+that the matcher is discriminating finely: the tolerance boundary §6 asks to be reported as a
+boundary is empty here, and a perturbation small enough to sit inside it was never drawn. A
+sharper test of the boundary would draw perturbations at the fourth decimal; it was not run.
+
+The one error in 300 sentences is a `mismatch` the verifier did not flag; it is the whole of the
+0.9900.
