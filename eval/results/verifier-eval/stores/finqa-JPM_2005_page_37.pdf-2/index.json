@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "a589121fca1140cb",
+      "kind": "scalar",
+      "value": 9514.0,
+      "summary": "without the commercial banking segment , what would 2005 operating income have been reduced to , in us$ m?",
+      "file": "a589121fca1140cb.json"
+    },
+    "table.r1.c5": {
+      "hash": "47ec37ce6bd2cd87",
+      "kind": "scalar",
+      "value": 2005.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 1 column 5",
+      "file": "47ec37ce6bd2cd87.json"
+    },
+    "table.r1.c6": {
+      "hash": "0cab52965f889dec",
+      "kind": "scalar",
+      "value": 2004.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 1 column 6",
+      "file": "0cab52965f889dec.json"
+    },
+    "table.r2.c2": {
+      "hash": "6a1eb97c2c25b180",
+      "kind": "scalar",
+      "value": 3658.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 2 column 2",
+      "file": "6a1eb97c2c25b180.json"
+    },
+    "table.r2.c3": {
+      "hash": "c520e90feab10266",
+      "kind": "scalar",
+      "value": 2948.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 2 column 3",
+      "file": "c520e90feab10266.json"
+    },
+    "table.r3.c2": {
+      "hash": "95499ad202ea86fd",
+      "kind": "scalar",
+      "value": 3427.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 3 column 2",
+      "file": "95499ad202ea86fd.json"
+    },
+    "table.r3.c3": {
+      "hash": "bffe714949333100",
+      "kind": "scalar",
+      "value": 2199.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 3 column 3",
+      "file": "bffe714949333100.json"
+    },
+    "table.r3.c4": {
+      "hash": "036a2989195ed24b",
+      "kind": "scalar",
+      "value": 56.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 3 column 4",
+      "file": "036a2989195ed24b.json"
+    },
+    "table.r3.c5": {
+      "hash": "a34fb25d9ad08db1",
+      "kind": "scalar",
+      "value": 26.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 3 column 5",
+      "file": "a34fb25d9ad08db1.json"
+    },
+    "table.r3.c6": {
+      "hash": "8e6ca33ccb9a8878",
+      "kind": "scalar",
+      "value": 24.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 3 column 6",
+      "file": "8e6ca33ccb9a8878.json"
+    },
+    "table.r4.c2": {
+      "hash": "2b2e34a8a05f305d",
+      "kind": "scalar",
+      "value": 1907.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 4 column 2",
+      "file": "2b2e34a8a05f305d.json"
+    },
+    "table.r4.c3": {
+      "hash": "8adf2bafc3e74ee4",
+      "kind": "scalar",
+      "value": 1274.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 4 column 3",
+      "file": "8adf2bafc3e74ee4.json"
+    },
+    "table.r4.c4": {
+      "hash": "1d8721f2bea18836",
+      "kind": "scalar",
+      "value": 50.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 4 column 4",
+      "file": "1d8721f2bea18836.json"
+    },
+    "table.r4.c5": {
+      "hash": "605d981d6cb652e3",
+      "kind": "scalar",
+      "value": 16.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 4 column 5",
+      "file": "605d981d6cb652e3.json"
+    },
+    "table.r4.c6": {
+      "hash": "f0b9cb0a25ff65a5",
+      "kind": "scalar",
+      "value": 17.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 4 column 6",
+      "file": "f0b9cb0a25ff65a5.json"
+    },
+    "table.r5.c2": {
+      "hash": "9cbff575636b96b3",
+      "kind": "scalar",
+      "value": 1007.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 5 column 2",
+      "file": "9cbff575636b96b3.json"
+    },
+    "table.r5.c3": {
+      "hash": "2b22ac9e14ae564b",
+      "kind": "scalar",
+      "value": 608.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 5 column 3",
+      "file": "2b22ac9e14ae564b.json"
+    },
+    "table.r5.c4": {
+      "hash": "00b31525df3e3fe7",
+      "kind": "scalar",
+      "value": 66.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 5 column 4",
+      "file": "00b31525df3e3fe7.json"
+    },
+    "table.r5.c5": {
+      "hash": "3eabb684afd5adfe",
+      "kind": "scalar",
+      "value": 30.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 5 column 5",
+      "file": "3eabb684afd5adfe.json"
+    },
+    "table.r5.c6": {
+      "hash": "91f17f87ae791597",
+      "kind": "scalar",
+      "value": 29.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 5 column 6",
+      "file": "91f17f87ae791597.json"
+    },
+    "table.r6.c2": {
+      "hash": "31dd48fd907a74fd",
+      "kind": "scalar",
+      "value": 1037.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 6 column 2",
+      "file": "31dd48fd907a74fd.json"
+    },
+    "table.r6.c3": {
+      "hash": "e98368ad15277576",
+      "kind": "scalar",
+      "value": 440.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 6 column 3",
+      "file": "e98368ad15277576.json"
+    },
+    "table.r6.c4": {
+      "hash": "1f0aaddbc72f4f71",
+      "kind": "scalar",
+      "value": 136.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 6 column 4",
+      "file": "1f0aaddbc72f4f71.json"
+    },
+    "table.r6.c5": {
+      "hash": "9737ca8f12265f12",
+      "kind": "scalar",
+      "value": 55.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 6 column 5",
+      "file": "9737ca8f12265f12.json"
+    },
+    "table.r6.c6": {
+      "hash": "802d86490b18c921",
+      "kind": "scalar",
+      "value": 17.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 6 column 6",
+      "file": "802d86490b18c921.json"
+    },
+    "table.r7.c2": {
+      "hash": "362ee3d7416edd5f",
+      "kind": "scalar",
+      "value": 1216.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 7 column 2",
+      "file": "362ee3d7416edd5f.json"
+    },
+    "table.r7.c3": {
+      "hash": "56b947572ccaff2a",
+      "kind": "scalar",
+      "value": 681.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 7 column 3",
+      "file": "56b947572ccaff2a.json"
+    },
+    "table.r7.c4": {
+      "hash": "01893dcc4c2998d2",
+      "kind": "scalar",
+      "value": 79.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 7 column 4",
+      "file": "01893dcc4c2998d2.json"
+    },
+    "table.r7.c5": {
+      "hash": "1f6e73bab7cdec87",
+      "kind": "scalar",
+      "value": 51.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 7 column 5",
+      "file": "1f6e73bab7cdec87.json"
+    },
+    "table.r7.c6": {
+      "hash": "6604ebacaec8e538",
+      "kind": "scalar",
+      "value": 17.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 7 column 6",
+      "file": "6604ebacaec8e538.json"
+    },
+    "table.r8.c3": {
+      "hash": "2d908e2e201b2438",
+      "kind": "scalar",
+      "value": 61.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 8 column 3",
+      "file": "2d908e2e201b2438.json"
+    },
+    "table.r9.c2": {
+      "hash": "228004fe28e6dd3e",
+      "kind": "scalar",
+      "value": 10521.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 9 column 2",
+      "file": "228004fe28e6dd3e.json"
+    },
+    "table.r9.c3": {
+      "hash": "110c09261992a322",
+      "kind": "scalar",
+      "value": 8211.0,
+      "summary": "finqa-JPM_2005_page_37.pdf-2 row 9 column 3",
+      "file": "110c09261992a322.json"
+    }
+  }
+}

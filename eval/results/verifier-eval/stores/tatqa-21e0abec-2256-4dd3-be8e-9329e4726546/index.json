@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "fca95f61bc080057",
+      "kind": "scalar",
+      "value": 1663.0,
+      "summary": "What is the 2018 carrying amount of interest rate swaps?",
+      "file": "fca95f61bc080057.json"
+    },
+    "table.r1.c2": {
+      "hash": "54431999db87b3a6",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546 row 1 column 2",
+      "file": "54431999db87b3a6.json"
+    },
+    "table.r1.c3": {
+      "hash": "f8c07313fa56abe6",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546 row 1 column 3",
+      "file": "f8c07313fa56abe6.json"
+    },
+    "table.r10.c3": {
+      "hash": "c941e3f2f3054fef",
+      "kind": "scalar",
+      "value": 181.0,
+      "summary": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546 row 10 column 3",
+      "file": "c941e3f2f3054fef.json"
+    },
+    "table.r4.c3": {
+      "hash": "61b8b0cf7ae1b675",
+      "kind": "scalar",
+      "value": 1663.0,
+      "summary": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546 row 4 column 3",
+      "file": "61b8b0cf7ae1b675.json"
+    },
+    "table.r5.c2": {
+      "hash": "689e014a544831b6",
+      "kind": "scalar",
+      "value": 29423.0,
+      "summary": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546 row 5 column 2",
+      "file": "689e014a544831b6.json"
+    },
+    "table.r5.c3": {
+      "hash": "ec6f0513d9e94024",
+      "kind": "scalar",
+      "value": 77630.0,
+      "summary": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546 row 5 column 3",
+      "file": "ec6f0513d9e94024.json"
+    },
+    "table.r9.c3": {
+      "hash": "f626560642e8410e",
+      "kind": "scalar",
+      "value": 181.0,
+      "summary": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546 row 9 column 3",
+      "file": "f626560642e8410e.json"
+    }
+  }
+}

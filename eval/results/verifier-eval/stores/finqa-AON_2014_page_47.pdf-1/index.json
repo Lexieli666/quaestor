@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "c8b14cec4d26a235",
+      "kind": "scalar",
+      "value": 2.53,
+      "summary": "what is the variation between the average and the highest operating margin?",
+      "file": "c8b14cec4d26a235.json"
+    },
+    "table.r1.c2": {
+      "hash": "fda8045477924212",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 1 column 2",
+      "file": "fda8045477924212.json"
+    },
+    "table.r1.c3": {
+      "hash": "20bb81ab59faa483",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 1 column 3",
+      "file": "20bb81ab59faa483.json"
+    },
+    "table.r1.c4": {
+      "hash": "3225987a3e5cd0b2",
+      "kind": "scalar",
+      "value": 2012.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 1 column 4",
+      "file": "3225987a3e5cd0b2.json"
+    },
+    "table.r2.c2": {
+      "hash": "5ba7a1042ddaa323",
+      "kind": "scalar",
+      "value": 4264.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 2 column 2",
+      "file": "5ba7a1042ddaa323.json"
+    },
+    "table.r2.c3": {
+      "hash": "ae3f702921cc658d",
+      "kind": "scalar",
+      "value": 4057.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 2 column 3",
+      "file": "ae3f702921cc658d.json"
+    },
+    "table.r2.c4": {
+      "hash": "673be9f34e85f702",
+      "kind": "scalar",
+      "value": 3925.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 2 column 4",
+      "file": "673be9f34e85f702.json"
+    },
+    "table.r3.c2": {
+      "hash": "7e7e696ad95a9938",
+      "kind": "scalar",
+      "value": 485.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 3 column 2",
+      "file": "7e7e696ad95a9938.json"
+    },
+    "table.r3.c3": {
+      "hash": "a3632964103906f3",
+      "kind": "scalar",
+      "value": 318.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 3 column 3",
+      "file": "a3632964103906f3.json"
+    },
+    "table.r3.c4": {
+      "hash": "5ace30f01e16873c",
+      "kind": "scalar",
+      "value": 289.0,
+      "summary": "finqa-AON_2014_page_47.pdf-1 row 3 column 4",
+      "file": "5ace30f01e16873c.json"
+    }
+  }
+}

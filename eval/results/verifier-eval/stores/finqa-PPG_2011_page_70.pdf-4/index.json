@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "8f6c46a1db78c258",
+      "kind": "scalar",
+      "value": 31.0,
+      "summary": "what was royalty income as a percentage of total other income in 2011?",
+      "file": "8f6c46a1db78c258.json"
+    },
+    "table.r1.c2": {
+      "hash": "514b468b098b18d0",
+      "kind": "scalar",
+      "value": 2011.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 1 column 2",
+      "file": "514b468b098b18d0.json"
+    },
+    "table.r1.c3": {
+      "hash": "4d0f1e68accc3253",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 1 column 3",
+      "file": "4d0f1e68accc3253.json"
+    },
+    "table.r1.c4": {
+      "hash": "8c7188034663e4d1",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 1 column 4",
+      "file": "8c7188034663e4d1.json"
+    },
+    "table.r2.c2": {
+      "hash": "7e42ac78380dc29e",
+      "kind": "scalar",
+      "value": 55.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 2 column 2",
+      "file": "7e42ac78380dc29e.json"
+    },
+    "table.r2.c3": {
+      "hash": "09e594013dcee17d",
+      "kind": "scalar",
+      "value": 58.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 2 column 3",
+      "file": "09e594013dcee17d.json"
+    },
+    "table.r2.c4": {
+      "hash": "515ad046d389ac4c",
+      "kind": "scalar",
+      "value": 45.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 2 column 4",
+      "file": "515ad046d389ac4c.json"
+    },
+    "table.r3.c2": {
+      "hash": "387757ac6530f44a",
+      "kind": "scalar",
+      "value": 37.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 3 column 2",
+      "file": "387757ac6530f44a.json"
+    },
+    "table.r3.c3": {
+      "hash": "d56c2338564f45f2",
+      "kind": "scalar",
+      "value": 45.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 3 column 3",
+      "file": "d56c2338564f45f2.json"
+    },
+    "table.r4.c2": {
+      "hash": "927f3820e2962321",
+      "kind": "scalar",
+      "value": 12.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 4 column 2",
+      "file": "927f3820e2962321.json"
+    },
+    "table.r4.c3": {
+      "hash": "dad8a45cc0a713a0",
+      "kind": "scalar",
+      "value": 8.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 4 column 3",
+      "file": "dad8a45cc0a713a0.json"
+    },
+    "table.r4.c4": {
+      "hash": "78c148ef524f746e",
+      "kind": "scalar",
+      "value": 36.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 4 column 4",
+      "file": "78c148ef524f746e.json"
+    },
+    "table.r5.c2": {
+      "hash": "1ba0086f087353ff",
+      "kind": "scalar",
+      "value": 73.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 5 column 2",
+      "file": "1ba0086f087353ff.json"
+    },
+    "table.r5.c3": {
+      "hash": "0e4442d69df9741c",
+      "kind": "scalar",
+      "value": 69.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 5 column 3",
+      "file": "0e4442d69df9741c.json"
+    },
+    "table.r5.c4": {
+      "hash": "2d0d441578be8cda",
+      "kind": "scalar",
+      "value": 74.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 5 column 4",
+      "file": "2d0d441578be8cda.json"
+    },
+    "table.r6.c2": {
+      "hash": "e47de85641c2b14f",
+      "kind": "scalar",
+      "value": 177.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 6 column 2",
+      "file": "e47de85641c2b14f.json"
+    },
+    "table.r6.c3": {
+      "hash": "bddfaa509cb6f05e",
+      "kind": "scalar",
+      "value": 180.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 6 column 3",
+      "file": "bddfaa509cb6f05e.json"
+    },
+    "table.r6.c4": {
+      "hash": "d8493b72620fadf5",
+      "kind": "scalar",
+      "value": 150.0,
+      "summary": "finqa-PPG_2011_page_70.pdf-4 row 6 column 4",
+      "file": "d8493b72620fadf5.json"
+    }
+  }
+}

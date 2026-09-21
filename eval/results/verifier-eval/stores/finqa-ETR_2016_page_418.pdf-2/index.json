@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "6523eaf0d11cf6c5",
+      "kind": "scalar",
+      "value": 7.0,
+      "summary": "what is the net change in net revenue during 2016 for entergy texas , inc.?",
+      "file": "6523eaf0d11cf6c5.json"
+    },
+    "table.r2.c2": {
+      "hash": "49cae839c2d9f5c8",
+      "kind": "scalar",
+      "value": 637.2,
+      "summary": "finqa-ETR_2016_page_418.pdf-2 row 2 column 2",
+      "file": "49cae839c2d9f5c8.json"
+    },
+    "table.r3.c2": {
+      "hash": "e268f15d167dbc84",
+      "kind": "scalar",
+      "value": 14.3,
+      "summary": "finqa-ETR_2016_page_418.pdf-2 row 3 column 2",
+      "file": "e268f15d167dbc84.json"
+    },
+    "table.r4.c2": {
+      "hash": "2f068fc0f569eb73",
+      "kind": "scalar",
+      "value": 12.4,
+      "summary": "finqa-ETR_2016_page_418.pdf-2 row 4 column 2",
+      "file": "2f068fc0f569eb73.json"
+    },
+    "table.r5.c2": {
+      "hash": "3c6586abbf893606",
+      "kind": "scalar",
+      "value": 7.0,
+      "summary": "finqa-ETR_2016_page_418.pdf-2 row 5 column 2",
+      "file": "3c6586abbf893606.json"
+    },
+    "table.r6.c2": {
+      "hash": "b082227db246e2d1",
+      "kind": "scalar",
+      "value": 5.4,
+      "summary": "finqa-ETR_2016_page_418.pdf-2 row 6 column 2",
+      "file": "b082227db246e2d1.json"
+    },
+    "table.r9.c2": {
+      "hash": "c1bbf0b836204a85",
+      "kind": "scalar",
+      "value": 644.2,
+      "summary": "finqa-ETR_2016_page_418.pdf-2 row 9 column 2",
+      "file": "c1bbf0b836204a85.json"
+    }
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "a598bce4bdd0018f",
+      "kind": "scalar",
+      "value": 15.2,
+      "summary": "what portion of total long-term borrowings is due in the next 24 months?",
+      "file": "a598bce4bdd0018f.json"
+    },
+    "table.r2.c2": {
+      "hash": "8ad8377edbb2ca2c",
+      "kind": "scalar",
+      "value": 750.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 2 column 2",
+      "file": "8ad8377edbb2ca2c.json"
+    },
+    "table.r2.c3": {
+      "hash": "c933e926fa98a52a",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 2 column 3",
+      "file": "c933e926fa98a52a.json"
+    },
+    "table.r2.c4": {
+      "hash": "a715c6a9c6af6359",
+      "kind": "scalar",
+      "value": 750.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 2 column 4",
+      "file": "a715c6a9c6af6359.json"
+    },
+    "table.r2.c5": {
+      "hash": "c9527a626f6c70ac",
+      "kind": "scalar",
+      "value": 753.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 2 column 5",
+      "file": "c9527a626f6c70ac.json"
+    },
+    "table.r3.c2": {
+      "hash": "1e5fca136ab68fa2",
+      "kind": "scalar",
+      "value": 700.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 3 column 2",
+      "file": "1e5fca136ab68fa2.json"
+    },
+    "table.r3.c4": {
+      "hash": "d47740680925bc61",
+      "kind": "scalar",
+      "value": 699.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 3 column 4",
+      "file": "d47740680925bc61.json"
+    },
+    "table.r3.c5": {
+      "hash": "3ed61c28d973f0bb",
+      "kind": "scalar",
+      "value": 785.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 3 column 5",
+      "file": "3ed61c28d973f0bb.json"
+    },
+    "table.r4.c2": {
+      "hash": "ba67ebc4cef089c4",
+      "kind": "scalar",
+      "value": 1000.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 4 column 2",
+      "file": "ba67ebc4cef089c4.json"
+    },
+    "table.r4.c4": {
+      "hash": "fbb1a1ed8ba7e7e6",
+      "kind": "scalar",
+      "value": 998.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 4 column 4",
+      "file": "fbb1a1ed8ba7e7e6.json"
+    },
+    "table.r4.c5": {
+      "hash": "74c8b594baa366c8",
+      "kind": "scalar",
+      "value": 1134.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 4 column 5",
+      "file": "74c8b594baa366c8.json"
+    },
+    "table.r5.c2": {
+      "hash": "e1ecf19a20be2c36",
+      "kind": "scalar",
+      "value": 750.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 5 column 2",
+      "file": "e1ecf19a20be2c36.json"
+    },
+    "table.r5.c4": {
+      "hash": "16aadea97a3f1158",
+      "kind": "scalar",
+      "value": 747.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 5 column 4",
+      "file": "16aadea97a3f1158.json"
+    },
+    "table.r5.c5": {
+      "hash": "31b07fc0452de15d",
+      "kind": "scalar",
+      "value": 825.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 5 column 5",
+      "file": "31b07fc0452de15d.json"
+    },
+    "table.r6.c2": {
+      "hash": "0ff3dca1a0ccc2f4",
+      "kind": "scalar",
+      "value": 750.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 6 column 2",
+      "file": "0ff3dca1a0ccc2f4.json"
+    },
+    "table.r6.c4": {
+      "hash": "1badb062f0611fed",
+      "kind": "scalar",
+      "value": 747.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 6 column 4",
+      "file": "1badb062f0611fed.json"
+    },
+    "table.r6.c5": {
+      "hash": "947784a43eed0ff3",
+      "kind": "scalar",
+      "value": 783.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 6 column 5",
+      "file": "947784a43eed0ff3.json"
+    },
+    "table.r7.c2": {
+      "hash": "ca538c795000338a",
+      "kind": "scalar",
+      "value": 1000.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 7 column 2",
+      "file": "ca538c795000338a.json"
+    },
+    "table.r7.c4": {
+      "hash": "7c6c6ac84e0dbd87",
+      "kind": "scalar",
+      "value": 997.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 7 column 4",
+      "file": "7c6c6ac84e0dbd87.json"
+    },
+    "table.r7.c5": {
+      "hash": "f1ba7dbe76efedeb",
+      "kind": "scalar",
+      "value": 1029.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 7 column 5",
+      "file": "f1ba7dbe76efedeb.json"
+    },
+    "table.r8.c2": {
+      "hash": "40751a63e7bccc04",
+      "kind": "scalar",
+      "value": 4950.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 8 column 2",
+      "file": "40751a63e7bccc04.json"
+    },
+    "table.r8.c4": {
+      "hash": "cff2556e1e4ab798",
+      "kind": "scalar",
+      "value": 4938.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 8 column 4",
+      "file": "cff2556e1e4ab798.json"
+    },
+    "table.r8.c5": {
+      "hash": "d10af27b07ddd2e6",
+      "kind": "scalar",
+      "value": 5309.0,
+      "summary": "finqa-BLK_2014_page_119.pdf-3 row 8 column 5",
+      "file": "d10af27b07ddd2e6.json"
+    }
+  }
+}

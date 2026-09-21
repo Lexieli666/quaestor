@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "a55ab050b84b71e1",
+      "kind": "scalar",
+      "value": 9441.0,
+      "summary": "What was the Software delivery, support and maintenance revenue in 2018?",
+      "file": "a55ab050b84b71e1.json"
+    },
+    "table.r1.c2": {
+      "hash": "70e3120f0cf6f507",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 1 column 2",
+      "file": "70e3120f0cf6f507.json"
+    },
+    "table.r1.c3": {
+      "hash": "f098d16068e80b7d",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 1 column 3",
+      "file": "f098d16068e80b7d.json"
+    },
+    "table.r10.c2": {
+      "hash": "f1749d5ce2096bc3",
+      "kind": "scalar",
+      "value": 3152.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 10 column 2",
+      "file": "f1749d5ce2096bc3.json"
+    },
+    "table.r10.c3": {
+      "hash": "b6b9a27199aef7bd",
+      "kind": "scalar",
+      "value": 3179.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 10 column 3",
+      "file": "b6b9a27199aef7bd.json"
+    },
+    "table.r11.c2": {
+      "hash": "9919ed1aa74b6ea0",
+      "kind": "scalar",
+      "value": 6693.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 11 column 2",
+      "file": "9919ed1aa74b6ea0.json"
+    },
+    "table.r11.c3": {
+      "hash": "803dd35e6ff40d05",
+      "kind": "scalar",
+      "value": 8814.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 11 column 3",
+      "file": "803dd35e6ff40d05.json"
+    },
+    "table.r12.c2": {
+      "hash": "23281bcbb4a1f3ab",
+      "kind": "scalar",
+      "value": 1651.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 12 column 2",
+      "file": "23281bcbb4a1f3ab.json"
+    },
+    "table.r12.c3": {
+      "hash": "620283528037e8e5",
+      "kind": "scalar",
+      "value": 1148.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 12 column 3",
+      "file": "620283528037e8e5.json"
+    },
+    "table.r13.c2": {
+      "hash": "f0afdeaa4fd92530",
+      "kind": "scalar",
+      "value": 5042.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 13 column 2",
+      "file": "f0afdeaa4fd92530.json"
+    },
+    "table.r13.c3": {
+      "hash": "90836063a026568a",
+      "kind": "scalar",
+      "value": 7666.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 13 column 3",
+      "file": "90836063a026568a.json"
+    },
+    "table.r15.c2": {
+      "hash": "88a139fe1817a49b",
+      "kind": "scalar",
+      "value": 3731.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 15 column 2",
+      "file": "88a139fe1817a49b.json"
+    },
+    "table.r15.c3": {
+      "hash": "090b5f5bbe80ceb8",
+      "kind": "scalar",
+      "value": 4676.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 15 column 3",
+      "file": "090b5f5bbe80ceb8.json"
+    },
+    "table.r4.c2": {
+      "hash": "e41a3ff0c8ac5faa",
+      "kind": "scalar",
+      "value": 9441.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 4 column 2",
+      "file": "e41a3ff0c8ac5faa.json"
+    },
+    "table.r4.c3": {
+      "hash": "701e4f8f5b292d97",
+      "kind": "scalar",
+      "value": 10949.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 4 column 3",
+      "file": "701e4f8f5b292d97.json"
+    },
+    "table.r5.c2": {
+      "hash": "0be959e34868effd",
+      "kind": "scalar",
+      "value": 404.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 5 column 2",
+      "file": "0be959e34868effd.json"
+    },
+    "table.r5.c3": {
+      "hash": "de0e130af7d75d02",
+      "kind": "scalar",
+      "value": 1044.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 5 column 3",
+      "file": "de0e130af7d75d02.json"
+    },
+    "table.r6.c2": {
+      "hash": "9e45fcdce604413e",
+      "kind": "scalar",
+      "value": 9845.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 6 column 2",
+      "file": "9e45fcdce604413e.json"
+    },
+    "table.r6.c3": {
+      "hash": "2fe29759e4c787aa",
+      "kind": "scalar",
+      "value": 11993.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 6 column 3",
+      "file": "2fe29759e4c787aa.json"
+    },
+    "table.r8.c2": {
+      "hash": "391627e40686ce9f",
+      "kind": "scalar",
+      "value": 2322.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 8 column 2",
+      "file": "391627e40686ce9f.json"
+    },
+    "table.r8.c3": {
+      "hash": "1567d1381158b456",
+      "kind": "scalar",
+      "value": 2918.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 8 column 3",
+      "file": "1567d1381158b456.json"
+    },
+    "table.r9.c2": {
+      "hash": "328c0327f41d338f",
+      "kind": "scalar",
+      "value": 830.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 9 column 2",
+      "file": "328c0327f41d338f.json"
+    },
+    "table.r9.c3": {
+      "hash": "7986419118f52cfb",
+      "kind": "scalar",
+      "value": 261.0,
+      "summary": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34 row 9 column 3",
+      "file": "7986419118f52cfb.json"
+    }
+  }
+}

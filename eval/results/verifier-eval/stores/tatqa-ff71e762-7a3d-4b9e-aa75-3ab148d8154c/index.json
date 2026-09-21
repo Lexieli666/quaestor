@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "e986776728b3ebef",
+      "kind": "scalar",
+      "value": -0.5,
+      "summary": "What was the change in the average life expectancy for a male member aged 65 in 2019 from 2018?",
+      "file": "e986776728b3ebef.json"
+    },
+    "table.r1.c2": {
+      "hash": "54431999db87b3a6",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 1 column 2",
+      "file": "54431999db87b3a6.json"
+    },
+    "table.r1.c4": {
+      "hash": "72fc6ca240ab5dd8",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 1 column 4",
+      "file": "72fc6ca240ab5dd8.json"
+    },
+    "table.r4.c2": {
+      "hash": "b5eb61a2341063c9",
+      "kind": "scalar",
+      "value": 86.8,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 4 column 2",
+      "file": "b5eb61a2341063c9.json"
+    },
+    "table.r4.c3": {
+      "hash": "2e115167dc12e676",
+      "kind": "scalar",
+      "value": 88.9,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 4 column 3",
+      "file": "2e115167dc12e676.json"
+    },
+    "table.r4.c4": {
+      "hash": "6d7c3085bf492421",
+      "kind": "scalar",
+      "value": 87.3,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 4 column 4",
+      "file": "6d7c3085bf492421.json"
+    },
+    "table.r4.c5": {
+      "hash": "7697789a5c3f3125",
+      "kind": "scalar",
+      "value": 89.3,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 4 column 5",
+      "file": "7697789a5c3f3125.json"
+    },
+    "table.r5.c2": {
+      "hash": "c30efadd030b49a4",
+      "kind": "scalar",
+      "value": 88.5,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 5 column 2",
+      "file": "c30efadd030b49a4.json"
+    },
+    "table.r5.c3": {
+      "hash": "55d8c5dedc4f675d",
+      "kind": "scalar",
+      "value": 90.7,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 5 column 3",
+      "file": "55d8c5dedc4f675d.json"
+    },
+    "table.r5.c4": {
+      "hash": "9da8339e80cb22ac",
+      "kind": "scalar",
+      "value": 89.0,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 5 column 4",
+      "file": "9da8339e80cb22ac.json"
+    },
+    "table.r5.c5": {
+      "hash": "3fbcbcbc9783da23",
+      "kind": "scalar",
+      "value": 91.1,
+      "summary": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c row 5 column 5",
+      "file": "3fbcbcbc9783da23.json"
+    }
+  }
+}

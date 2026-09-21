@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "9d65ef13bfeaf204",
+      "kind": "scalar",
+      "value": 71.0,
+      "summary": "what is the percentage difference in the fair value per share between 2015 and 2016?",
+      "file": "9d65ef13bfeaf204.json"
+    },
+    "table.r1.c2": {
+      "hash": "97041a9faff0e89f",
+      "kind": "scalar",
+      "value": 2016.0,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 1 column 2",
+      "file": "97041a9faff0e89f.json"
+    },
+    "table.r1.c3": {
+      "hash": "972fdb014d1921b1",
+      "kind": "scalar",
+      "value": 2015.0,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 1 column 3",
+      "file": "972fdb014d1921b1.json"
+    },
+    "table.r1.c4": {
+      "hash": "2797eaee027e8ca5",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 1 column 4",
+      "file": "2797eaee027e8ca5.json"
+    },
+    "table.r5.c2": {
+      "hash": "9066ef9f67aea151",
+      "kind": "scalar",
+      "value": 4.5,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 5 column 2",
+      "file": "9066ef9f67aea151.json"
+    },
+    "table.r5.c3": {
+      "hash": "7da64b3102e3d89a",
+      "kind": "scalar",
+      "value": 4.6,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 5 column 3",
+      "file": "7da64b3102e3d89a.json"
+    },
+    "table.r5.c4": {
+      "hash": "7af4ff19a91846dd",
+      "kind": "scalar",
+      "value": 4.6,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 5 column 4",
+      "file": "7af4ff19a91846dd.json"
+    },
+    "table.r6.c2": {
+      "hash": "2d97633512ad29f6",
+      "kind": "scalar",
+      "value": 31.0,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 6 column 2",
+      "file": "2d97633512ad29f6.json"
+    },
+    "table.r6.c3": {
+      "hash": "6dfbd561577ac4c1",
+      "kind": "scalar",
+      "value": 18.13,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 6 column 3",
+      "file": "6dfbd561577ac4c1.json"
+    },
+    "table.r6.c4": {
+      "hash": "b98c2b6cd81ae678",
+      "kind": "scalar",
+      "value": 11.75,
+      "summary": "finqa-EW_2016_page_94.pdf-3 row 6 column 4",
+      "file": "b98c2b6cd81ae678.json"
+    }
+  }
+}

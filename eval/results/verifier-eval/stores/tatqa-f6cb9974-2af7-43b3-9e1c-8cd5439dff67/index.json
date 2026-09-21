@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "db7415692e220c5d",
+      "kind": "scalar",
+      "value": 43.15,
+      "summary": "What percentage of the total amortized cost is made up of foreign government obligations in 2018?",
+      "file": "db7415692e220c5d.json"
+    },
+    "table.r10.c2": {
+      "hash": "631eb5bca8ce950c",
+      "kind": "scalar",
+      "value": 73798.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 10 column 2",
+      "file": "631eb5bca8ce950c.json"
+    },
+    "table.r10.c3": {
+      "hash": "796b056626c665a6",
+      "kind": "scalar",
+      "value": 14234.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 10 column 3",
+      "file": "796b056626c665a6.json"
+    },
+    "table.r10.c4": {
+      "hash": "ff7dd083a76bab35",
+      "kind": "scalar",
+      "value": 235.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 10 column 4",
+      "file": "ff7dd083a76bab35.json"
+    },
+    "table.r10.c5": {
+      "hash": "30d2ac9f1ee96cb6",
+      "kind": "scalar",
+      "value": 87797.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 10 column 5",
+      "file": "30d2ac9f1ee96cb6.json"
+    },
+    "table.r11.c2": {
+      "hash": "5eda6f1cc58d9592",
+      "kind": "scalar",
+      "value": 97223.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 11 column 2",
+      "file": "5eda6f1cc58d9592.json"
+    },
+    "table.r11.c3": {
+      "hash": "1d4474e2115edf63",
+      "kind": "scalar",
+      "value": 416.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 11 column 3",
+      "file": "1d4474e2115edf63.json"
+    },
+    "table.r11.c4": {
+      "hash": "760632f5b2595262",
+      "kind": "scalar",
+      "value": 6436.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 11 column 4",
+      "file": "760632f5b2595262.json"
+    },
+    "table.r11.c5": {
+      "hash": "2664a5d065b226be",
+      "kind": "scalar",
+      "value": 91203.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 11 column 5",
+      "file": "2664a5d065b226be.json"
+    },
+    "table.r12.c2": {
+      "hash": "77dd5be2efb7af0d",
+      "kind": "scalar",
+      "value": 171021.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 12 column 2",
+      "file": "77dd5be2efb7af0d.json"
+    },
+    "table.r12.c3": {
+      "hash": "5c9427be92f1efd8",
+      "kind": "scalar",
+      "value": 14650.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 12 column 3",
+      "file": "5c9427be92f1efd8.json"
+    },
+    "table.r12.c4": {
+      "hash": "ce28769cdc08c18c",
+      "kind": "scalar",
+      "value": 6671.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 12 column 4",
+      "file": "ce28769cdc08c18c.json"
+    },
+    "table.r12.c5": {
+      "hash": "7de886ab338a56df",
+      "kind": "scalar",
+      "value": 179000.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 12 column 5",
+      "file": "7de886ab338a56df.json"
+    },
+    "table.r4.c2": {
+      "hash": "b53ab320782515dd",
+      "kind": "scalar",
+      "value": 129499.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 4 column 2",
+      "file": "b53ab320782515dd.json"
+    },
+    "table.r4.c4": {
+      "hash": "07ef79d3039aa14c",
+      "kind": "scalar",
+      "value": 3433.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 4 column 4",
+      "file": "07ef79d3039aa14c.json"
+    },
+    "table.r4.c5": {
+      "hash": "1cbeb068c0c03b28",
+      "kind": "scalar",
+      "value": 126066.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 4 column 5",
+      "file": "1cbeb068c0c03b28.json"
+    },
+    "table.r5.c2": {
+      "hash": "315b04a61108b100",
+      "kind": "scalar",
+      "value": 99700.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 5 column 2",
+      "file": "315b04a61108b100.json"
+    },
+    "table.r5.c4": {
+      "hash": "589f0c90180c0473",
+      "kind": "scalar",
+      "value": 1981.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 5 column 4",
+      "file": "589f0c90180c0473.json"
+    },
+    "table.r5.c5": {
+      "hash": "a36ddf232fef802a",
+      "kind": "scalar",
+      "value": 97719.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 5 column 5",
+      "file": "a36ddf232fef802a.json"
+    },
+    "table.r6.c2": {
+      "hash": "984cf01601e76cc2",
+      "kind": "scalar",
+      "value": 229199.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 6 column 2",
+      "file": "984cf01601e76cc2.json"
+    },
+    "table.r6.c4": {
+      "hash": "6696fdaff1289720",
+      "kind": "scalar",
+      "value": 5414.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 6 column 4",
+      "file": "6696fdaff1289720.json"
+    },
+    "table.r6.c5": {
+      "hash": "b260f8600b31b163",
+      "kind": "scalar",
+      "value": 223785.0,
+      "summary": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67 row 6 column 5",
+      "file": "b260f8600b31b163.json"
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "422c04638ba7e1e3",
+      "kind": "scalar",
+      "value": 60.3,
+      "summary": "in 2011 what was the percent of risk solutions revenues to the total revenues of aons",
+      "file": "422c04638ba7e1e3.json"
+    },
+    "table.r1.c2": {
+      "hash": "514b468b098b18d0",
+      "kind": "scalar",
+      "value": 2011.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 1 column 2",
+      "file": "514b468b098b18d0.json"
+    },
+    "table.r1.c3": {
+      "hash": "4d0f1e68accc3253",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 1 column 3",
+      "file": "4d0f1e68accc3253.json"
+    },
+    "table.r1.c4": {
+      "hash": "8c7188034663e4d1",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 1 column 4",
+      "file": "8c7188034663e4d1.json"
+    },
+    "table.r2.c2": {
+      "hash": "66a6218080cb41e2",
+      "kind": "scalar",
+      "value": 6817.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 2 column 2",
+      "file": "66a6218080cb41e2.json"
+    },
+    "table.r2.c3": {
+      "hash": "c2356847b65a64f3",
+      "kind": "scalar",
+      "value": 6423.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 2 column 3",
+      "file": "c2356847b65a64f3.json"
+    },
+    "table.r2.c4": {
+      "hash": "03d50d611d11d262",
+      "kind": "scalar",
+      "value": 6305.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 2 column 4",
+      "file": "03d50d611d11d262.json"
+    },
+    "table.r3.c2": {
+      "hash": "fcc5055e2b7fb3ad",
+      "kind": "scalar",
+      "value": 4501.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 3 column 2",
+      "file": "fcc5055e2b7fb3ad.json"
+    },
+    "table.r3.c3": {
+      "hash": "43f1cfade99e3988",
+      "kind": "scalar",
+      "value": 2111.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 3 column 3",
+      "file": "43f1cfade99e3988.json"
+    },
+    "table.r3.c4": {
+      "hash": "a6e4e6c153290ae2",
+      "kind": "scalar",
+      "value": 1267.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 3 column 4",
+      "file": "a6e4e6c153290ae2.json"
+    },
+    "table.r5.c2": {
+      "hash": "81fccc4c25ac230c",
+      "kind": "scalar",
+      "value": 11287.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 5 column 2",
+      "file": "81fccc4c25ac230c.json"
+    },
+    "table.r5.c3": {
+      "hash": "673a7e35a521025b",
+      "kind": "scalar",
+      "value": 8512.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 5 column 3",
+      "file": "673a7e35a521025b.json"
+    },
+    "table.r5.c4": {
+      "hash": "887768124c39c460",
+      "kind": "scalar",
+      "value": 7546.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 5 column 4",
+      "file": "887768124c39c460.json"
+    },
+    "table.r6.c2": {
+      "hash": "f1572f40965b18f7",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 6 column 2",
+      "file": "f1572f40965b18f7.json"
+    },
+    "table.r6.c3": {
+      "hash": "5b1f0da084a0a52c",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 6 column 3",
+      "file": "5b1f0da084a0a52c.json"
+    },
+    "table.r6.c4": {
+      "hash": "d253c22fefa346b3",
+      "kind": "scalar",
+      "value": 49.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 6 column 4",
+      "file": "d253c22fefa346b3.json"
+    },
+    "table.r7.c2": {
+      "hash": "4deaab1b7398570f",
+      "kind": "scalar",
+      "value": 11287.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 7 column 2",
+      "file": "4deaab1b7398570f.json"
+    },
+    "table.r7.c3": {
+      "hash": "f2a554531b104151",
+      "kind": "scalar",
+      "value": 8512.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 7 column 3",
+      "file": "f2a554531b104151.json"
+    },
+    "table.r7.c4": {
+      "hash": "1608d2c390fcdc8b",
+      "kind": "scalar",
+      "value": 7595.0,
+      "summary": "finqa-AON_2011_page_134.pdf-2 row 7 column 4",
+      "file": "1608d2c390fcdc8b.json"
+    }
+  }
+}

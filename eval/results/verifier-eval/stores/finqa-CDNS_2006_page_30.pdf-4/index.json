@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "bd2116d720758749",
+      "kind": "scalar",
+      "value": 55.07,
+      "summary": "what was the difference in percentage cumulative 5-year total return to shareholders of cadence design systems , inc . 2019s common stock and the s&p 500 for the period ended december 30 , 2006?",
+      "file": "bd2116d720758749.json"
+    },
+    "table.r2.c2": {
+      "hash": "a712c9f2f6c523cc",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 2 column 2",
+      "file": "a712c9f2f6c523cc.json"
+    },
+    "table.r2.c3": {
+      "hash": "8e85e791032a2258",
+      "kind": "scalar",
+      "value": 54.38,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 2 column 3",
+      "file": "8e85e791032a2258.json"
+    },
+    "table.r2.c4": {
+      "hash": "159e846850a84f7c",
+      "kind": "scalar",
+      "value": 81.52,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 2 column 4",
+      "file": "159e846850a84f7c.json"
+    },
+    "table.r2.c5": {
+      "hash": "15989986da70dd5a",
+      "kind": "scalar",
+      "value": 61.65,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 2 column 5",
+      "file": "15989986da70dd5a.json"
+    },
+    "table.r2.c6": {
+      "hash": "ede4c7fbfd63c00c",
+      "kind": "scalar",
+      "value": 75.54,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 2 column 6",
+      "file": "ede4c7fbfd63c00c.json"
+    },
+    "table.r2.c7": {
+      "hash": "2c4538b16177cd00",
+      "kind": "scalar",
+      "value": 79.96,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 2 column 7",
+      "file": "2c4538b16177cd00.json"
+    },
+    "table.r3.c2": {
+      "hash": "f8e7421964023b61",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 3 column 2",
+      "file": "f8e7421964023b61.json"
+    },
+    "table.r3.c3": {
+      "hash": "67d8237f08c821a8",
+      "kind": "scalar",
+      "value": 77.9,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 3 column 3",
+      "file": "67d8237f08c821a8.json"
+    },
+    "table.r3.c4": {
+      "hash": "abab5b24770fdc2c",
+      "kind": "scalar",
+      "value": 100.24,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 3 column 4",
+      "file": "abab5b24770fdc2c.json"
+    },
+    "table.r3.c5": {
+      "hash": "00be579da46f6f53",
+      "kind": "scalar",
+      "value": 111.15,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 3 column 5",
+      "file": "00be579da46f6f53.json"
+    },
+    "table.r3.c6": {
+      "hash": "0d702a03930eb742",
+      "kind": "scalar",
+      "value": 116.61,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 3 column 6",
+      "file": "0d702a03930eb742.json"
+    },
+    "table.r3.c7": {
+      "hash": "163772a548006546",
+      "kind": "scalar",
+      "value": 135.03,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 3 column 7",
+      "file": "163772a548006546.json"
+    },
+    "table.r4.c2": {
+      "hash": "0794dd9bf9e90dff",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 4 column 2",
+      "file": "0794dd9bf9e90dff.json"
+    },
+    "table.r4.c3": {
+      "hash": "7f13a34151d1153b",
+      "kind": "scalar",
+      "value": 71.97,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 4 column 3",
+      "file": "7f13a34151d1153b.json"
+    },
+    "table.r4.c4": {
+      "hash": "53cf075a8379c7af",
+      "kind": "scalar",
+      "value": 107.18,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 4 column 4",
+      "file": "53cf075a8379c7af.json"
+    },
+    "table.r4.c5": {
+      "hash": "320154b8828b655c",
+      "kind": "scalar",
+      "value": 117.07,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 4 column 5",
+      "file": "320154b8828b655c.json"
+    },
+    "table.r4.c6": {
+      "hash": "ad6e0bdaa8a5daa1",
+      "kind": "scalar",
+      "value": 120.5,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 4 column 6",
+      "file": "ad6e0bdaa8a5daa1.json"
+    },
+    "table.r4.c7": {
+      "hash": "61918adf775b4488",
+      "kind": "scalar",
+      "value": 137.02,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 4 column 7",
+      "file": "61918adf775b4488.json"
+    },
+    "table.r5.c2": {
+      "hash": "cda46ba56e50359d",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 5 column 2",
+      "file": "cda46ba56e50359d.json"
+    },
+    "table.r5.c3": {
+      "hash": "feb0876810cf4460",
+      "kind": "scalar",
+      "value": 62.59,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 5 column 3",
+      "file": "feb0876810cf4460.json"
+    },
+    "table.r5.c4": {
+      "hash": "e264d297b970df3d",
+      "kind": "scalar",
+      "value": 92.14,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 5 column 4",
+      "file": "e264d297b970df3d.json"
+    },
+    "table.r5.c5": {
+      "hash": "7cfd4c532aaa1bf3",
+      "kind": "scalar",
+      "value": 94.5,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 5 column 5",
+      "file": "7cfd4c532aaa1bf3.json"
+    },
+    "table.r5.c6": {
+      "hash": "bc98fb7646869fb8",
+      "kind": "scalar",
+      "value": 95.44,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 5 column 6",
+      "file": "bc98fb7646869fb8.json"
+    },
+    "table.r5.c7": {
+      "hash": "70babb1926bc6594",
+      "kind": "scalar",
+      "value": 103.47,
+      "summary": "finqa-CDNS_2006_page_30.pdf-4 row 5 column 7",
+      "file": "70babb1926bc6594.json"
+    }
+  }
+}

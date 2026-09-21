@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "cc38614073b70cf4",
+      "kind": "scalar",
+      "value": 56.0,
+      "summary": "what portion of the suros acquisition price is paid in cash?",
+      "file": "cc38614073b70cf4.json"
+    },
+    "table.r1.c2": {
+      "hash": "0b5768026039a73c",
+      "kind": "scalar",
+      "value": 13100.0,
+      "summary": "finqa-HOLX_2008_page_144.pdf-2 row 1 column 2",
+      "file": "0b5768026039a73c.json"
+    },
+    "table.r2.c2": {
+      "hash": "fc56448ce7ac2926",
+      "kind": "scalar",
+      "value": 4900.0,
+      "summary": "finqa-HOLX_2008_page_144.pdf-2 row 2 column 2",
+      "file": "fc56448ce7ac2926.json"
+    },
+    "table.r3.c2": {
+      "hash": "8610501ce9e424ff",
+      "kind": "scalar",
+      "value": 46000.0,
+      "summary": "finqa-HOLX_2008_page_144.pdf-2 row 3 column 2",
+      "file": "8610501ce9e424ff.json"
+    },
+    "table.r4.c2": {
+      "hash": "261487b81c5015a1",
+      "kind": "scalar",
+      "value": 17900.0,
+      "summary": "finqa-HOLX_2008_page_144.pdf-2 row 4 column 2",
+      "file": "261487b81c5015a1.json"
+    },
+    "table.r5.c2": {
+      "hash": "8ee4c0a88b876cee",
+      "kind": "scalar",
+      "value": 5800.0,
+      "summary": "finqa-HOLX_2008_page_144.pdf-2 row 5 column 2",
+      "file": "8ee4c0a88b876cee.json"
+    },
+    "table.r7.c2": {
+      "hash": "e34c66bb9dcfb74a",
+      "kind": "scalar",
+      "value": 181700.0,
+      "summary": "finqa-HOLX_2008_page_144.pdf-2 row 7 column 2",
+      "file": "e34c66bb9dcfb74a.json"
+    },
+    "table.r8.c2": {
+      "hash": "0b0f09ef79a9f2a3",
+      "kind": "scalar",
+      "value": 248100.0,
+      "summary": "finqa-HOLX_2008_page_144.pdf-2 row 8 column 2",
+      "file": "0b0f09ef79a9f2a3.json"
+    }
+  }
+}

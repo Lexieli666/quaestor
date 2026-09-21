@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "f4a685a4129c701f",
+      "kind": "scalar",
+      "value": 2806364.0,
+      "summary": "What is the number of shares outstanding as of September 30, 2018?",
+      "file": "f4a685a4129c701f.json"
+    },
+    "table.r10.c2": {
+      "hash": "8f998f364684bb46",
+      "kind": "scalar",
+      "value": 2806364.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 10 column 2",
+      "file": "8f998f364684bb46.json"
+    },
+    "table.r10.c3": {
+      "hash": "657518fd4d4daedf",
+      "kind": "scalar",
+      "value": 4.75,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 10 column 3",
+      "file": "657518fd4d4daedf.json"
+    },
+    "table.r10.c4": {
+      "hash": "b580cae764ba63a5",
+      "kind": "scalar",
+      "value": 4.6,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 10 column 4",
+      "file": "b580cae764ba63a5.json"
+    },
+    "table.r11.c2": {
+      "hash": "5cdc6da4940f62fa",
+      "kind": "scalar",
+      "value": 409368.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 11 column 2",
+      "file": "5cdc6da4940f62fa.json"
+    },
+    "table.r11.c3": {
+      "hash": "85a491988ce72399",
+      "kind": "scalar",
+      "value": 9.59,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 11 column 3",
+      "file": "85a491988ce72399.json"
+    },
+    "table.r12.c3": {
+      "hash": "3d9c24fae0504331",
+      "kind": "scalar",
+      "value": 3.25,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 12 column 3",
+      "file": "3d9c24fae0504331.json"
+    },
+    "table.r13.c3": {
+      "hash": "79b0d2718b0d9529",
+      "kind": "scalar",
+      "value": 6.62,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 13 column 3",
+      "file": "79b0d2718b0d9529.json"
+    },
+    "table.r14.c2": {
+      "hash": "a281b1b45bd9f769",
+      "kind": "scalar",
+      "value": 1686902.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 14 column 2",
+      "file": "a281b1b45bd9f769.json"
+    },
+    "table.r14.c3": {
+      "hash": "0093d51adc42a8b3",
+      "kind": "scalar",
+      "value": 7.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 14 column 3",
+      "file": "0093d51adc42a8b3.json"
+    },
+    "table.r14.c4": {
+      "hash": "24db9663457b8f86",
+      "kind": "scalar",
+      "value": 5.4,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 14 column 4",
+      "file": "24db9663457b8f86.json"
+    },
+    "table.r2.c2": {
+      "hash": "c8c5afbc69577944",
+      "kind": "scalar",
+      "value": 3015374.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 2 column 2",
+      "file": "c8c5afbc69577944.json"
+    },
+    "table.r2.c3": {
+      "hash": "c4d0b2a9f003b58b",
+      "kind": "scalar",
+      "value": 3.95,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 2 column 3",
+      "file": "c4d0b2a9f003b58b.json"
+    },
+    "table.r2.c4": {
+      "hash": "3c34a1f6fef02517",
+      "kind": "scalar",
+      "value": 6.4,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 2 column 4",
+      "file": "3c34a1f6fef02517.json"
+    },
+    "table.r3.c2": {
+      "hash": "46c7a22ffef0e3b5",
+      "kind": "scalar",
+      "value": 147800.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 3 column 2",
+      "file": "46c7a22ffef0e3b5.json"
+    },
+    "table.r3.c3": {
+      "hash": "87c72914c03c4760",
+      "kind": "scalar",
+      "value": 7.06,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 3 column 3",
+      "file": "87c72914c03c4760.json"
+    },
+    "table.r4.c3": {
+      "hash": "9038953970a662be",
+      "kind": "scalar",
+      "value": 2.92,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 4 column 3",
+      "file": "9038953970a662be.json"
+    },
+    "table.r5.c3": {
+      "hash": "bba5e56fa3ddb255",
+      "kind": "scalar",
+      "value": 3.59,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 5 column 3",
+      "file": "bba5e56fa3ddb255.json"
+    },
+    "table.r6.c2": {
+      "hash": "480f95fbeaf3a418",
+      "kind": "scalar",
+      "value": 2845866.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 6 column 2",
+      "file": "480f95fbeaf3a418.json"
+    },
+    "table.r6.c3": {
+      "hash": "cf4375a8507dc37c",
+      "kind": "scalar",
+      "value": 4.21,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 6 column 3",
+      "file": "cf4375a8507dc37c.json"
+    },
+    "table.r6.c4": {
+      "hash": "17722bd1399ea15e",
+      "kind": "scalar",
+      "value": 5.4,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 6 column 4",
+      "file": "17722bd1399ea15e.json"
+    },
+    "table.r7.c2": {
+      "hash": "d7c1b9d8996669f0",
+      "kind": "scalar",
+      "value": 299397.0,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 7 column 2",
+      "file": "d7c1b9d8996669f0.json"
+    },
+    "table.r7.c3": {
+      "hash": "51ee8ca965063f55",
+      "kind": "scalar",
+      "value": 8.6,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 7 column 3",
+      "file": "51ee8ca965063f55.json"
+    },
+    "table.r8.c3": {
+      "hash": "d0c3a5d440502851",
+      "kind": "scalar",
+      "value": 2.96,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 8 column 3",
+      "file": "d0c3a5d440502851.json"
+    },
+    "table.r9.c3": {
+      "hash": "1275b30d49768ceb",
+      "kind": "scalar",
+      "value": 5.23,
+      "summary": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75 row 9 column 3",
+      "file": "1275b30d49768ceb.json"
+    }
+  }
+}

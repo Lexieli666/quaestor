@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "3c2c0ddcdc5bfcef",
+      "kind": "scalar",
+      "value": 13477758.0,
+      "summary": "What is the outstanding number of rights at end of period in 2019?",
+      "file": "3c2c0ddcdc5bfcef.json"
+    },
+    "table.r1.c2": {
+      "hash": "54431999db87b3a6",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 1 column 2",
+      "file": "54431999db87b3a6.json"
+    },
+    "table.r1.c3": {
+      "hash": "f8c07313fa56abe6",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 1 column 3",
+      "file": "f8c07313fa56abe6.json"
+    },
+    "table.r3.c2": {
+      "hash": "1998dda7d993daee",
+      "kind": "scalar",
+      "value": 10692594.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 3 column 2",
+      "file": "1998dda7d993daee.json"
+    },
+    "table.r3.c3": {
+      "hash": "cb00a9b4e84405de",
+      "kind": "scalar",
+      "value": 6737076.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 3 column 3",
+      "file": "cb00a9b4e84405de.json"
+    },
+    "table.r4.c2": {
+      "hash": "d2de6ca007dd0f9d",
+      "kind": "scalar",
+      "value": 4465617.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 4 column 2",
+      "file": "d2de6ca007dd0f9d.json"
+    },
+    "table.r4.c3": {
+      "hash": "06be1808067548a1",
+      "kind": "scalar",
+      "value": 5691731.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 4 column 3",
+      "file": "06be1808067548a1.json"
+    },
+    "table.r7.c2": {
+      "hash": "aa7f535ff2dca80f",
+      "kind": "scalar",
+      "value": 13477758.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 7 column 2",
+      "file": "aa7f535ff2dca80f.json"
+    },
+    "table.r7.c3": {
+      "hash": "354ff78288471b27",
+      "kind": "scalar",
+      "value": 10692594.0,
+      "summary": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec row 7 column 3",
+      "file": "354ff78288471b27.json"
+    }
+  }
+}

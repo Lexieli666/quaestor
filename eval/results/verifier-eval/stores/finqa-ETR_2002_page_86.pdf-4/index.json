@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "23ef8e0be022f11d",
+      "kind": "scalar",
+      "value": 916.0,
+      "summary": "what was the sum of the notes entergy issued to nypa with seven and eight annual payment installments",
+      "file": "23ef8e0be022f11d.json"
+    },
+    "table.r1.c1": {
+      "hash": "adc24cb7fec4f2da",
+      "kind": "scalar",
+      "value": 2003.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 1 column 1",
+      "file": "adc24cb7fec4f2da.json"
+    },
+    "table.r1.c2": {
+      "hash": "d19600a9c89a63ac",
+      "kind": "scalar",
+      "value": 1150786.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 1 column 2",
+      "file": "d19600a9c89a63ac.json"
+    },
+    "table.r2.c1": {
+      "hash": "f579f73c262c2bbf",
+      "kind": "scalar",
+      "value": 2004.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 2 column 1",
+      "file": "f579f73c262c2bbf.json"
+    },
+    "table.r2.c2": {
+      "hash": "b7fa1e78991fa4b9",
+      "kind": "scalar",
+      "value": 925005.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 2 column 2",
+      "file": "b7fa1e78991fa4b9.json"
+    },
+    "table.r3.c1": {
+      "hash": "eb9587644c6dde0a",
+      "kind": "scalar",
+      "value": 2005.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 3 column 1",
+      "file": "eb9587644c6dde0a.json"
+    },
+    "table.r3.c2": {
+      "hash": "ed5be8260b0882c7",
+      "kind": "scalar",
+      "value": 540372.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 3 column 2",
+      "file": "ed5be8260b0882c7.json"
+    },
+    "table.r4.c1": {
+      "hash": "05c037b0f93c1ff9",
+      "kind": "scalar",
+      "value": 2006.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 4 column 1",
+      "file": "05c037b0f93c1ff9.json"
+    },
+    "table.r4.c2": {
+      "hash": "287bf0632cc6c760",
+      "kind": "scalar",
+      "value": 139952.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 4 column 2",
+      "file": "287bf0632cc6c760.json"
+    },
+    "table.r5.c1": {
+      "hash": "270c642378835b46",
+      "kind": "scalar",
+      "value": 2007.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 5 column 1",
+      "file": "270c642378835b46.json"
+    },
+    "table.r5.c2": {
+      "hash": "f9b8b4844948be3a",
+      "kind": "scalar",
+      "value": 475288.0,
+      "summary": "finqa-ETR_2002_page_86.pdf-4 row 5 column 2",
+      "file": "f9b8b4844948be3a.json"
+    }
+  }
+}

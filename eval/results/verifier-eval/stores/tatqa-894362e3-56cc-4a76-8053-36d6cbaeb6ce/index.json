@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "0e004cd60db946ac",
+      "kind": "scalar",
+      "value": 2.1,
+      "summary": "What was the change in the Adjusted operating income (tax effected) between 2018 and 2019?",
+      "file": "0e004cd60db946ac.json"
+    },
+    "table.r1.c2": {
+      "hash": "54431999db87b3a6",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-894362e3-56cc-4a76-8053-36d6cbaeb6ce row 1 column 2",
+      "file": "54431999db87b3a6.json"
+    },
+    "table.r1.c3": {
+      "hash": "f8c07313fa56abe6",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-894362e3-56cc-4a76-8053-36d6cbaeb6ce row 1 column 3",
+      "file": "f8c07313fa56abe6.json"
+    },
+    "table.r2.c2": {
+      "hash": "ee9827e737d2c16c",
+      "kind": "scalar",
+      "value": 120.7,
+      "summary": "tatqa-894362e3-56cc-4a76-8053-36d6cbaeb6ce row 2 column 2",
+      "file": "ee9827e737d2c16c.json"
+    },
+    "table.r2.c3": {
+      "hash": "0074c15335dc6337",
+      "kind": "scalar",
+      "value": 118.6,
+      "summary": "tatqa-894362e3-56cc-4a76-8053-36d6cbaeb6ce row 2 column 3",
+      "file": "0074c15335dc6337.json"
+    },
+    "table.r3.c2": {
+      "hash": "b3535646d45e9066",
+      "kind": "scalar",
+      "value": 923.1,
+      "summary": "tatqa-894362e3-56cc-4a76-8053-36d6cbaeb6ce row 3 column 2",
+      "file": "b3535646d45e9066.json"
+    },
+    "table.r3.c3": {
+      "hash": "159fca78626b44d8",
+      "kind": "scalar",
+      "value": 735.6,
+      "summary": "tatqa-894362e3-56cc-4a76-8053-36d6cbaeb6ce row 3 column 3",
+      "file": "159fca78626b44d8.json"
+    }
+  }
+}

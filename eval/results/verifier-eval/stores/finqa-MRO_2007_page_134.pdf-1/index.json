@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "e682f9a60a16b252",
+      "kind": "scalar",
+      "value": 142.4,
+      "summary": "by how much did the weighted average exercise price per share increase from 2005 to 2007?",
+      "file": "e682f9a60a16b252.json"
+    },
+    "table.r1.c2": {
+      "hash": "f120351784cd788f",
+      "kind": "scalar",
+      "value": 2007.0,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 1 column 2",
+      "file": "f120351784cd788f.json"
+    },
+    "table.r1.c3": {
+      "hash": "c4e377a827275578",
+      "kind": "scalar",
+      "value": 2006.0,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 1 column 3",
+      "file": "c4e377a827275578.json"
+    },
+    "table.r1.c4": {
+      "hash": "29b3250c4db2167c",
+      "kind": "scalar",
+      "value": 2005.0,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 1 column 4",
+      "file": "29b3250c4db2167c.json"
+    },
+    "table.r2.c2": {
+      "hash": "8e3a14c8e442b66b",
+      "kind": "scalar",
+      "value": 60.94,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 2 column 2",
+      "file": "8e3a14c8e442b66b.json"
+    },
+    "table.r2.c3": {
+      "hash": "b52f1abd7b532a95",
+      "kind": "scalar",
+      "value": 37.84,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 2 column 3",
+      "file": "b52f1abd7b532a95.json"
+    },
+    "table.r2.c4": {
+      "hash": "68e7074e50da5d55",
+      "kind": "scalar",
+      "value": 25.14,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 2 column 4",
+      "file": "68e7074e50da5d55.json"
+    },
+    "table.r3.c2": {
+      "hash": "9043974127b91c38",
+      "kind": "scalar",
+      "value": 0.96,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 3 column 2",
+      "file": "9043974127b91c38.json"
+    },
+    "table.r3.c3": {
+      "hash": "26a454fb7e15544a",
+      "kind": "scalar",
+      "value": 0.8,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 3 column 3",
+      "file": "26a454fb7e15544a.json"
+    },
+    "table.r3.c4": {
+      "hash": "e93bf79cc6ca8c99",
+      "kind": "scalar",
+      "value": 0.66,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 3 column 4",
+      "file": "e93bf79cc6ca8c99.json"
+    },
+    "table.r4.c2": {
+      "hash": "42cf6ebfbccf07d2",
+      "kind": "scalar",
+      "value": 5.0,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 4 column 2",
+      "file": "42cf6ebfbccf07d2.json"
+    },
+    "table.r4.c3": {
+      "hash": "acba765726901ab0",
+      "kind": "scalar",
+      "value": 5.1,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 4 column 3",
+      "file": "acba765726901ab0.json"
+    },
+    "table.r4.c4": {
+      "hash": "6377533121ad393b",
+      "kind": "scalar",
+      "value": 5.5,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 4 column 4",
+      "file": "6377533121ad393b.json"
+    },
+    "table.r7.c2": {
+      "hash": "4aedbc4310d9011f",
+      "kind": "scalar",
+      "value": 17.24,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 7 column 2",
+      "file": "4aedbc4310d9011f.json"
+    },
+    "table.r7.c3": {
+      "hash": "ef6339520a100032",
+      "kind": "scalar",
+      "value": 10.19,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 7 column 3",
+      "file": "ef6339520a100032.json"
+    },
+    "table.r7.c4": {
+      "hash": "312e12f07bb34bcc",
+      "kind": "scalar",
+      "value": 6.15,
+      "summary": "finqa-MRO_2007_page_134.pdf-1 row 7 column 4",
+      "file": "312e12f07bb34bcc.json"
+    }
+  }
+}

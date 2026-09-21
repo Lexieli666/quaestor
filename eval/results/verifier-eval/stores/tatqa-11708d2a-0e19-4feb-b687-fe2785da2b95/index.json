@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "ef5805ba1f970418",
+      "kind": "scalar",
+      "value": 0.31,
+      "summary": "What is the ratio of the weighted average exchange rate of Swedish Krona to Taiwan Dollar for the year ended December 31, 2019?",
+      "file": "ef5805ba1f970418.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r3.c2": {
+      "hash": "08fbd9604f41fb21",
+      "kind": "scalar",
+      "value": 9.46,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 3 column 2",
+      "file": "08fbd9604f41fb21.json"
+    },
+    "table.r3.c3": {
+      "hash": "15a1f5b4063dbefe",
+      "kind": "scalar",
+      "value": 8.7,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 3 column 3",
+      "file": "15a1f5b4063dbefe.json"
+    },
+    "table.r4.c2": {
+      "hash": "283ac87700f0e470",
+      "kind": "scalar",
+      "value": 109.01,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 4 column 2",
+      "file": "283ac87700f0e470.json"
+    },
+    "table.r4.c3": {
+      "hash": "dd2319d054d5df61",
+      "kind": "scalar",
+      "value": 110.43,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 4 column 3",
+      "file": "dd2319d054d5df61.json"
+    },
+    "table.r5.c2": {
+      "hash": "539b61c2f96f1085",
+      "kind": "scalar",
+      "value": 1165.7,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 5 column 2",
+      "file": "539b61c2f96f1085.json"
+    },
+    "table.r5.c3": {
+      "hash": "7c6e31aa523954f3",
+      "kind": "scalar",
+      "value": 1100.5,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 5 column 3",
+      "file": "7c6e31aa523954f3.json"
+    },
+    "table.r6.c2": {
+      "hash": "48b19745bfeeeef5",
+      "kind": "scalar",
+      "value": 30.9,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 6 column 2",
+      "file": "48b19745bfeeeef5.json"
+    },
+    "table.r6.c3": {
+      "hash": "9ba2a8a2876d1602",
+      "kind": "scalar",
+      "value": 30.15,
+      "summary": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95 row 6 column 3",
+      "file": "9ba2a8a2876d1602.json"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "ef107820e6c47835",
+      "kind": "scalar",
+      "value": 421825.0,
+      "summary": "What was the change in the amount Outstanding at 1 April in 2019 from 2018?",
+      "file": "ef107820e6c47835.json"
+    },
+    "table.r1.c2": {
+      "hash": "54431999db87b3a6",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 1 column 2",
+      "file": "54431999db87b3a6.json"
+    },
+    "table.r1.c3": {
+      "hash": "f8c07313fa56abe6",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 1 column 3",
+      "file": "f8c07313fa56abe6.json"
+    },
+    "table.r3.c2": {
+      "hash": "ccac2d89d98e0e88",
+      "kind": "scalar",
+      "value": 3104563.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 3 column 2",
+      "file": "ccac2d89d98e0e88.json"
+    },
+    "table.r3.c3": {
+      "hash": "4a1a766c48cc704e",
+      "kind": "scalar",
+      "value": 2682738.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 3 column 3",
+      "file": "4a1a766c48cc704e.json"
+    },
+    "table.r4.c2": {
+      "hash": "f06b1cd7484f989a",
+      "kind": "scalar",
+      "value": 452695.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 4 column 2",
+      "file": "f06b1cd7484f989a.json"
+    },
+    "table.r4.c3": {
+      "hash": "47c1114166dffea9",
+      "kind": "scalar",
+      "value": 1188149.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 4 column 3",
+      "file": "47c1114166dffea9.json"
+    },
+    "table.r5.c2": {
+      "hash": "d0ce73abc21b2e03",
+      "kind": "scalar",
+      "value": 9749.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 5 column 2",
+      "file": "d0ce73abc21b2e03.json"
+    },
+    "table.r8.c2": {
+      "hash": "791ae2cf9b4c7a05",
+      "kind": "scalar",
+      "value": 2.978478,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 8 column 2",
+      "file": "791ae2cf9b4c7a05.json"
+    },
+    "table.r8.c3": {
+      "hash": "879da6de50ec92af",
+      "kind": "scalar",
+      "value": 3104563.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 8 column 3",
+      "file": "879da6de50ec92af.json"
+    },
+    "table.r9.c2": {
+      "hash": "c7498619ec2b6800",
+      "kind": "scalar",
+      "value": 721269.0,
+      "summary": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125 row 9 column 2",
+      "file": "c7498619ec2b6800.json"
+    }
+  }
+}

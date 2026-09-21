@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "da280f013d0b3a16",
+      "kind": "scalar",
+      "value": 11.8,
+      "summary": "what is the percentage increase in the net cash provided by operating activities in 2010 compare to 2009?",
+      "file": "da280f013d0b3a16.json"
+    },
+    "table.r1.c2": {
+      "hash": "6454a6f4f31a16f0",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-LMT_2010_page_42.pdf-2 row 1 column 2",
+      "file": "6454a6f4f31a16f0.json"
+    },
+    "table.r1.c3": {
+      "hash": "d899e40076583aa4",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-LMT_2010_page_42.pdf-2 row 1 column 3",
+      "file": "d899e40076583aa4.json"
+    },
+    "table.r1.c4": {
+      "hash": "0bacf9acb1ca9596",
+      "kind": "scalar",
+      "value": 2008.0,
+      "summary": "finqa-LMT_2010_page_42.pdf-2 row 1 column 4",
+      "file": "0bacf9acb1ca9596.json"
+    },
+    "table.r2.c2": {
+      "hash": "3c69b23ebb08ff94",
+      "kind": "scalar",
+      "value": 3547.0,
+      "summary": "finqa-LMT_2010_page_42.pdf-2 row 2 column 2",
+      "file": "3c69b23ebb08ff94.json"
+    },
+    "table.r2.c3": {
+      "hash": "1e4effd272b4e163",
+      "kind": "scalar",
+      "value": 3173.0,
+      "summary": "finqa-LMT_2010_page_42.pdf-2 row 2 column 3",
+      "file": "1e4effd272b4e163.json"
+    },
+    "table.r2.c4": {
+      "hash": "dec6bd04087569e2",
+      "kind": "scalar",
+      "value": 4421.0,
+      "summary": "finqa-LMT_2010_page_42.pdf-2 row 2 column 4",
+      "file": "dec6bd04087569e2.json"
+    }
+  }
+}

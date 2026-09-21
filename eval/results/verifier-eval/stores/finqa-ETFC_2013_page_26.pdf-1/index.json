@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "2ca852ef0e74b3ca",
+      "kind": "scalar",
+      "value": 65.0,
+      "summary": "at december 31 , 2013 what was the percent of square feet of our office in alpharetta , georgia not leased",
+      "file": "2ca852ef0e74b3ca.json"
+    },
+    "table.r2.c2": {
+      "hash": "e4b11f159df41719",
+      "kind": "scalar",
+      "value": 254000.0,
+      "summary": "finqa-ETFC_2013_page_26.pdf-1 row 2 column 2",
+      "file": "e4b11f159df41719.json"
+    },
+    "table.r3.c2": {
+      "hash": "afe28f45053106e8",
+      "kind": "scalar",
+      "value": 107000.0,
+      "summary": "finqa-ETFC_2013_page_26.pdf-1 row 3 column 2",
+      "file": "afe28f45053106e8.json"
+    },
+    "table.r4.c2": {
+      "hash": "fb23f0535f6411c6",
+      "kind": "scalar",
+      "value": 102000.0,
+      "summary": "finqa-ETFC_2013_page_26.pdf-1 row 4 column 2",
+      "file": "fb23f0535f6411c6.json"
+    },
+    "table.r5.c2": {
+      "hash": "1328134d07df2172",
+      "kind": "scalar",
+      "value": 66000.0,
+      "summary": "finqa-ETFC_2013_page_26.pdf-1 row 5 column 2",
+      "file": "1328134d07df2172.json"
+    },
+    "table.r6.c2": {
+      "hash": "8c42e63229f1fee8",
+      "kind": "scalar",
+      "value": 63000.0,
+      "summary": "finqa-ETFC_2013_page_26.pdf-1 row 6 column 2",
+      "file": "8c42e63229f1fee8.json"
+    },
+    "table.r7.c2": {
+      "hash": "bc2448c17b2c321f",
+      "kind": "scalar",
+      "value": 39000.0,
+      "summary": "finqa-ETFC_2013_page_26.pdf-1 row 7 column 2",
+      "file": "bc2448c17b2c321f.json"
+    },
+    "table.r8.c2": {
+      "hash": "7b09247d9842d8b0",
+      "kind": "scalar",
+      "value": 36000.0,
+      "summary": "finqa-ETFC_2013_page_26.pdf-1 row 8 column 2",
+      "file": "7b09247d9842d8b0.json"
+    }
+  }
+}

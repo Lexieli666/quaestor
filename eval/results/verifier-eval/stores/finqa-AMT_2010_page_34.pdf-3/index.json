@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "93b2fcddb33fe9cb",
+      "kind": "scalar",
+      "value": 858775.0,
+      "summary": "what is the average number of shares per registered holder as of february 11 , 2011?",
+      "file": "93b2fcddb33fe9cb.json"
+    },
+    "table.r1.c1": {
+      "hash": "00271ec9fef46516",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 1 column 1",
+      "file": "00271ec9fef46516.json"
+    },
+    "table.r10.c2": {
+      "hash": "7d040b03b56bf204",
+      "kind": "scalar",
+      "value": 43.84,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 10 column 2",
+      "file": "7d040b03b56bf204.json"
+    },
+    "table.r10.c3": {
+      "hash": "11885f0bf5020398",
+      "kind": "scalar",
+      "value": 35.03,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 10 column 3",
+      "file": "11885f0bf5020398.json"
+    },
+    "table.r2.c2": {
+      "hash": "df13dd26b4af6572",
+      "kind": "scalar",
+      "value": 44.61,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 2 column 2",
+      "file": "df13dd26b4af6572.json"
+    },
+    "table.r2.c3": {
+      "hash": "a228c8b900565076",
+      "kind": "scalar",
+      "value": 40.1,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 2 column 3",
+      "file": "a228c8b900565076.json"
+    },
+    "table.r3.c2": {
+      "hash": "c3fd8727f25d7242",
+      "kind": "scalar",
+      "value": 45.33,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 3 column 2",
+      "file": "c3fd8727f25d7242.json"
+    },
+    "table.r3.c3": {
+      "hash": "425664fbe6623c69",
+      "kind": "scalar",
+      "value": 38.86,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 3 column 3",
+      "file": "425664fbe6623c69.json"
+    },
+    "table.r4.c2": {
+      "hash": "e2b1552bf00b1b6f",
+      "kind": "scalar",
+      "value": 52.11,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 4 column 2",
+      "file": "e2b1552bf00b1b6f.json"
+    },
+    "table.r4.c3": {
+      "hash": "fda05a949425bd34",
+      "kind": "scalar",
+      "value": 43.7,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 4 column 3",
+      "file": "fda05a949425bd34.json"
+    },
+    "table.r5.c2": {
+      "hash": "073d0d2bb6332812",
+      "kind": "scalar",
+      "value": 53.14,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 5 column 2",
+      "file": "073d0d2bb6332812.json"
+    },
+    "table.r5.c3": {
+      "hash": "d86e8abbb9f69f05",
+      "kind": "scalar",
+      "value": 49.61,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 5 column 3",
+      "file": "d86e8abbb9f69f05.json"
+    },
+    "table.r6.c1": {
+      "hash": "f81d058ce8fd0349",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 6 column 1",
+      "file": "f81d058ce8fd0349.json"
+    },
+    "table.r7.c2": {
+      "hash": "9763aa8a05e6d91e",
+      "kind": "scalar",
+      "value": 32.53,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 7 column 2",
+      "file": "9763aa8a05e6d91e.json"
+    },
+    "table.r7.c3": {
+      "hash": "b434089ece3e553e",
+      "kind": "scalar",
+      "value": 25.45,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 7 column 3",
+      "file": "b434089ece3e553e.json"
+    },
+    "table.r8.c2": {
+      "hash": "195e6e0d2438322b",
+      "kind": "scalar",
+      "value": 34.52,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 8 column 2",
+      "file": "195e6e0d2438322b.json"
+    },
+    "table.r8.c3": {
+      "hash": "acab91a9baafbad9",
+      "kind": "scalar",
+      "value": 27.93,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 8 column 3",
+      "file": "acab91a9baafbad9.json"
+    },
+    "table.r9.c2": {
+      "hash": "d758103a3a60fde4",
+      "kind": "scalar",
+      "value": 37.71,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 9 column 2",
+      "file": "d758103a3a60fde4.json"
+    },
+    "table.r9.c3": {
+      "hash": "7612b34ea978d372",
+      "kind": "scalar",
+      "value": 29.89,
+      "summary": "finqa-AMT_2010_page_34.pdf-3 row 9 column 3",
+      "file": "7612b34ea978d372.json"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "32586a51e38af718",
+      "kind": "scalar",
+      "value": 92.27,
+      "summary": "In 2019, what is the percentage constitution of prepaid expenses among the total prepaid expenses and other?",
+      "file": "32586a51e38af718.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r3.c2": {
+      "hash": "2224f6cd12c31f8d",
+      "kind": "scalar",
+      "value": 2303.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 3 column 2",
+      "file": "2224f6cd12c31f8d.json"
+    },
+    "table.r3.c3": {
+      "hash": "7fab26b1f6017132",
+      "kind": "scalar",
+      "value": 1780.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 3 column 3",
+      "file": "7fab26b1f6017132.json"
+    },
+    "table.r4.c2": {
+      "hash": "68e8b716e5c4767e",
+      "kind": "scalar",
+      "value": 193.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 4 column 2",
+      "file": "68e8b716e5c4767e.json"
+    },
+    "table.r4.c3": {
+      "hash": "08f867702de099a5",
+      "kind": "scalar",
+      "value": 167.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 4 column 3",
+      "file": "08f867702de099a5.json"
+    },
+    "table.r5.c2": {
+      "hash": "c1462c252bc0f410",
+      "kind": "scalar",
+      "value": 2496.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 5 column 2",
+      "file": "c1462c252bc0f410.json"
+    },
+    "table.r5.c3": {
+      "hash": "d6fe4cfeae7b8520",
+      "kind": "scalar",
+      "value": 1947.0,
+      "summary": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014 row 5 column 3",
+      "file": "d6fe4cfeae7b8520.json"
+    }
+  }
+}

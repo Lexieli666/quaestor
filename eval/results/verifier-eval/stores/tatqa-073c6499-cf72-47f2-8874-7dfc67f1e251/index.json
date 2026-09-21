@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "9e9a8d158919d31a",
+      "kind": "scalar",
+      "value": 15.57,
+      "summary": "What is the average of Net cash from operating activities?",
+      "file": "9e9a8d158919d31a.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r2.c4": {
+      "hash": "f7988034170b57ca",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 2 column 4",
+      "file": "f7988034170b57ca.json"
+    },
+    "table.r3.c2": {
+      "hash": "3fa7f8c1bbe4d4fb",
+      "kind": "scalar",
+      "value": 14.8,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 3 column 2",
+      "file": "3fa7f8c1bbe4d4fb.json"
+    },
+    "table.r3.c3": {
+      "hash": "07b85c8ef5f86f89",
+      "kind": "scalar",
+      "value": 15.2,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 3 column 3",
+      "file": "07b85c8ef5f86f89.json"
+    },
+    "table.r3.c4": {
+      "hash": "38f8f5a7d964d631",
+      "kind": "scalar",
+      "value": 16.7,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 3 column 4",
+      "file": "38f8f5a7d964d631.json"
+    },
+    "table.r4.c2": {
+      "hash": "c03df2bc4bb0c01f",
+      "kind": "scalar",
+      "value": 9.0,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 4 column 2",
+      "file": "c03df2bc4bb0c01f.json"
+    },
+    "table.r4.c3": {
+      "hash": "8e2290ecfbc8b579",
+      "kind": "scalar",
+      "value": 12.2,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 4 column 3",
+      "file": "8e2290ecfbc8b579.json"
+    },
+    "table.r4.c4": {
+      "hash": "1af5ea5266fbfa27",
+      "kind": "scalar",
+      "value": 12.8,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 4 column 4",
+      "file": "1af5ea5266fbfa27.json"
+    },
+    "table.r5.c2": {
+      "hash": "109612990630a100",
+      "kind": "scalar",
+      "value": 15.3,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 5 column 2",
+      "file": "109612990630a100.json"
+    },
+    "table.r5.c3": {
+      "hash": "52d89fb7c3800f41",
+      "kind": "scalar",
+      "value": 15.3,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 5 column 3",
+      "file": "52d89fb7c3800f41.json"
+    },
+    "table.r5.c4": {
+      "hash": "0e6437930dcd7bd7",
+      "kind": "scalar",
+      "value": 15.3,
+      "summary": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251 row 5 column 4",
+      "file": "0e6437930dcd7bd7.json"
+    }
+  }
+}

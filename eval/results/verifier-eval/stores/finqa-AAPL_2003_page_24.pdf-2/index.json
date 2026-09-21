@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "3dd6ccafca9486c4",
+      "kind": "scalar",
+      "value": 27.9,
+      "summary": "what was the greatest gross margin percentage in the three year period?",
+      "file": "3dd6ccafca9486c4.json"
+    },
+    "table.r1.c2": {
+      "hash": "ecbd41d6ff651b97",
+      "kind": "scalar",
+      "value": 2003.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 1 column 2",
+      "file": "ecbd41d6ff651b97.json"
+    },
+    "table.r1.c3": {
+      "hash": "f0c258238dff8906",
+      "kind": "scalar",
+      "value": 2002.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 1 column 3",
+      "file": "f0c258238dff8906.json"
+    },
+    "table.r1.c4": {
+      "hash": "05049540e069831d",
+      "kind": "scalar",
+      "value": 2001.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 1 column 4",
+      "file": "05049540e069831d.json"
+    },
+    "table.r2.c2": {
+      "hash": "a361dd2310a42239",
+      "kind": "scalar",
+      "value": 6207.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 2 column 2",
+      "file": "a361dd2310a42239.json"
+    },
+    "table.r2.c3": {
+      "hash": "5b3674082c961640",
+      "kind": "scalar",
+      "value": 5742.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 2 column 3",
+      "file": "5b3674082c961640.json"
+    },
+    "table.r2.c4": {
+      "hash": "2097c4c454d89ca6",
+      "kind": "scalar",
+      "value": 5363.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 2 column 4",
+      "file": "2097c4c454d89ca6.json"
+    },
+    "table.r3.c2": {
+      "hash": "e0d7dd7dc88de2e3",
+      "kind": "scalar",
+      "value": 4499.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 3 column 2",
+      "file": "e0d7dd7dc88de2e3.json"
+    },
+    "table.r3.c3": {
+      "hash": "d49db8776bbc7671",
+      "kind": "scalar",
+      "value": 4139.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 3 column 3",
+      "file": "d49db8776bbc7671.json"
+    },
+    "table.r3.c4": {
+      "hash": "2048dabe58cd28f0",
+      "kind": "scalar",
+      "value": 4128.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 3 column 4",
+      "file": "2048dabe58cd28f0.json"
+    },
+    "table.r4.c2": {
+      "hash": "1e0115bcb511d608",
+      "kind": "scalar",
+      "value": 1708.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 4 column 2",
+      "file": "1e0115bcb511d608.json"
+    },
+    "table.r4.c3": {
+      "hash": "52b8e60078e4778c",
+      "kind": "scalar",
+      "value": 1603.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 4 column 3",
+      "file": "52b8e60078e4778c.json"
+    },
+    "table.r4.c4": {
+      "hash": "a34bdac14bb53a94",
+      "kind": "scalar",
+      "value": 1235.0,
+      "summary": "finqa-AAPL_2003_page_24.pdf-2 row 4 column 4",
+      "file": "a34bdac14bb53a94.json"
+    }
+  }
+}

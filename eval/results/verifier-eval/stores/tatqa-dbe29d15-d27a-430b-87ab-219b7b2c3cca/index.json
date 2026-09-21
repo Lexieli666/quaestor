@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "ea54204df588d2d3",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "In which year is the trade receivables with up to three months of age higher?",
+      "file": "ea54204df588d2d3.json"
+    },
+    "table.r1.c2": {
+      "hash": "54431999db87b3a6",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 1 column 2",
+      "file": "54431999db87b3a6.json"
+    },
+    "table.r1.c3": {
+      "hash": "f8c07313fa56abe6",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 1 column 3",
+      "file": "f8c07313fa56abe6.json"
+    },
+    "table.r2.c2": {
+      "hash": "dbe44fe1d75f363b",
+      "kind": "scalar",
+      "value": 29.9,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 2 column 2",
+      "file": "dbe44fe1d75f363b.json"
+    },
+    "table.r2.c3": {
+      "hash": "9994ca948d806d71",
+      "kind": "scalar",
+      "value": 32.1,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 2 column 3",
+      "file": "9994ca948d806d71.json"
+    },
+    "table.r3.c2": {
+      "hash": "02996b578427c321",
+      "kind": "scalar",
+      "value": 10.0,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 3 column 2",
+      "file": "02996b578427c321.json"
+    },
+    "table.r3.c3": {
+      "hash": "11ef6ada191c45cc",
+      "kind": "scalar",
+      "value": 3.7,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 3 column 3",
+      "file": "11ef6ada191c45cc.json"
+    },
+    "table.r4.c2": {
+      "hash": "03d1db9b67136836",
+      "kind": "scalar",
+      "value": 39.9,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 4 column 2",
+      "file": "03d1db9b67136836.json"
+    },
+    "table.r4.c3": {
+      "hash": "df90a23ec37d1ca0",
+      "kind": "scalar",
+      "value": 35.8,
+      "summary": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca row 4 column 3",
+      "file": "df90a23ec37d1ca0.json"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "03bac4cd10a29085",
+      "kind": "scalar",
+      "value": 85.0,
+      "summary": "what percentage of major facilities by square footage are owned as of december 28 , 2013?",
+      "file": "03bac4cd10a29085.json"
+    },
+    "table.r2.c2": {
+      "hash": "dbe44fe1d75f363b",
+      "kind": "scalar",
+      "value": 29.9,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 2 column 2",
+      "file": "dbe44fe1d75f363b.json"
+    },
+    "table.r2.c3": {
+      "hash": "155ddb43d16dc382",
+      "kind": "scalar",
+      "value": 16.7,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 2 column 3",
+      "file": "155ddb43d16dc382.json"
+    },
+    "table.r2.c4": {
+      "hash": "5e7beb8e40146a7f",
+      "kind": "scalar",
+      "value": 46.6,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 2 column 4",
+      "file": "5e7beb8e40146a7f.json"
+    },
+    "table.r3.c2": {
+      "hash": "c1074af6f0ea2f6c",
+      "kind": "scalar",
+      "value": 2.3,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 3 column 2",
+      "file": "c1074af6f0ea2f6c.json"
+    },
+    "table.r3.c3": {
+      "hash": "a5bf5d17c19ad0bd",
+      "kind": "scalar",
+      "value": 6.0,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 3 column 3",
+      "file": "a5bf5d17c19ad0bd.json"
+    },
+    "table.r3.c4": {
+      "hash": "55601a5c0b6e37f4",
+      "kind": "scalar",
+      "value": 8.3,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 3 column 4",
+      "file": "55601a5c0b6e37f4.json"
+    },
+    "table.r4.c2": {
+      "hash": "87bc3db2536f2827",
+      "kind": "scalar",
+      "value": 32.2,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 4 column 2",
+      "file": "87bc3db2536f2827.json"
+    },
+    "table.r4.c3": {
+      "hash": "48b09b18ff4c425a",
+      "kind": "scalar",
+      "value": 22.7,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 4 column 3",
+      "file": "48b09b18ff4c425a.json"
+    },
+    "table.r4.c4": {
+      "hash": "18590dc28c6ebc18",
+      "kind": "scalar",
+      "value": 54.9,
+      "summary": "finqa-INTC_2013_page_29.pdf-1 row 4 column 4",
+      "file": "18590dc28c6ebc18.json"
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "c258ee2da930399a",
+      "kind": "scalar",
+      "value": 117.0,
+      "summary": "considering the years 2014-2016 , what was the average cash paid for interest?",
+      "file": "c258ee2da930399a.json"
+    },
+    "table.r1.c2": {
+      "hash": "97041a9faff0e89f",
+      "kind": "scalar",
+      "value": 2016.0,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 1 column 2",
+      "file": "97041a9faff0e89f.json"
+    },
+    "table.r1.c3": {
+      "hash": "972fdb014d1921b1",
+      "kind": "scalar",
+      "value": 2015.0,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 1 column 3",
+      "file": "972fdb014d1921b1.json"
+    },
+    "table.r10.c2": {
+      "hash": "c443197176fca833",
+      "kind": "scalar",
+      "value": 935.8,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 10 column 2",
+      "file": "c443197176fca833.json"
+    },
+    "table.r10.c3": {
+      "hash": "70d31835c9056acd",
+      "kind": "scalar",
+      "value": 1494.3,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 10 column 3",
+      "file": "70d31835c9056acd.json"
+    },
+    "table.r2.c2": {
+      "hash": "744360886b52aa71",
+      "kind": "scalar",
+      "value": 935.8,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 2 column 2",
+      "file": "744360886b52aa71.json"
+    },
+    "table.r2.c3": {
+      "hash": "d0d15e84e24d95aa",
+      "kind": "scalar",
+      "value": 1494.3,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 2 column 3",
+      "file": "d0d15e84e24d95aa.json"
+    },
+    "table.r3.c2": {
+      "hash": "b9498467c5165adb",
+      "kind": "scalar",
+      "value": 371.3,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 3 column 2",
+      "file": "b9498467c5165adb.json"
+    },
+    "table.r3.c3": {
+      "hash": "5ae1bea51b019486",
+      "kind": "scalar",
+      "value": 435.6,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 3 column 3",
+      "file": "5ae1bea51b019486.json"
+    },
+    "table.r4.c2": {
+      "hash": "87efa9a08c8b2667",
+      "kind": "scalar",
+      "value": 4918.1,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 4 column 2",
+      "file": "87efa9a08c8b2667.json"
+    },
+    "table.r4.c3": {
+      "hash": "61182366766d434f",
+      "kind": "scalar",
+      "value": 3949.1,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 4 column 3",
+      "file": "61182366766d434f.json"
+    },
+    "table.r5.c2": {
+      "hash": "50c75eab32c05dd8",
+      "kind": "scalar",
+      "value": 6225.2,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 5 column 2",
+      "file": "50c75eab32c05dd8.json"
+    },
+    "table.r5.c3": {
+      "hash": "6f760df67b8a4f4d",
+      "kind": "scalar",
+      "value": 5879.0,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 5 column 3",
+      "file": "6f760df67b8a4f4d.json"
+    },
+    "table.r7.c2": {
+      "hash": "06bdfacf44ab898a",
+      "kind": "scalar",
+      "value": 2016.0,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 7 column 2",
+      "file": "06bdfacf44ab898a.json"
+    },
+    "table.r7.c3": {
+      "hash": "b9530ad8f014c472",
+      "kind": "scalar",
+      "value": 2015.0,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 7 column 3",
+      "file": "b9530ad8f014c472.json"
+    },
+    "table.r8.c2": {
+      "hash": "feb534232bfaee5a",
+      "kind": "scalar",
+      "value": 133.1,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 8 column 2",
+      "file": "feb534232bfaee5a.json"
+    },
+    "table.r8.c3": {
+      "hash": "caea156d271022ee",
+      "kind": "scalar",
+      "value": 234.3,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 8 column 3",
+      "file": "caea156d271022ee.json"
+    },
+    "table.r9.c2": {
+      "hash": "59ea89216cc7b684",
+      "kind": "scalar",
+      "value": 802.7,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 9 column 2",
+      "file": "59ea89216cc7b684.json"
+    },
+    "table.r9.c3": {
+      "hash": "8dd90ee4931efff9",
+      "kind": "scalar",
+      "value": 1260.0,
+      "summary": "finqa-APD_2016_page_96.pdf-1 row 9 column 3",
+      "file": "8dd90ee4931efff9.json"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "c64b526316094113",
+      "kind": "scalar",
+      "value": 38152.0,
+      "summary": "what were total operating expenses in 2013?",
+      "file": "c64b526316094113.json"
+    },
+    "table.r2.c2": {
+      "hash": "6f0f963f2a4c611c",
+      "kind": "scalar",
+      "value": 40678.0,
+      "summary": "finqa-AAL_2015_page_118.pdf-3 row 2 column 2",
+      "file": "6f0f963f2a4c611c.json"
+    },
+    "table.r3.c2": {
+      "hash": "f718bc25f3045c00",
+      "kind": "scalar",
+      "value": 2526.0,
+      "summary": "finqa-AAL_2015_page_118.pdf-3 row 3 column 2",
+      "file": "f718bc25f3045c00.json"
+    }
+  }
+}

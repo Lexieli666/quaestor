@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "069820e781c59bf3",
+      "kind": "scalar",
+      "value": 13428.0,
+      "summary": "What was the revenue for the quarter ended July 27, 2019?",
+      "file": "069820e781c59bf3.json"
+    },
+    "table.r2.c2": {
+      "hash": "4f5b056f3864d204",
+      "kind": "scalar",
+      "value": 13428.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 2 column 2",
+      "file": "4f5b056f3864d204.json"
+    },
+    "table.r2.c3": {
+      "hash": "a8e60de31a95efac",
+      "kind": "scalar",
+      "value": 12958.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 2 column 3",
+      "file": "a8e60de31a95efac.json"
+    },
+    "table.r2.c4": {
+      "hash": "ad7fb85c63d39f2c",
+      "kind": "scalar",
+      "value": 12446.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 2 column 4",
+      "file": "ad7fb85c63d39f2c.json"
+    },
+    "table.r2.c5": {
+      "hash": "44d5afc1cc845c56",
+      "kind": "scalar",
+      "value": 13072.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 2 column 5",
+      "file": "44d5afc1cc845c56.json"
+    },
+    "table.r3.c2": {
+      "hash": "5f982671b8084d1e",
+      "kind": "scalar",
+      "value": 8574.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 3 column 2",
+      "file": "5f982671b8084d1e.json"
+    },
+    "table.r3.c3": {
+      "hash": "58d79a0be9ac460c",
+      "kind": "scalar",
+      "value": 8173.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 3 column 3",
+      "file": "58d79a0be9ac460c.json"
+    },
+    "table.r3.c4": {
+      "hash": "1f31729e9e16e58e",
+      "kind": "scalar",
+      "value": 7773.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 3 column 4",
+      "file": "1f31729e9e16e58e.json"
+    },
+    "table.r3.c5": {
+      "hash": "d5021d92c1290240",
+      "kind": "scalar",
+      "value": 8146.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 3 column 5",
+      "file": "d5021d92c1290240.json"
+    },
+    "table.r4.c2": {
+      "hash": "9754710554506e08",
+      "kind": "scalar",
+      "value": 3690.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 4 column 2",
+      "file": "9754710554506e08.json"
+    },
+    "table.r4.c3": {
+      "hash": "61ea10e340fd15b1",
+      "kind": "scalar",
+      "value": 3513.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 4 column 3",
+      "file": "61ea10e340fd15b1.json"
+    },
+    "table.r4.c4": {
+      "hash": "a912abd686cde2c0",
+      "kind": "scalar",
+      "value": 3211.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 4 column 4",
+      "file": "a912abd686cde2c0.json"
+    },
+    "table.r4.c5": {
+      "hash": "a9320956ca449f16",
+      "kind": "scalar",
+      "value": 3805.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 4 column 5",
+      "file": "a9320956ca449f16.json"
+    },
+    "table.r5.c2": {
+      "hash": "201ca97e2006603d",
+      "kind": "scalar",
+      "value": 2206.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 5 column 2",
+      "file": "201ca97e2006603d.json"
+    },
+    "table.r5.c3": {
+      "hash": "04339191b45d7360",
+      "kind": "scalar",
+      "value": 3044.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 5 column 3",
+      "file": "04339191b45d7360.json"
+    },
+    "table.r5.c4": {
+      "hash": "604dcc99d14506dd",
+      "kind": "scalar",
+      "value": 2822.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 5 column 4",
+      "file": "604dcc99d14506dd.json"
+    },
+    "table.r5.c5": {
+      "hash": "1c5ff91caf3b197e",
+      "kind": "scalar",
+      "value": 3549.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 5 column 5",
+      "file": "1c5ff91caf3b197e.json"
+    },
+    "table.r6.c2": {
+      "hash": "494644ec3737024e",
+      "kind": "scalar",
+      "value": 0.52,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 6 column 2",
+      "file": "494644ec3737024e.json"
+    },
+    "table.r6.c3": {
+      "hash": "9f32f25b6afa4984",
+      "kind": "scalar",
+      "value": 0.7,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 6 column 3",
+      "file": "9f32f25b6afa4984.json"
+    },
+    "table.r6.c4": {
+      "hash": "c2633fc885b57586",
+      "kind": "scalar",
+      "value": 0.63,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 6 column 4",
+      "file": "c2633fc885b57586.json"
+    },
+    "table.r6.c5": {
+      "hash": "c4e3adf38dde9a6b",
+      "kind": "scalar",
+      "value": 0.78,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 6 column 5",
+      "file": "c4e3adf38dde9a6b.json"
+    },
+    "table.r7.c2": {
+      "hash": "b356af7697eb86d5",
+      "kind": "scalar",
+      "value": 0.51,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 7 column 2",
+      "file": "b356af7697eb86d5.json"
+    },
+    "table.r7.c3": {
+      "hash": "3ea5d111e4a8d675",
+      "kind": "scalar",
+      "value": 0.69,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 7 column 3",
+      "file": "3ea5d111e4a8d675.json"
+    },
+    "table.r7.c4": {
+      "hash": "8c9ca2395a612f85",
+      "kind": "scalar",
+      "value": 0.63,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 7 column 4",
+      "file": "8c9ca2395a612f85.json"
+    },
+    "table.r7.c5": {
+      "hash": "0e7e859409bd593a",
+      "kind": "scalar",
+      "value": 0.77,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 7 column 5",
+      "file": "0e7e859409bd593a.json"
+    },
+    "table.r8.c2": {
+      "hash": "6e26baf0b16af582",
+      "kind": "scalar",
+      "value": 0.35,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 8 column 2",
+      "file": "6e26baf0b16af582.json"
+    },
+    "table.r8.c3": {
+      "hash": "abacf92fc8e60f01",
+      "kind": "scalar",
+      "value": 0.35,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 8 column 3",
+      "file": "abacf92fc8e60f01.json"
+    },
+    "table.r8.c4": {
+      "hash": "262443d8c96b6358",
+      "kind": "scalar",
+      "value": 0.33,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 8 column 4",
+      "file": "262443d8c96b6358.json"
+    },
+    "table.r8.c5": {
+      "hash": "c4533b746c50c604",
+      "kind": "scalar",
+      "value": 0.33,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 8 column 5",
+      "file": "c4533b746c50c604.json"
+    },
+    "table.r9.c2": {
+      "hash": "6f1e48a71c9df9d6",
+      "kind": "scalar",
+      "value": 33413.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 9 column 2",
+      "file": "6f1e48a71c9df9d6.json"
+    },
+    "table.r9.c3": {
+      "hash": "7351dbf41e9e5c3f",
+      "kind": "scalar",
+      "value": 34643.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 9 column 3",
+      "file": "7351dbf41e9e5c3f.json"
+    },
+    "table.r9.c4": {
+      "hash": "ee49ae888d351a3a",
+      "kind": "scalar",
+      "value": 40383.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 9 column 4",
+      "file": "ee49ae888d351a3a.json"
+    },
+    "table.r9.c5": {
+      "hash": "b1f802126c737dc0",
+      "kind": "scalar",
+      "value": 42593.0,
+      "summary": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d row 9 column 5",
+      "file": "b1f802126c737dc0.json"
+    }
+  }
+}

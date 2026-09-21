@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "5513321a65cf6b20",
+      "kind": "scalar",
+      "value": 7304000000.0,
+      "summary": "without the us , what would the total net revenue be for 2017?",
+      "file": "5513321a65cf6b20.json"
+    },
+    "table.r2.c2": {
+      "hash": "2333d80bc7c7469a",
+      "kind": "scalar",
+      "value": 3229.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 2 column 2",
+      "file": "2333d80bc7c7469a.json"
+    },
+    "table.r2.c3": {
+      "hash": "02cf58c0941c84a3",
+      "kind": "scalar",
+      "value": 3429.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 2 column 3",
+      "file": "02cf58c0941c84a3.json"
+    },
+    "table.r2.c4": {
+      "hash": "81cd036f90be2448",
+      "kind": "scalar",
+      "value": 3593.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 2 column 4",
+      "file": "81cd036f90be2448.json"
+    },
+    "table.r3.c2": {
+      "hash": "f7c2beb2ebf71a7e",
+      "kind": "scalar",
+      "value": 2710.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 3 column 2",
+      "file": "f7c2beb2ebf71a7e.json"
+    },
+    "table.r3.c3": {
+      "hash": "954f4ad57fc17f73",
+      "kind": "scalar",
+      "value": 2506.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 3 column 3",
+      "file": "954f4ad57fc17f73.json"
+    },
+    "table.r3.c4": {
+      "hash": "02e90de72079057d",
+      "kind": "scalar",
+      "value": 2489.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 3 column 4",
+      "file": "02e90de72079057d.json"
+    },
+    "table.r4.c2": {
+      "hash": "76c024456a69f083",
+      "kind": "scalar",
+      "value": 542.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 4 column 2",
+      "file": "76c024456a69f083.json"
+    },
+    "table.r4.c3": {
+      "hash": "844ddfd80196815c",
+      "kind": "scalar",
+      "value": 450.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 4 column 3",
+      "file": "844ddfd80196815c.json"
+    },
+    "table.r4.c4": {
+      "hash": "81dfa40f2588c8e6",
+      "kind": "scalar",
+      "value": 962.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 4 column 4",
+      "file": "81dfa40f2588c8e6.json"
+    },
+    "table.r5.c2": {
+      "hash": "8e5f9325672b5ca2",
+      "kind": "scalar",
+      "value": 2448.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 5 column 2",
+      "file": "8e5f9325672b5ca2.json"
+    },
+    "table.r5.c3": {
+      "hash": "299470a1de7cf3a5",
+      "kind": "scalar",
+      "value": 2172.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 5 column 3",
+      "file": "299470a1de7cf3a5.json"
+    },
+    "table.r5.c4": {
+      "hash": "ab99d7c08fb01d64",
+      "kind": "scalar",
+      "value": 2353.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 5 column 4",
+      "file": "ab99d7c08fb01d64.json"
+    },
+    "table.r6.c2": {
+      "hash": "445cc4c01d44f93c",
+      "kind": "scalar",
+      "value": 1590.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 6 column 2",
+      "file": "445cc4c01d44f93c.json"
+    },
+    "table.r6.c3": {
+      "hash": "c3b047ac59ab6e47",
+      "kind": "scalar",
+      "value": 1670.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 6 column 3",
+      "file": "c3b047ac59ab6e47.json"
+    },
+    "table.r6.c4": {
+      "hash": "f0b352ee3b60f087",
+      "kind": "scalar",
+      "value": 1875.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 6 column 4",
+      "file": "f0b352ee3b60f087.json"
+    },
+    "table.r7.c2": {
+      "hash": "7865a6fb129c8de0",
+      "kind": "scalar",
+      "value": 35.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 7 column 2",
+      "file": "7865a6fb129c8de0.json"
+    },
+    "table.r7.c3": {
+      "hash": "f1af045389c6ee31",
+      "kind": "scalar",
+      "value": 77.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 7 column 3",
+      "file": "f1af045389c6ee31.json"
+    },
+    "table.r7.c4": {
+      "hash": "07de6b7258dae351",
+      "kind": "scalar",
+      "value": 31.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 7 column 4",
+      "file": "07de6b7258dae351.json"
+    },
+    "table.r9.c2": {
+      "hash": "94108a5a4068be0b",
+      "kind": "scalar",
+      "value": 10530.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 9 column 2",
+      "file": "94108a5a4068be0b.json"
+    },
+    "table.r9.c3": {
+      "hash": "7d07e6c29d709cc8",
+      "kind": "scalar",
+      "value": 10281.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 9 column 3",
+      "file": "7d07e6c29d709cc8.json"
+    },
+    "table.r9.c4": {
+      "hash": "aaf4f245ba170199",
+      "kind": "scalar",
+      "value": 11260.0,
+      "summary": "finqa-AES_2017_page_157.pdf-3 row 9 column 4",
+      "file": "aaf4f245ba170199.json"
+    }
+  }
+}

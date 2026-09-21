@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "b09c5285315e732a",
+      "kind": "scalar",
+      "value": 3.7,
+      "summary": "How much did Hotels sales increased by in F19?",
+      "file": "b09c5285315e732a.json"
+    },
+    "table.r10.c2": {
+      "hash": "d305af12717f41b6",
+      "kind": "scalar",
+      "value": 2068.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 10 column 2",
+      "file": "d305af12717f41b6.json"
+    },
+    "table.r10.c3": {
+      "hash": "c161f82cb64ecb29",
+      "kind": "scalar",
+      "value": 1995.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 10 column 3",
+      "file": "c161f82cb64ecb29.json"
+    },
+    "table.r11.c2": {
+      "hash": "2173470d7dbb4b91",
+      "kind": "scalar",
+      "value": 12.9,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 11 column 2",
+      "file": "2173470d7dbb4b91.json"
+    },
+    "table.r11.c3": {
+      "hash": "05ee69867f17d3e8",
+      "kind": "scalar",
+      "value": 13.1,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 11 column 3",
+      "file": "05ee69867f17d3e8.json"
+    },
+    "table.r3.c2": {
+      "hash": "0008721e3cc6db85",
+      "kind": "scalar",
+      "value": 1671.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 3 column 2",
+      "file": "0008721e3cc6db85.json"
+    },
+    "table.r3.c3": {
+      "hash": "531bc89ddc084170",
+      "kind": "scalar",
+      "value": 1612.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 3 column 3",
+      "file": "531bc89ddc084170.json"
+    },
+    "table.r4.c2": {
+      "hash": "88fec350b50e3e8b",
+      "kind": "scalar",
+      "value": 372.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 4 column 2",
+      "file": "88fec350b50e3e8b.json"
+    },
+    "table.r4.c3": {
+      "hash": "6c5445467453bf95",
+      "kind": "scalar",
+      "value": 361.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 4 column 3",
+      "file": "6c5445467453bf95.json"
+    },
+    "table.r6.c2": {
+      "hash": "01621f77c8687898",
+      "kind": "scalar",
+      "value": 261.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 6 column 2",
+      "file": "01621f77c8687898.json"
+    },
+    "table.r6.c3": {
+      "hash": "63a1b57d79bbfaaf",
+      "kind": "scalar",
+      "value": 259.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 6 column 3",
+      "file": "63a1b57d79bbfaaf.json"
+    },
+    "table.r7.c2": {
+      "hash": "e727eb5ace6d8b74",
+      "kind": "scalar",
+      "value": 83.6,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 7 column 2",
+      "file": "e727eb5ace6d8b74.json"
+    },
+    "table.r7.c3": {
+      "hash": "20b78c50fe676f7f",
+      "kind": "scalar",
+      "value": 84.2,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 7 column 3",
+      "file": "20b78c50fe676f7f.json"
+    },
+    "table.r8.c2": {
+      "hash": "ac810d633b6e1e75",
+      "kind": "scalar",
+      "value": 68.0,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 8 column 2",
+      "file": "ac810d633b6e1e75.json"
+    },
+    "table.r8.c3": {
+      "hash": "42e69fcf6866ea38",
+      "kind": "scalar",
+      "value": 68.1,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 8 column 3",
+      "file": "42e69fcf6866ea38.json"
+    },
+    "table.r9.c2": {
+      "hash": "0fe12dbd81657da9",
+      "kind": "scalar",
+      "value": 15.6,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 9 column 2",
+      "file": "0fe12dbd81657da9.json"
+    },
+    "table.r9.c3": {
+      "hash": "ab14015b258735a1",
+      "kind": "scalar",
+      "value": 16.1,
+      "summary": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d row 9 column 3",
+      "file": "ab14015b258735a1.json"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "47beb89a1393c2dc",
+      "kind": "scalar",
+      "value": -228.0,
+      "summary": "What is the increase / (decrease) in Acquisition-related charges from 2018 to 2019? ",
+      "file": "47beb89a1393c2dc.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-312a9328-b83f-43c6-b652-59547090cd30 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-312a9328-b83f-43c6-b652-59547090cd30 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r3.c2": {
+      "hash": "dbeea73b88c21c10",
+      "kind": "scalar",
+      "value": 1344.0,
+      "summary": "tatqa-312a9328-b83f-43c6-b652-59547090cd30 row 3 column 2",
+      "file": "dbeea73b88c21c10.json"
+    },
+    "table.r3.c3": {
+      "hash": "965bd32ea9c408e1",
+      "kind": "scalar",
+      "value": 723.0,
+      "summary": "tatqa-312a9328-b83f-43c6-b652-59547090cd30 row 3 column 3",
+      "file": "965bd32ea9c408e1.json"
+    },
+    "table.r6.c2": {
+      "hash": "e3b6999d26325729",
+      "kind": "scalar",
+      "value": 1116.0,
+      "summary": "tatqa-312a9328-b83f-43c6-b652-59547090cd30 row 6 column 2",
+      "file": "e3b6999d26325729.json"
+    },
+    "table.r6.c3": {
+      "hash": "234c5c357a87d71e",
+      "kind": "scalar",
+      "value": 723.0,
+      "summary": "tatqa-312a9328-b83f-43c6-b652-59547090cd30 row 6 column 3",
+      "file": "234c5c357a87d71e.json"
+    },
+    "table.r6.c4": {
+      "hash": "b8c10bd0023dd263",
+      "kind": "scalar",
+      "value": 54.4,
+      "summary": "tatqa-312a9328-b83f-43c6-b652-59547090cd30 row 6 column 4",
+      "file": "b8c10bd0023dd263.json"
+    }
+  }
+}

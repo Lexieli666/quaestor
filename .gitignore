@@ -77,3 +77,5 @@ eval/results/**/run/*.csv
 eval/variants/
 !eval/results/published/
 !eval/results/published/**
+!eval/results/verifier-eval/
+!eval/results/verifier-eval/**

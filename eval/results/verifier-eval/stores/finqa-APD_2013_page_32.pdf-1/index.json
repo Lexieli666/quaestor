@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "0cad05021553fecd",
+      "kind": "scalar",
+      "value": 11.46,
+      "summary": "what was the percentual increase of other income due to favorable foreign exchange and reimbursements in 2011?",
+      "file": "0cad05021553fecd.json"
+    },
+    "table.r1.c2": {
+      "hash": "886e633b172490fb",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 1 column 2",
+      "file": "886e633b172490fb.json"
+    },
+    "table.r1.c3": {
+      "hash": "5993e901e8c8f0cc",
+      "kind": "scalar",
+      "value": 2012.0,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 1 column 3",
+      "file": "5993e901e8c8f0cc.json"
+    },
+    "table.r1.c4": {
+      "hash": "da5cf280447086b3",
+      "kind": "scalar",
+      "value": 2011.0,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 1 column 4",
+      "file": "da5cf280447086b3.json"
+    },
+    "table.r2.c2": {
+      "hash": "1b19781091c3778a",
+      "kind": "scalar",
+      "value": 167.6,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 2 column 2",
+      "file": "1b19781091c3778a.json"
+    },
+    "table.r2.c3": {
+      "hash": "f1bc584a5d1ac5c1",
+      "kind": "scalar",
+      "value": 153.9,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 2 column 3",
+      "file": "f1bc584a5d1ac5c1.json"
+    },
+    "table.r2.c4": {
+      "hash": "8471942a8dc9cc80",
+      "kind": "scalar",
+      "value": 138.2,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 2 column 4",
+      "file": "8471942a8dc9cc80.json"
+    },
+    "table.r3.c2": {
+      "hash": "2d134da45b7b9971",
+      "kind": "scalar",
+      "value": 25.8,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 3 column 2",
+      "file": "2d134da45b7b9971.json"
+    },
+    "table.r3.c3": {
+      "hash": "48470814a75f0bc5",
+      "kind": "scalar",
+      "value": 30.2,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 3 column 3",
+      "file": "48470814a75f0bc5.json"
+    },
+    "table.r3.c4": {
+      "hash": "5414f69dac459e04",
+      "kind": "scalar",
+      "value": 22.7,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 3 column 4",
+      "file": "5414f69dac459e04.json"
+    },
+    "table.r4.c2": {
+      "hash": "528a90edad8f5c42",
+      "kind": "scalar",
+      "value": 141.8,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 4 column 2",
+      "file": "528a90edad8f5c42.json"
+    },
+    "table.r4.c3": {
+      "hash": "df27b1c9ffe7fcba",
+      "kind": "scalar",
+      "value": 123.7,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 4 column 3",
+      "file": "df27b1c9ffe7fcba.json"
+    },
+    "table.r4.c4": {
+      "hash": "25e16afefafc197d",
+      "kind": "scalar",
+      "value": 115.5,
+      "summary": "finqa-APD_2013_page_32.pdf-1 row 4 column 4",
+      "file": "25e16afefafc197d.json"
+    }
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "27dd2bc654ecd392",
+      "kind": "scalar",
+      "value": 1.18,
+      "summary": "What is the proportion, in percentage, of deferred revenue and accrued warranty over gross deferred tax assets in 2019?",
+      "file": "27dd2bc654ecd392.json"
+    },
+    "table.r10.c2": {
+      "hash": "e01fac7d300d8723",
+      "kind": "scalar",
+      "value": 33.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 10 column 2",
+      "file": "e01fac7d300d8723.json"
+    },
+    "table.r10.c3": {
+      "hash": "afb17a19ac267144",
+      "kind": "scalar",
+      "value": 77.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 10 column 3",
+      "file": "afb17a19ac267144.json"
+    },
+    "table.r11.c2": {
+      "hash": "490e6fecb13465c9",
+      "kind": "scalar",
+      "value": 35024.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 11 column 2",
+      "file": "490e6fecb13465c9.json"
+    },
+    "table.r11.c3": {
+      "hash": "753ed69f36057532",
+      "kind": "scalar",
+      "value": 34924.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 11 column 3",
+      "file": "753ed69f36057532.json"
+    },
+    "table.r12.c3": {
+      "hash": "482d89a1a7987fe8",
+      "kind": "scalar",
+      "value": 16.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 12 column 3",
+      "file": "482d89a1a7987fe8.json"
+    },
+    "table.r13.c2": {
+      "hash": "4d3630581312d301",
+      "kind": "scalar",
+      "value": 272.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 13 column 2",
+      "file": "4d3630581312d301.json"
+    },
+    "table.r14.c2": {
+      "hash": "bb70c4299c3e91fb",
+      "kind": "scalar",
+      "value": 839.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 14 column 2",
+      "file": "bb70c4299c3e91fb.json"
+    },
+    "table.r14.c3": {
+      "hash": "00379fbc2cd7f87e",
+      "kind": "scalar",
+      "value": 660.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 14 column 3",
+      "file": "00379fbc2cd7f87e.json"
+    },
+    "table.r15.c2": {
+      "hash": "62a4130bb16a5d9b",
+      "kind": "scalar",
+      "value": 38771.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 15 column 2",
+      "file": "62a4130bb16a5d9b.json"
+    },
+    "table.r15.c3": {
+      "hash": "5a8ad06b41b8d450",
+      "kind": "scalar",
+      "value": 38721.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 15 column 3",
+      "file": "5a8ad06b41b8d450.json"
+    },
+    "table.r17.c3": {
+      "hash": "04628d08b27eb1bb",
+      "kind": "scalar",
+      "value": 1618.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 17 column 3",
+      "file": "04628d08b27eb1bb.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r4.c2": {
+      "hash": "97a36bd5fca3d184",
+      "kind": "scalar",
+      "value": 26.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 4 column 2",
+      "file": "97a36bd5fca3d184.json"
+    },
+    "table.r4.c3": {
+      "hash": "226b02b30b92cf05",
+      "kind": "scalar",
+      "value": 24.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 4 column 3",
+      "file": "226b02b30b92cf05.json"
+    },
+    "table.r5.c2": {
+      "hash": "1b9b70cf2111cdd7",
+      "kind": "scalar",
+      "value": 810.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 5 column 2",
+      "file": "1b9b70cf2111cdd7.json"
+    },
+    "table.r5.c3": {
+      "hash": "5e4a34480632069e",
+      "kind": "scalar",
+      "value": 812.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 5 column 3",
+      "file": "5e4a34480632069e.json"
+    },
+    "table.r6.c2": {
+      "hash": "e84534233ef5cdb0",
+      "kind": "scalar",
+      "value": 173.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 6 column 2",
+      "file": "e84534233ef5cdb0.json"
+    },
+    "table.r6.c3": {
+      "hash": "a741c4eddd0dee12",
+      "kind": "scalar",
+      "value": 227.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 6 column 3",
+      "file": "a741c4eddd0dee12.json"
+    },
+    "table.r7.c2": {
+      "hash": "00e9180b09885ace",
+      "kind": "scalar",
+      "value": 425.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 7 column 2",
+      "file": "00e9180b09885ace.json"
+    },
+    "table.r7.c3": {
+      "hash": "ef1c194a3f46150c",
+      "kind": "scalar",
+      "value": 675.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 7 column 3",
+      "file": "ef1c194a3f46150c.json"
+    },
+    "table.r8.c2": {
+      "hash": "b549757f5ac58402",
+      "kind": "scalar",
+      "value": 412.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 8 column 2",
+      "file": "b549757f5ac58402.json"
+    },
+    "table.r8.c3": {
+      "hash": "5117f6ce5eac17a7",
+      "kind": "scalar",
+      "value": 358.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 8 column 3",
+      "file": "5117f6ce5eac17a7.json"
+    },
+    "table.r9.c2": {
+      "hash": "56069e04db900111",
+      "kind": "scalar",
+      "value": 757.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 9 column 2",
+      "file": "56069e04db900111.json"
+    },
+    "table.r9.c3": {
+      "hash": "bf4a11778da63e80",
+      "kind": "scalar",
+      "value": 948.0,
+      "summary": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9 row 9 column 3",
+      "file": "bf4a11778da63e80.json"
+    }
+  }
+}

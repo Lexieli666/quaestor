@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "2ca852ef0e74b3ca",
+      "kind": "scalar",
+      "value": 65.0,
+      "summary": "What is the total capital leases?",
+      "file": "2ca852ef0e74b3ca.json"
+    },
+    "table.r1.c3": {
+      "hash": "9218b9885ace6860",
+      "kind": "scalar",
+      "value": 2020.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 1 column 3",
+      "file": "9218b9885ace6860.json"
+    },
+    "table.r2.c2": {
+      "hash": "49d45f6ba14dc065",
+      "kind": "scalar",
+      "value": 19437.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 2 column 2",
+      "file": "49d45f6ba14dc065.json"
+    },
+    "table.r2.c3": {
+      "hash": "dc98f20751c43bf9",
+      "kind": "scalar",
+      "value": 4143.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 2 column 3",
+      "file": "dc98f20751c43bf9.json"
+    },
+    "table.r2.c4": {
+      "hash": "609741b072f52f59",
+      "kind": "scalar",
+      "value": 7111.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 2 column 4",
+      "file": "609741b072f52f59.json"
+    },
+    "table.r2.c5": {
+      "hash": "08c0b441a9796fae",
+      "kind": "scalar",
+      "value": 3686.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 2 column 5",
+      "file": "08c0b441a9796fae.json"
+    },
+    "table.r2.c6": {
+      "hash": "8bb11fd5c4c00c3f",
+      "kind": "scalar",
+      "value": 4497.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 2 column 6",
+      "file": "8bb11fd5c4c00c3f.json"
+    },
+    "table.r3.c2": {
+      "hash": "d01b0476fa193cd7",
+      "kind": "scalar",
+      "value": 65.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 3 column 2",
+      "file": "d01b0476fa193cd7.json"
+    },
+    "table.r3.c3": {
+      "hash": "c47478993ed75cc0",
+      "kind": "scalar",
+      "value": 27.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 3 column 3",
+      "file": "c47478993ed75cc0.json"
+    },
+    "table.r3.c4": {
+      "hash": "a8554d40bf5f54be",
+      "kind": "scalar",
+      "value": 38.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 3 column 4",
+      "file": "a8554d40bf5f54be.json"
+    },
+    "table.r4.c2": {
+      "hash": "c9e7bb9e211b6f1b",
+      "kind": "scalar",
+      "value": 400.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 4 column 2",
+      "file": "c9e7bb9e211b6f1b.json"
+    },
+    "table.r4.c4": {
+      "hash": "32af0007bfb4a43f",
+      "kind": "scalar",
+      "value": 150.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 4 column 4",
+      "file": "32af0007bfb4a43f.json"
+    },
+    "table.r4.c5": {
+      "hash": "c77f3cae5ba230bc",
+      "kind": "scalar",
+      "value": 250.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 4 column 5",
+      "file": "c77f3cae5ba230bc.json"
+    },
+    "table.r5.c2": {
+      "hash": "1d2208d00da8a558",
+      "kind": "scalar",
+      "value": 19902.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 5 column 2",
+      "file": "1d2208d00da8a558.json"
+    },
+    "table.r5.c3": {
+      "hash": "394e7b4c751dc9b3",
+      "kind": "scalar",
+      "value": 4170.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 5 column 3",
+      "file": "394e7b4c751dc9b3.json"
+    },
+    "table.r5.c4": {
+      "hash": "7c5b06b79aa557a6",
+      "kind": "scalar",
+      "value": 7299.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 5 column 4",
+      "file": "7c5b06b79aa557a6.json"
+    },
+    "table.r5.c5": {
+      "hash": "8e691804526d069b",
+      "kind": "scalar",
+      "value": 3936.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 5 column 5",
+      "file": "8e691804526d069b.json"
+    },
+    "table.r5.c6": {
+      "hash": "9136be0a145dece2",
+      "kind": "scalar",
+      "value": 4497.0,
+      "summary": "tatqa-9957f721-103b-403d-ab50-224765d94028 row 5 column 6",
+      "file": "9136be0a145dece2.json"
+    }
+  }
+}

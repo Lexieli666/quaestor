@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "bf8de79e8ba2361f",
+      "kind": "scalar",
+      "value": 73.9,
+      "summary": "what is the long-term retail/hnw in americas as a percentage of the total long-term retail/hnw?",
+      "file": "bf8de79e8ba2361f.json"
+    },
+    "table.r2.c2": {
+      "hash": "a0af219a2b778c7a",
+      "kind": "scalar",
+      "value": 94805.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 2 column 2",
+      "file": "a0af219a2b778c7a.json"
+    },
+    "table.r2.c3": {
+      "hash": "042ef3b5f552f129",
+      "kind": "scalar",
+      "value": 53140.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 2 column 3",
+      "file": "042ef3b5f552f129.json"
+    },
+    "table.r2.c4": {
+      "hash": "de200e053ae0cc16",
+      "kind": "scalar",
+      "value": 16803.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 2 column 4",
+      "file": "de200e053ae0cc16.json"
+    },
+    "table.r2.c5": {
+      "hash": "c6429f1e757ec0d3",
+      "kind": "scalar",
+      "value": 164748.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 2 column 5",
+      "file": "c6429f1e757ec0d3.json"
+    },
+    "table.r3.c2": {
+      "hash": "f2e323a488e6e4ca",
+      "kind": "scalar",
+      "value": 121640.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 3 column 2",
+      "file": "f2e323a488e6e4ca.json"
+    },
+    "table.r3.c3": {
+      "hash": "7f08c221093a24e3",
+      "kind": "scalar",
+      "value": 11444.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 3 column 3",
+      "file": "7f08c221093a24e3.json"
+    },
+    "table.r3.c4": {
+      "hash": "e4ca7de614053701",
+      "kind": "scalar",
+      "value": 5341.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 3 column 4",
+      "file": "e4ca7de614053701.json"
+    },
+    "table.r3.c5": {
+      "hash": "7641cc941f789a60",
+      "kind": "scalar",
+      "value": 138425.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 3 column 5",
+      "file": "7641cc941f789a60.json"
+    },
+    "table.r4.c2": {
+      "hash": "57089e408ccca24d",
+      "kind": "scalar",
+      "value": 76714.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 4 column 2",
+      "file": "57089e408ccca24d.json"
+    },
+    "table.r4.c3": {
+      "hash": "f87ecae2e6e75b52",
+      "kind": "scalar",
+      "value": 9538.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 4 column 3",
+      "file": "f87ecae2e6e75b52.json"
+    },
+    "table.r4.c4": {
+      "hash": "e31ff8fe5913e155",
+      "kind": "scalar",
+      "value": 4374.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 4 column 4",
+      "file": "e31ff8fe5913e155.json"
+    },
+    "table.r4.c5": {
+      "hash": "934376b954be4b43",
+      "kind": "scalar",
+      "value": 90626.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 4 column 5",
+      "file": "934376b954be4b43.json"
+    },
+    "table.r5.c2": {
+      "hash": "2f8f5123755a737a",
+      "kind": "scalar",
+      "value": 4865.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 5 column 2",
+      "file": "2f8f5123755a737a.json"
+    },
+    "table.r5.c3": {
+      "hash": "bd8d935fdcf98929",
+      "kind": "scalar",
+      "value": 3577.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 5 column 3",
+      "file": "bd8d935fdcf98929.json"
+    },
+    "table.r5.c4": {
+      "hash": "20383c4d4fbcac4a",
+      "kind": "scalar",
+      "value": 1243.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 5 column 4",
+      "file": "20383c4d4fbcac4a.json"
+    },
+    "table.r5.c5": {
+      "hash": "3dbd112f7cc95253",
+      "kind": "scalar",
+      "value": 9685.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 5 column 5",
+      "file": "3dbd112f7cc95253.json"
+    },
+    "table.r6.c2": {
+      "hash": "4b8b03e032d791e6",
+      "kind": "scalar",
+      "value": 298024.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 6 column 2",
+      "file": "4b8b03e032d791e6.json"
+    },
+    "table.r6.c3": {
+      "hash": "4b1aa0acd1af0d27",
+      "kind": "scalar",
+      "value": 77699.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 6 column 3",
+      "file": "4b1aa0acd1af0d27.json"
+    },
+    "table.r6.c4": {
+      "hash": "2f2349d7edb4fa77",
+      "kind": "scalar",
+      "value": 27761.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 6 column 4",
+      "file": "2f2349d7edb4fa77.json"
+    },
+    "table.r6.c5": {
+      "hash": "59b43aa47218d418",
+      "kind": "scalar",
+      "value": 403484.0,
+      "summary": "finqa-BLK_2012_page_37.pdf-1 row 6 column 5",
+      "file": "59b43aa47218d418.json"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "baa42522e4594d21",
+      "kind": "scalar",
+      "value": 27.5,
+      "summary": "what is the percentual increase in the operating expenses during 2017 and 2018?",
+      "file": "baa42522e4594d21.json"
+    },
+    "table.r1.c2": {
+      "hash": "70e3120f0cf6f507",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 1 column 2",
+      "file": "70e3120f0cf6f507.json"
+    },
+    "table.r1.c3": {
+      "hash": "f098d16068e80b7d",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 1 column 3",
+      "file": "f098d16068e80b7d.json"
+    },
+    "table.r1.c4": {
+      "hash": "34cf9e7c3b94d7e4",
+      "kind": "scalar",
+      "value": 2016.0,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 1 column 4",
+      "file": "34cf9e7c3b94d7e4.json"
+    },
+    "table.r2.c2": {
+      "hash": "82e07f8cd8b9e493",
+      "kind": "scalar",
+      "value": 91.8,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 2 column 2",
+      "file": "82e07f8cd8b9e493.json"
+    },
+    "table.r2.c3": {
+      "hash": "4d0e26fc006a0d5c",
+      "kind": "scalar",
+      "value": 72.0,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 2 column 3",
+      "file": "4d0e26fc006a0d5c.json"
+    },
+    "table.r2.c4": {
+      "hash": "5b141a1dc9f599a5",
+      "kind": "scalar",
+      "value": 55.8,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 2 column 4",
+      "file": "5b141a1dc9f599a5.json"
+    },
+    "table.r3.c2": {
+      "hash": "6a4510a3076ea1b6",
+      "kind": "scalar",
+      "value": 48.9,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 3 column 2",
+      "file": "6a4510a3076ea1b6.json"
+    },
+    "table.r3.c3": {
+      "hash": "8391e97a2ebc4500",
+      "kind": "scalar",
+      "value": 15.0,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 3 column 3",
+      "file": "8391e97a2ebc4500.json"
+    },
+    "table.r3.c4": {
+      "hash": "42ff2b55da1d78cf",
+      "kind": "scalar",
+      "value": 6.0,
+      "summary": "finqa-APD_2018_page_59.pdf-2 row 3 column 4",
+      "file": "42ff2b55da1d78cf.json"
+    }
+  }
+}

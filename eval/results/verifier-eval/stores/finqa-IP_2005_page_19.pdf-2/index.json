@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "dc17f35b3675bb73",
+      "kind": "scalar",
+      "value": 306.0,
+      "summary": "what was the change in industry segment operating profits between 2003 and 2004?",
+      "file": "dc17f35b3675bb73.json"
+    },
+    "table.r1.c2": {
+      "hash": "ba042cb8e69a085e",
+      "kind": "scalar",
+      "value": 2005.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 1 column 2",
+      "file": "ba042cb8e69a085e.json"
+    },
+    "table.r1.c3": {
+      "hash": "5fb6e3035cfb3ba7",
+      "kind": "scalar",
+      "value": 2004.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 1 column 3",
+      "file": "5fb6e3035cfb3ba7.json"
+    },
+    "table.r1.c4": {
+      "hash": "dedea5af71b715b6",
+      "kind": "scalar",
+      "value": 2003.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 1 column 4",
+      "file": "dedea5af71b715b6.json"
+    },
+    "table.r10.c2": {
+      "hash": "ba2d2601630cc394",
+      "kind": "scalar",
+      "value": 1100.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 10 column 2",
+      "file": "ba2d2601630cc394.json"
+    },
+    "table.r10.c4": {
+      "hash": "9beb5dca2b8786b0",
+      "kind": "scalar",
+      "value": 302.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 10 column 4",
+      "file": "9beb5dca2b8786b0.json"
+    },
+    "table.r2.c2": {
+      "hash": "62257f001a809311",
+      "kind": "scalar",
+      "value": 1923.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 2 column 2",
+      "file": "62257f001a809311.json"
+    },
+    "table.r2.c3": {
+      "hash": "b5e259e96db0deae",
+      "kind": "scalar",
+      "value": 2040.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 2 column 3",
+      "file": "b5e259e96db0deae.json"
+    },
+    "table.r2.c4": {
+      "hash": "e8145052f48cf72e",
+      "kind": "scalar",
+      "value": 1734.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 2 column 4",
+      "file": "e8145052f48cf72e.json"
+    },
+    "table.r7.c2": {
+      "hash": "468cd9127689119e",
+      "kind": "scalar",
+      "value": 285.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 7 column 2",
+      "file": "468cd9127689119e.json"
+    },
+    "table.r7.c4": {
+      "hash": "a391efbcd96dc785",
+      "kind": "scalar",
+      "value": 56.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 7 column 4",
+      "file": "a391efbcd96dc785.json"
+    },
+    "table.r8.c2": {
+      "hash": "898be0ca34443623",
+      "kind": "scalar",
+      "value": 241.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 8 column 2",
+      "file": "898be0ca34443623.json"
+    },
+    "table.r8.c4": {
+      "hash": "a45d79cd2783b627",
+      "kind": "scalar",
+      "value": 57.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 8 column 4",
+      "file": "a45d79cd2783b627.json"
+    },
+    "table.r9.c2": {
+      "hash": "4e62f958789cd043",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 9 column 2",
+      "file": "4e62f958789cd043.json"
+    },
+    "table.r9.c3": {
+      "hash": "1e4797123680ccd0",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-IP_2005_page_19.pdf-2 row 9 column 3",
+      "file": "1e4797123680ccd0.json"
+    }
+  }
+}

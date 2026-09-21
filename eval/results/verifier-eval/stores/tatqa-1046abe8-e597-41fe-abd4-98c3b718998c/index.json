@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "259cf99bc1236d59",
+      "kind": "scalar",
+      "value": 4697.0,
+      "summary": "What were the net losses for video service customers in 2019?",
+      "file": "259cf99bc1236d59.json"
+    },
+    "table.r3.c2": {
+      "hash": "7d41f2f357a80b38",
+      "kind": "scalar",
+      "value": 901446.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 3 column 2",
+      "file": "7d41f2f357a80b38.json"
+    },
+    "table.r3.c3": {
+      "hash": "93433debc907edd9",
+      "kind": "scalar",
+      "value": 16981.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 3 column 3",
+      "file": "93433debc907edd9.json"
+    },
+    "table.r3.c4": {
+      "hash": "171b887c9a813d2d",
+      "kind": "scalar",
+      "value": 20251.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 3 column 4",
+      "file": "171b887c9a813d2d.json"
+    },
+    "table.r4.c2": {
+      "hash": "590d9b99284a7256",
+      "kind": "scalar",
+      "value": 446137.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 4 column 2",
+      "file": "590d9b99284a7256.json"
+    },
+    "table.r4.c3": {
+      "hash": "921ccb1e4ac2f705",
+      "kind": "scalar",
+      "value": 21189.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 4 column 3",
+      "file": "921ccb1e4ac2f705.json"
+    },
+    "table.r4.c4": {
+      "hash": "19e8338b8609d676",
+      "kind": "scalar",
+      "value": 21417.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 4 column 4",
+      "file": "19e8338b8609d676.json"
+    },
+    "table.r4.c5": {
+      "hash": "b5894cc030985925",
+      "kind": "scalar",
+      "value": 50.8,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 4 column 5",
+      "file": "b5894cc030985925.json"
+    },
+    "table.r4.c6": {
+      "hash": "2173cad2c81cc202",
+      "kind": "scalar",
+      "value": 49.7,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 4 column 6",
+      "file": "2173cad2c81cc202.json"
+    },
+    "table.r5.c2": {
+      "hash": "02cef45c0757bec4",
+      "kind": "scalar",
+      "value": 312555.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 5 column 2",
+      "file": "02cef45c0757bec4.json"
+    },
+    "table.r5.c5": {
+      "hash": "6357aed673ec62b0",
+      "kind": "scalar",
+      "value": 35.6,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 5 column 5",
+      "file": "6357aed673ec62b0.json"
+    },
+    "table.r5.c6": {
+      "hash": "c1380b8da69ecbff",
+      "kind": "scalar",
+      "value": 37.1,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 5 column 6",
+      "file": "c1380b8da69ecbff.json"
+    },
+    "table.r6.c2": {
+      "hash": "59989416e60824e3",
+      "kind": "scalar",
+      "value": 142754.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 6 column 2",
+      "file": "59989416e60824e3.json"
+    },
+    "table.r6.c3": {
+      "hash": "fd2eb74c2c4f84c9",
+      "kind": "scalar",
+      "value": 489.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 6 column 3",
+      "file": "fd2eb74c2c4f84c9.json"
+    },
+    "table.r6.c4": {
+      "hash": "39debb257ed850dc",
+      "kind": "scalar",
+      "value": 5594.0,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 6 column 4",
+      "file": "39debb257ed850dc.json"
+    },
+    "table.r6.c5": {
+      "hash": "00c4914297166649",
+      "kind": "scalar",
+      "value": 16.2,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 6 column 5",
+      "file": "00c4914297166649.json"
+    },
+    "table.r6.c6": {
+      "hash": "f301bd3a15747132",
+      "kind": "scalar",
+      "value": 16.6,
+      "summary": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c row 6 column 6",
+      "file": "f301bd3a15747132.json"
+    }
+  }
+}

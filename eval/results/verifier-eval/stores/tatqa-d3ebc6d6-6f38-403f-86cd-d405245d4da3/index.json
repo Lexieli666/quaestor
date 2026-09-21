@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "da7fd98b22643a54",
+      "kind": "scalar",
+      "value": 66955.0,
+      "summary": "What was the change in the sales of loans between 2017 and 2018?",
+      "file": "da7fd98b22643a54.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r2.c4": {
+      "hash": "f7988034170b57ca",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 2 column 4",
+      "file": "f7988034170b57ca.json"
+    },
+    "table.r5.c2": {
+      "hash": "2ec2fb2a777d81b1",
+      "kind": "scalar",
+      "value": 91946.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 5 column 2",
+      "file": "2ec2fb2a777d81b1.json"
+    },
+    "table.r5.c3": {
+      "hash": "90ac2967f35faf3a",
+      "kind": "scalar",
+      "value": 139026.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 5 column 3",
+      "file": "90ac2967f35faf3a.json"
+    },
+    "table.r5.c4": {
+      "hash": "1b42b4983e76a093",
+      "kind": "scalar",
+      "value": 72071.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 5 column 4",
+      "file": "1b42b4983e76a093.json"
+    },
+    "table.r6.c2": {
+      "hash": "50ff17f41b3d1c5c",
+      "kind": "scalar",
+      "value": 3901.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 6 column 2",
+      "file": "50ff17f41b3d1c5c.json"
+    },
+    "table.r6.c3": {
+      "hash": "a229a8873f01e042",
+      "kind": "scalar",
+      "value": 2321.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 6 column 3",
+      "file": "a229a8873f01e042.json"
+    },
+    "table.r6.c4": {
+      "hash": "0ab5c3db2029311f",
+      "kind": "scalar",
+      "value": 2821.0,
+      "summary": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3 row 6 column 4",
+      "file": "0ab5c3db2029311f.json"
+    }
+  }
+}

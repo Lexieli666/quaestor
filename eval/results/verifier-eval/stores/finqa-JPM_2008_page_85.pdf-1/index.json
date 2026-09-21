@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "a4a804935426ba61",
+      "kind": "scalar",
+      "value": 26.3,
+      "summary": "tier 2 capital is what percent of total capital for 2008?",
+      "file": "a4a804935426ba61.json"
+    },
+    "table.r1.c2": {
+      "hash": "32e110566746f120",
+      "kind": "scalar",
+      "value": 2008.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 1 column 2",
+      "file": "32e110566746f120.json"
+    },
+    "table.r1.c3": {
+      "hash": "587da49e24028afb",
+      "kind": "scalar",
+      "value": 2007.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 1 column 3",
+      "file": "587da49e24028afb.json"
+    },
+    "table.r2.c2": {
+      "hash": "ae16afa95f71f624",
+      "kind": "scalar",
+      "value": 136104.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 2 column 2",
+      "file": "ae16afa95f71f624.json"
+    },
+    "table.r2.c3": {
+      "hash": "fb54ca521bc5e764",
+      "kind": "scalar",
+      "value": 88746.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 2 column 3",
+      "file": "fb54ca521bc5e764.json"
+    },
+    "table.r3.c2": {
+      "hash": "feba15c7cdb6db28",
+      "kind": "scalar",
+      "value": 48616.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 3 column 2",
+      "file": "feba15c7cdb6db28.json"
+    },
+    "table.r3.c3": {
+      "hash": "cef2e67e6c134009",
+      "kind": "scalar",
+      "value": 43496.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 3 column 3",
+      "file": "cef2e67e6c134009.json"
+    },
+    "table.r4.c2": {
+      "hash": "f1fd85f985c2846c",
+      "kind": "scalar",
+      "value": 184720.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 4 column 2",
+      "file": "f1fd85f985c2846c.json"
+    },
+    "table.r4.c3": {
+      "hash": "d04c1c09361dffbe",
+      "kind": "scalar",
+      "value": 132242.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 4 column 3",
+      "file": "d04c1c09361dffbe.json"
+    },
+    "table.r5.c2": {
+      "hash": "c8b08fe458dbb8b4",
+      "kind": "scalar",
+      "value": 1244659.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 5 column 2",
+      "file": "c8b08fe458dbb8b4.json"
+    },
+    "table.r5.c3": {
+      "hash": "be2f46c9c82f78f8",
+      "kind": "scalar",
+      "value": 1051879.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 5 column 3",
+      "file": "be2f46c9c82f78f8.json"
+    },
+    "table.r6.c2": {
+      "hash": "76c56b18c43da05e",
+      "kind": "scalar",
+      "value": 1966895.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 6 column 2",
+      "file": "76c56b18c43da05e.json"
+    },
+    "table.r6.c3": {
+      "hash": "3f04fe5a44c2dd2f",
+      "kind": "scalar",
+      "value": 1473541.0,
+      "summary": "finqa-JPM_2008_page_85.pdf-1 row 6 column 3",
+      "file": "3f04fe5a44c2dd2f.json"
+    }
+  }
+}

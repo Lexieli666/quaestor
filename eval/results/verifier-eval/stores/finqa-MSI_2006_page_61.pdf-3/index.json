@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "1d6072751c6dc4f3",
+      "kind": "scalar",
+      "value": 35.1,
+      "summary": "what was the percent of the total long-term debt obligations that was due after 2011",
+      "file": "1d6072751c6dc4f3.json"
+    },
+    "table.r2.c2": {
+      "hash": "afb813db303fef53",
+      "kind": "scalar",
+      "value": 4134.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 2 column 2",
+      "file": "afb813db303fef53.json"
+    },
+    "table.r2.c3": {
+      "hash": "b6a49a61e3a0f0ee",
+      "kind": "scalar",
+      "value": 1340.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 2 column 3",
+      "file": "b6a49a61e3a0f0ee.json"
+    },
+    "table.r2.c4": {
+      "hash": "3c04d5454f9dbf84",
+      "kind": "scalar",
+      "value": 198.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 2 column 4",
+      "file": "3c04d5454f9dbf84.json"
+    },
+    "table.r2.c5": {
+      "hash": "9ffda05fe1578f18",
+      "kind": "scalar",
+      "value": 4.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 2 column 5",
+      "file": "9ffda05fe1578f18.json"
+    },
+    "table.r2.c6": {
+      "hash": "e77136de0f4435fe",
+      "kind": "scalar",
+      "value": 534.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 2 column 6",
+      "file": "e77136de0f4435fe.json"
+    },
+    "table.r2.c7": {
+      "hash": "e96b52dfbd7fce51",
+      "kind": "scalar",
+      "value": 607.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 2 column 7",
+      "file": "e96b52dfbd7fce51.json"
+    },
+    "table.r2.c8": {
+      "hash": "5cb8f49c92716ee7",
+      "kind": "scalar",
+      "value": 1451.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 2 column 8",
+      "file": "5cb8f49c92716ee7.json"
+    },
+    "table.r3.c2": {
+      "hash": "07b8f2b155aefb63",
+      "kind": "scalar",
+      "value": 2328.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 3 column 2",
+      "file": "07b8f2b155aefb63.json"
+    },
+    "table.r3.c3": {
+      "hash": "e01a20c072b3b5c2",
+      "kind": "scalar",
+      "value": 351.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 3 column 3",
+      "file": "e01a20c072b3b5c2.json"
+    },
+    "table.r3.c4": {
+      "hash": "675f8babbde6e2e6",
+      "kind": "scalar",
+      "value": 281.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 3 column 4",
+      "file": "675f8babbde6e2e6.json"
+    },
+    "table.r3.c5": {
+      "hash": "3c1a4b7ee1cd4cbb",
+      "kind": "scalar",
+      "value": 209.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 3 column 5",
+      "file": "3c1a4b7ee1cd4cbb.json"
+    },
+    "table.r3.c6": {
+      "hash": "b17e763e90b7e63f",
+      "kind": "scalar",
+      "value": 178.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 3 column 6",
+      "file": "b17e763e90b7e63f.json"
+    },
+    "table.r3.c7": {
+      "hash": "aa935c2f81f50ea9",
+      "kind": "scalar",
+      "value": 158.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 3 column 7",
+      "file": "aa935c2f81f50ea9.json"
+    },
+    "table.r3.c8": {
+      "hash": "65666d25428f2993",
+      "kind": "scalar",
+      "value": 1151.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 3 column 8",
+      "file": "65666d25428f2993.json"
+    },
+    "table.r4.c2": {
+      "hash": "1960ca535ef6d5a4",
+      "kind": "scalar",
+      "value": 1035.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 4 column 2",
+      "file": "1960ca535ef6d5a4.json"
+    },
+    "table.r4.c3": {
+      "hash": "c94e2e9528ca0cee",
+      "kind": "scalar",
+      "value": 326.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 4 column 3",
+      "file": "c94e2e9528ca0cee.json"
+    },
+    "table.r4.c4": {
+      "hash": "1a0ad132e5836303",
+      "kind": "scalar",
+      "value": 120.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 4 column 4",
+      "file": "1a0ad132e5836303.json"
+    },
+    "table.r4.c5": {
+      "hash": "48df85932c7fe397",
+      "kind": "scalar",
+      "value": 26.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 4 column 5",
+      "file": "48df85932c7fe397.json"
+    },
+    "table.r4.c6": {
+      "hash": "bfa7b2a3e3ed1f34",
+      "kind": "scalar",
+      "value": 12.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 4 column 6",
+      "file": "bfa7b2a3e3ed1f34.json"
+    },
+    "table.r4.c7": {
+      "hash": "a057400bd0628cda",
+      "kind": "scalar",
+      "value": 12.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 4 column 7",
+      "file": "a057400bd0628cda.json"
+    },
+    "table.r4.c8": {
+      "hash": "736d8eed3b893ccf",
+      "kind": "scalar",
+      "value": 539.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 4 column 8",
+      "file": "736d8eed3b893ccf.json"
+    },
+    "table.r5.c2": {
+      "hash": "c3099911254e2721",
+      "kind": "scalar",
+      "value": 7497.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 5 column 2",
+      "file": "c3099911254e2721.json"
+    },
+    "table.r5.c3": {
+      "hash": "87b06cf255219874",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 5 column 3",
+      "file": "87b06cf255219874.json"
+    },
+    "table.r5.c4": {
+      "hash": "bc6a625cd14eb3a2",
+      "kind": "scalar",
+      "value": 599.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 5 column 4",
+      "file": "bc6a625cd14eb3a2.json"
+    },
+    "table.r5.c5": {
+      "hash": "911b76dacadd898e",
+      "kind": "scalar",
+      "value": 239.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 5 column 5",
+      "file": "911b76dacadd898e.json"
+    },
+    "table.r5.c6": {
+      "hash": "71636b777c8d4ae9",
+      "kind": "scalar",
+      "value": 724.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 5 column 6",
+      "file": "71636b777c8d4ae9.json"
+    },
+    "table.r5.c7": {
+      "hash": "c2afa23f3d32d49e",
+      "kind": "scalar",
+      "value": 777.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 5 column 7",
+      "file": "c2afa23f3d32d49e.json"
+    },
+    "table.r5.c8": {
+      "hash": "942a594a75636670",
+      "kind": "scalar",
+      "value": 3141.0,
+      "summary": "finqa-MSI_2006_page_61.pdf-3 row 5 column 8",
+      "file": "942a594a75636670.json"
+    }
+  }
+}

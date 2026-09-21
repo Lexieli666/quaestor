@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "54971b7371864c6d",
+      "kind": "scalar",
+      "value": 72.1,
+      "summary": "what was the percent of the debt maturities outstanding at december 31 , 2013 that was unsecured debt",
+      "file": "54971b7371864c6d.json"
+    },
+    "table.r1.c2": {
+      "hash": "886e633b172490fb",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 1 column 2",
+      "file": "886e633b172490fb.json"
+    },
+    "table.r1.c3": {
+      "hash": "5993e901e8c8f0cc",
+      "kind": "scalar",
+      "value": 2012.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 1 column 3",
+      "file": "5993e901e8c8f0cc.json"
+    },
+    "table.r1.c4": {
+      "hash": "da5cf280447086b3",
+      "kind": "scalar",
+      "value": 2011.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 1 column 4",
+      "file": "da5cf280447086b3.json"
+    },
+    "table.r2.c2": {
+      "hash": "aa6a47a31b6cd79f",
+      "kind": "scalar",
+      "value": 41971.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 2 column 2",
+      "file": "aa6a47a31b6cd79f.json"
+    },
+    "table.r2.c3": {
+      "hash": "89498a61fa2a3b73",
+      "kind": "scalar",
+      "value": 33095.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 2 column 3",
+      "file": "89498a61fa2a3b73.json"
+    },
+    "table.r2.c4": {
+      "hash": "4a4621c1e9747892",
+      "kind": "scalar",
+      "value": 34872.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 2 column 4",
+      "file": "4a4621c1e9747892.json"
+    },
+    "table.r3.c2": {
+      "hash": "a55f020827964a99",
+      "kind": "scalar",
+      "value": 46600.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 3 column 2",
+      "file": "a55f020827964a99.json"
+    },
+    "table.r3.c3": {
+      "hash": "5f7e3d98ce489b3e",
+      "kind": "scalar",
+      "value": 30092.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 3 column 3",
+      "file": "5f7e3d98ce489b3e.json"
+    },
+    "table.r3.c4": {
+      "hash": "9a5de743a3d192e8",
+      "kind": "scalar",
+      "value": 63933.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 3 column 4",
+      "file": "9a5de743a3d192e8.json"
+    },
+    "table.r4.c2": {
+      "hash": "4d95783461cd0f07",
+      "kind": "scalar",
+      "value": 3106.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 4 column 2",
+      "file": "4d95783461cd0f07.json"
+    },
+    "table.r4.c3": {
+      "hash": "6bbe0e59f5950866",
+      "kind": "scalar",
+      "value": 641.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 4 column 3",
+      "file": "6bbe0e59f5950866.json"
+    },
+    "table.r4.c4": {
+      "hash": "93941ec91b34d986",
+      "kind": "scalar",
+      "value": 410.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 4 column 4",
+      "file": "93941ec91b34d986.json"
+    },
+    "table.r5.c2": {
+      "hash": "ca7c6f0ebb0053f3",
+      "kind": "scalar",
+      "value": 121.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 5 column 2",
+      "file": "ca7c6f0ebb0053f3.json"
+    },
+    "table.r5.c3": {
+      "hash": "d058cf6ed92f6474",
+      "kind": "scalar",
+      "value": 56.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 5 column 3",
+      "file": "d058cf6ed92f6474.json"
+    },
+    "table.r5.c4": {
+      "hash": "88bbead7ead8ad0a",
+      "kind": "scalar",
+      "value": 49.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 5 column 4",
+      "file": "88bbead7ead8ad0a.json"
+    },
+    "table.r6.c2": {
+      "hash": "61a96d3e0468cd91",
+      "kind": "scalar",
+      "value": 91798.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 6 column 2",
+      "file": "61a96d3e0468cd91.json"
+    },
+    "table.r6.c3": {
+      "hash": "b8519f79c3cd0056",
+      "kind": "scalar",
+      "value": 63884.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 6 column 3",
+      "file": "b8519f79c3cd0056.json"
+    },
+    "table.r6.c4": {
+      "hash": "565906a020c3b209",
+      "kind": "scalar",
+      "value": 99264.0,
+      "summary": "finqa-DRE_2013_page_39.pdf-2 row 6 column 4",
+      "file": "565906a020c3b209.json"
+    }
+  }
+}

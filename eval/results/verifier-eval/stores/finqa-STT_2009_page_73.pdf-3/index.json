@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "8c07d84f58e8b557",
+      "kind": "scalar",
+      "value": 34.0,
+      "summary": "what is the percent change of securities between 2008 and 2009?",
+      "file": "8c07d84f58e8b557.json"
+    },
+    "table.r1.c2": {
+      "hash": "e01e9f88d8dd0e7d",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-STT_2009_page_73.pdf-3 row 1 column 2",
+      "file": "e01e9f88d8dd0e7d.json"
+    },
+    "table.r1.c3": {
+      "hash": "8cc74517e57bbfdd",
+      "kind": "scalar",
+      "value": 2008.0,
+      "summary": "finqa-STT_2009_page_73.pdf-3 row 1 column 3",
+      "file": "8cc74517e57bbfdd.json"
+    },
+    "table.r2.c2": {
+      "hash": "8f8b151d13351861",
+      "kind": "scalar",
+      "value": 72699.0,
+      "summary": "finqa-STT_2009_page_73.pdf-3 row 2 column 2",
+      "file": "8f8b151d13351861.json"
+    },
+    "table.r2.c3": {
+      "hash": "c545882bde9a76a9",
+      "kind": "scalar",
+      "value": 54163.0,
+      "summary": "finqa-STT_2009_page_73.pdf-3 row 2 column 3",
+      "file": "c545882bde9a76a9.json"
+    },
+    "table.r3.c2": {
+      "hash": "a6985dc507713616",
+      "kind": "scalar",
+      "value": 74843.0,
+      "summary": "finqa-STT_2009_page_73.pdf-3 row 3 column 2",
+      "file": "a6985dc507713616.json"
+    },
+    "table.r3.c3": {
+      "hash": "8ebe6dd6ffd442b5",
+      "kind": "scalar",
+      "value": 60786.0,
+      "summary": "finqa-STT_2009_page_73.pdf-3 row 3 column 3",
+      "file": "8ebe6dd6ffd442b5.json"
+    }
+  }
+}

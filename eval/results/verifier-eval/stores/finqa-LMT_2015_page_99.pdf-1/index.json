@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "1a4731f02ba05ef0",
+      "kind": "scalar",
+      "value": 9119.0,
+      "summary": "what was the change in the total long-term debt net from 2014 to 2015 in millions",
+      "file": "1a4731f02ba05ef0.json"
+    },
+    "table.r1.c2": {
+      "hash": "b333f7c7808feff3",
+      "kind": "scalar",
+      "value": 2015.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 1 column 2",
+      "file": "b333f7c7808feff3.json"
+    },
+    "table.r1.c3": {
+      "hash": "91f598de517460b0",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 1 column 3",
+      "file": "91f598de517460b0.json"
+    },
+    "table.r2.c2": {
+      "hash": "3666d15c126be277",
+      "kind": "scalar",
+      "value": 8150.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 2 column 2",
+      "file": "3666d15c126be277.json"
+    },
+    "table.r2.c3": {
+      "hash": "03f290e797b4bf74",
+      "kind": "scalar",
+      "value": 1400.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 2 column 3",
+      "file": "03f290e797b4bf74.json"
+    },
+    "table.r3.c2": {
+      "hash": "16900f7540315197",
+      "kind": "scalar",
+      "value": 6089.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 3 column 2",
+      "file": "16900f7540315197.json"
+    },
+    "table.r3.c3": {
+      "hash": "c3a0e8e90fce706c",
+      "kind": "scalar",
+      "value": 3589.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 3 column 3",
+      "file": "c3a0e8e90fce706c.json"
+    },
+    "table.r4.c2": {
+      "hash": "3e80b817852546d4",
+      "kind": "scalar",
+      "value": 1941.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 4 column 2",
+      "file": "3e80b817852546d4.json"
+    },
+    "table.r4.c3": {
+      "hash": "790c3142a3196c0d",
+      "kind": "scalar",
+      "value": 1941.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 4 column 3",
+      "file": "790c3142a3196c0d.json"
+    },
+    "table.r5.c2": {
+      "hash": "8b6473726eb3ccf9",
+      "kind": "scalar",
+      "value": 116.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 5 column 2",
+      "file": "8b6473726eb3ccf9.json"
+    },
+    "table.r5.c3": {
+      "hash": "ae4313ea986b25b3",
+      "kind": "scalar",
+      "value": 111.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 5 column 3",
+      "file": "ae4313ea986b25b3.json"
+    },
+    "table.r6.c2": {
+      "hash": "cb0241c8f2f859c8",
+      "kind": "scalar",
+      "value": 16296.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 6 column 2",
+      "file": "cb0241c8f2f859c8.json"
+    },
+    "table.r6.c3": {
+      "hash": "f046b4cacbbeb6f8",
+      "kind": "scalar",
+      "value": 7041.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 6 column 3",
+      "file": "f046b4cacbbeb6f8.json"
+    },
+    "table.r8.c2": {
+      "hash": "29767e25bd1f1798",
+      "kind": "scalar",
+      "value": 15261.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 8 column 2",
+      "file": "29767e25bd1f1798.json"
+    },
+    "table.r8.c3": {
+      "hash": "e8a302c98efc1954",
+      "kind": "scalar",
+      "value": 6142.0,
+      "summary": "finqa-LMT_2015_page_99.pdf-1 row 8 column 3",
+      "file": "e8a302c98efc1954.json"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "533567f8d0764ec5",
+      "kind": "scalar",
+      "value": -1.0,
+      "summary": "share of total securities rated bbb/baa or below changed by how many percentage point between 2008 and 2009?",
+      "file": "533567f8d0764ec5.json"
+    },
+    "table.r3.c2": {
+      "hash": "221457bf079dec75",
+      "kind": "scalar",
+      "value": 50.0,
+      "summary": "finqa-PNC_2009_page_46.pdf-2 row 3 column 2",
+      "file": "221457bf079dec75.json"
+    },
+    "table.r3.c3": {
+      "hash": "a5bf5d17c19ad0bd",
+      "kind": "scalar",
+      "value": 6.0,
+      "summary": "finqa-PNC_2009_page_46.pdf-2 row 3 column 3",
+      "file": "a5bf5d17c19ad0bd.json"
+    },
+    "table.r4.c2": {
+      "hash": "6acf4bc32fae5597",
+      "kind": "scalar",
+      "value": 34.0,
+      "summary": "finqa-PNC_2009_page_46.pdf-2 row 4 column 2",
+      "file": "6acf4bc32fae5597.json"
+    },
+    "table.r4.c3": {
+      "hash": "86b1ae281de5b63a",
+      "kind": "scalar",
+      "value": 72.0,
+      "summary": "finqa-PNC_2009_page_46.pdf-2 row 4 column 3",
+      "file": "86b1ae281de5b63a.json"
+    },
+    "table.r5.c2": {
+      "hash": "8efd43fc21b3f176",
+      "kind": "scalar",
+      "value": 2.0,
+      "summary": "finqa-PNC_2009_page_46.pdf-2 row 5 column 2",
+      "file": "8efd43fc21b3f176.json"
+    },
+    "table.r5.c3": {
+      "hash": "46d1a75404a98b0e",
+      "kind": "scalar",
+      "value": 3.0,
+      "summary": "finqa-PNC_2009_page_46.pdf-2 row 5 column 3",
+      "file": "46d1a75404a98b0e.json"
+    }
+  }
+}

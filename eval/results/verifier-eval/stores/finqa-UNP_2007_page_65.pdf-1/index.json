@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "1ef626de42044653",
+      "kind": "scalar",
+      "value": 7.1,
+      "summary": "as of as of december 31 , 2007 what was the percent of the total debt maturities that was due in 2009",
+      "file": "1ef626de42044653.json"
+    },
+    "table.r1.c1": {
+      "hash": "a2054119603a7f29",
+      "kind": "scalar",
+      "value": 2008.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 1 column 1",
+      "file": "a2054119603a7f29.json"
+    },
+    "table.r1.c2": {
+      "hash": "0741443701a4138b",
+      "kind": "scalar",
+      "value": 689.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 1 column 2",
+      "file": "0741443701a4138b.json"
+    },
+    "table.r2.c1": {
+      "hash": "52f8ed05fdb968f1",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 2 column 1",
+      "file": "52f8ed05fdb968f1.json"
+    },
+    "table.r2.c2": {
+      "hash": "335f8379dbe2de62",
+      "kind": "scalar",
+      "value": 542.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 2 column 2",
+      "file": "335f8379dbe2de62.json"
+    },
+    "table.r3.c1": {
+      "hash": "b0d05a149dd2947a",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 3 column 1",
+      "file": "b0d05a149dd2947a.json"
+    },
+    "table.r3.c2": {
+      "hash": "4eb75cd0773f453c",
+      "kind": "scalar",
+      "value": 462.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 3 column 2",
+      "file": "4eb75cd0773f453c.json"
+    },
+    "table.r4.c1": {
+      "hash": "767da66c2ce9e2ba",
+      "kind": "scalar",
+      "value": 2011.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 4 column 1",
+      "file": "767da66c2ce9e2ba.json"
+    },
+    "table.r4.c2": {
+      "hash": "2a79beb1f24c0a6d",
+      "kind": "scalar",
+      "value": 550.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 4 column 2",
+      "file": "2a79beb1f24c0a6d.json"
+    },
+    "table.r5.c1": {
+      "hash": "24d1024cb2d5a988",
+      "kind": "scalar",
+      "value": 2012.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 5 column 1",
+      "file": "24d1024cb2d5a988.json"
+    },
+    "table.r5.c2": {
+      "hash": "ff99f234394f7910",
+      "kind": "scalar",
+      "value": 720.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 5 column 2",
+      "file": "ff99f234394f7910.json"
+    },
+    "table.r6.c2": {
+      "hash": "e99266ddd6ff5c08",
+      "kind": "scalar",
+      "value": 4717.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 6 column 2",
+      "file": "e99266ddd6ff5c08.json"
+    },
+    "table.r7.c2": {
+      "hash": "bc83e1700fbd139a",
+      "kind": "scalar",
+      "value": 7680.0,
+      "summary": "finqa-UNP_2007_page_65.pdf-1 row 7 column 2",
+      "file": "bc83e1700fbd139a.json"
+    }
+  }
+}

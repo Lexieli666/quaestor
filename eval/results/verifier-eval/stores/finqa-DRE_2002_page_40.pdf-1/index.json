@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "3226ae7600bdb99d",
+      "kind": "scalar",
+      "value": 1.11,
+      "summary": "what is the percent change in quarterly cash dividend for the period ended march 31 2002 to the period ended march 31 2003?",
+      "file": "3226ae7600bdb99d.json"
+    },
+    "table.r2.c2": {
+      "hash": "665c6a1b73eef1e2",
+      "kind": "scalar",
+      "value": 25.84,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 2 column 2",
+      "file": "665c6a1b73eef1e2.json"
+    },
+    "table.r2.c3": {
+      "hash": "20fa0f3a0544bc0a",
+      "kind": "scalar",
+      "value": 21.5,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 2 column 3",
+      "file": "20fa0f3a0544bc0a.json"
+    },
+    "table.r2.c4": {
+      "hash": "0460d57a2a6ff137",
+      "kind": "scalar",
+      "value": 0.455,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 2 column 4",
+      "file": "0460d57a2a6ff137.json"
+    },
+    "table.r2.c5": {
+      "hash": "d21d393faa4b4b0e",
+      "kind": "scalar",
+      "value": 24.8,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 2 column 5",
+      "file": "d21d393faa4b4b0e.json"
+    },
+    "table.r2.c6": {
+      "hash": "0460170272421b58",
+      "kind": "scalar",
+      "value": 22.0,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 2 column 6",
+      "file": "0460170272421b58.json"
+    },
+    "table.r2.c7": {
+      "hash": "9056c0d21ee6cdc7",
+      "kind": "scalar",
+      "value": 0.45,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 2 column 7",
+      "file": "9056c0d21ee6cdc7.json"
+    },
+    "table.r3.c2": {
+      "hash": "6ea78403c46e5a36",
+      "kind": "scalar",
+      "value": 28.88,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 3 column 2",
+      "file": "6ea78403c46e5a36.json"
+    },
+    "table.r3.c3": {
+      "hash": "bad0d371697fd6fb",
+      "kind": "scalar",
+      "value": 21.4,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 3 column 3",
+      "file": "bad0d371697fd6fb.json"
+    },
+    "table.r3.c4": {
+      "hash": "e99ced397bd0a59f",
+      "kind": "scalar",
+      "value": 0.455,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 3 column 4",
+      "file": "e99ced397bd0a59f.json"
+    },
+    "table.r3.c5": {
+      "hash": "39ddea4f5c32145a",
+      "kind": "scalar",
+      "value": 26.17,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 3 column 5",
+      "file": "39ddea4f5c32145a.json"
+    },
+    "table.r3.c6": {
+      "hash": "f90f4ee835b6c42d",
+      "kind": "scalar",
+      "value": 21.6,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 3 column 6",
+      "file": "f90f4ee835b6c42d.json"
+    },
+    "table.r3.c7": {
+      "hash": "558a947e194b5461",
+      "kind": "scalar",
+      "value": 0.45,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 3 column 7",
+      "file": "558a947e194b5461.json"
+    },
+    "table.r4.c2": {
+      "hash": "2a327f7ecb9e8f50",
+      "kind": "scalar",
+      "value": 28.95,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 4 column 2",
+      "file": "2a327f7ecb9e8f50.json"
+    },
+    "table.r4.c3": {
+      "hash": "88a48c9353e72ff5",
+      "kind": "scalar",
+      "value": 25.46,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 4 column 3",
+      "file": "88a48c9353e72ff5.json"
+    },
+    "table.r4.c4": {
+      "hash": "3b9e4aae9206889c",
+      "kind": "scalar",
+      "value": 0.45,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 4 column 4",
+      "file": "3b9e4aae9206889c.json"
+    },
+    "table.r4.c5": {
+      "hash": "bfe1290074f08ea1",
+      "kind": "scalar",
+      "value": 24.99,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 4 column 5",
+      "file": "bfe1290074f08ea1.json"
+    },
+    "table.r4.c6": {
+      "hash": "b3d5cb5df12e763d",
+      "kind": "scalar",
+      "value": 22.0,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 4 column 6",
+      "file": "b3d5cb5df12e763d.json"
+    },
+    "table.r4.c7": {
+      "hash": "ba0bfb6afe7d2426",
+      "kind": "scalar",
+      "value": 0.43,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 4 column 7",
+      "file": "ba0bfb6afe7d2426.json"
+    },
+    "table.r5.c2": {
+      "hash": "9b245d88628eceef",
+      "kind": "scalar",
+      "value": 26.5,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 5 column 2",
+      "file": "9b245d88628eceef.json"
+    },
+    "table.r5.c3": {
+      "hash": "3dc471c84459e588",
+      "kind": "scalar",
+      "value": 22.92,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 5 column 3",
+      "file": "3dc471c84459e588.json"
+    },
+    "table.r5.c4": {
+      "hash": "fb31f347738852fc",
+      "kind": "scalar",
+      "value": 0.45,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 5 column 4",
+      "file": "fb31f347738852fc.json"
+    },
+    "table.r5.c5": {
+      "hash": "640305e3570bdfa5",
+      "kind": "scalar",
+      "value": 25.44,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 5 column 5",
+      "file": "640305e3570bdfa5.json"
+    },
+    "table.r5.c6": {
+      "hash": "aca5f518b31991a7",
+      "kind": "scalar",
+      "value": 21.85,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 5 column 6",
+      "file": "aca5f518b31991a7.json"
+    },
+    "table.r5.c7": {
+      "hash": "e57e783be7ba26eb",
+      "kind": "scalar",
+      "value": 0.43,
+      "summary": "finqa-DRE_2002_page_40.pdf-1 row 5 column 7",
+      "file": "e57e783be7ba26eb.json"
+    }
+  }
+}

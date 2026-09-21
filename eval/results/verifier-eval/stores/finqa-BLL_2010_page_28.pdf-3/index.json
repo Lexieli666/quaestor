@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "55a1b9703c436031",
+      "kind": "scalar",
+      "value": 34.96,
+      "summary": "what is the five year total return on ball stock?",
+      "file": "55a1b9703c436031.json"
+    },
+    "table.r2.c2": {
+      "hash": "a712c9f2f6c523cc",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 2 column 2",
+      "file": "a712c9f2f6c523cc.json"
+    },
+    "table.r2.c3": {
+      "hash": "0657466d23ade3d6",
+      "kind": "scalar",
+      "value": 110.86,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 2 column 3",
+      "file": "0657466d23ade3d6.json"
+    },
+    "table.r2.c4": {
+      "hash": "e9c4e466dd08c733",
+      "kind": "scalar",
+      "value": 115.36,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 2 column 4",
+      "file": "e9c4e466dd08c733.json"
+    },
+    "table.r2.c5": {
+      "hash": "cec537169852bae4",
+      "kind": "scalar",
+      "value": 107.58,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 2 column 5",
+      "file": "cec537169852bae4.json"
+    },
+    "table.r2.c6": {
+      "hash": "02e227f8f4470bdb",
+      "kind": "scalar",
+      "value": 134.96,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 2 column 6",
+      "file": "02e227f8f4470bdb.json"
+    },
+    "table.r2.c7": {
+      "hash": "f2807ccfcd12d5bb",
+      "kind": "scalar",
+      "value": 178.93,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 2 column 7",
+      "file": "f2807ccfcd12d5bb.json"
+    },
+    "table.r3.c2": {
+      "hash": "f8e7421964023b61",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 3 column 2",
+      "file": "f8e7421964023b61.json"
+    },
+    "table.r3.c3": {
+      "hash": "8eda5a80e575268d",
+      "kind": "scalar",
+      "value": 112.09,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 3 column 3",
+      "file": "8eda5a80e575268d.json"
+    },
+    "table.r3.c4": {
+      "hash": "07b33ab1a8cd1fe5",
+      "kind": "scalar",
+      "value": 119.63,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 3 column 4",
+      "file": "07b33ab1a8cd1fe5.json"
+    },
+    "table.r3.c5": {
+      "hash": "001f3920184c315b",
+      "kind": "scalar",
+      "value": 75.0,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 3 column 5",
+      "file": "001f3920184c315b.json"
+    },
+    "table.r3.c6": {
+      "hash": "aa24d44eaab27bc4",
+      "kind": "scalar",
+      "value": 105.34,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 3 column 6",
+      "file": "aa24d44eaab27bc4.json"
+    },
+    "table.r3.c7": {
+      "hash": "92325d1bae5969f9",
+      "kind": "scalar",
+      "value": 123.56,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 3 column 7",
+      "file": "92325d1bae5969f9.json"
+    },
+    "table.r4.c2": {
+      "hash": "0794dd9bf9e90dff",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 4 column 2",
+      "file": "0794dd9bf9e90dff.json"
+    },
+    "table.r4.c3": {
+      "hash": "63e4a646beaab6bf",
+      "kind": "scalar",
+      "value": 115.8,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 4 column 3",
+      "file": "63e4a646beaab6bf.json"
+    },
+    "table.r4.c4": {
+      "hash": "4472a61347bb1adb",
+      "kind": "scalar",
+      "value": 122.16,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 4 column 4",
+      "file": "4472a61347bb1adb.json"
+    },
+    "table.r4.c5": {
+      "hash": "dc5fee89196ea169",
+      "kind": "scalar",
+      "value": 76.96,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 4 column 5",
+      "file": "dc5fee89196ea169.json"
+    },
+    "table.r4.c6": {
+      "hash": "bd9762faad40d7d8",
+      "kind": "scalar",
+      "value": 97.33,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 4 column 6",
+      "file": "bd9762faad40d7d8.json"
+    },
+    "table.r4.c7": {
+      "hash": "44c8fb300c24f99e",
+      "kind": "scalar",
+      "value": 111.99,
+      "summary": "finqa-BLL_2010_page_28.pdf-3 row 4 column 7",
+      "file": "44c8fb300c24f99e.json"
+    }
+  }
+}

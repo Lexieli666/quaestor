@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "16cbbf0afa234ee4",
+      "kind": "scalar",
+      "value": 104.0,
+      "summary": "What is the increase/ (decrease) in Trade accounts receivable from 2018 to 2019?",
+      "file": "16cbbf0afa234ee4.json"
+    },
+    "table.r2.c2": {
+      "hash": "47fd410d35599935",
+      "kind": "scalar",
+      "value": 1396.0,
+      "summary": "tatqa-03613059-6978-437c-ba63-bd30acaf1440 row 2 column 2",
+      "file": "47fd410d35599935.json"
+    },
+    "table.r2.c3": {
+      "hash": "6750234bbec5ddd1",
+      "kind": "scalar",
+      "value": 1292.0,
+      "summary": "tatqa-03613059-6978-437c-ba63-bd30acaf1440 row 2 column 3",
+      "file": "6750234bbec5ddd1.json"
+    },
+    "table.r4.c2": {
+      "hash": "3420c0d1d444ead5",
+      "kind": "scalar",
+      "value": 1380.0,
+      "summary": "tatqa-03613059-6978-437c-ba63-bd30acaf1440 row 4 column 2",
+      "file": "3420c0d1d444ead5.json"
+    },
+    "table.r4.c3": {
+      "hash": "09a3442020894d67",
+      "kind": "scalar",
+      "value": 1277.0,
+      "summary": "tatqa-03613059-6978-437c-ba63-bd30acaf1440 row 4 column 3",
+      "file": "09a3442020894d67.json"
+    }
+  }
+}

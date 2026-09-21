@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "7ca56de2144fa533",
+      "kind": "scalar",
+      "value": 44.8,
+      "summary": "what is the average amortization amount , in millions , from 2015-2019?",
+      "file": "7ca56de2144fa533.json"
+    },
+    "table.r2.c1": {
+      "hash": "2baed8ac94e41c9f",
+      "kind": "scalar",
+      "value": 2015.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 2 column 1",
+      "file": "2baed8ac94e41c9f.json"
+    },
+    "table.r2.c2": {
+      "hash": "4f55a5e005294ab6",
+      "kind": "scalar",
+      "value": 45.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 2 column 2",
+      "file": "4f55a5e005294ab6.json"
+    },
+    "table.r3.c1": {
+      "hash": "370b1322d7967d29",
+      "kind": "scalar",
+      "value": 2016.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 3 column 1",
+      "file": "370b1322d7967d29.json"
+    },
+    "table.r3.c2": {
+      "hash": "af1c667ce641bf01",
+      "kind": "scalar",
+      "value": 45.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 3 column 2",
+      "file": "af1c667ce641bf01.json"
+    },
+    "table.r4.c1": {
+      "hash": "6794e8d0afa267dd",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 4 column 1",
+      "file": "6794e8d0afa267dd.json"
+    },
+    "table.r4.c2": {
+      "hash": "86a84bd9fe71b06e",
+      "kind": "scalar",
+      "value": 45.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 4 column 2",
+      "file": "86a84bd9fe71b06e.json"
+    },
+    "table.r5.c1": {
+      "hash": "a2cac4d3015a8145",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 5 column 1",
+      "file": "a2cac4d3015a8145.json"
+    },
+    "table.r5.c2": {
+      "hash": "1bf14b756739701d",
+      "kind": "scalar",
+      "value": 45.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 5 column 2",
+      "file": "1bf14b756739701d.json"
+    },
+    "table.r6.c1": {
+      "hash": "0d26386cfa5af356",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 6 column 1",
+      "file": "0d26386cfa5af356.json"
+    },
+    "table.r6.c2": {
+      "hash": "95f46d043a512a83",
+      "kind": "scalar",
+      "value": 44.0,
+      "summary": "finqa-DVN_2014_page_85.pdf-1 row 6 column 2",
+      "file": "95f46d043a512a83.json"
+    }
+  }
+}

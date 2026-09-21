@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "a3650d24678f9780",
+      "kind": "scalar",
+      "value": -21.7,
+      "summary": "What was the change in the revenues from 2018 to 2019?",
+      "file": "a3650d24678f9780.json"
+    },
+    "table.r3.c2": {
+      "hash": "9df1fee30ca42daa",
+      "kind": "scalar",
+      "value": 1073.3,
+      "summary": "tatqa-fa43e8cd-7fea-4738-85ee-f61ae8529f96 row 3 column 2",
+      "file": "9df1fee30ca42daa.json"
+    },
+    "table.r3.c3": {
+      "hash": "e9cd5f232f9f66d8",
+      "kind": "scalar",
+      "value": 1095.0,
+      "summary": "tatqa-fa43e8cd-7fea-4738-85ee-f61ae8529f96 row 3 column 3",
+      "file": "e9cd5f232f9f66d8.json"
+    },
+    "table.r4.c2": {
+      "hash": "86605b74d6a3f3bb",
+      "kind": "scalar",
+      "value": 106.4,
+      "summary": "tatqa-fa43e8cd-7fea-4738-85ee-f61ae8529f96 row 4 column 2",
+      "file": "86605b74d6a3f3bb.json"
+    },
+    "table.r4.c3": {
+      "hash": "74efd9fd98b35c53",
+      "kind": "scalar",
+      "value": 70.5,
+      "summary": "tatqa-fa43e8cd-7fea-4738-85ee-f61ae8529f96 row 4 column 3",
+      "file": "74efd9fd98b35c53.json"
+    }
+  }
+}

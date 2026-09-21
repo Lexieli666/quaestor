@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "ad63353cb3f509f3",
+      "kind": "scalar",
+      "value": 1.4,
+      "summary": "what was the percentage growth in the operating profit as reported from 2017 to 2018",
+      "file": "ad63353cb3f509f3.json"
+    },
+    "table.r1.c2": {
+      "hash": "70e3120f0cf6f507",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 1 column 2",
+      "file": "70e3120f0cf6f507.json"
+    },
+    "table.r1.c3": {
+      "hash": "f098d16068e80b7d",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 1 column 3",
+      "file": "f098d16068e80b7d.json"
+    },
+    "table.r1.c4": {
+      "hash": "34cf9e7c3b94d7e4",
+      "kind": "scalar",
+      "value": 2016.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 1 column 4",
+      "file": "34cf9e7c3b94d7e4.json"
+    },
+    "table.r2.c2": {
+      "hash": "94d41c65da24119a",
+      "kind": "scalar",
+      "value": 1211.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 2 column 2",
+      "file": "94d41c65da24119a.json"
+    },
+    "table.r2.c3": {
+      "hash": "3773b8c237693361",
+      "kind": "scalar",
+      "value": 1194.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 2 column 3",
+      "file": "3773b8c237693361.json"
+    },
+    "table.r2.c4": {
+      "hash": "59e383e3753b5318",
+      "kind": "scalar",
+      "value": 1087.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 2 column 4",
+      "file": "59e383e3753b5318.json"
+    },
+    "table.r3.c2": {
+      "hash": "5aae28bc684121c7",
+      "kind": "scalar",
+      "value": 14.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 3 column 2",
+      "file": "5aae28bc684121c7.json"
+    },
+    "table.r3.c3": {
+      "hash": "ce1d7dba318de72c",
+      "kind": "scalar",
+      "value": 4.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 3 column 3",
+      "file": "ce1d7dba318de72c.json"
+    },
+    "table.r3.c4": {
+      "hash": "3eacbdcb3770553f",
+      "kind": "scalar",
+      "value": 22.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 3 column 4",
+      "file": "3eacbdcb3770553f.json"
+    },
+    "table.r4.c2": {
+      "hash": "a81a1cc0a7afc62d",
+      "kind": "scalar",
+      "value": 40.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 4 column 2",
+      "file": "a81a1cc0a7afc62d.json"
+    },
+    "table.r4.c3": {
+      "hash": "b5f382ef78bc03f0",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 4 column 3",
+      "file": "b5f382ef78bc03f0.json"
+    },
+    "table.r4.c4": {
+      "hash": "33485be956412dbb",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 4 column 4",
+      "file": "33485be956412dbb.json"
+    },
+    "table.r5.c2": {
+      "hash": "6af7e4730568b218",
+      "kind": "scalar",
+      "value": 1265.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 5 column 2",
+      "file": "6af7e4730568b218.json"
+    },
+    "table.r5.c3": {
+      "hash": "b70fbf4050e80a04",
+      "kind": "scalar",
+      "value": 1198.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 5 column 3",
+      "file": "b70fbf4050e80a04.json"
+    },
+    "table.r5.c4": {
+      "hash": "d79e113f650ae083",
+      "kind": "scalar",
+      "value": 1109.0,
+      "summary": "finqa-MAS_2018_page_35.pdf-3 row 5 column 4",
+      "file": "d79e113f650ae083.json"
+    }
+  }
+}

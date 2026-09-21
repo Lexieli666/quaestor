@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "4b98be07f65e88fa",
+      "kind": "scalar",
+      "value": -39.9,
+      "summary": "what is the percentage change in credit net from 2016 to 2017?",
+      "file": "4b98be07f65e88fa.json"
+    },
+    "table.r10.c3": {
+      "hash": "1bba729acca1a68e",
+      "kind": "scalar",
+      "value": 3.0,
+      "summary": "finqa-GS_2017_page_143.pdf-1 row 10 column 3",
+      "file": "1bba729acca1a68e.json"
+    },
+    "table.r12.c2": {
+      "hash": "828cbcba837a227d",
+      "kind": "scalar",
+      "value": 47.0,
+      "summary": "finqa-GS_2017_page_143.pdf-1 row 12 column 2",
+      "file": "828cbcba837a227d.json"
+    },
+    "table.r12.c3": {
+      "hash": "c5d92093fbff06c5",
+      "kind": "scalar",
+      "value": 73.0,
+      "summary": "finqa-GS_2017_page_143.pdf-1 row 12 column 3",
+      "file": "c5d92093fbff06c5.json"
+    },
+    "table.r5.c2": {
+      "hash": "03747f294bdda1bd",
+      "kind": "scalar",
+      "value": 1505.0,
+      "summary": "finqa-GS_2017_page_143.pdf-1 row 5 column 2",
+      "file": "03747f294bdda1bd.json"
+    },
+    "table.r5.c3": {
+      "hash": "cb259805673f78b2",
+      "kind": "scalar",
+      "value": 2504.0,
+      "summary": "finqa-GS_2017_page_143.pdf-1 row 5 column 3",
+      "file": "cb259805673f78b2.json"
+    }
+  }
+}

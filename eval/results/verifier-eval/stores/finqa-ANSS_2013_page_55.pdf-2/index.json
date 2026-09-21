@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "3698ed032b15b307",
+      "kind": "scalar",
+      "value": 41.6,
+      "summary": "what percentage of total contractual obligations come from after five years?",
+      "file": "3698ed032b15b307.json"
+    },
+    "table.r2.c2": {
+      "hash": "bc27a8bde7a46e94",
+      "kind": "scalar",
+      "value": 68389.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 2 column 2",
+      "file": "bc27a8bde7a46e94.json"
+    },
+    "table.r2.c3": {
+      "hash": "7234eafa606bf8da",
+      "kind": "scalar",
+      "value": 1429.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 2 column 3",
+      "file": "7234eafa606bf8da.json"
+    },
+    "table.r2.c4": {
+      "hash": "078565dba0b9f30b",
+      "kind": "scalar",
+      "value": 8556.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 2 column 4",
+      "file": "078565dba0b9f30b.json"
+    },
+    "table.r2.c5": {
+      "hash": "ca2662b809f4a3e1",
+      "kind": "scalar",
+      "value": 8556.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 2 column 5",
+      "file": "ca2662b809f4a3e1.json"
+    },
+    "table.r2.c6": {
+      "hash": "8e39729be727ef84",
+      "kind": "scalar",
+      "value": 49848.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 2 column 6",
+      "file": "8e39729be727ef84.json"
+    },
+    "table.r3.c2": {
+      "hash": "b0e7e37a034e57b1",
+      "kind": "scalar",
+      "value": 35890.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 3 column 2",
+      "file": "b0e7e37a034e57b1.json"
+    },
+    "table.r3.c3": {
+      "hash": "a2fcba7ac608cf6c",
+      "kind": "scalar",
+      "value": 11401.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 3 column 3",
+      "file": "a2fcba7ac608cf6c.json"
+    },
+    "table.r3.c4": {
+      "hash": "d08724c2cb16b06e",
+      "kind": "scalar",
+      "value": 12045.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 3 column 4",
+      "file": "d08724c2cb16b06e.json"
+    },
+    "table.r3.c5": {
+      "hash": "e86426a66ed6955f",
+      "kind": "scalar",
+      "value": 5249.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 3 column 5",
+      "file": "e86426a66ed6955f.json"
+    },
+    "table.r3.c6": {
+      "hash": "4d335a20fca29db0",
+      "kind": "scalar",
+      "value": 7195.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 3 column 6",
+      "file": "4d335a20fca29db0.json"
+    },
+    "table.r4.c2": {
+      "hash": "16c6cb37d26185f7",
+      "kind": "scalar",
+      "value": 3860.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 4 column 2",
+      "file": "16c6cb37d26185f7.json"
+    },
+    "table.r4.c3": {
+      "hash": "4c7394938950348e",
+      "kind": "scalar",
+      "value": 2872.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 4 column 3",
+      "file": "4c7394938950348e.json"
+    },
+    "table.r4.c4": {
+      "hash": "221fff7195c7e803",
+      "kind": "scalar",
+      "value": 988.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 4 column 4",
+      "file": "221fff7195c7e803.json"
+    },
+    "table.r4.c5": {
+      "hash": "cc46d62fdcc25f9d",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 4 column 5",
+      "file": "cc46d62fdcc25f9d.json"
+    },
+    "table.r4.c6": {
+      "hash": "c847116683941b7f",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 4 column 6",
+      "file": "c847116683941b7f.json"
+    },
+    "table.r5.c2": {
+      "hash": "064bf94253ba6fac",
+      "kind": "scalar",
+      "value": 933.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 5 column 2",
+      "file": "064bf94253ba6fac.json"
+    },
+    "table.r5.c3": {
+      "hash": "8cd91ff59d31f303",
+      "kind": "scalar",
+      "value": 933.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 5 column 3",
+      "file": "8cd91ff59d31f303.json"
+    },
+    "table.r5.c4": {
+      "hash": "4e40256e56028deb",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 5 column 4",
+      "file": "4e40256e56028deb.json"
+    },
+    "table.r5.c5": {
+      "hash": "03f848272b04fc54",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 5 column 5",
+      "file": "03f848272b04fc54.json"
+    },
+    "table.r5.c6": {
+      "hash": "493421b467d42f50",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 5 column 6",
+      "file": "493421b467d42f50.json"
+    },
+    "table.r6.c2": {
+      "hash": "855c518b0298d010",
+      "kind": "scalar",
+      "value": 35463.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 6 column 2",
+      "file": "855c518b0298d010.json"
+    },
+    "table.r6.c3": {
+      "hash": "64894a13cb6f4991",
+      "kind": "scalar",
+      "value": 11140.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 6 column 3",
+      "file": "64894a13cb6f4991.json"
+    },
+    "table.r6.c4": {
+      "hash": "f3077b411b853855",
+      "kind": "scalar",
+      "value": 17457.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 6 column 4",
+      "file": "f3077b411b853855.json"
+    },
+    "table.r6.c5": {
+      "hash": "b945c5c924e06316",
+      "kind": "scalar",
+      "value": 3780.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 6 column 5",
+      "file": "b945c5c924e06316.json"
+    },
+    "table.r6.c6": {
+      "hash": "a3b553474dc6ed1b",
+      "kind": "scalar",
+      "value": 3086.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 6 column 6",
+      "file": "a3b553474dc6ed1b.json"
+    },
+    "table.r7.c2": {
+      "hash": "ccac2bf77d9dc5ee",
+      "kind": "scalar",
+      "value": 144535.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 7 column 2",
+      "file": "ccac2bf77d9dc5ee.json"
+    },
+    "table.r7.c3": {
+      "hash": "00758818c4e6565f",
+      "kind": "scalar",
+      "value": 27775.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 7 column 3",
+      "file": "00758818c4e6565f.json"
+    },
+    "table.r7.c4": {
+      "hash": "9fb919b593f3cbfb",
+      "kind": "scalar",
+      "value": 39046.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 7 column 4",
+      "file": "9fb919b593f3cbfb.json"
+    },
+    "table.r7.c5": {
+      "hash": "664eb33b18bfb401",
+      "kind": "scalar",
+      "value": 17585.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 7 column 5",
+      "file": "664eb33b18bfb401.json"
+    },
+    "table.r7.c6": {
+      "hash": "92a81afd0fa1a9f0",
+      "kind": "scalar",
+      "value": 60129.0,
+      "summary": "finqa-ANSS_2013_page_55.pdf-2 row 7 column 6",
+      "file": "92a81afd0fa1a9f0.json"
+    }
+  }
+}

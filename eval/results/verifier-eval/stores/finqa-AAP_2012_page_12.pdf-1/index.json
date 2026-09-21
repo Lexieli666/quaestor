@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "6c292f1ed8a0e184",
+      "kind": "scalar",
+      "value": 3.4,
+      "summary": "what is the growth rate in the number of stores during 2012?",
+      "file": "6c292f1ed8a0e184.json"
+    },
+    "table.r1.c2": {
+      "hash": "01787f979cd87830",
+      "kind": "scalar",
+      "value": 2012.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 1 column 2",
+      "file": "01787f979cd87830.json"
+    },
+    "table.r1.c3": {
+      "hash": "86438bf13e2981ba",
+      "kind": "scalar",
+      "value": 2011.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 1 column 3",
+      "file": "86438bf13e2981ba.json"
+    },
+    "table.r1.c4": {
+      "hash": "df36d658c6fa3d9e",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 1 column 4",
+      "file": "df36d658c6fa3d9e.json"
+    },
+    "table.r1.c5": {
+      "hash": "d8a3f91d93a9878b",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 1 column 5",
+      "file": "d8a3f91d93a9878b.json"
+    },
+    "table.r1.c6": {
+      "hash": "c0e9051947e9d66c",
+      "kind": "scalar",
+      "value": 2008.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 1 column 6",
+      "file": "c0e9051947e9d66c.json"
+    },
+    "table.r2.c2": {
+      "hash": "a09797b6138ba948",
+      "kind": "scalar",
+      "value": 3460.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 2 column 2",
+      "file": "a09797b6138ba948.json"
+    },
+    "table.r2.c3": {
+      "hash": "2ce09828693d7abb",
+      "kind": "scalar",
+      "value": 3369.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 2 column 3",
+      "file": "2ce09828693d7abb.json"
+    },
+    "table.r2.c4": {
+      "hash": "baeac154e4b12741",
+      "kind": "scalar",
+      "value": 3264.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 2 column 4",
+      "file": "baeac154e4b12741.json"
+    },
+    "table.r2.c5": {
+      "hash": "7c2fd6c622d2e171",
+      "kind": "scalar",
+      "value": 3243.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 2 column 5",
+      "file": "7c2fd6c622d2e171.json"
+    },
+    "table.r2.c6": {
+      "hash": "8c0c2fcb904246c7",
+      "kind": "scalar",
+      "value": 3153.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 2 column 6",
+      "file": "8c0c2fcb904246c7.json"
+    },
+    "table.r3.c2": {
+      "hash": "85eed92adfccc06b",
+      "kind": "scalar",
+      "value": 116.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 3 column 2",
+      "file": "85eed92adfccc06b.json"
+    },
+    "table.r3.c3": {
+      "hash": "ff8ba830e2cabe31",
+      "kind": "scalar",
+      "value": 95.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 3 column 3",
+      "file": "ff8ba830e2cabe31.json"
+    },
+    "table.r3.c4": {
+      "hash": "92cd5272835fd657",
+      "kind": "scalar",
+      "value": 110.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 3 column 4",
+      "file": "92cd5272835fd657.json"
+    },
+    "table.r3.c5": {
+      "hash": "001f3920184c315b",
+      "kind": "scalar",
+      "value": 75.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 3 column 5",
+      "file": "001f3920184c315b.json"
+    },
+    "table.r3.c6": {
+      "hash": "8de3d48ff0b9b1f0",
+      "kind": "scalar",
+      "value": 109.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 3 column 6",
+      "file": "8de3d48ff0b9b1f0.json"
+    },
+    "table.r4.c2": {
+      "hash": "799ef25dd796751b",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 4 column 2",
+      "file": "799ef25dd796751b.json"
+    },
+    "table.r5.c2": {
+      "hash": "d0fa1bcc5e75bbb2",
+      "kind": "scalar",
+      "value": 3576.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 5 column 2",
+      "file": "d0fa1bcc5e75bbb2.json"
+    },
+    "table.r5.c3": {
+      "hash": "958549112bb3b8d3",
+      "kind": "scalar",
+      "value": 3460.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 5 column 3",
+      "file": "958549112bb3b8d3.json"
+    },
+    "table.r5.c4": {
+      "hash": "221bfde7028fd3e9",
+      "kind": "scalar",
+      "value": 3369.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 5 column 4",
+      "file": "221bfde7028fd3e9.json"
+    },
+    "table.r5.c5": {
+      "hash": "21df8ef1f6551f3f",
+      "kind": "scalar",
+      "value": 3264.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 5 column 5",
+      "file": "21df8ef1f6551f3f.json"
+    },
+    "table.r5.c6": {
+      "hash": "ccd797979ce77335",
+      "kind": "scalar",
+      "value": 3243.0,
+      "summary": "finqa-AAP_2012_page_12.pdf-1 row 5 column 6",
+      "file": "ccd797979ce77335.json"
+    }
+  }
+}

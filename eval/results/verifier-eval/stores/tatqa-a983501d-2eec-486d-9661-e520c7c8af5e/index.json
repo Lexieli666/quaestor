@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "f77ae62a4ff4b652",
+      "kind": "scalar",
+      "value": 3728.0,
+      "summary": "What was the average difference between EBITDA and underlying EBITDA for both FYs?",
+      "file": "f77ae62a4ff4b652.json"
+    },
+    "table.r12.c2": {
+      "hash": "b0f3ba82d798768a",
+      "kind": "scalar",
+      "value": 5459.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 12 column 2",
+      "file": "b0f3ba82d798768a.json"
+    },
+    "table.r12.c3": {
+      "hash": "3522a234b32daea6",
+      "kind": "scalar",
+      "value": 1812.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 12 column 3",
+      "file": "3522a234b32daea6.json"
+    },
+    "table.r13.c2": {
+      "hash": "cb18e4743e0e223d",
+      "kind": "scalar",
+      "value": 3498.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 13 column 2",
+      "file": "cb18e4743e0e223d.json"
+    },
+    "table.r14.c2": {
+      "hash": "6a85d1957ba23960",
+      "kind": "scalar",
+      "value": 823.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 14 column 2",
+      "file": "6a85d1957ba23960.json"
+    },
+    "table.r15.c2": {
+      "hash": "c4a4232b8d1d28e5",
+      "kind": "scalar",
+      "value": 85123.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 15 column 2",
+      "file": "c4a4232b8d1d28e5.json"
+    },
+    "table.r15.c3": {
+      "hash": "68b9b159d2fe857a",
+      "kind": "scalar",
+      "value": 62575.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 15 column 3",
+      "file": "68b9b159d2fe857a.json"
+    },
+    "table.r3.c3": {
+      "hash": "79627acfeb150423",
+      "kind": "scalar",
+      "value": 6639.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 3 column 3",
+      "file": "79627acfeb150423.json"
+    },
+    "table.r4.c2": {
+      "hash": "0ffdee34e7394ba6",
+      "kind": "scalar",
+      "value": 54897.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 4 column 2",
+      "file": "0ffdee34e7394ba6.json"
+    },
+    "table.r4.c3": {
+      "hash": "42fa97cf367592d9",
+      "kind": "scalar",
+      "value": 25803.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 4 column 3",
+      "file": "42fa97cf367592d9.json"
+    },
+    "table.r6.c3": {
+      "hash": "bef694a3f0bc8a6b",
+      "kind": "scalar",
+      "value": 4252.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 6 column 3",
+      "file": "bef694a3f0bc8a6b.json"
+    },
+    "table.r7.c2": {
+      "hash": "5c755667694eeb05",
+      "kind": "scalar",
+      "value": 48442.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 7 column 2",
+      "file": "5c755667694eeb05.json"
+    },
+    "table.r7.c3": {
+      "hash": "4898c71cc2cdf063",
+      "kind": "scalar",
+      "value": 33038.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 7 column 3",
+      "file": "4898c71cc2cdf063.json"
+    },
+    "table.r8.c2": {
+      "hash": "3b13b19b8288ea94",
+      "kind": "scalar",
+      "value": 79046.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 8 column 2",
+      "file": "3b13b19b8288ea94.json"
+    },
+    "table.r8.c3": {
+      "hash": "abeef8b71e8f19b8",
+      "kind": "scalar",
+      "value": 63954.0,
+      "summary": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e row 8 column 3",
+      "file": "abeef8b71e8f19b8.json"
+    }
+  }
+}

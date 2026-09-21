@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "d516937618f4362f",
+      "kind": "scalar",
+      "value": 2.5,
+      "summary": "What is the discount rate for 2019?",
+      "file": "d516937618f4362f.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-b326ee9d-156e-411e-bfce-77f7f6350c5b row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-b326ee9d-156e-411e-bfce-77f7f6350c5b row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r2.c4": {
+      "hash": "f7988034170b57ca",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "tatqa-b326ee9d-156e-411e-bfce-77f7f6350c5b row 2 column 4",
+      "file": "f7988034170b57ca.json"
+    }
+  }
+}

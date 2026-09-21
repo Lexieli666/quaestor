@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "c93a6b5ff68e54b0",
+      "kind": "scalar",
+      "value": 503.0,
+      "summary": "What was the net Interest expense, interest income and other income in 2018?",
+      "file": "c93a6b5ff68e54b0.json"
+    },
+    "table.r10.c2": {
+      "hash": "075a71965d88bba4",
+      "kind": "scalar",
+      "value": 2403.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 10 column 2",
+      "file": "075a71965d88bba4.json"
+    },
+    "table.r10.c4": {
+      "hash": "b717f4d315c81989",
+      "kind": "scalar",
+      "value": 5895.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 10 column 4",
+      "file": "b717f4d315c81989.json"
+    },
+    "table.r11.c2": {
+      "hash": "49d985cf271d2f4a",
+      "kind": "scalar",
+      "value": 12754.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 11 column 2",
+      "file": "49d985cf271d2f4a.json"
+    },
+    "table.r11.c3": {
+      "hash": "b0455ff23dd2b6d4",
+      "kind": "scalar",
+      "value": 45729.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 11 column 3",
+      "file": "b0455ff23dd2b6d4.json"
+    },
+    "table.r11.c4": {
+      "hash": "d5e8c3d085e2297c",
+      "kind": "scalar",
+      "value": 7212.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 11 column 4",
+      "file": "d5e8c3d085e2297c.json"
+    },
+    "table.r12.c2": {
+      "hash": "972359a5875ac3d9",
+      "kind": "scalar",
+      "value": 54977.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 12 column 2",
+      "file": "972359a5875ac3d9.json"
+    },
+    "table.r12.c3": {
+      "hash": "4cbde3ea418c6c31",
+      "kind": "scalar",
+      "value": 71557.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 12 column 3",
+      "file": "4cbde3ea418c6c31.json"
+    },
+    "table.r12.c4": {
+      "hash": "6d549f63f5ca0b99",
+      "kind": "scalar",
+      "value": 42377.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 12 column 4",
+      "file": "6d549f63f5ca0b99.json"
+    },
+    "table.r13.c2": {
+      "hash": "074c207183c093b0",
+      "kind": "scalar",
+      "value": 108307.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 13 column 2",
+      "file": "074c207183c093b0.json"
+    },
+    "table.r13.c3": {
+      "hash": "39dac203967e8c8a",
+      "kind": "scalar",
+      "value": 93081.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 13 column 3",
+      "file": "39dac203967e8c8a.json"
+    },
+    "table.r13.c4": {
+      "hash": "ece439a2ef64167e",
+      "kind": "scalar",
+      "value": 71628.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 13 column 4",
+      "file": "ece439a2ef64167e.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r2.c4": {
+      "hash": "f7988034170b57ca",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 2 column 4",
+      "file": "f7988034170b57ca.json"
+    },
+    "table.r4.c2": {
+      "hash": "2a8085f6b3a621ce",
+      "kind": "scalar",
+      "value": 53330.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 4 column 2",
+      "file": "2a8085f6b3a621ce.json"
+    },
+    "table.r4.c3": {
+      "hash": "70830ea4945a4e74",
+      "kind": "scalar",
+      "value": 21524.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 4 column 3",
+      "file": "70830ea4945a4e74.json"
+    },
+    "table.r4.c4": {
+      "hash": "bc90b1ccfe1c8110",
+      "kind": "scalar",
+      "value": 29251.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 4 column 4",
+      "file": "bc90b1ccfe1c8110.json"
+    },
+    "table.r6.c3": {
+      "hash": "8d41debdcfdae2e6",
+      "kind": "scalar",
+      "value": 503.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 6 column 3",
+      "file": "8d41debdcfdae2e6.json"
+    },
+    "table.r6.c4": {
+      "hash": "cd4006b95b3030e4",
+      "kind": "scalar",
+      "value": 1133.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 6 column 4",
+      "file": "cd4006b95b3030e4.json"
+    },
+    "table.r7.c2": {
+      "hash": "eeec3b6ec02c13f5",
+      "kind": "scalar",
+      "value": 5566.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 7 column 2",
+      "file": "eeec3b6ec02c13f5.json"
+    },
+    "table.r7.c4": {
+      "hash": "d825a63d02249e3e",
+      "kind": "scalar",
+      "value": 2990.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 7 column 4",
+      "file": "d825a63d02249e3e.json"
+    },
+    "table.r8.c2": {
+      "hash": "40b3120848e9e58f",
+      "kind": "scalar",
+      "value": 22134.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 8 column 2",
+      "file": "40b3120848e9e58f.json"
+    },
+    "table.r8.c3": {
+      "hash": "647f5f361ac93e61",
+      "kind": "scalar",
+      "value": 21721.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 8 column 3",
+      "file": "647f5f361ac93e61.json"
+    },
+    "table.r8.c4": {
+      "hash": "d431fe4035053df8",
+      "kind": "scalar",
+      "value": 17734.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 8 column 4",
+      "file": "d431fe4035053df8.json"
+    },
+    "table.r9.c2": {
+      "hash": "0fc22fef4c1d7b2e",
+      "kind": "scalar",
+      "value": 20603.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 9 column 2",
+      "file": "0fc22fef4c1d7b2e.json"
+    },
+    "table.r9.c3": {
+      "hash": "356b83689be302e8",
+      "kind": "scalar",
+      "value": 13429.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 9 column 3",
+      "file": "356b83689be302e8.json"
+    },
+    "table.r9.c4": {
+      "hash": "3f72afc87a556c74",
+      "kind": "scalar",
+      "value": 7413.0,
+      "summary": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36 row 9 column 4",
+      "file": "3f72afc87a556c74.json"
+    }
+  }
+}

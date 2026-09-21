@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "09e72dc34a1dc79f",
+      "kind": "scalar",
+      "value": 26.0,
+      "summary": "what was the difference in percentage cumulative return for lkq corporation and the s&p 500 index for the five years ended 12/31/2016?",
+      "file": "09e72dc34a1dc79f.json"
+    },
+    "table.r2.c2": {
+      "hash": "a712c9f2f6c523cc",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 2 column 2",
+      "file": "a712c9f2f6c523cc.json"
+    },
+    "table.r2.c3": {
+      "hash": "627e5c2853f255e7",
+      "kind": "scalar",
+      "value": 140.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 2 column 3",
+      "file": "627e5c2853f255e7.json"
+    },
+    "table.r2.c4": {
+      "hash": "5d729ff714f1c9fd",
+      "kind": "scalar",
+      "value": 219.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 2 column 4",
+      "file": "5d729ff714f1c9fd.json"
+    },
+    "table.r2.c5": {
+      "hash": "51390c2e306a2bcd",
+      "kind": "scalar",
+      "value": 187.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 2 column 5",
+      "file": "51390c2e306a2bcd.json"
+    },
+    "table.r2.c6": {
+      "hash": "b55de7eb94809e1b",
+      "kind": "scalar",
+      "value": 197.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 2 column 6",
+      "file": "b55de7eb94809e1b.json"
+    },
+    "table.r2.c7": {
+      "hash": "2a9bcb9b65720d96",
+      "kind": "scalar",
+      "value": 204.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 2 column 7",
+      "file": "2a9bcb9b65720d96.json"
+    },
+    "table.r3.c2": {
+      "hash": "f8e7421964023b61",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 3 column 2",
+      "file": "f8e7421964023b61.json"
+    },
+    "table.r3.c3": {
+      "hash": "de0b7bc22b466926",
+      "kind": "scalar",
+      "value": 113.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 3 column 3",
+      "file": "de0b7bc22b466926.json"
+    },
+    "table.r3.c4": {
+      "hash": "f1b4c062d42e03a9",
+      "kind": "scalar",
+      "value": 147.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 3 column 4",
+      "file": "f1b4c062d42e03a9.json"
+    },
+    "table.r3.c5": {
+      "hash": "343d976e072af262",
+      "kind": "scalar",
+      "value": 164.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 3 column 5",
+      "file": "343d976e072af262.json"
+    },
+    "table.r3.c6": {
+      "hash": "bda0b31c03c6a053",
+      "kind": "scalar",
+      "value": 163.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 3 column 6",
+      "file": "bda0b31c03c6a053.json"
+    },
+    "table.r3.c7": {
+      "hash": "eec79aa7843e6f59",
+      "kind": "scalar",
+      "value": 178.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 3 column 7",
+      "file": "eec79aa7843e6f59.json"
+    },
+    "table.r4.c2": {
+      "hash": "0794dd9bf9e90dff",
+      "kind": "scalar",
+      "value": 100.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 4 column 2",
+      "file": "0794dd9bf9e90dff.json"
+    },
+    "table.r4.c3": {
+      "hash": "14dd3e29c9dd3c36",
+      "kind": "scalar",
+      "value": 111.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 4 column 3",
+      "file": "14dd3e29c9dd3c36.json"
+    },
+    "table.r4.c4": {
+      "hash": "cfbc327e6476f3f9",
+      "kind": "scalar",
+      "value": 140.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 4 column 4",
+      "file": "cfbc327e6476f3f9.json"
+    },
+    "table.r4.c5": {
+      "hash": "de617a2197e2e057",
+      "kind": "scalar",
+      "value": 177.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 4 column 5",
+      "file": "de617a2197e2e057.json"
+    },
+    "table.r4.c6": {
+      "hash": "2a65425f2d506835",
+      "kind": "scalar",
+      "value": 188.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 4 column 6",
+      "file": "2a65425f2d506835.json"
+    },
+    "table.r4.c7": {
+      "hash": "e64e221d80172855",
+      "kind": "scalar",
+      "value": 217.0,
+      "summary": "finqa-LKQ_2016_page_26.pdf-2 row 4 column 7",
+      "file": "e64e221d80172855.json"
+    }
+  }
+}

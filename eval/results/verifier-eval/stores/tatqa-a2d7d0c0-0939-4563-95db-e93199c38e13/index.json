@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "e32d81100594cf7c",
+      "kind": "scalar",
+      "value": 230.0,
+      "summary": "What is the number of stores under Dan Murphy's store network in F19?",
+      "file": "e32d81100594cf7c.json"
+    },
+    "table.r10.c2": {
+      "hash": "1d3f10ce6f44ea7c",
+      "kind": "scalar",
+      "value": 18675.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 10 column 2",
+      "file": "1d3f10ce6f44ea7c.json"
+    },
+    "table.r10.c3": {
+      "hash": "c0ed35d0be48a336",
+      "kind": "scalar",
+      "value": 18094.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 10 column 3",
+      "file": "c0ed35d0be48a336.json"
+    },
+    "table.r11.c2": {
+      "hash": "f805fd43642344aa",
+      "kind": "scalar",
+      "value": 3185.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 11 column 2",
+      "file": "f805fd43642344aa.json"
+    },
+    "table.r11.c3": {
+      "hash": "b587a3067ed2ae2e",
+      "kind": "scalar",
+      "value": 3214.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 11 column 3",
+      "file": "b587a3067ed2ae2e.json"
+    },
+    "table.r12.c2": {
+      "hash": "3db94d8d68b76402",
+      "kind": "scalar",
+      "value": 15.2,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 12 column 2",
+      "file": "3db94d8d68b76402.json"
+    },
+    "table.r12.c3": {
+      "hash": "9cfc01c33169cfb8",
+      "kind": "scalar",
+      "value": 17.1,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 12 column 3",
+      "file": "9cfc01c33169cfb8.json"
+    },
+    "table.r3.c2": {
+      "hash": "71bc9d20331d8eb8",
+      "kind": "scalar",
+      "value": 8657.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 3 column 2",
+      "file": "71bc9d20331d8eb8.json"
+    },
+    "table.r3.c3": {
+      "hash": "4c3cd4a427171182",
+      "kind": "scalar",
+      "value": 8244.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 3 column 3",
+      "file": "4c3cd4a427171182.json"
+    },
+    "table.r4.c2": {
+      "hash": "6ed5da192a657a66",
+      "kind": "scalar",
+      "value": 579.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 4 column 2",
+      "file": "6ed5da192a657a66.json"
+    },
+    "table.r4.c3": {
+      "hash": "f44b837530bfb644",
+      "kind": "scalar",
+      "value": 603.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 4 column 3",
+      "file": "f44b837530bfb644.json"
+    },
+    "table.r6.c2": {
+      "hash": "f8ca0709c3513f97",
+      "kind": "scalar",
+      "value": 474.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 6 column 2",
+      "file": "f8ca0709c3513f97.json"
+    },
+    "table.r6.c3": {
+      "hash": "873c33b037458a53",
+      "kind": "scalar",
+      "value": 516.0,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 6 column 3",
+      "file": "873c33b037458a53.json"
+    },
+    "table.r7.c2": {
+      "hash": "65edd83f592a606a",
+      "kind": "scalar",
+      "value": 22.9,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 7 column 2",
+      "file": "65edd83f592a606a.json"
+    },
+    "table.r7.c3": {
+      "hash": "382c94e1995f9230",
+      "kind": "scalar",
+      "value": 23.1,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 7 column 3",
+      "file": "382c94e1995f9230.json"
+    },
+    "table.r8.c2": {
+      "hash": "08c9a5a04afdb3e7",
+      "kind": "scalar",
+      "value": 17.4,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 8 column 2",
+      "file": "08c9a5a04afdb3e7.json"
+    },
+    "table.r8.c3": {
+      "hash": "9dd0f175ac2f7586",
+      "kind": "scalar",
+      "value": 16.8,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 8 column 3",
+      "file": "9dd0f175ac2f7586.json"
+    },
+    "table.r9.c2": {
+      "hash": "592e4e8564a04dea",
+      "kind": "scalar",
+      "value": 5.5,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 9 column 2",
+      "file": "592e4e8564a04dea.json"
+    },
+    "table.r9.c3": {
+      "hash": "8204b4f3f30b8482",
+      "kind": "scalar",
+      "value": 6.3,
+      "summary": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13 row 9 column 3",
+      "file": "8204b4f3f30b8482.json"
+    }
+  }
+}

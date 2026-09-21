@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "ac46db646e1505e4",
+      "kind": "scalar",
+      "value": 111.4,
+      "summary": "What is the average accrued payroll and employee benefits for 2018 and 2019?",
+      "file": "ac46db646e1505e4.json"
+    },
+    "table.r10.c2": {
+      "hash": "d1623480c43aa74b",
+      "kind": "scalar",
+      "value": 33.3,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 10 column 2",
+      "file": "d1623480c43aa74b.json"
+    },
+    "table.r10.c3": {
+      "hash": "68332f7b97375cf3",
+      "kind": "scalar",
+      "value": 44.8,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 10 column 3",
+      "file": "68332f7b97375cf3.json"
+    },
+    "table.r11.c2": {
+      "hash": "85e8ce99975cee88",
+      "kind": "scalar",
+      "value": 366.0,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 11 column 2",
+      "file": "85e8ce99975cee88.json"
+    },
+    "table.r11.c3": {
+      "hash": "c51710f9d4a64919",
+      "kind": "scalar",
+      "value": 414.3,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 11 column 3",
+      "file": "c51710f9d4a64919.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r3.c2": {
+      "hash": "fb3048adb504e0b2",
+      "kind": "scalar",
+      "value": 116.9,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 3 column 2",
+      "file": "fb3048adb504e0b2.json"
+    },
+    "table.r3.c3": {
+      "hash": "3bfc3430aee3b90c",
+      "kind": "scalar",
+      "value": 105.9,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 3 column 3",
+      "file": "3bfc3430aee3b90c.json"
+    },
+    "table.r4.c2": {
+      "hash": "92a7595c128bbafb",
+      "kind": "scalar",
+      "value": 93.8,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 4 column 2",
+      "file": "92a7595c128bbafb.json"
+    },
+    "table.r4.c3": {
+      "hash": "8cd853951aab7ea2",
+      "kind": "scalar",
+      "value": 120.5,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 4 column 3",
+      "file": "8cd853951aab7ea2.json"
+    },
+    "table.r5.c2": {
+      "hash": "958810070201fbc3",
+      "kind": "scalar",
+      "value": 39.5,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 5 column 2",
+      "file": "958810070201fbc3.json"
+    },
+    "table.r6.c2": {
+      "hash": "3db9dffc86c98ba9",
+      "kind": "scalar",
+      "value": 30.8,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 6 column 2",
+      "file": "3db9dffc86c98ba9.json"
+    },
+    "table.r6.c3": {
+      "hash": "3f0e20d0872c204a",
+      "kind": "scalar",
+      "value": 38.4,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 6 column 3",
+      "file": "3f0e20d0872c204a.json"
+    },
+    "table.r7.c2": {
+      "hash": "6e4cfa6d01794b2b",
+      "kind": "scalar",
+      "value": 28.7,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 7 column 2",
+      "file": "6e4cfa6d01794b2b.json"
+    },
+    "table.r7.c3": {
+      "hash": "3bdc66b3a420ea48",
+      "kind": "scalar",
+      "value": 10.9,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 7 column 3",
+      "file": "3bdc66b3a420ea48.json"
+    },
+    "table.r8.c2": {
+      "hash": "db8029d401900821",
+      "kind": "scalar",
+      "value": 14.7,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 8 column 2",
+      "file": "db8029d401900821.json"
+    },
+    "table.r8.c3": {
+      "hash": "45b3ed02d4335335",
+      "kind": "scalar",
+      "value": 19.4,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 8 column 3",
+      "file": "45b3ed02d4335335.json"
+    },
+    "table.r9.c2": {
+      "hash": "596200bea31ef0c5",
+      "kind": "scalar",
+      "value": 8.3,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 9 column 2",
+      "file": "596200bea31ef0c5.json"
+    },
+    "table.r9.c3": {
+      "hash": "fae29de0afc25129",
+      "kind": "scalar",
+      "value": 74.4,
+      "summary": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944 row 9 column 3",
+      "file": "fae29de0afc25129.json"
+    }
+  }
+}

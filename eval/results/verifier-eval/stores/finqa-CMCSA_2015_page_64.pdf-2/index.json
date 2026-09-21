@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "da374d57c5f5254e",
+      "kind": "scalar",
+      "value": -147.0,
+      "summary": "what would the investment income ( loss ) have been in 2014 without the gain from the sale of the investment in clearwire corporation in 2013?",
+      "file": "da374d57c5f5254e.json"
+    },
+    "table.r1.c2": {
+      "hash": "b333f7c7808feff3",
+      "kind": "scalar",
+      "value": 2015.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 1 column 2",
+      "file": "b333f7c7808feff3.json"
+    },
+    "table.r1.c3": {
+      "hash": "91f598de517460b0",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 1 column 3",
+      "file": "91f598de517460b0.json"
+    },
+    "table.r1.c4": {
+      "hash": "d32f967dd8ddcfb2",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 1 column 4",
+      "file": "d32f967dd8ddcfb2.json"
+    },
+    "table.r3.c2": {
+      "hash": "02159ece5fea211a",
+      "kind": "scalar",
+      "value": 81.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 3 column 2",
+      "file": "02159ece5fea211a.json"
+    },
+    "table.r3.c3": {
+      "hash": "6591e987324b54d1",
+      "kind": "scalar",
+      "value": 296.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 3 column 3",
+      "file": "6591e987324b54d1.json"
+    },
+    "table.r3.c4": {
+      "hash": "3f5152482314efcb",
+      "kind": "scalar",
+      "value": 576.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 3 column 4",
+      "file": "3f5152482314efcb.json"
+    },
+    "table.r4.c3": {
+      "hash": "57c0d8ec69a05b1a",
+      "kind": "scalar",
+      "value": 97.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 4 column 3",
+      "file": "57c0d8ec69a05b1a.json"
+    },
+    "table.r5.c2": {
+      "hash": "06ab1fba3ac29ba1",
+      "kind": "scalar",
+      "value": 320.0,
+      "summary": "finqa-CMCSA_2015_page_64.pdf-2 row 5 column 2",
+      "file": "06ab1fba3ac29ba1.json"
+    }
+  }
+}

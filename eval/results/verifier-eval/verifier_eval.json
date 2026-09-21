@@ -1,0 +1,4893 @@
+{
+  "seed": 20260901,
+  "n_items": 100,
+  "results": [
+    {
+      "item_id": "finqa-STT_2009_page_73.pdf-3",
+      "perturbation": "relative_down",
+      "perturbed_value": 30.94,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percent change of securities between 2008 and 2009 is 34% [[art:8c07d84f:answer]].",
+          "value": 34.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 34.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:8c07d84f:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percent change of securities between 2008 and 2009 is 30.94% [[art:8c07d84f:answer]].",
+          "value": 30.94,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 34.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:8c07d84f:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percent change of securities between 2008 and 2009 is 34%.",
+          "value": 34.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "STT/2009/page_73.pdf-3"
+    },
+    {
+      "item_id": "finqa-INTC_2013_page_29.pdf-1",
+      "perturbation": "relative_down",
+      "perturbed_value": 74.8,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"what percentage of major facilities by square footage are owned as of december 28 , 2013\" is 85% [[art:03bac4cd:answer]].",
+          "value": 85.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 85.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:03bac4cd:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"what percentage of major facilities by square footage are owned as of december 28 , 2013\" is 74.8% [[art:03bac4cd:answer]].",
+          "value": 74.8,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 85.0,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:03bac4cd:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"what percentage of major facilities by square footage are owned as of december 28 , 2013\" is 85%.",
+          "value": 85.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "INTC/2013/page_29.pdf-1"
+    },
+    {
+      "item_id": "finqa-PNC_2009_page_46.pdf-2",
+      "perturbation": "relative_down",
+      "perturbed_value": -0.89,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"share of total securities rated bbb/baa or below changed by how many percentage point between 2008 and 2009\" is -1 [[art:533567f8:answer]].",
+          "value": -1.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -1.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:533567f8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"share of total securities rated bbb/baa or below changed by how many percentage point between 2008 and 2009\" is -0.89 [[art:533567f8:answer]].",
+          "value": -0.89,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -1.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:533567f8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"share of total securities rated bbb/baa or below changed by how many percentage point between 2008 and 2009\" is -1.",
+          "value": -1.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "PNC/2009/page_46.pdf-2"
+    },
+    {
+      "item_id": "finqa-TFX_2015_page_70.pdf-1",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 152.5,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The total value of the issued options , warrants and rights , ( in millions ) is 125.5 [[art:3a54eba4:answer]].",
+          "value": 125.5,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 125.5,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:3a54eba4:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the total value of the issued options , warrants and rights , ( in millions ) is 152.5 [[art:3a54eba4:answer]].",
+          "value": 152.5,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 125.5,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:3a54eba4:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the total value of the issued options , warrants and rights , ( in millions ) is 125.5.",
+          "value": 125.5,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "TFX/2015/page_70.pdf-1"
+    },
+    {
+      "item_id": "finqa-LMT_2015_page_99.pdf-1",
+      "perturbation": "relative_up",
+      "perturbed_value": 10395.660000000002,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the total long-term debt net from 2014 to 2015 in millions is 9119 [[art:1a4731f0:answer]].",
+          "value": 9119.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 9119.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:1a4731f0:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the total long-term debt net from 2014 to 2015 in millions is 10395.66 [[art:1a4731f0:answer]].",
+          "value": 10395.66,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 9119.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:1a4731f0:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the total long-term debt net from 2014 to 2015 in millions is 9119.",
+          "value": 9119.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "LMT/2015/page_99.pdf-1"
+    },
+    {
+      "item_id": "finqa-BLK_2014_page_119.pdf-3",
+      "perturbation": "relative_down",
+      "perturbed_value": 13.527999999999999,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"what portion of total long-term borrowings is due in the next 24 months\" is 15.2% [[art:a598bce4:answer]].",
+          "value": 15.2,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 15.2,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:a598bce4:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"what portion of total long-term borrowings is due in the next 24 months\" is 13.528% [[art:a598bce4:answer]].",
+          "value": 13.528,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 15.2,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:a598bce4:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"what portion of total long-term borrowings is due in the next 24 months\" is 15.2%.",
+          "value": 15.2,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "BLK/2014/page_119.pdf-3"
+    },
+    {
+      "item_id": "finqa-ETR_2016_page_418.pdf-2",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 70.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The net change in net revenue during 2016 for entergy texas , inc. is 7 [[art:6523eaf0:answer]].",
+          "value": 7.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 7.0,
+          "tolerance": 0.07,
+          "from_model": true,
+          "citation": "[[art:6523eaf0:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the net change in net revenue during 2016 for entergy texas , inc. is 70 [[art:6523eaf0:answer]].",
+          "value": 70.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 7.0,
+          "tolerance": 0.07,
+          "from_model": true,
+          "citation": "[[art:6523eaf0:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the net change in net revenue during 2016 for entergy texas , inc. is 7.",
+          "value": 7.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.07,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "ETR/2016/page_418.pdf-2"
+    },
+    {
+      "item_id": "finqa-ETFC_2013_page_26.pdf-1",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 650.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"at december 31 , 2013 what was the percent of square feet of our office in alpharetta , georgia not leased\" is 65% [[art:2ca852ef:answer]].",
+          "value": 65.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 65.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:2ca852ef:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"at december 31 , 2013 what was the percent of square feet of our office in alpharetta , georgia not leased\" is 650% [[art:2ca852ef:answer]].",
+          "value": 650.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 65.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:2ca852ef:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"at december 31 , 2013 what was the percent of square feet of our office in alpharetta , georgia not leased\" is 65%.",
+          "value": 65.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "ETFC/2013/page_26.pdf-1"
+    },
+    {
+      "item_id": "finqa-AAPL_2003_page_24.pdf-2",
+      "perturbation": "relative_down",
+      "perturbed_value": 24.552,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The greatest gross margin percentage in the three year period is 27.9 [[art:3dd6ccaf:answer]].",
+          "value": 27.9,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 27.9,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:3dd6ccaf:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the greatest gross margin percentage in the three year period is 24.552 [[art:3dd6ccaf:answer]].",
+          "value": 24.552,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 27.9,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:3dd6ccaf:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the greatest gross margin percentage in the three year period is 27.9.",
+          "value": 27.9,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AAPL/2003/page_24.pdf-2"
+    },
+    {
+      "item_id": "finqa-AES_2017_page_157.pdf-3",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 73040000.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"without the us , what would the total net revenue be for 2017\" is 7304000000 [[art:5513321a:answer]].",
+          "value": 7304000000.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 7304000000.0,
+          "tolerance": 500000.0,
+          "from_model": true,
+          "citation": "[[art:5513321a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"without the us , what would the total net revenue be for 2017\" is 73040000 [[art:5513321a:answer]].",
+          "value": 73040000.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 7304000000.0,
+          "tolerance": 5000.0,
+          "from_model": true,
+          "citation": "[[art:5513321a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"without the us , what would the total net revenue be for 2017\" is 7304000000.",
+          "value": 7304000000.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 500000.0,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AES/2017/page_157.pdf-3"
+    },
+    {
+      "item_id": "finqa-GS_2017_page_143.pdf-1",
+      "perturbation": "decimal_shift",
+      "perturbed_value": -399.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage change in credit net from 2016 to 2017 is -39.9% [[art:4b98be07:answer]].",
+          "value": -39.9,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -39.9,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:4b98be07:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage change in credit net from 2016 to 2017 is -399% [[art:4b98be07:answer]].",
+          "value": -399.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -39.9,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:4b98be07:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage change in credit net from 2016 to 2017 is -39.9%.",
+          "value": -39.9,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "GS/2017/page_143.pdf-1"
+    },
+    {
+      "item_id": "finqa-CMCSA_2015_page_64.pdf-2",
+      "perturbation": "digit_transposition",
+      "perturbed_value": -174.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"what would the investment income ( loss ) have been in 2014 without the gain from the sale of the investment in clearwire corporation in 2013\" is -147 [[art:da374d57:answer]].",
+          "value": -147.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -147.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:da374d57:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"what would the investment income ( loss ) have been in 2014 without the gain from the sale of the investment in clearwire corporation in 2013\" is -174 [[art:da374d57:answer]].",
+          "value": -174.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -147.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:da374d57:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"what would the investment income ( loss ) have been in 2014 without the gain from the sale of the investment in clearwire corporation in 2013\" is -147.",
+          "value": -147.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "CMCSA/2015/page_64.pdf-2"
+    },
+    {
+      "item_id": "finqa-LMT_2010_page_42.pdf-3",
+      "perturbation": "decimal_shift",
+      "perturbed_value": -1350.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The net change in cash in 2010 is -135 [[art:12a45ac8:answer]].",
+          "value": -135.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -135.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:12a45ac8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the net change in cash in 2010 is -1350 [[art:12a45ac8:answer]].",
+          "value": -1350.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -135.0,
+          "tolerance": 1.35,
+          "from_model": true,
+          "citation": "[[art:12a45ac8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the net change in cash in 2010 is -135.",
+          "value": -135.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "LMT/2010/page_42.pdf-3"
+    },
+    {
+      "item_id": "finqa-CB_2010_page_200.pdf-1",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 26.34,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The net change in amount of statutory capital and surplus for bermuda subsidiaries in 2010 is 2634 [[art:456499b6:answer]].",
+          "value": 2634.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 2634.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:456499b6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the net change in amount of statutory capital and surplus for bermuda subsidiaries in 2010 is 26.34 [[art:456499b6:answer]].",
+          "value": 26.34,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 2634.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:456499b6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the net change in amount of statutory capital and surplus for bermuda subsidiaries in 2010 is 2634.",
+          "value": 2634.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "CB/2010/page_200.pdf-1"
+    },
+    {
+      "item_id": "finqa-DVN_2014_page_85.pdf-1",
+      "perturbation": "relative_up",
+      "perturbed_value": 48.384,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average amortization amount , in millions , from 2015-2019 is 44.8 [[art:7ca56de2:answer]].",
+          "value": 44.8,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 44.8,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:7ca56de2:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average amortization amount , in millions , from 2015-2019 is 48.384 [[art:7ca56de2:answer]].",
+          "value": 48.384,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 44.8,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:7ca56de2:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average amortization amount , in millions , from 2015-2019 is 44.8.",
+          "value": 44.8,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "DVN/2014/page_85.pdf-1"
+    },
+    {
+      "item_id": "finqa-DRE_2002_page_40.pdf-1",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 11.100000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percent change in quarterly cash dividend for the period ended march 31 2002 to the period ended march 31 2003 is 1.11% [[art:3226ae76:answer]].",
+          "value": 1.11,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 1.11,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:3226ae76:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percent change in quarterly cash dividend for the period ended march 31 2002 to the period ended march 31 2003 is 11.1% [[art:3226ae76:answer]].",
+          "value": 11.1,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 1.11,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:3226ae76:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percent change in quarterly cash dividend for the period ended march 31 2002 to the period ended march 31 2003 is 1.11%.",
+          "value": 1.11,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "DRE/2002/page_40.pdf-1"
+    },
+    {
+      "item_id": "finqa-JPM_2005_page_37.pdf-2",
+      "perturbation": "relative_up",
+      "perturbed_value": 10941.099999999999,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"without the commercial banking segment , what would 2005 operating income have been reduced to , in us$ m\" is 9514 [[art:a589121f:answer]].",
+          "value": 9514.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 9514.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:a589121f:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"without the commercial banking segment , what would 2005 operating income have been reduced to , in us$ m\" is 10941.1 [[art:a589121f:answer]].",
+          "value": 10941.1,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 9514.0,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:a589121f:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"without the commercial banking segment , what would 2005 operating income have been reduced to , in us$ m\" is 9514.",
+          "value": 9514.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "JPM/2005/page_37.pdf-2"
+    },
+    {
+      "item_id": "finqa-LKQ_2016_page_26.pdf-2",
+      "perturbation": "relative_up",
+      "perturbed_value": 29.120000000000005,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The difference in percentage cumulative return for lkq corporation and the s&p 500 index for the five years ended 12/31/2016 is 26% [[art:09e72dc3:answer]].",
+          "value": 26.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 26.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:09e72dc3:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the difference in percentage cumulative return for lkq corporation and the s&p 500 index for the five years ended 12/31/2016 is 29.12% [[art:09e72dc3:answer]].",
+          "value": 29.12,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 26.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:09e72dc3:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the difference in percentage cumulative return for lkq corporation and the s&p 500 index for the five years ended 12/31/2016 is 26%.",
+          "value": 26.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "LKQ/2016/page_26.pdf-2"
+    },
+    {
+      "item_id": "finqa-APD_2016_page_96.pdf-1",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 1170.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"considering the years 2014-2016 , what was the average cash paid for interest\" is 117 [[art:c258ee2d:answer]].",
+          "value": 117.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 117.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:c258ee2d:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"considering the years 2014-2016 , what was the average cash paid for interest\" is 1170 [[art:c258ee2d:answer]].",
+          "value": 1170.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 117.0,
+          "tolerance": 1.17,
+          "from_model": true,
+          "citation": "[[art:c258ee2d:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"considering the years 2014-2016 , what was the average cash paid for interest\" is 117.",
+          "value": 117.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "APD/2016/page_96.pdf-1"
+    },
+    {
+      "item_id": "finqa-MSI_2006_page_61.pdf-3",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 53.1,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percent of the total long-term debt obligations that was due after 2011 is 35.1% [[art:1d607275:answer]].",
+          "value": 35.1,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 35.1,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:1d607275:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percent of the total long-term debt obligations that was due after 2011 is 53.1% [[art:1d607275:answer]].",
+          "value": 53.1,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 35.1,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:1d607275:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percent of the total long-term debt obligations that was due after 2011 is 35.1%.",
+          "value": 35.1,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "MSI/2006/page_61.pdf-3"
+    },
+    {
+      "item_id": "finqa-EW_2016_page_94.pdf-3",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 17.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage difference in the fair value per share between 2015 and 2016 is 71% [[art:9d65ef13:answer]].",
+          "value": 71.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 71.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:9d65ef13:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage difference in the fair value per share between 2015 and 2016 is 17% [[art:9d65ef13:answer]].",
+          "value": 17.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 71.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:9d65ef13:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage difference in the fair value per share between 2015 and 2016 is 71%.",
+          "value": 71.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "EW/2016/page_94.pdf-3"
+    },
+    {
+      "item_id": "finqa-UNP_2007_page_65.pdf-1",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 71.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"as of as of december 31 , 2007 what was the percent of the total debt maturities that was due in 2009\" is 7.1% [[art:1ef626de:answer]].",
+          "value": 7.1,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 7.1,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:1ef626de:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"as of as of december 31 , 2007 what was the percent of the total debt maturities that was due in 2009\" is 71% [[art:1ef626de:answer]].",
+          "value": 71.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 7.1,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:1ef626de:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"as of as of december 31 , 2007 what was the percent of the total debt maturities that was due in 2009\" is 7.1%.",
+          "value": 7.1,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "UNP/2007/page_65.pdf-1"
+    },
+    {
+      "item_id": "finqa-IP_2005_page_19.pdf-2",
+      "perturbation": "relative_down",
+      "perturbed_value": 272.34000000000003,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in industry segment operating profits between 2003 and 2004 is 306 [[art:dc17f35b:answer]].",
+          "value": 306.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 306.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:dc17f35b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in industry segment operating profits between 2003 and 2004 is 272.34 [[art:dc17f35b:answer]].",
+          "value": 272.34,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 306.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:dc17f35b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in industry segment operating profits between 2003 and 2004 is 306.",
+          "value": 306.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "IP/2005/page_19.pdf-2"
+    },
+    {
+      "item_id": "finqa-JPM_2014_page_65.pdf-3",
+      "perturbation": "relative_down",
+      "perturbed_value": 0.9790000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"based o n the review of the simultaneous investments of the jpmorgan chase common stock in the various index what was the ratio of the performance in the kbw bank index to the s&p financial index in 2010\" is 1.1 [[art:ab157ae8:answer]].",
+          "value": 1.1,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 1.1,
+          "tolerance": 0.011000000000000001,
+          "from_model": true,
+          "citation": "[[art:ab157ae8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"based o n the review of the simultaneous investments of the jpmorgan chase common stock in the various index what was the ratio of the performance in the kbw bank index to the s&p financial index in 2010\" is 0.979 [[art:ab157ae8:answer]].",
+          "value": 0.979,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 1.1,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:ab157ae8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"based o n the review of the simultaneous investments of the jpmorgan chase common stock in the various index what was the ratio of the performance in the kbw bank index to the s&p financial index in 2010\" is 1.1.",
+          "value": 1.1,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.011000000000000001,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "JPM/2014/page_65.pdf-3"
+    },
+    {
+      "item_id": "finqa-CB_2010_page_88.pdf-2",
+      "perturbation": "relative_up",
+      "perturbed_value": 385.236,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average catastrophe losses from 2008 to 2010 in millions is 356.7 [[art:55b13731:answer]].",
+          "value": 356.7,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 356.7,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:55b13731:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average catastrophe losses from 2008 to 2010 in millions is 385.236 [[art:55b13731:answer]].",
+          "value": 385.236,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 356.7,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:55b13731:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average catastrophe losses from 2008 to 2010 in millions is 356.7.",
+          "value": 356.7,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "CB/2010/page_88.pdf-2"
+    },
+    {
+      "item_id": "finqa-CDNS_2006_page_30.pdf-4",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.5507,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The difference in percentage cumulative 5-year total return to shareholders of cadence design systems , inc . 2019s common stock and the s&p 500 for the period ended december 30 , 2006 is 55.07% [[art:bd2116d7:answer]].",
+          "value": 55.07,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 55.07,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:bd2116d7:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the difference in percentage cumulative 5-year total return to shareholders of cadence design systems , inc . 2019s common stock and the s&p 500 for the period ended december 30 , 2006 is 0.5507% [[art:bd2116d7:answer]].",
+          "value": 0.5507,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 55.07,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:bd2116d7:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the difference in percentage cumulative 5-year total return to shareholders of cadence design systems , inc . 2019s common stock and the s&p 500 for the period ended december 30 , 2006 is 55.07%.",
+          "value": 55.07,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "CDNS/2006/page_30.pdf-4"
+    },
+    {
+      "item_id": "finqa-HOLX_2008_page_144.pdf-2",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 65.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"what portion of the suros acquisition price is paid in cash\" is 56% [[art:cc386140:answer]].",
+          "value": 56.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 56.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:cc386140:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"what portion of the suros acquisition price is paid in cash\" is 65% [[art:cc386140:answer]].",
+          "value": 65.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 56.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:cc386140:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"what portion of the suros acquisition price is paid in cash\" is 56%.",
+          "value": 56.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "HOLX/2008/page_144.pdf-2"
+    },
+    {
+      "item_id": "finqa-AAP_2012_page_12.pdf-1",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.034,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The growth rate in the number of stores during 2012 is 3.4% [[art:6c292f1e:answer]].",
+          "value": 3.4,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 3.4,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:6c292f1e:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the growth rate in the number of stores during 2012 is 0.034% [[art:6c292f1e:answer]].",
+          "value": 0.034,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 3.4,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:6c292f1e:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the growth rate in the number of stores during 2012 is 3.4%.",
+          "value": 3.4,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AAP/2012/page_12.pdf-1"
+    },
+    {
+      "item_id": "finqa-MAS_2018_page_35.pdf-3",
+      "perturbation": "relative_up",
+      "perturbed_value": 1.596,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage growth in the operating profit as reported from 2017 to 2018 is 1.4% [[art:ad63353c:answer]].",
+          "value": 1.4,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 1.4,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:ad63353c:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage growth in the operating profit as reported from 2017 to 2018 is 1.596% [[art:ad63353c:answer]].",
+          "value": 1.596,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 1.4,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:ad63353c:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage growth in the operating profit as reported from 2017 to 2018 is 1.4%.",
+          "value": 1.4,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "MAS/2018/page_35.pdf-3"
+    },
+    {
+      "item_id": "finqa-BLL_2010_page_28.pdf-3",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.3496,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The five year total return on ball stock is 34.96 [[art:55a1b970:answer]].",
+          "value": 34.96,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 34.96,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:55a1b970:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the five year total return on ball stock is 0.3496 [[art:55a1b970:answer]].",
+          "value": 0.3496,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 34.96,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:55a1b970:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the five year total return on ball stock is 34.96.",
+          "value": 34.96,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "BLL/2010/page_28.pdf-3"
+    },
+    {
+      "item_id": "finqa-APD_2013_page_32.pdf-1",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.11460000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentual increase of other income due to favorable foreign exchange and reimbursements in 2011 is 11.46% [[art:0cad0502:answer]].",
+          "value": 11.46,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 11.46,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:0cad0502:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentual increase of other income due to favorable foreign exchange and reimbursements in 2011 is 0.1146% [[art:0cad0502:answer]].",
+          "value": 0.1146,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 11.46,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:0cad0502:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentual increase of other income due to favorable foreign exchange and reimbursements in 2011 is 11.46%.",
+          "value": 11.46,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "APD/2013/page_32.pdf-1"
+    },
+    {
+      "item_id": "finqa-AMAT_2014_page_18.pdf-1",
+      "perturbation": "relative_down",
+      "perturbed_value": 19.535999999999998,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The growth rate in sales from 2013 to 2014 is 22.2% [[art:f616ecba:answer]].",
+          "value": 22.2,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 22.2,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:f616ecba:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the growth rate in sales from 2013 to 2014 is 19.536% [[art:f616ecba:answer]].",
+          "value": 19.536,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 22.2,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:f616ecba:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the growth rate in sales from 2013 to 2014 is 22.2%.",
+          "value": 22.2,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AMAT/2014/page_18.pdf-1"
+    },
+    {
+      "item_id": "finqa-JPM_2014_page_65.pdf-2",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 89.96,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The total return of the kbw bank index over the above refernced five year period is 89.69% [[art:a883cb62:answer]].",
+          "value": 89.69,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 89.69,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:a883cb62:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the total return of the kbw bank index over the above refernced five year period is 89.96% [[art:a883cb62:answer]].",
+          "value": 89.96,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 89.69,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:a883cb62:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the total return of the kbw bank index over the above refernced five year period is 89.69%.",
+          "value": 89.69,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "JPM/2014/page_65.pdf-2"
+    },
+    {
+      "item_id": "finqa-ETR_2002_page_86.pdf-4",
+      "perturbation": "relative_up",
+      "perturbed_value": 1025.92,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The sum of the notes entergy issued to nypa with seven and eight annual payment installments is 916 [[art:23ef8e0b:answer]].",
+          "value": 916.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 916.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:23ef8e0b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the sum of the notes entergy issued to nypa with seven and eight annual payment installments is 1025.92 [[art:23ef8e0b:answer]].",
+          "value": 1025.92,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 916.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:23ef8e0b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the sum of the notes entergy issued to nypa with seven and eight annual payment installments is 916.",
+          "value": 916.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "ETR/2002/page_86.pdf-4"
+    },
+    {
+      "item_id": "finqa-APD_2018_page_59.pdf-2",
+      "perturbation": "relative_down",
+      "perturbed_value": 24.2,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentual increase in the operating expenses during 2017 and 2018 is 27.5% [[art:baa42522:answer]].",
+          "value": 27.5,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 27.5,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:baa42522:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentual increase in the operating expenses during 2017 and 2018 is 24.2% [[art:baa42522:answer]].",
+          "value": 24.2,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 27.5,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:baa42522:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentual increase in the operating expenses during 2017 and 2018 is 27.5%.",
+          "value": 27.5,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "APD/2018/page_59.pdf-2"
+    },
+    {
+      "item_id": "finqa-LMT_2010_page_42.pdf-2",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.11800000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage increase in the net cash provided by operating activities in 2010 compare to 2009 is 11.8% [[art:da280f01:answer]].",
+          "value": 11.8,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 11.8,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:da280f01:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage increase in the net cash provided by operating activities in 2010 compare to 2009 is 0.118% [[art:da280f01:answer]].",
+          "value": 0.118,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 11.8,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:da280f01:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage increase in the net cash provided by operating activities in 2010 compare to 2009 is 11.8%.",
+          "value": 11.8,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "LMT/2010/page_42.pdf-2"
+    },
+    {
+      "item_id": "finqa-JPM_2008_page_85.pdf-1",
+      "perturbation": "relative_up",
+      "perturbed_value": 28.404000000000003,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"tier 2 capital is what percent of total capital for 2008\" is 26.3% [[art:a4a80493:answer]].",
+          "value": 26.3,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 26.3,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:a4a80493:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"tier 2 capital is what percent of total capital for 2008\" is 28.404% [[art:a4a80493:answer]].",
+          "value": 28.404,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 26.3,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:a4a80493:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"tier 2 capital is what percent of total capital for 2008\" is 26.3%.",
+          "value": 26.3,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "JPM/2008/page_85.pdf-1"
+    },
+    {
+      "item_id": "finqa-DRE_2013_page_39.pdf-2",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 721.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percent of the debt maturities outstanding at december 31 , 2013 that was unsecured debt is 72.1% [[art:54971b73:answer]].",
+          "value": 72.1,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 72.1,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:54971b73:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percent of the debt maturities outstanding at december 31 , 2013 that was unsecured debt is 721% [[art:54971b73:answer]].",
+          "value": 721.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 72.1,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:54971b73:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percent of the debt maturities outstanding at december 31 , 2013 that was unsecured debt is 72.1%.",
+          "value": 72.1,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "DRE/2013/page_39.pdf-2"
+    },
+    {
+      "item_id": "finqa-ADBE_2018_page_86.pdf-1",
+      "perturbation": "relative_up",
+      "perturbed_value": 14.338000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage change in total gross amount of unrecognized tax benefits from 2017 to 2018 is 13.4% [[art:b7c743bb:answer]].",
+          "value": 13.4,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 13.4,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:b7c743bb:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage change in total gross amount of unrecognized tax benefits from 2017 to 2018 is 14.338% [[art:b7c743bb:answer]].",
+          "value": 14.338,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 13.4,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:b7c743bb:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage change in total gross amount of unrecognized tax benefits from 2017 to 2018 is 13.4%.",
+          "value": 13.4,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "ADBE/2018/page_86.pdf-1"
+    },
+    {
+      "item_id": "finqa-IPG_2009_page_85.pdf-2",
+      "perturbation": "relative_up",
+      "perturbed_value": 8.625,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"what the percentage increase defined contribution plans for foreign countries and contribution from 2007 to 2008\" is 7.5% [[art:186e7c4b:answer]].",
+          "value": 7.5,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 7.5,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:186e7c4b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"what the percentage increase defined contribution plans for foreign countries and contribution from 2007 to 2008\" is 8.625% [[art:186e7c4b:answer]].",
+          "value": 8.625,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 7.5,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:186e7c4b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"what the percentage increase defined contribution plans for foreign countries and contribution from 2007 to 2008\" is 7.5%.",
+          "value": 7.5,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "IPG/2009/page_85.pdf-2"
+    },
+    {
+      "item_id": "finqa-EW_2017_page_82.pdf-1",
+      "perturbation": "relative_up",
+      "perturbed_value": 85.02000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"what percentage of the total purchase price net of cash acquired is goodwill\" is 78% [[art:67855068:answer]].",
+          "value": 78.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 78.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:67855068:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"what percentage of the total purchase price net of cash acquired is goodwill\" is 85.02% [[art:67855068:answer]].",
+          "value": 85.02,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 78.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:67855068:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"what percentage of the total purchase price net of cash acquired is goodwill\" is 78%.",
+          "value": 78.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "EW/2017/page_82.pdf-1"
+    },
+    {
+      "item_id": "finqa-PPG_2011_page_70.pdf-4",
+      "perturbation": "relative_down",
+      "perturbed_value": 26.349999999999998,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The royalty income as a percentage of total other income in 2011 is 31% [[art:8f6c46a1:answer]].",
+          "value": 31.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 31.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:8f6c46a1:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the royalty income as a percentage of total other income in 2011 is 26.35% [[art:8f6c46a1:answer]].",
+          "value": 26.35,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 31.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:8f6c46a1:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the royalty income as a percentage of total other income in 2011 is 31%.",
+          "value": 31.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "PPG/2011/page_70.pdf-4"
+    },
+    {
+      "item_id": "finqa-AON_2011_page_134.pdf-2",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 603.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"in 2011 what was the percent of risk solutions revenues to the total revenues of aons\" is 60.3% [[art:422c0463:answer]].",
+          "value": 60.3,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 60.3,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:422c0463:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"in 2011 what was the percent of risk solutions revenues to the total revenues of aons\" is 603% [[art:422c0463:answer]].",
+          "value": 603.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 60.3,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:422c0463:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"in 2011 what was the percent of risk solutions revenues to the total revenues of aons\" is 60.3%.",
+          "value": 60.3,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AON/2011/page_134.pdf-2"
+    },
+    {
+      "item_id": "finqa-ANSS_2013_page_55.pdf-2",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 416.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"what percentage of total contractual obligations come from after five years\" is 41.6% [[art:3698ed03:answer]].",
+          "value": 41.6,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 41.6,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:3698ed03:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"what percentage of total contractual obligations come from after five years\" is 416% [[art:3698ed03:answer]].",
+          "value": 416.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 41.6,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:3698ed03:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"what percentage of total contractual obligations come from after five years\" is 41.6%.",
+          "value": 41.6,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "ANSS/2013/page_55.pdf-2"
+    },
+    {
+      "item_id": "finqa-AON_2014_page_47.pdf-1",
+      "perturbation": "relative_down",
+      "perturbed_value": 2.3276,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The variation between the average and the highest operating margin is 2.53% [[art:c8b14cec:answer]].",
+          "value": 2.53,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 2.53,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:c8b14cec:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the variation between the average and the highest operating margin is 2.3276% [[art:c8b14cec:answer]].",
+          "value": 2.3276,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 2.53,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:c8b14cec:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the variation between the average and the highest operating margin is 2.53%.",
+          "value": 2.53,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AON/2014/page_47.pdf-1"
+    },
+    {
+      "item_id": "finqa-BLK_2012_page_37.pdf-1",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.7390000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The long-term retail/hnw in americas as a percentage of the total long-term retail/hnw is 73.9% [[art:bf8de79e:answer]].",
+          "value": 73.9,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 73.9,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:bf8de79e:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the long-term retail/hnw in americas as a percentage of the total long-term retail/hnw is 0.739% [[art:bf8de79e:answer]].",
+          "value": 0.739,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 73.9,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:bf8de79e:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the long-term retail/hnw in americas as a percentage of the total long-term retail/hnw is 73.9%.",
+          "value": 73.9,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "BLK/2012/page_37.pdf-1"
+    },
+    {
+      "item_id": "finqa-AAL_2015_page_118.pdf-3",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 381520.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The total operating expenses in 2013 is 38152 [[art:c64b5263:answer]].",
+          "value": 38152.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 38152.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:c64b5263:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the total operating expenses in 2013 is 381520 [[art:c64b5263:answer]].",
+          "value": 381520.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 38152.0,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": "[[art:c64b5263:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the total operating expenses in 2013 is 38152.",
+          "value": 38152.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AAL/2015/page_118.pdf-3"
+    },
+    {
+      "item_id": "finqa-IPG_2008_page_21.pdf-1",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 12290.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"how much more , in percent , was spent on october shares than november shares\" is 1229% [[art:6b615210:answer]].",
+          "value": 1229.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 1229.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:6b615210:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"how much more , in percent , was spent on october shares than november shares\" is 12290% [[art:6b615210:answer]].",
+          "value": 12290.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 1229.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:6b615210:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"how much more , in percent , was spent on october shares than november shares\" is 1229%.",
+          "value": 1229.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "IPG/2008/page_21.pdf-1"
+    },
+    {
+      "item_id": "finqa-AMT_2010_page_34.pdf-3",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 8587750.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average number of shares per registered holder as of february 11 , 2011 is 858775 [[art:93b2fcdd:answer]].",
+          "value": 858775.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 858775.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:93b2fcdd:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average number of shares per registered holder as of february 11 , 2011 is 8587750 [[art:93b2fcdd:answer]].",
+          "value": 8587750.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 858775.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:93b2fcdd:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average number of shares per registered holder as of february 11 , 2011 is 858775.",
+          "value": 858775.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "AMT/2010/page_34.pdf-3"
+    },
+    {
+      "item_id": "finqa-MRO_2007_page_134.pdf-1",
+      "perturbation": "relative_down",
+      "perturbed_value": 131.008,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"by how much did the weighted average exercise price per share increase from 2005 to 2007\" is 142.4% [[art:e682f9a6:answer]].",
+          "value": 142.4,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 142.4,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:e682f9a6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"by how much did the weighted average exercise price per share increase from 2005 to 2007\" is 131.008% [[art:e682f9a6:answer]].",
+          "value": 131.008,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 142.4,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:e682f9a6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"by how much did the weighted average exercise price per share increase from 2005 to 2007\" is 142.4%.",
+          "value": 142.4,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "finqa",
+      "source_id": "MRO/2007/page_134.pdf-1"
+    },
+    {
+      "item_id": "tatqa-11708d2a-0e19-4feb-b687-fe2785da2b95",
+      "perturbation": "relative_up",
+      "perturbed_value": 0.3255,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The ratio of the weighted average exchange rate of Swedish Krona to Taiwan Dollar for the year ended December 31, 2019 is 0.31 [[art:ef5805ba:answer]].",
+          "value": 0.31,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 0.31,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:ef5805ba:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the ratio of the weighted average exchange rate of Swedish Krona to Taiwan Dollar for the year ended December 31, 2019 is 0.3255 [[art:ef5805ba:answer]].",
+          "value": 0.3255,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 0.31,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:ef5805ba:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the ratio of the weighted average exchange rate of Swedish Krona to Taiwan Dollar for the year ended December 31, 2019 is 0.31.",
+          "value": 0.31,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "11708d2a-0e19-4feb-b687-fe2785da2b95"
+    },
+    {
+      "item_id": "tatqa-4d6deec5-33c4-4105-a88c-07a38974bb75",
+      "perturbation": "relative_up",
+      "perturbed_value": 3087000.4000000004,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The number of shares outstanding as of September 30, 2018 is 2806364 [[art:f4a685a4:answer]].",
+          "value": 2806364.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 2806364.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:f4a685a4:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the number of shares outstanding as of September 30, 2018 is 3087000.4 [[art:f4a685a4:answer]].",
+          "value": 3087000.4,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 2806364.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:f4a685a4:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the number of shares outstanding as of September 30, 2018 is 2806364.",
+          "value": 2806364.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "4d6deec5-33c4-4105-a88c-07a38974bb75"
+    },
+    {
+      "item_id": "tatqa-13d32108-e758-457b-95a1-73f3bd918975",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.11359999999999999,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the current provision for income taxes at the state level between 2018 and 2019 is 11.36% [[art:d08cc9fb:answer]].",
+          "value": 11.36,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 11.36,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:d08cc9fb:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the current provision for income taxes at the state level between 2018 and 2019 is 0.1136% [[art:d08cc9fb:answer]].",
+          "value": 0.1136,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 11.36,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:d08cc9fb:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the current provision for income taxes at the state level between 2018 and 2019 is 11.36%.",
+          "value": 11.36,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "13d32108-e758-457b-95a1-73f3bd918975"
+    },
+    {
+      "item_id": "tatqa-dbe29d15-d27a-430b-87ab-219b7b2c3cca",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 2081.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"In which year is the trade receivables with up to three months of age higher\" is 2018 [[art:ea54204d:answer]].",
+          "value": 2018.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 2018.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:ea54204d:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"In which year is the trade receivables with up to three months of age higher\" is 2081 [[art:ea54204d:answer]].",
+          "value": 2081.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 2018.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:ea54204d:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"In which year is the trade receivables with up to three months of age higher\" is 2018.",
+          "value": 2018.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "dbe29d15-d27a-430b-87ab-219b7b2c3cca"
+    },
+    {
+      "item_id": "tatqa-ea159bf1-8401-4540-b5a7-8fbdb5476944",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 116.97000000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average accrued payroll and employee benefits for 2018 and 2019 is 111.4 [[art:ac46db64:answer]].",
+          "value": 111.4,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 111.4,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:ac46db64:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average accrued payroll and employee benefits for 2018 and 2019 is 116.97 [[art:ac46db64:answer]].",
+          "value": 116.97,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 111.4,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:ac46db64:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average accrued payroll and employee benefits for 2018 and 2019 is 111.4.",
+          "value": 111.4,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "ea159bf1-8401-4540-b5a7-8fbdb5476944"
+    },
+    {
+      "item_id": "tatqa-7a16ae56-dce9-436f-ab17-7638fd5c9f17",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 9904.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in sales in Mexico between 2017 and 2018 is 9940 [[art:117b6b14:answer]].",
+          "value": 9940.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 9940.0,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": "[[art:117b6b14:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in sales in Mexico between 2017 and 2018 is 9904 [[art:117b6b14:answer]].",
+          "value": 9904.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 9940.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:117b6b14:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in sales in Mexico between 2017 and 2018 is 9940.",
+          "value": 9940.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "7a16ae56-dce9-436f-ab17-7638fd5c9f17"
+    },
+    {
+      "item_id": "tatqa-511beaff-af2b-46f9-9eea-268e338270b2",
+      "perturbation": "relative_up",
+      "perturbed_value": 105.99399999999999,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The derivative liabilities as at December 31, 2019 is 93.8 [[art:3cc782f9:answer]].",
+          "value": 93.8,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 93.8,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:3cc782f9:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the derivative liabilities as at December 31, 2019 is 105.994 [[art:3cc782f9:answer]].",
+          "value": 105.994,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 93.8,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:3cc782f9:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the derivative liabilities as at December 31, 2019 is 93.8.",
+          "value": 93.8,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "511beaff-af2b-46f9-9eea-268e338270b2"
+    },
+    {
+      "item_id": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd",
+      "perturbation": "relative_up",
+      "perturbed_value": 2159.26,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"Which fiscal year has a higher ending balance at the end of the year\" is 2018 [[art:ea54204d:answer]].",
+          "value": 2018.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 2018.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:ea54204d:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"Which fiscal year has a higher ending balance at the end of the year\" is 2159.26 [[art:ea54204d:answer]].",
+          "value": 2159.26,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 2018.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:ea54204d:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"Which fiscal year has a higher ending balance at the end of the year\" is 2018.",
+          "value": 2018.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "dc26feb6-edfd-4116-bb7b-dbfab28f39dd"
+    },
+    {
+      "item_id": "tatqa-433d9953-290a-43c3-895e-30668526cd64",
+      "perturbation": "relative_up",
+      "perturbed_value": 365.94000000000005,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in service revenue between 2017 and 2018 is 321 [[art:e5db0562:answer]].",
+          "value": 321.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 321.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:e5db0562:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in service revenue between 2017 and 2018 is 365.94 [[art:e5db0562:answer]].",
+          "value": 365.94,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 321.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:e5db0562:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in service revenue between 2017 and 2018 is 321.",
+          "value": 321.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "433d9953-290a-43c3-895e-30668526cd64"
+    },
+    {
+      "item_id": "tatqa-a2d7d0c0-0939-4563-95db-e93199c38e13",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 2.3,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The number of stores under Dan Murphy's store network in F19 is 230 [[art:e32d8110:answer]].",
+          "value": 230.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 230.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:e32d8110:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the number of stores under Dan Murphy's store network in F19 is 2.3 [[art:e32d8110:answer]].",
+          "value": 2.3,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 230.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:e32d8110:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the number of stores under Dan Murphy's store network in F19 is 230.",
+          "value": 230.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "a2d7d0c0-0939-4563-95db-e93199c38e13"
+    },
+    {
+      "item_id": "tatqa-48e5f6f9-a340-43e8-962d-f35ae0712b05",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": -1.81,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in accrued expenses between 2018 and 2019 is -181 [[art:c5a54b23:answer]].",
+          "value": -181.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -181.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:c5a54b23:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in accrued expenses between 2018 and 2019 is -1.81 [[art:c5a54b23:answer]].",
+          "value": -1.81,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -181.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:c5a54b23:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in accrued expenses between 2018 and 2019 is -181.",
+          "value": -181.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "48e5f6f9-a340-43e8-962d-f35ae0712b05"
+    },
+    {
+      "item_id": "tatqa-4875e520-3ead-44f2-aefc-d1a9d087419d",
+      "perturbation": "relative_up",
+      "perturbed_value": 17.442000000000004,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average of Committed global credit facilities is 15.3 [[art:45651f10:answer]].",
+          "value": 15.3,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 15.3,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:45651f10:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average of Committed global credit facilities is 17.442 [[art:45651f10:answer]].",
+          "value": 17.442,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 15.3,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:45651f10:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average of Committed global credit facilities is 15.3.",
+          "value": 15.3,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "4875e520-3ead-44f2-aefc-d1a9d087419d"
+    },
+    {
+      "item_id": "tatqa-fa43e8cd-7fea-4738-85ee-f61ae8529f96",
+      "perturbation": "relative_up",
+      "perturbed_value": -24.087,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the revenues from 2018 to 2019 is -21.7 [[art:a3650d24:answer]].",
+          "value": -21.7,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -21.7,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:a3650d24:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the revenues from 2018 to 2019 is -24.087 [[art:a3650d24:answer]].",
+          "value": -24.087,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -21.7,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:a3650d24:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the revenues from 2018 to 2019 is -21.7.",
+          "value": -21.7,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "fa43e8cd-7fea-4738-85ee-f61ae8529f96"
+    },
+    {
+      "item_id": "tatqa-f329027f-e65a-402c-908e-21f0a0d25fe0",
+      "perturbation": "digit_transposition",
+      "perturbed_value": -3207.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The increase / (decrease) in the primary service units in net additions(losses) from 2018 to 2019 is -3270 [[art:2f048094:answer]].",
+          "value": -3270.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -3270.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:2f048094:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the increase / (decrease) in the primary service units in net additions(losses) from 2018 to 2019 is -3207 [[art:2f048094:answer]].",
+          "value": -3207.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -3270.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:2f048094:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the increase / (decrease) in the primary service units in net additions(losses) from 2018 to 2019 is -3270.",
+          "value": -3270.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "f329027f-e65a-402c-908e-21f0a0d25fe0"
+    },
+    {
+      "item_id": "tatqa-49dbbc90-5307-49ae-b802-e87d19214c40",
+      "perturbation": "relative_down",
+      "perturbed_value": 1504.0939999999998,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in total sales from fiscal 2018 to 2019 is 1600.1 [[art:a62e0f11:answer]].",
+          "value": 1600.1,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 1600.1,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:a62e0f11:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in total sales from fiscal 2018 to 2019 is 1504.094 [[art:a62e0f11:answer]].",
+          "value": 1504.094,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 1600.1,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:a62e0f11:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in total sales from fiscal 2018 to 2019 is 1600.1.",
+          "value": 1600.1,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "49dbbc90-5307-49ae-b802-e87d19214c40"
+    },
+    {
+      "item_id": "tatqa-576facaf-8bda-4e8f-bd07-531d4a3e9070",
+      "perturbation": "relative_up",
+      "perturbed_value": -12.9928,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage change in the company's 2018 and 2019 current federal tax expense is -11.92% [[art:0b5ddcbb:answer]].",
+          "value": -11.92,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -11.92,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:0b5ddcbb:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage change in the company's 2018 and 2019 current federal tax expense is -12.9928% [[art:0b5ddcbb:answer]].",
+          "value": -12.9928,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -11.92,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:0b5ddcbb:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage change in the company's 2018 and 2019 current federal tax expense is -11.92%.",
+          "value": -11.92,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "576facaf-8bda-4e8f-bd07-531d4a3e9070"
+    },
+    {
+      "item_id": "tatqa-005da8e4-571e-4612-9333-6c77d03ed838",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.1416,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage change of total assets from 2018 to 2019 is 14.16% [[art:46c69c98:answer]].",
+          "value": 14.16,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 14.16,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:46c69c98:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage change of total assets from 2018 to 2019 is 0.1416% [[art:46c69c98:answer]].",
+          "value": 0.1416,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 14.16,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:46c69c98:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage change of total assets from 2018 to 2019 is 14.16%.",
+          "value": 14.16,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "005da8e4-571e-4612-9333-6c77d03ed838"
+    },
+    {
+      "item_id": "tatqa-21e0abec-2256-4dd3-be8e-9329e4726546",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 16630.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The 2018 carrying amount of interest rate swaps is 1663 [[art:fca95f61:answer]].",
+          "value": 1663.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 1663.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:fca95f61:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the 2018 carrying amount of interest rate swaps is 16630 [[art:fca95f61:answer]].",
+          "value": 16630.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 1663.0,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": "[[art:fca95f61:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the 2018 carrying amount of interest rate swaps is 1663.",
+          "value": 1663.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "21e0abec-2256-4dd3-be8e-9329e4726546"
+    },
+    {
+      "item_id": "tatqa-cd2f5a7a-bf19-459f-b9de-85ffecd5ed36",
+      "perturbation": "relative_up",
+      "perturbed_value": 528.15,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The net Interest expense, interest income and other income in 2018 is 503 [[art:c93a6b5f:answer]].",
+          "value": 503.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 503.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:c93a6b5f:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the net Interest expense, interest income and other income in 2018 is 528.15 [[art:c93a6b5f:answer]].",
+          "value": 528.15,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 503.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:c93a6b5f:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the net Interest expense, interest income and other income in 2018 is 503.",
+          "value": 503.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "cd2f5a7a-bf19-459f-b9de-85ffecd5ed36"
+    },
+    {
+      "item_id": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6",
+      "perturbation": "digit_transposition",
+      "perturbed_value": -5.671,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage change in net sales between 2018 and 2019 is -5.3% [[art:30aded76:answer]].",
+          "value": -5.3,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -5.3,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:30aded76:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage change in net sales between 2018 and 2019 is -5.671% [[art:30aded76:answer]].",
+          "value": -5.671,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -5.3,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:30aded76:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage change in net sales between 2018 and 2019 is -5.3%.",
+          "value": -5.3,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "0914b0c3-0f42-480f-a2d3-3368f48eaba6"
+    },
+    {
+      "item_id": "tatqa-b39edf5b-35db-4010-a4d0-90abe617dc89",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 76425.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average other receivables for 2018 and 2019 is 7642.5 [[art:f03cd7f8:answer]].",
+          "value": 7642.5,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 7642.5,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:f03cd7f8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average other receivables for 2018 and 2019 is 76425 [[art:f03cd7f8:answer]].",
+          "value": 76425.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 7642.5,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:f03cd7f8:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average other receivables for 2018 and 2019 is 7642.5.",
+          "value": 7642.5,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "b39edf5b-35db-4010-a4d0-90abe617dc89"
+    },
+    {
+      "item_id": "tatqa-2183fd41-aa7b-4eff-81b0-427d0bbe52e9",
+      "perturbation": "relative_down",
+      "perturbed_value": 603.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average inventory for 2018 and 2019 is 670 [[art:eccdd0f9:answer]].",
+          "value": 670.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 670.0,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": "[[art:eccdd0f9:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average inventory for 2018 and 2019 is 603 [[art:eccdd0f9:answer]].",
+          "value": 603.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 670.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:eccdd0f9:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average inventory for 2018 and 2019 is 670.",
+          "value": 670.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "2183fd41-aa7b-4eff-81b0-427d0bbe52e9"
+    },
+    {
+      "item_id": "tatqa-894362e3-56cc-4a76-8053-36d6cbaeb6ce",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 2.415,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the Adjusted operating income (tax effected) between 2018 and 2019 is 2.1 [[art:0e004cd6:answer]].",
+          "value": 2.1,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 2.1,
+          "tolerance": 0.021,
+          "from_model": true,
+          "citation": "[[art:0e004cd6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the Adjusted operating income (tax effected) between 2018 and 2019 is 2.415 [[art:0e004cd6:answer]].",
+          "value": 2.415,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 2.1,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:0e004cd6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the Adjusted operating income (tax effected) between 2018 and 2019 is 2.1.",
+          "value": 2.1,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.021,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "894362e3-56cc-4a76-8053-36d6cbaeb6ce"
+    },
+    {
+      "item_id": "tatqa-1e8ae4d8-dae9-450b-bd94-b8fd42fdba23",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 6886.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The servicing related net accounts receivable in 2019 is 6868 [[art:9a72a591:answer]].",
+          "value": 6868.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 6868.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:9a72a591:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the servicing related net accounts receivable in 2019 is 6886 [[art:9a72a591:answer]].",
+          "value": 6886.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 6868.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:9a72a591:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the servicing related net accounts receivable in 2019 is 6868.",
+          "value": 6868.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "1e8ae4d8-dae9-450b-bd94-b8fd42fdba23"
+    },
+    {
+      "item_id": "tatqa-312a9328-b83f-43c6-b652-59547090cd30",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": -2.28,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The increase / (decrease) in Acquisition-related charges from 2018 to 2019 is -228 [[art:47beb89a:answer]].",
+          "value": -228.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -228.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:47beb89a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the increase / (decrease) in Acquisition-related charges from 2018 to 2019 is -2.28 [[art:47beb89a:answer]].",
+          "value": -2.28,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -228.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:47beb89a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the increase / (decrease) in Acquisition-related charges from 2018 to 2019 is -228.",
+          "value": -228.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "312a9328-b83f-43c6-b652-59547090cd30"
+    },
+    {
+      "item_id": "tatqa-08ec32ab-4f3e-4549-876c-f4e668439ad9",
+      "perturbation": "relative_down",
+      "perturbed_value": 1.0738,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The proportion, in percentage, of deferred revenue and accrued warranty over gross deferred tax assets in 2019 is 1.18% [[art:27dd2bc6:answer]].",
+          "value": 1.18,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 1.18,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:27dd2bc6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the proportion, in percentage, of deferred revenue and accrued warranty over gross deferred tax assets in 2019 is 1.0738% [[art:27dd2bc6:answer]].",
+          "value": 1.0738,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 1.18,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:27dd2bc6:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the proportion, in percentage, of deferred revenue and accrued warranty over gross deferred tax assets in 2019 is 1.18%.",
+          "value": 1.18,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "08ec32ab-4f3e-4549-876c-f4e668439ad9"
+    },
+    {
+      "item_id": "tatqa-b326ee9d-156e-411e-bfce-77f7f6350c5b",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 25.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The discount rate for 2019 is 2.5% [[art:d5169376:answer]].",
+          "value": 2.5,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 2.5,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:d5169376:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the discount rate for 2019 is 25% [[art:d5169376:answer]].",
+          "value": 25.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 2.5,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:d5169376:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the discount rate for 2019 is 2.5%.",
+          "value": 2.5,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "b326ee9d-156e-411e-bfce-77f7f6350c5b"
+    },
+    {
+      "item_id": "tatqa-1046abe8-e597-41fe-abd4-98c3b718998c",
+      "perturbation": "relative_down",
+      "perturbed_value": 4321.24,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The net losses for video service customers in 2019 is 4697 [[art:259cf99b:answer]].",
+          "value": 4697.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 4697.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:259cf99b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the net losses for video service customers in 2019 is 4321.24 [[art:259cf99b:answer]].",
+          "value": 4321.24,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 4697.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:259cf99b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the net losses for video service customers in 2019 is 4697.",
+          "value": 4697.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "1046abe8-e597-41fe-abd4-98c3b718998c"
+    },
+    {
+      "item_id": "tatqa-fa41c2de-cb5c-4516-aea9-424191b98ee7",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 113.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The net operating loss and credit carryforwards in 2018 is 131 [[art:618baa41:answer]].",
+          "value": 131.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 131.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:618baa41:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the net operating loss and credit carryforwards in 2018 is 113 [[art:618baa41:answer]].",
+          "value": 113.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 131.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:618baa41:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the net operating loss and credit carryforwards in 2018 is 131.",
+          "value": 131.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "fa41c2de-cb5c-4516-aea9-424191b98ee7"
+    },
+    {
+      "item_id": "tatqa-ff9b07aa-2cdc-425a-86b6-2f231421ce11",
+      "perturbation": "relative_up",
+      "perturbed_value": 85.22080000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The proportion (in percentage) of the sum of Grocery & Snacks and Refrigerated & Frozen\u2019s net sales over total net sales in fiscal year 2018 is 76.09% [[art:5b122c4e:answer]].",
+          "value": 76.09,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 76.09,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:5b122c4e:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the proportion (in percentage) of the sum of Grocery & Snacks and Refrigerated & Frozen\u2019s net sales over total net sales in fiscal year 2018 is 85.2208% [[art:5b122c4e:answer]].",
+          "value": 85.2208,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 76.09,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:5b122c4e:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the proportion (in percentage) of the sum of Grocery & Snacks and Refrigerated & Frozen\u2019s net sales over total net sales in fiscal year 2018 is 76.09%.",
+          "value": 76.09,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "ff9b07aa-2cdc-425a-86b6-2f231421ce11"
+    },
+    {
+      "item_id": "tatqa-03613059-6978-437c-ba63-bd30acaf1440",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 1.04,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The increase/ (decrease) in Trade accounts receivable from 2018 to 2019 is 104 [[art:16cbbf0a:answer]].",
+          "value": 104.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 104.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:16cbbf0a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the increase/ (decrease) in Trade accounts receivable from 2018 to 2019 is 1.04 [[art:16cbbf0a:answer]].",
+          "value": 1.04,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 104.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:16cbbf0a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the increase/ (decrease) in Trade accounts receivable from 2018 to 2019 is 104.",
+          "value": 104.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "03613059-6978-437c-ba63-bd30acaf1440"
+    },
+    {
+      "item_id": "tatqa-52b32d22-da73-4420-81e4-8cdad82d2125",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 4218250.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the amount Outstanding at 1 April in 2019 from 2018 is 421825 [[art:ef107820:answer]].",
+          "value": 421825.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 421825.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:ef107820:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the amount Outstanding at 1 April in 2019 from 2018 is 4218250 [[art:ef107820:answer]].",
+          "value": 4218250.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 421825.0,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": "[[art:ef107820:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the amount Outstanding at 1 April in 2019 from 2018 is 421825.",
+          "value": 421825.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "52b32d22-da73-4420-81e4-8cdad82d2125"
+    },
+    {
+      "item_id": "tatqa-0dbcbf46-790f-465c-ae57-ffe0167aee5e",
+      "perturbation": "digit_transposition",
+      "perturbed_value": -1580.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in Revenue of Software delivery, support and maintenance between 2017 and 2018 is -1508 [[art:976c8ffe:answer]].",
+          "value": -1508.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -1508.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:976c8ffe:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in Revenue of Software delivery, support and maintenance between 2017 and 2018 is -1580 [[art:976c8ffe:answer]].",
+          "value": -1580.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -1508.0,
+          "tolerance": 5.0,
+          "from_model": true,
+          "citation": "[[art:976c8ffe:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in Revenue of Software delivery, support and maintenance between 2017 and 2018 is -1508.",
+          "value": -1508.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "0dbcbf46-790f-465c-ae57-ffe0167aee5e"
+    },
+    {
+      "item_id": "tatqa-593a3304-3fbe-47d2-a004-f4459ef3d014",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 922.6999999999999,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"In 2019, what is the percentage constitution of prepaid expenses among the total prepaid expenses and other\" is 92.27% [[art:32586a51:answer]].",
+          "value": 92.27,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 92.27,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:32586a51:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"In 2019, what is the percentage constitution of prepaid expenses among the total prepaid expenses and other\" is 922.7% [[art:32586a51:answer]].",
+          "value": 922.7,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 92.27,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:32586a51:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"In 2019, what is the percentage constitution of prepaid expenses among the total prepaid expenses and other\" is 92.27%.",
+          "value": 92.27,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "593a3304-3fbe-47d2-a004-f4459ef3d014"
+    },
+    {
+      "item_id": "tatqa-9dcfc5c6-082a-495c-91b1-561d4262bc34",
+      "perturbation": "relative_up",
+      "perturbed_value": 10857.15,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The software delivery, support and maintenance revenue in 2018 is 9441 [[art:a55ab050:answer]].",
+          "value": 9441.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 9441.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:a55ab050:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the software delivery, support and maintenance revenue in 2018 is 10857.15 [[art:a55ab050:answer]].",
+          "value": 10857.15,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 9441.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:a55ab050:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the software delivery, support and maintenance revenue in 2018 is 9441.",
+          "value": 9441.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "9dcfc5c6-082a-495c-91b1-561d4262bc34"
+    },
+    {
+      "item_id": "tatqa-d3ebc6d6-6f38-403f-86cd-d405245d4da3",
+      "perturbation": "relative_up",
+      "perturbed_value": 76328.70000000001,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the sales of loans between 2017 and 2018 is 66955 [[art:da7fd98b:answer]].",
+          "value": 66955.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 66955.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:da7fd98b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the sales of loans between 2017 and 2018 is 76328.7 [[art:da7fd98b:answer]].",
+          "value": 76328.7,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 66955.0,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:da7fd98b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the sales of loans between 2017 and 2018 is 66955.",
+          "value": 66955.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "d3ebc6d6-6f38-403f-86cd-d405245d4da3"
+    },
+    {
+      "item_id": "tatqa-e0678673-118c-4d95-9204-99c49b881c6d",
+      "perturbation": "relative_down",
+      "perturbed_value": 12353.76,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The revenue for the quarter ended July 27, 2019 is 13428 [[art:069820e7:answer]].",
+          "value": 13428.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 13428.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:069820e7:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the revenue for the quarter ended July 27, 2019 is 12353.76 [[art:069820e7:answer]].",
+          "value": 12353.76,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 13428.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:069820e7:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the revenue for the quarter ended July 27, 2019 is 13428.",
+          "value": 13428.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "e0678673-118c-4d95-9204-99c49b881c6d"
+    },
+    {
+      "item_id": "tatqa-34144864-790c-4733-8323-91347f68f5ef",
+      "perturbation": "digit_transposition",
+      "perturbed_value": -3.18,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The global increase / (decrease) in the hindi films from 2018 to 2019 is -3 [[art:930758ab:answer]].",
+          "value": -3.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -3.0,
+          "tolerance": 0.03,
+          "from_model": true,
+          "citation": "[[art:930758ab:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the global increase / (decrease) in the hindi films from 2018 to 2019 is -3.18 [[art:930758ab:answer]].",
+          "value": -3.18,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -3.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:930758ab:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the global increase / (decrease) in the hindi films from 2018 to 2019 is -3.",
+          "value": -3.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.03,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "34144864-790c-4733-8323-91347f68f5ef"
+    },
+    {
+      "item_id": "tatqa-073c6499-cf72-47f2-8874-7dfc67f1e251",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.1557,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average of Net cash from operating activities is 15.57 [[art:9e9a8d15:answer]].",
+          "value": 15.57,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 15.57,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:9e9a8d15:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average of Net cash from operating activities is 0.1557 [[art:9e9a8d15:answer]].",
+          "value": 0.1557,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 15.57,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:9e9a8d15:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average of Net cash from operating activities is 15.57.",
+          "value": 15.57,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "073c6499-cf72-47f2-8874-7dfc67f1e251"
+    },
+    {
+      "item_id": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785",
+      "perturbation": "relative_down",
+      "perturbed_value": 24.147,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The percentage of total financial assets in Euro over the Group total is 26.83% [[art:00d5566b:answer]].",
+          "value": 26.83,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 26.83,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:00d5566b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the percentage of total financial assets in Euro over the Group total is 24.147% [[art:00d5566b:answer]].",
+          "value": 24.147,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 26.83,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:00d5566b:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the percentage of total financial assets in Euro over the Group total is 26.83%.",
+          "value": 26.83,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "24f8613a-5516-4f0e-9839-8f6e31480785"
+    },
+    {
+      "item_id": "tatqa-9957f721-103b-403d-ab50-224765d94028",
+      "perturbation": "decimal_shift",
+      "perturbed_value": 650.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The total capital leases is 65 [[art:2ca852ef:answer]].",
+          "value": 65.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 65.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:2ca852ef:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the total capital leases is 650 [[art:2ca852ef:answer]].",
+          "value": 650.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 65.0,
+          "tolerance": 0.65,
+          "from_model": true,
+          "citation": "[[art:2ca852ef:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the total capital leases is 65.",
+          "value": 65.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "9957f721-103b-403d-ab50-224765d94028"
+    },
+    {
+      "item_id": "tatqa-178fa6e6-ea30-4670-88d4-de26aab62fcd",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 146.57,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The increase/ (decrease) in Customer related costs from 2018 to 2019 is 14657 [[art:624ad303:answer]].",
+          "value": 14657.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 14657.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:624ad303:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the increase/ (decrease) in Customer related costs from 2018 to 2019 is 146.57 [[art:624ad303:answer]].",
+          "value": 146.57,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 14657.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:624ad303:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the increase/ (decrease) in Customer related costs from 2018 to 2019 is 14657.",
+          "value": 14657.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "178fa6e6-ea30-4670-88d4-de26aab62fcd"
+    },
+    {
+      "item_id": "tatqa-7707ff1b-ca2c-4d72-aad1-81315a5f54ff",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 498.72,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the value of Total inventories between October 31, 2019 and 2018 is 49872 [[art:6ba7b91c:answer]].",
+          "value": 49872.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 49872.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:6ba7b91c:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the value of Total inventories between October 31, 2019 and 2018 is 498.72 [[art:6ba7b91c:answer]].",
+          "value": 498.72,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 49872.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:6ba7b91c:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the value of Total inventories between October 31, 2019 and 2018 is 49872.",
+          "value": 49872.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "7707ff1b-ca2c-4d72-aad1-81315a5f54ff"
+    },
+    {
+      "item_id": "tatqa-68107102-0fdc-4e64-850f-8eda6bcc892a",
+      "perturbation": "relative_up",
+      "perturbed_value": 17.12,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The total federal tax expense between 2017 to 2019 is 16 [[art:0240448a:answer]].",
+          "value": 16.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 16.0,
+          "tolerance": 0.16,
+          "from_model": true,
+          "citation": "[[art:0240448a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the total federal tax expense between 2017 to 2019 is 17.12 [[art:0240448a:answer]].",
+          "value": 17.12,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 16.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:0240448a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the total federal tax expense between 2017 to 2019 is 16.",
+          "value": 16.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.16,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "68107102-0fdc-4e64-850f-8eda6bcc892a"
+    },
+    {
+      "item_id": "tatqa-ff71e762-7a3d-4b9e-aa75-3ab148d8154c",
+      "perturbation": "decimal_shift",
+      "perturbed_value": -5.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The change in the average life expectancy for a male member aged 65 in 2019 from 2018 is -0.5 [[art:e9867767:answer]].",
+          "value": -0.5,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": -0.5,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:e9867767:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the change in the average life expectancy for a male member aged 65 in 2019 from 2018 is -5 [[art:e9867767:answer]].",
+          "value": -5.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": -0.5,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:e9867767:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the change in the average life expectancy for a male member aged 65 in 2019 from 2018 is -0.5.",
+          "value": -0.5,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "ff71e762-7a3d-4b9e-aa75-3ab148d8154c"
+    },
+    {
+      "item_id": "tatqa-a983501d-2eec-486d-9661-e520c7c8af5e",
+      "perturbation": "relative_down",
+      "perturbed_value": 3243.36,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The average difference between EBITDA and underlying EBITDA for both FYs is 3728 [[art:f77ae62a:answer]].",
+          "value": 3728.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 3728.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:f77ae62a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the average difference between EBITDA and underlying EBITDA for both FYs is 3243.36 [[art:f77ae62a:answer]].",
+          "value": 3243.36,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 3728.0,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:f77ae62a:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the average difference between EBITDA and underlying EBITDA for both FYs is 3728.",
+          "value": 3728.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "a983501d-2eec-486d-9661-e520c7c8af5e"
+    },
+    {
+      "item_id": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 840200.0,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The total number of warrants oustanding as of December 31, 2019 that were issued in August 2019 is 842000 [[art:6f876889:answer]].",
+          "value": 842000.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 842000.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:6f876889:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the total number of warrants oustanding as of December 31, 2019 that were issued in August 2019 is 840200 [[art:6f876889:answer]].",
+          "value": 840200.0,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 842000.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:6f876889:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the total number of warrants oustanding as of December 31, 2019 that were issued in August 2019 is 842000.",
+          "value": 842000.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "021b891a-e0bf-40c5-8b3a-a57798995b71"
+    },
+    {
+      "item_id": "tatqa-68ac2c86-8373-4134-960f-5d64427528ec",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 1.34778e+70,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The outstanding number of rights at end of period in 2019 is 13477758 [[art:3c2c0ddc:answer]].",
+          "value": 13477758.0,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 13477758.0,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": "[[art:3c2c0ddc:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the outstanding number of rights at end of period in 2019 is 13477799999999999407522511645871589795210809302842134994685102156414976 [[art:3c2c0ddc:answer]].",
+          "value": 1.34778e+70,
+          "expected": "mismatch",
+          "status": "unattributed",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": false,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the outstanding number of rights at end of period in 2019 is 13477758.",
+          "value": 13477758.0,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.5,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "68ac2c86-8373-4134-960f-5d64427528ec"
+    },
+    {
+      "item_id": "tatqa-9c9e2117-9318-4d67-9ba0-de60485b3c4d",
+      "perturbation": "digit_transposition",
+      "perturbed_value": 4.033,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"How much did Hotels sales increased by in F19\" is 3.7% [[art:b09c5285:answer]].",
+          "value": 3.7,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 3.7,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": "[[art:b09c5285:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"How much did Hotels sales increased by in F19\" is 4.033% [[art:b09c5285:answer]].",
+          "value": 4.033,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 3.7,
+          "tolerance": 0.0005,
+          "from_model": true,
+          "citation": "[[art:b09c5285:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"How much did Hotels sales increased by in F19\" is 3.7%.",
+          "value": 3.7,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.05,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "9c9e2117-9318-4d67-9ba0-de60485b3c4d"
+    },
+    {
+      "item_id": "tatqa-f6cb9974-2af7-43b3-9e1c-8cd5439dff67",
+      "perturbation": "percent_ratio_confusion",
+      "perturbed_value": 0.4315,
+      "sentences": [
+        {
+          "kind": "correct",
+          "text": "The answer to \"What percentage of the total amortized cost is made up of foreign government obligations in 2018\" is 43.15% [[art:db741569:answer]].",
+          "value": 43.15,
+          "expected": "verified",
+          "status": "verified",
+          "artifact_value": 43.15,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": "[[art:db741569:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "perturbed",
+          "text": "On the same basis the answer to \"What percentage of the total amortized cost is made up of foreign government obligations in 2018\" is 0.4315% [[art:db741569:answer]].",
+          "value": 0.4315,
+          "expected": "mismatch",
+          "status": "mismatch",
+          "artifact_value": 43.15,
+          "tolerance": 5e-05,
+          "from_model": true,
+          "citation": "[[art:db741569:answer]]",
+          "tolerance_boundary": false,
+          "false_verified": false
+        },
+        {
+          "kind": "uncited",
+          "text": "Stated without a citation, the answer to \"What percentage of the total amortized cost is made up of foreign government obligations in 2018\" is 43.15%.",
+          "value": 43.15,
+          "expected": "unsupported",
+          "status": "unsupported",
+          "artifact_value": null,
+          "tolerance": 0.005,
+          "from_model": true,
+          "citation": null,
+          "tolerance_boundary": false,
+          "false_verified": false
+        }
+      ],
+      "dataset": "tatqa",
+      "source_id": "f6cb9974-2af7-43b3-9e1c-8cd5439dff67"
+    }
+  ],
+  "status_accuracy": {
+    "verified": 1.0,
+    "mismatch": 0.99,
+    "unsupported": 1.0
+  },
+  "extraction_recall": 0.9967,
+  "tolerance_boundaries": [],
+  "sample_note": "n = 50 items per dataset, 100 in total. 04-SEEDED-DEFECT-STUDY.md section 6 fixes 150 per dataset; the operator cut the sample to fit the study's budget (D-194). Every figure in this report is over those 100 items and their 300 sentences.",
+  "n_per_dataset": {
+    "finqa": 50,
+    "tatqa": 50
+  },
+  "by_dataset": {
+    "finqa": {
+      "dataset": "finqa",
+      "n_items": 50,
+      "status_accuracy": {
+        "verified": 1.0,
+        "mismatch": 1.0,
+        "unsupported": 1.0
+      },
+      "extraction_recall": 1.0
+    },
+    "tatqa": {
+      "dataset": "tatqa",
+      "n_items": 50,
+      "status_accuracy": {
+        "verified": 1.0,
+        "mismatch": 0.98,
+        "unsupported": 1.0
+      },
+      "extraction_recall": 0.9933
+    }
+  },
+  "false_verified": {
+    "relative_up": {
+      "perturbation": "relative_up",
+      "n": 24,
+      "mismatch": 24,
+      "tolerance_boundary": 0,
+      "false_verified": 0,
+      "other": 0,
+      "false_verified_rate": 0.0
+    },
+    "relative_down": {
+      "perturbation": "relative_down",
+      "n": 19,
+      "mismatch": 19,
+      "tolerance_boundary": 0,
+      "false_verified": 0,
+      "other": 0,
+      "false_verified_rate": 0.0
+    },
+    "digit_transposition": {
+      "perturbation": "digit_transposition",
+      "n": 19,
+      "mismatch": 18,
+      "tolerance_boundary": 0,
+      "false_verified": 0,
+      "other": 1,
+      "false_verified_rate": 0.0
+    },
+    "decimal_shift": {
+      "perturbation": "decimal_shift",
+      "n": 20,
+      "mismatch": 20,
+      "tolerance_boundary": 0,
+      "false_verified": 0,
+      "other": 0,
+      "false_verified_rate": 0.0
+    },
+    "percent_ratio_confusion": {
+      "perturbation": "percent_ratio_confusion",
+      "n": 18,
+      "mismatch": 18,
+      "tolerance_boundary": 0,
+      "false_verified": 0,
+      "other": 0,
+      "false_verified_rate": 0.0
+    }
+  },
+  "false_verified_rate": 0.0,
+  "n_llm_calls": 100,
+  "n_reasks": 0,
+  "reask_rate": 0.0,
+  "cost_usd": 8.085681,
+  "failures": []
+}

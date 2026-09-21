@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "678550680a939c3d",
+      "kind": "scalar",
+      "value": 78.0,
+      "summary": "what percentage of the total purchase price net of cash acquired is goodwill?",
+      "file": "678550680a939c3d.json"
+    },
+    "table.r1.c2": {
+      "hash": "51a460decb41a262",
+      "kind": "scalar",
+      "value": 3.6,
+      "summary": "finqa-EW_2017_page_82.pdf-1 row 1 column 2",
+      "file": "51a460decb41a262.json"
+    },
+    "table.r10.c2": {
+      "hash": "1776b6626993f19e",
+      "kind": "scalar",
+      "value": 182.2,
+      "summary": "finqa-EW_2017_page_82.pdf-1 row 10 column 2",
+      "file": "1776b6626993f19e.json"
+    },
+    "table.r2.c2": {
+      "hash": "3e3d5e04f88611ba",
+      "kind": "scalar",
+      "value": 0.3,
+      "summary": "finqa-EW_2017_page_82.pdf-1 row 2 column 2",
+      "file": "3e3d5e04f88611ba.json"
+    },
+    "table.r3.c2": {
+      "hash": "ff6686d632b8e2b6",
+      "kind": "scalar",
+      "value": 142.1,
+      "summary": "finqa-EW_2017_page_82.pdf-1 row 3 column 2",
+      "file": "ff6686d632b8e2b6.json"
+    },
+    "table.r4.c2": {
+      "hash": "9bf5080aaa13bd44",
+      "kind": "scalar",
+      "value": 53.1,
+      "summary": "finqa-EW_2017_page_82.pdf-1 row 4 column 2",
+      "file": "9bf5080aaa13bd44.json"
+    },
+    "table.r5.c2": {
+      "hash": "5831f8a1eca9a120",
+      "kind": "scalar",
+      "value": 0.1,
+      "summary": "finqa-EW_2017_page_82.pdf-1 row 5 column 2",
+      "file": "5831f8a1eca9a120.json"
+    },
+    "table.r8.c2": {
+      "hash": "5c330c458896396a",
+      "kind": "scalar",
+      "value": 185.7,
+      "summary": "finqa-EW_2017_page_82.pdf-1 row 8 column 2",
+      "file": "5c330c458896396a.json"
+    }
+  }
+}

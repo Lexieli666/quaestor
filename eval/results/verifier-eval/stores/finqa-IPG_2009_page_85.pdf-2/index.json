@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "186e7c4b8b51b48d",
+      "kind": "scalar",
+      "value": 7.5,
+      "summary": "what the percentage increase defined contribution plans for foreign countries and contribution from 2007 to 2008",
+      "file": "186e7c4b8b51b48d.json"
+    },
+    "table.r2.c1": {
+      "hash": "09cf5a2ea634885b",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 2 column 1",
+      "file": "09cf5a2ea634885b.json"
+    },
+    "table.r2.c2": {
+      "hash": "097e2fac146802cb",
+      "kind": "scalar",
+      "value": 17.2,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 2 column 2",
+      "file": "097e2fac146802cb.json"
+    },
+    "table.r2.c3": {
+      "hash": "ee1913f48d19b9fa",
+      "kind": "scalar",
+      "value": 23.5,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 2 column 3",
+      "file": "ee1913f48d19b9fa.json"
+    },
+    "table.r2.c4": {
+      "hash": "66e5f2aa8d9298b0",
+      "kind": "scalar",
+      "value": 5.8,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 2 column 4",
+      "file": "66e5f2aa8d9298b0.json"
+    },
+    "table.r3.c1": {
+      "hash": "3eadc1f15a12c635",
+      "kind": "scalar",
+      "value": 2011.0,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 3 column 1",
+      "file": "3eadc1f15a12c635.json"
+    },
+    "table.r3.c2": {
+      "hash": "3eeca84179b40d93",
+      "kind": "scalar",
+      "value": 11.1,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 3 column 2",
+      "file": "3eeca84179b40d93.json"
+    },
+    "table.r3.c3": {
+      "hash": "cf92ee44c5e2c09d",
+      "kind": "scalar",
+      "value": 24.7,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 3 column 3",
+      "file": "cf92ee44c5e2c09d.json"
+    },
+    "table.r3.c4": {
+      "hash": "4afc696003eb2ec1",
+      "kind": "scalar",
+      "value": 5.7,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 3 column 4",
+      "file": "4afc696003eb2ec1.json"
+    },
+    "table.r4.c1": {
+      "hash": "551b3c7945d9638d",
+      "kind": "scalar",
+      "value": 2012.0,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 4 column 1",
+      "file": "551b3c7945d9638d.json"
+    },
+    "table.r4.c2": {
+      "hash": "9fb9d973b9b04cc9",
+      "kind": "scalar",
+      "value": 10.8,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 4 column 2",
+      "file": "9fb9d973b9b04cc9.json"
+    },
+    "table.r4.c3": {
+      "hash": "52b607f86e54f47f",
+      "kind": "scalar",
+      "value": 26.4,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 4 column 3",
+      "file": "52b607f86e54f47f.json"
+    },
+    "table.r4.c4": {
+      "hash": "11c02feac9eeae62",
+      "kind": "scalar",
+      "value": 5.7,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 4 column 4",
+      "file": "11c02feac9eeae62.json"
+    },
+    "table.r5.c1": {
+      "hash": "0609d06af0835926",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 5 column 1",
+      "file": "0609d06af0835926.json"
+    },
+    "table.r5.c2": {
+      "hash": "021ee384919c51b4",
+      "kind": "scalar",
+      "value": 10.5,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 5 column 2",
+      "file": "021ee384919c51b4.json"
+    },
+    "table.r5.c3": {
+      "hash": "8414846ab233f9b8",
+      "kind": "scalar",
+      "value": 28.2,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 5 column 3",
+      "file": "8414846ab233f9b8.json"
+    },
+    "table.r5.c4": {
+      "hash": "0940ca38c5dae2b7",
+      "kind": "scalar",
+      "value": 5.6,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 5 column 4",
+      "file": "0940ca38c5dae2b7.json"
+    },
+    "table.r6.c1": {
+      "hash": "27491920466ea5b7",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 6 column 1",
+      "file": "27491920466ea5b7.json"
+    },
+    "table.r6.c2": {
+      "hash": "718264ae623a915c",
+      "kind": "scalar",
+      "value": 10.5,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 6 column 2",
+      "file": "718264ae623a915c.json"
+    },
+    "table.r6.c3": {
+      "hash": "b0478f4f0b869670",
+      "kind": "scalar",
+      "value": 32.4,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 6 column 3",
+      "file": "b0478f4f0b869670.json"
+    },
+    "table.r6.c4": {
+      "hash": "708238150b268c93",
+      "kind": "scalar",
+      "value": 5.5,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 6 column 4",
+      "file": "708238150b268c93.json"
+    },
+    "table.r7.c2": {
+      "hash": "0b3de93dae9d80cb",
+      "kind": "scalar",
+      "value": 48.5,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 7 column 2",
+      "file": "0b3de93dae9d80cb.json"
+    },
+    "table.r7.c3": {
+      "hash": "de639c3da2b86526",
+      "kind": "scalar",
+      "value": 175.3,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 7 column 3",
+      "file": "de639c3da2b86526.json"
+    },
+    "table.r7.c4": {
+      "hash": "4a88e772db11c34f",
+      "kind": "scalar",
+      "value": 24.8,
+      "summary": "finqa-IPG_2009_page_85.pdf-2 row 7 column 4",
+      "file": "4a88e772db11c34f.json"
+    }
+  }
+}

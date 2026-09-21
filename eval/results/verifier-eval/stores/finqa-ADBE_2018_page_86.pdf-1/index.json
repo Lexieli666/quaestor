@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "b7c743bbaf56008b",
+      "kind": "scalar",
+      "value": 13.4,
+      "summary": "what is the percentage change in total gross amount of unrecognized tax benefits from 2017 to 2018?",
+      "file": "b7c743bbaf56008b.json"
+    },
+    "table.r1.c2": {
+      "hash": "70e3120f0cf6f507",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 1 column 2",
+      "file": "70e3120f0cf6f507.json"
+    },
+    "table.r1.c3": {
+      "hash": "f098d16068e80b7d",
+      "kind": "scalar",
+      "value": 2017.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 1 column 3",
+      "file": "f098d16068e80b7d.json"
+    },
+    "table.r2.c2": {
+      "hash": "11cb8e11dac83d05",
+      "kind": "scalar",
+      "value": 172945.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 2 column 2",
+      "file": "11cb8e11dac83d05.json"
+    },
+    "table.r2.c3": {
+      "hash": "517c303334cc60a4",
+      "kind": "scalar",
+      "value": 178413.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 2 column 3",
+      "file": "517c303334cc60a4.json"
+    },
+    "table.r3.c2": {
+      "hash": "db58ee7df3f2a758",
+      "kind": "scalar",
+      "value": 16191.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 3 column 2",
+      "file": "db58ee7df3f2a758.json"
+    },
+    "table.r3.c3": {
+      "hash": "15a712650f4847d7",
+      "kind": "scalar",
+      "value": 3680.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 3 column 3",
+      "file": "15a712650f4847d7.json"
+    },
+    "table.r5.c2": {
+      "hash": "6a2ba2a045707676",
+      "kind": "scalar",
+      "value": 60721.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 5 column 2",
+      "file": "6a2ba2a045707676.json"
+    },
+    "table.r5.c3": {
+      "hash": "0872752d2f140a04",
+      "kind": "scalar",
+      "value": 24927.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 5 column 3",
+      "file": "0872752d2f140a04.json"
+    },
+    "table.r6.c2": {
+      "hash": "f1572f40965b18f7",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 6 column 2",
+      "file": "f1572f40965b18f7.json"
+    },
+    "table.r8.c3": {
+      "hash": "e65dcc52a5ed5515",
+      "kind": "scalar",
+      "value": 8786.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 8 column 3",
+      "file": "e65dcc52a5ed5515.json"
+    },
+    "table.r9.c2": {
+      "hash": "e9ee4e27cc6bf6a2",
+      "kind": "scalar",
+      "value": 196152.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 9 column 2",
+      "file": "e9ee4e27cc6bf6a2.json"
+    },
+    "table.r9.c3": {
+      "hash": "47a8d41f9b53b865",
+      "kind": "scalar",
+      "value": 172945.0,
+      "summary": "finqa-ADBE_2018_page_86.pdf-1 row 9 column 3",
+      "file": "47a8d41f9b53b865.json"
+    }
+  }
+}

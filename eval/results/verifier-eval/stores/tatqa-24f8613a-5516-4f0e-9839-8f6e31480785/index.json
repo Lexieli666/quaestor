@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "00d5566b4bda07d9",
+      "kind": "scalar",
+      "value": 26.83,
+      "summary": "What was the percentage of total financial assets in Euro over the Group total?",
+      "file": "00d5566b4bda07d9.json"
+    },
+    "table.r2.c1": {
+      "hash": "7e7b66f186771345",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 2 column 1",
+      "file": "7e7b66f186771345.json"
+    },
+    "table.r3.c2": {
+      "hash": "1942aa38f987d9ba",
+      "kind": "scalar",
+      "value": 29.1,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 3 column 2",
+      "file": "1942aa38f987d9ba.json"
+    },
+    "table.r3.c4": {
+      "hash": "a4c5c6a8e09ad7d2",
+      "kind": "scalar",
+      "value": 0.2,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 3 column 4",
+      "file": "a4c5c6a8e09ad7d2.json"
+    },
+    "table.r3.c5": {
+      "hash": "1f783991fd9171d5",
+      "kind": "scalar",
+      "value": 28.9,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 3 column 5",
+      "file": "1f783991fd9171d5.json"
+    },
+    "table.r4.c2": {
+      "hash": "4e8e8ac0f1ecd252",
+      "kind": "scalar",
+      "value": 115.9,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 4 column 2",
+      "file": "4e8e8ac0f1ecd252.json"
+    },
+    "table.r4.c3": {
+      "hash": "cd0f3714f5fcf0f9",
+      "kind": "scalar",
+      "value": 1.4,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 4 column 3",
+      "file": "cd0f3714f5fcf0f9.json"
+    },
+    "table.r4.c4": {
+      "hash": "456e8087ed0d9ad2",
+      "kind": "scalar",
+      "value": 16.6,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 4 column 4",
+      "file": "456e8087ed0d9ad2.json"
+    },
+    "table.r4.c5": {
+      "hash": "7f6ed37e8172cb26",
+      "kind": "scalar",
+      "value": 97.9,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 4 column 5",
+      "file": "7f6ed37e8172cb26.json"
+    },
+    "table.r5.c2": {
+      "hash": "3eb03f65564b8be9",
+      "kind": "scalar",
+      "value": 98.4,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 5 column 2",
+      "file": "3eb03f65564b8be9.json"
+    },
+    "table.r5.c3": {
+      "hash": "e8c9b2d0e9a6c8c4",
+      "kind": "scalar",
+      "value": 0.1,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 5 column 3",
+      "file": "e8c9b2d0e9a6c8c4.json"
+    },
+    "table.r5.c4": {
+      "hash": "83afd6447c48e398",
+      "kind": "scalar",
+      "value": 16.7,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 5 column 4",
+      "file": "83afd6447c48e398.json"
+    },
+    "table.r5.c5": {
+      "hash": "44f003ac0802b3d3",
+      "kind": "scalar",
+      "value": 81.6,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 5 column 5",
+      "file": "44f003ac0802b3d3.json"
+    },
+    "table.r6.c2": {
+      "hash": "33a2fb3cf0c75b39",
+      "kind": "scalar",
+      "value": 42.0,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 6 column 2",
+      "file": "33a2fb3cf0c75b39.json"
+    },
+    "table.r6.c4": {
+      "hash": "ebcec0c076ee71ea",
+      "kind": "scalar",
+      "value": 11.9,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 6 column 4",
+      "file": "ebcec0c076ee71ea.json"
+    },
+    "table.r6.c5": {
+      "hash": "88af0ec45f861182",
+      "kind": "scalar",
+      "value": 30.1,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 6 column 5",
+      "file": "88af0ec45f861182.json"
+    },
+    "table.r7.c2": {
+      "hash": "3964937e444e503e",
+      "kind": "scalar",
+      "value": 146.5,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 7 column 2",
+      "file": "3964937e444e503e.json"
+    },
+    "table.r7.c3": {
+      "hash": "d0d6b25d9f67f839",
+      "kind": "scalar",
+      "value": 5.3,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 7 column 3",
+      "file": "d0d6b25d9f67f839.json"
+    },
+    "table.r7.c4": {
+      "hash": "2b980851c7e51a9c",
+      "kind": "scalar",
+      "value": 10.5,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 7 column 4",
+      "file": "2b980851c7e51a9c.json"
+    },
+    "table.r7.c5": {
+      "hash": "b5da8d3c2cb352cd",
+      "kind": "scalar",
+      "value": 130.7,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 7 column 5",
+      "file": "b5da8d3c2cb352cd.json"
+    },
+    "table.r8.c2": {
+      "hash": "f7fe12dd773d9409",
+      "kind": "scalar",
+      "value": 431.9,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 8 column 2",
+      "file": "f7fe12dd773d9409.json"
+    },
+    "table.r8.c3": {
+      "hash": "e71ce8c9a66890bb",
+      "kind": "scalar",
+      "value": 6.8,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 8 column 3",
+      "file": "e71ce8c9a66890bb.json"
+    },
+    "table.r8.c4": {
+      "hash": "5bf48007f6fc83bf",
+      "kind": "scalar",
+      "value": 55.9,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 8 column 4",
+      "file": "5bf48007f6fc83bf.json"
+    },
+    "table.r8.c5": {
+      "hash": "39e625f4a4adf4d7",
+      "kind": "scalar",
+      "value": 369.2,
+      "summary": "tatqa-24f8613a-5516-4f0e-9839-8f6e31480785 row 8 column 5",
+      "file": "39e625f4a4adf4d7.json"
+    }
+  }
+}

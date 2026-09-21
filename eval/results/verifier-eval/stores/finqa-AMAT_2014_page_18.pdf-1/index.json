@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "f616ecba63ac2482",
+      "kind": "scalar",
+      "value": 22.2,
+      "summary": "what is the growth rate in sales from 2013 to 2014?",
+      "file": "f616ecba63ac2482.json"
+    },
+    "table.r1.c2": {
+      "hash": "fda8045477924212",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 1 column 2",
+      "file": "fda8045477924212.json"
+    },
+    "table.r1.c3": {
+      "hash": "20bb81ab59faa483",
+      "kind": "scalar",
+      "value": 2013.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 1 column 3",
+      "file": "20bb81ab59faa483.json"
+    },
+    "table.r2.c2": {
+      "hash": "8fb74f44d7d2bf87",
+      "kind": "scalar",
+      "value": 1400.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 2 column 2",
+      "file": "8fb74f44d7d2bf87.json"
+    },
+    "table.r2.c4": {
+      "hash": "a2e0596307b68467",
+      "kind": "scalar",
+      "value": 1295.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 2 column 4",
+      "file": "a2e0596307b68467.json"
+    },
+    "table.r3.c2": {
+      "hash": "6e5ab7e6afac968c",
+      "kind": "scalar",
+      "value": 775.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 3 column 2",
+      "file": "6e5ab7e6afac968c.json"
+    },
+    "table.r3.c4": {
+      "hash": "c0fb3bcc562a1360",
+      "kind": "scalar",
+      "value": 591.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 3 column 4",
+      "file": "c0fb3bcc562a1360.json"
+    },
+    "table.r4.c2": {
+      "hash": "5affa6bd2c29f358",
+      "kind": "scalar",
+      "value": 593.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 4 column 2",
+      "file": "5affa6bd2c29f358.json"
+    },
+    "table.r4.c4": {
+      "hash": "d39a5bde60f76941",
+      "kind": "scalar",
+      "value": 361.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 4 column 4",
+      "file": "d39a5bde60f76941.json"
+    },
+    "table.r5.c2": {
+      "hash": "6dbd422090c1770e",
+      "kind": "scalar",
+      "value": 149.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 5 column 2",
+      "file": "6dbd422090c1770e.json"
+    },
+    "table.r5.c4": {
+      "hash": "da4334c5a34dd4c4",
+      "kind": "scalar",
+      "value": 125.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 5 column 4",
+      "file": "da4334c5a34dd4c4.json"
+    },
+    "table.r6.c2": {
+      "hash": "149e76dad269e81b",
+      "kind": "scalar",
+      "value": 2917.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 6 column 2",
+      "file": "149e76dad269e81b.json"
+    },
+    "table.r6.c4": {
+      "hash": "142c4105795894a8",
+      "kind": "scalar",
+      "value": 2372.0,
+      "summary": "finqa-AMAT_2014_page_18.pdf-1 row 6 column 4",
+      "file": "142c4105795894a8.json"
+    }
+  }
+}

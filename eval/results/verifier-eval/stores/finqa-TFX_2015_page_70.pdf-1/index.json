@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "3a54eba4318eba0f",
+      "kind": "scalar",
+      "value": 125.5,
+      "summary": "what is the total value of the issued options , warrants and rights , ( in millions ) ?",
+      "file": "3a54eba4318eba0f.json"
+    },
+    "table.r2.c2": {
+      "hash": "47f0d514134d9b37",
+      "kind": "scalar",
+      "value": 1442912.0,
+      "summary": "finqa-TFX_2015_page_70.pdf-1 row 2 column 2",
+      "file": "47f0d514134d9b37.json"
+    },
+    "table.r2.c3": {
+      "hash": "bb8b084cdd0fee0b",
+      "kind": "scalar",
+      "value": 86.98,
+      "summary": "finqa-TFX_2015_page_70.pdf-1 row 2 column 3",
+      "file": "bb8b084cdd0fee0b.json"
+    },
+    "table.r2.c4": {
+      "hash": "87e5fb92703d5c9b",
+      "kind": "scalar",
+      "value": 4446967.0,
+      "summary": "finqa-TFX_2015_page_70.pdf-1 row 2 column 4",
+      "file": "87e5fb92703d5c9b.json"
+    }
+  }
+}

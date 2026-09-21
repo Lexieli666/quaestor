@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "55b137318b9d5fc4",
+      "kind": "scalar",
+      "value": 356.7,
+      "summary": "what was the average catastrophe losses from 2008 to 2010 in millions",
+      "file": "55b137318b9d5fc4.json"
+    },
+    "table.r1.c2": {
+      "hash": "6454a6f4f31a16f0",
+      "kind": "scalar",
+      "value": 2010.0,
+      "summary": "finqa-CB_2010_page_88.pdf-2 row 1 column 2",
+      "file": "6454a6f4f31a16f0.json"
+    },
+    "table.r1.c3": {
+      "hash": "d899e40076583aa4",
+      "kind": "scalar",
+      "value": 2009.0,
+      "summary": "finqa-CB_2010_page_88.pdf-2 row 1 column 3",
+      "file": "d899e40076583aa4.json"
+    },
+    "table.r1.c4": {
+      "hash": "0bacf9acb1ca9596",
+      "kind": "scalar",
+      "value": 2008.0,
+      "summary": "finqa-CB_2010_page_88.pdf-2 row 1 column 4",
+      "file": "0bacf9acb1ca9596.json"
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "6b615210d1f5e9bc",
+      "kind": "scalar",
+      "value": 1229.0,
+      "summary": "how much more , in percent , was spent on october shares than november shares?",
+      "file": "6b615210d1f5e9bc.json"
+    },
+    "table.r2.c2": {
+      "hash": "15b4d60633d12e89",
+      "kind": "scalar",
+      "value": 29704.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 2 column 2",
+      "file": "15b4d60633d12e89.json"
+    },
+    "table.r2.c3": {
+      "hash": "8d3ce5ecbfbfe5b0",
+      "kind": "scalar",
+      "value": 5.99,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 2 column 3",
+      "file": "8d3ce5ecbfbfe5b0.json"
+    },
+    "table.r2.c4": {
+      "hash": "6ffc91eb4c1cb2d1",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 2 column 4",
+      "file": "6ffc91eb4c1cb2d1.json"
+    },
+    "table.r2.c5": {
+      "hash": "1d79a29d56211a35",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 2 column 5",
+      "file": "1d79a29d56211a35.json"
+    },
+    "table.r3.c2": {
+      "hash": "c2ada8430dbcb42f",
+      "kind": "scalar",
+      "value": 4468.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 3 column 2",
+      "file": "c2ada8430dbcb42f.json"
+    },
+    "table.r3.c3": {
+      "hash": "38c6245dd7cc9267",
+      "kind": "scalar",
+      "value": 3.24,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 3 column 3",
+      "file": "38c6245dd7cc9267.json"
+    },
+    "table.r3.c4": {
+      "hash": "b1229326b82a9834",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 3 column 4",
+      "file": "b1229326b82a9834.json"
+    },
+    "table.r3.c5": {
+      "hash": "84e142667eb86983",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 3 column 5",
+      "file": "84e142667eb86983.json"
+    },
+    "table.r4.c2": {
+      "hash": "cf33d75cb4ec5829",
+      "kind": "scalar",
+      "value": 12850.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 4 column 2",
+      "file": "cf33d75cb4ec5829.json"
+    },
+    "table.r4.c3": {
+      "hash": "f5ccb8dc2cdeb487",
+      "kind": "scalar",
+      "value": 3.98,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 4 column 3",
+      "file": "f5ccb8dc2cdeb487.json"
+    },
+    "table.r4.c4": {
+      "hash": "33485be956412dbb",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 4 column 4",
+      "file": "33485be956412dbb.json"
+    },
+    "table.r4.c5": {
+      "hash": "cc46d62fdcc25f9d",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 4 column 5",
+      "file": "cc46d62fdcc25f9d.json"
+    },
+    "table.r5.c2": {
+      "hash": "72a8bdea3768742f",
+      "kind": "scalar",
+      "value": 47022.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 5 column 2",
+      "file": "72a8bdea3768742f.json"
+    },
+    "table.r5.c3": {
+      "hash": "12ea5cb58d8cfe7c",
+      "kind": "scalar",
+      "value": 5.18,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 5 column 3",
+      "file": "12ea5cb58d8cfe7c.json"
+    },
+    "table.r5.c4": {
+      "hash": "4e40256e56028deb",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 5 column 4",
+      "file": "4e40256e56028deb.json"
+    },
+    "table.r5.c5": {
+      "hash": "03f848272b04fc54",
+      "kind": "scalar",
+      "value": 2014.0,
+      "summary": "finqa-IPG_2008_page_21.pdf-1 row 5 column 5",
+      "file": "03f848272b04fc54.json"
+    }
+  }
+}

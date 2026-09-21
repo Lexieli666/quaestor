@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "30aded76777469dc",
+      "kind": "scalar",
+      "value": -5.3,
+      "summary": "What was the percentage change in net sales between 2018 and 2019?",
+      "file": "30aded76777469dc.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r2.c3": {
+      "hash": "5d9099edcb594059",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6 row 2 column 3",
+      "file": "5d9099edcb594059.json"
+    },
+    "table.r3.c2": {
+      "hash": "52ce22f7a192ec24",
+      "kind": "scalar",
+      "value": 5563.7,
+      "summary": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6 row 3 column 2",
+      "file": "52ce22f7a192ec24.json"
+    },
+    "table.r3.c3": {
+      "hash": "0ac9f2a365460a67",
+      "kind": "scalar",
+      "value": 5875.0,
+      "summary": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6 row 3 column 3",
+      "file": "0ac9f2a365460a67.json"
+    },
+    "table.r4.c2": {
+      "hash": "76c024456a69f083",
+      "kind": "scalar",
+      "value": 542.0,
+      "summary": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6 row 4 column 2",
+      "file": "76c024456a69f083.json"
+    },
+    "table.r5.c2": {
+      "hash": "6a0bf7501903921a",
+      "kind": "scalar",
+      "value": 2.29,
+      "summary": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6 row 5 column 2",
+      "file": "6a0bf7501903921a.json"
+    },
+    "table.r6.c2": {
+      "hash": "2b5fec4dd31f9027",
+      "kind": "scalar",
+      "value": 2.17,
+      "summary": "tatqa-0914b0c3-0f42-480f-a2d3-3368f48eaba6 row 6 column 2",
+      "file": "2b5fec4dd31f9027.json"
+    }
+  }
+}

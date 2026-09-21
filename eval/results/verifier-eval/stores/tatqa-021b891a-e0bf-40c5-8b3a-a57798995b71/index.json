@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "6f8768898007f101",
+      "kind": "scalar",
+      "value": 842000.0,
+      "summary": "What is the total number of warrants oustanding as of December 31, 2019 that were issued in August 2019?",
+      "file": "6f8768898007f101.json"
+    },
+    "table.r2.c2": {
+      "hash": "df3b6fcd4f53f546",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 2 column 2",
+      "file": "df3b6fcd4f53f546.json"
+    },
+    "table.r3.c2": {
+      "hash": "3b19ed7f9b810bd4",
+      "kind": "scalar",
+      "value": 2016666.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 3 column 2",
+      "file": "3b19ed7f9b810bd4.json"
+    },
+    "table.r4.c2": {
+      "hash": "0e7939e1185ed1e4",
+      "kind": "scalar",
+      "value": 458202.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 4 column 2",
+      "file": "0e7939e1185ed1e4.json"
+    },
+    "table.r4.c3": {
+      "hash": "7aa589822381ba46",
+      "kind": "scalar",
+      "value": 9.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 4 column 3",
+      "file": "7aa589822381ba46.json"
+    },
+    "table.r5.c2": {
+      "hash": "6bcde1d388aa4e1d",
+      "kind": "scalar",
+      "value": 1158000.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 5 column 2",
+      "file": "6bcde1d388aa4e1d.json"
+    },
+    "table.r5.c3": {
+      "hash": "43c326818c617194",
+      "kind": "scalar",
+      "value": 7.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 5 column 3",
+      "file": "43c326818c617194.json"
+    },
+    "table.r6.c2": {
+      "hash": "f842d927807b74a8",
+      "kind": "scalar",
+      "value": 842000.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 6 column 2",
+      "file": "f842d927807b74a8.json"
+    },
+    "table.r6.c3": {
+      "hash": "3c592ab44f5cd652",
+      "kind": "scalar",
+      "value": 7.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 6 column 3",
+      "file": "3c592ab44f5cd652.json"
+    },
+    "table.r7.c2": {
+      "hash": "671ec13f3d137b2d",
+      "kind": "scalar",
+      "value": 4474868.0,
+      "summary": "tatqa-021b891a-e0bf-40c5-8b3a-a57798995b71 row 7 column 2",
+      "file": "671ec13f3d137b2d.json"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "ea54204df588d2d3",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "Which fiscal year has a higher ending balance at the end of the year?",
+      "file": "ea54204df588d2d3.json"
+    },
+    "table.r1.c2": {
+      "hash": "54431999db87b3a6",
+      "kind": "scalar",
+      "value": 2019.0,
+      "summary": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd row 1 column 2",
+      "file": "54431999db87b3a6.json"
+    },
+    "table.r1.c3": {
+      "hash": "f8c07313fa56abe6",
+      "kind": "scalar",
+      "value": 2018.0,
+      "summary": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd row 1 column 3",
+      "file": "f8c07313fa56abe6.json"
+    },
+    "table.r2.c2": {
+      "hash": "c3aa0cbad79bdb06",
+      "kind": "scalar",
+      "value": 1264.0,
+      "summary": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd row 2 column 2",
+      "file": "c3aa0cbad79bdb06.json"
+    },
+    "table.r2.c3": {
+      "hash": "a5f5bc9c3ad59147",
+      "kind": "scalar",
+      "value": 1626.0,
+      "summary": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd row 2 column 3",
+      "file": "a5f5bc9c3ad59147.json"
+    },
+    "table.r4.c2": {
+      "hash": "0a8953bfdaa80636",
+      "kind": "scalar",
+      "value": 142.0,
+      "summary": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd row 4 column 2",
+      "file": "0a8953bfdaa80636.json"
+    },
+    "table.r7.c2": {
+      "hash": "27bfc3cd6ef4570f",
+      "kind": "scalar",
+      "value": 1258.0,
+      "summary": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd row 7 column 2",
+      "file": "27bfc3cd6ef4570f.json"
+    },
+    "table.r7.c3": {
+      "hash": "eae3ecd04b8f4fbe",
+      "kind": "scalar",
+      "value": 1264.0,
+      "summary": "tatqa-dc26feb6-edfd-4116-bb7b-dbfab28f39dd row 7 column 3",
+      "file": "eae3ecd04b8f4fbe.json"
+    }
+  }
+}

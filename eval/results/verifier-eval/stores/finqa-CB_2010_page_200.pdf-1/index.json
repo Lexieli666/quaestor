@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "artifacts": {
+    "answer": {
+      "hash": "456499b607faa63f",
+      "kind": "scalar",
+      "value": 2634.0,
+      "summary": "what is the net change in amount of statutory capital and surplus for bermuda subsidiaries in 2010?",
+      "file": "456499b607faa63f.json"
+    },
+    "table.r1.c7": {
+      "hash": "495c455398219515",
+      "kind": "scalar",
+      "value": 2008.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 1 column 7",
+      "file": "495c455398219515.json"
+    },
+    "table.r2.c2": {
+      "hash": "d2927dbe1d82d646",
+      "kind": "scalar",
+      "value": 11798.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 2 column 2",
+      "file": "d2927dbe1d82d646.json"
+    },
+    "table.r2.c3": {
+      "hash": "7267fb1ef04e1cd0",
+      "kind": "scalar",
+      "value": 9164.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 2 column 3",
+      "file": "7267fb1ef04e1cd0.json"
+    },
+    "table.r2.c4": {
+      "hash": "f9408c5a01c0ba57",
+      "kind": "scalar",
+      "value": 6205.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 2 column 4",
+      "file": "f9408c5a01c0ba57.json"
+    },
+    "table.r2.c5": {
+      "hash": "5b88402473fedac2",
+      "kind": "scalar",
+      "value": 6266.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 2 column 5",
+      "file": "5b88402473fedac2.json"
+    },
+    "table.r2.c6": {
+      "hash": "fdd354a6802353d2",
+      "kind": "scalar",
+      "value": 5885.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 2 column 6",
+      "file": "fdd354a6802353d2.json"
+    },
+    "table.r2.c7": {
+      "hash": "6181610531143ff7",
+      "kind": "scalar",
+      "value": 5368.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 2 column 7",
+      "file": "6181610531143ff7.json"
+    },
+    "table.r3.c2": {
+      "hash": "26de405b4928b625",
+      "kind": "scalar",
+      "value": 2430.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 3 column 2",
+      "file": "26de405b4928b625.json"
+    },
+    "table.r3.c3": {
+      "hash": "3b4e744cb588b54e",
+      "kind": "scalar",
+      "value": 2369.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 3 column 3",
+      "file": "3b4e744cb588b54e.json"
+    },
+    "table.r3.c4": {
+      "hash": "e9e5cfed55251cb5",
+      "kind": "scalar",
+      "value": 2196.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 3 column 4",
+      "file": "e9e5cfed55251cb5.json"
+    },
+    "table.r3.c5": {
+      "hash": "46a045dcd5d6e792",
+      "kind": "scalar",
+      "value": 1047.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 3 column 5",
+      "file": "46a045dcd5d6e792.json"
+    },
+    "table.r3.c6": {
+      "hash": "87310cb911c64f7f",
+      "kind": "scalar",
+      "value": 904.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 3 column 6",
+      "file": "87310cb911c64f7f.json"
+    },
+    "table.r3.c7": {
+      "hash": "8727d4d6d5e806cb",
+      "kind": "scalar",
+      "value": 818.0,
+      "summary": "finqa-CB_2010_page_200.pdf-1 row 3 column 7",
+      "file": "8727d4d6d5e806cb.json"
+    }
+  }
+}
