@@ -287,3 +287,17 @@ MSR half depends on the Freddie Mac sample being downloaded and the real MSR fit
    `rules_only` both detect 14 of 14 with 0 false alarms; the LLM adds no detection over the
    deterministic checks on these variants. Repeats of a configuration that ties its own ablation
    would measure the tie more precisely, not answer a different question.
+
+### Amendment 2 — 2026-09-20, before the component eval's first live call
+
+**The verifier component eval of `04` §6 samples 50 items per dataset, not 150.** The study's
+budget was cut and the operator fixed the number at 100 items in total — 50 FinQA, 50 TAT-QA, 300
+sentences — before any live call was made for it (D-194). The consequence is stated where the
+figures are: a per-perturbation-type rate falls to roughly twenty sentences, which is indicative
+and not a comparison between types; the headline status accuracies are over 100 items.
+
+The deviation is **not** recorded only here. `SAMPLE_NOTE` is a field of `verifier_eval.json` and
+the first line `quaestor verifier-eval` prints, so a figure read from a terminal or from the JSON
+carries its own qualification. Nothing else of §6 changed: seed 20260901, arithmetic-answer items
+only, the three sentences per item and their expected statuses, and the offline half on the ten
+committed fixtures, all stand as written.

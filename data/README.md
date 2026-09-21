@@ -52,3 +52,26 @@ from Freddie Mac's single-family files; both take a path to data the human downl
 have a `--synthetic` mode that generates a small panel from a known process, which is what the
 tests, CI and the demo use. See each subject's `README.md` for the source, the licence and the
 sample rule.
+
+## The two question-answering datasets, which are not committed either
+
+The verifier component eval of `04-SEEDED-DEFECT-STUDY.md` section 6 runs on two public financial
+question-answering sets. Neither is committed, no test reads either, and `quaestor verifier-eval`
+takes both as paths on the command line and refuses to run without them.
+
+| dataset | file | licence | source |
+|---|---|---|---|
+| FinQA | `dev.json` | MIT | <https://github.com/czyssrs/FinQA> |
+| TAT-QA | `tatqa_dataset_dev.json` | CC BY 4.0 | <https://github.com/NExTplusplus/TAT-QA> |
+
+Download both, then run the component eval once:
+
+```bash
+quaestor verifier-eval --finqa ~/finqa/dev.json --tatqa ~/tatqa/tatqa_dataset_dev.json \
+  --out eval/results/verifier --llm claude-cli --model MODEL --record-cassettes DIR
+```
+
+The command samples 50 arithmetic-answer items from each dataset with the study's seed (D-194),
+and writes `verifier_eval.json`. What is committed from a run is the summary, the trace and the
+cassettes — never a row of either dataset. The ten items under `tests/fixtures/verifier_eval/`,
+which the offline tests use, were written for this repository and quote neither dataset.

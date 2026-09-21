@@ -1,19 +1,25 @@
-"""The ``quaestor`` console script: ``validate``, ``tool``, ``corpus ingest`` and ``study``.
+"""The ``quaestor`` console script: ``validate``, ``tool``, ``corpus``, ``study`` and the rest.
 
-Spec section 3.14 lists eight commands. Six of them exist today, and only those six have a
-parser: ``verifier-eval`` arrives with Phase 13 and ``mcp`` with Phase 15. A flag that parses and
-then says "not implemented" is worse than no flag, because a reader of ``--help`` cannot tell the
-difference between what this program does and what it is going to do; the Phase 0 design
-paragraph on half-built flag surfaces is the whole argument, and it applies here (D-082), which
-is also why ``study score`` arrives now rather than earlier: this is the phase that scores.
+Spec section 3.14 lists eight commands. Seven of them exist today, and only those seven have a
+parser: ``mcp`` arrives with Phase 15. A flag that parses and then says "not implemented" is worse
+than no flag, because a reader of ``--help`` cannot tell the difference between what this program
+does and what it is going to do; the Phase 0 design paragraph on half-built flag surfaces is the
+whole argument, and it applies here (D-082), which is also why ``study score`` arrived in the phase
+that scores and ``verifier-eval`` arrives in the phase that evaluates the verifier.
 
-``study build``, ``study run`` and ``study score`` are the three commands whose implementation is
-not in this package. The seeded-defect generator lives in ``eval/seed.py``, the study harness in
-``eval/run_study.py`` and the scorer in ``eval/score.py``, outside ``src/``, because the pipeline
-being measured must not be able to import the thing that plants the defects or the thing that
-marks its answers, and because a study harness is a development tool that only makes sense inside
-a checkout; so each command loads its module from beside the taxonomy it was given, and says so
-when it is not there (DECISIONS D-127, D-193).
+``study build``, ``study run``, ``study score`` and ``verifier-eval`` are the four commands whose
+implementation is not in this package. The seeded-defect generator lives in ``eval/seed.py``, the
+study harness in ``eval/run_study.py``, the scorer in ``eval/score.py`` and the component eval in
+``eval/verifier_eval.py``, outside ``src/``, because the pipeline being measured must not be able
+to import the thing that plants the defects or the thing that marks its answers, and because an
+evaluation harness is a development tool that only makes sense inside a checkout; so each command
+loads its module from beside the taxonomy it was given, and says so when it is not there
+(DECISIONS D-127, D-193, D-194).
+
+``verifier-eval`` reads two public datasets from paths the operator names, and **requires both**:
+a component eval that sampled nothing and printed an accuracy of 0.0000 over no items would read
+like a result. Neither dataset is committed and no test reads one; the offline tests of the same
+code run on the ten fixtures under ``tests/fixtures/verifier_eval/``.
 
 **Exit codes**, which are the interface a script sees:
 
@@ -77,6 +83,7 @@ __all__ = [
     "SCORE_MODULE",
     "SEED_MODULE",
     "STUDY_ORDER",
+    "VERIFIER_EVAL_MODULE",
     "build_parser",
     "main",
 ]
@@ -108,6 +115,9 @@ RUN_STUDY_MODULE: Final = "run_study.py"
 SCORE_MODULE: Final = "score.py"
 """The scorer, looked for in the same place again and loaded the same way (D-193)."""
 
+VERIFIER_EVAL_MODULE: Final = "verifier_eval.py"
+"""The verifier component eval, looked for in the same place again and loaded the same way."""
+
 _SEED_ALIAS: Final = "quaestor_eval_seed"
 """What ``eval/seed.py`` is imported as, so it does not collide with anything on the path."""
 
@@ -116,6 +126,9 @@ _RUN_STUDY_ALIAS: Final = "quaestor_eval_run_study"
 
 _SCORE_ALIAS: Final = "quaestor_eval_score"
 """What ``eval/score.py`` is imported as, for the same reason again."""
+
+_VERIFIER_EVAL_ALIAS: Final = "quaestor_eval_verifier_eval"
+"""What ``eval/verifier_eval.py`` is imported as, for the same reason once more."""
 
 STUDY_ORDER: Final = (
     Configuration.rules_only.value,
@@ -176,6 +189,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_tool(commands)
     _add_corpus(commands)
     _add_study(commands)
+    _add_verifier_eval(commands)
     return parser
 
 
@@ -581,6 +595,100 @@ def _add_study_score(actions: Any) -> None:
     score_parser.set_defaults(run=_run_study_score)
 
 
+def _add_verifier_eval(commands: Any) -> None:
+    """Add ``quaestor verifier-eval``: the claim verifier alone, on FinQA and TAT-QA.
+
+    ``--finqa`` and ``--tatqa`` are both required, which is the guard the command is built around:
+    the datasets are read from paths a human names, are never committed and are never read by a
+    test, so a command that ran without them could only report an accuracy over an empty sample.
+    The provider flags are ``validate``'s, unchanged, because the extractor under test is reached
+    the same way a report's extractor is.
+    """
+    parser = commands.add_parser(
+        "verifier-eval",
+        help="evaluate the claim verifier alone on FinQA and TAT-QA",
+        description=(
+            "Sample arithmetic-answer items from each dataset with the study's seed, render three "
+            "report-style sentences per item -- the gold answer correctly cited, the gold answer "
+            "perturbed and cited to the same artifact, and the gold answer with no citation -- "
+            "and check what the verifier makes of them. The extractor is the model under test; "
+            "the matcher is deterministic. Writes verifier_eval.json under --out. A perturbation "
+            "that lands inside the tolerance the claim grammar allows is reported as a tolerance "
+            "boundary and is not counted as an error, which is 04-SEEDED-DEFECT-STUDY.md section "
+            "6's rule. Both dataset paths are required: this command does not sample nothing."
+        ),
+    )
+    parser.add_argument(
+        "--finqa",
+        metavar="FILE",
+        type=Path,
+        required=True,
+        help="FinQA's dev.json, from the path you downloaded it to; never committed",
+    )
+    parser.add_argument(
+        "--tatqa",
+        metavar="FILE",
+        type=Path,
+        required=True,
+        help="TAT-QA's tatqa_dataset_dev.json, likewise",
+    )
+    parser.add_argument(
+        "--out",
+        metavar="DIR",
+        type=Path,
+        required=True,
+        help="where verifier_eval.json, the trace and the per-item stores go",
+    )
+    parser.add_argument(
+        "--llm", choices=PROVIDERS, required=True, help="the provider the extractor is asked of"
+    )
+    parser.add_argument(
+        "--model",
+        metavar="M",
+        default=None,
+        help="the model to ask; name it, or the run is not comparable to the study's",
+    )
+    parser.add_argument(
+        "--n",
+        metavar="N",
+        type=int,
+        default=None,
+        help=(
+            "how many items to draw from each dataset (default: the protocol's own number, "
+            "which this version of the study cut to 50 per dataset)"
+        ),
+    )
+    parser.add_argument(
+        "--seed",
+        metavar="S",
+        type=int,
+        default=None,
+        help="the sampling and perturbation seed (default: the study's one seed)",
+    )
+    parser.add_argument(
+        "--taxonomy",
+        metavar="FILE",
+        type=Path,
+        default=_DEFAULT_TAXONOMY,
+        help=f"where {VERIFIER_EVAL_MODULE} is looked for (default: beside {_DEFAULT_TAXONOMY})",
+    )
+    parser.add_argument(
+        "--record-cassettes",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help="record every model call, so the published numbers replay at no cost",
+    )
+    parser.add_argument(
+        "--cassettes",
+        metavar="DIR",
+        type=Path,
+        default=None,
+        help="where --llm replay reads its recorded calls from",
+    )
+    parser.set_defaults(run=_run_verifier_eval)
+
+
 def _load_eval_module(directory: Path, filename: str, alias: str, fix: str) -> ModuleType:
     """Import one module of ``eval/`` from a directory, under an alias of its own.
 
@@ -643,6 +751,16 @@ def _load_score_module(directory: Path) -> ModuleType:
         SCORE_MODULE,
         _SCORE_ALIAS,
         "quaestor study score --results eval/results/run --variants eval/variants",
+    )
+
+
+def _load_verifier_eval_module(directory: Path) -> ModuleType:
+    """Import ``eval/verifier_eval.py``, the verifier component eval."""
+    return _load_eval_module(
+        directory,
+        VERIFIER_EVAL_MODULE,
+        _VERIFIER_EVAL_ALIAS,
+        "quaestor verifier-eval --finqa FILE --tatqa FILE --out DIR --llm claude-cli",
     )
 
 
@@ -786,6 +904,50 @@ def _run_study_score(args: argparse.Namespace) -> int:
     print(f"summary: {summary}")
     print(f"report: {report}")
     return EXIT_FAILED_RUN if scorer.owed(result) else EXIT_OK
+
+
+def _run_verifier_eval(args: argparse.Namespace) -> int:
+    """Run ``quaestor verifier-eval`` and print the run's own figures, the sample note first.
+
+    The exit code is :data:`EXIT_USAGE` for a dataset file that is not there or is not the dev
+    split, because nothing was evaluated; :data:`EXIT_FAILED_RUN` when an item could not be
+    evaluated at all, which is something owed to a person; and :data:`EXIT_OK` for a finished run
+    whatever its accuracy, because an accuracy is a result and not homework (D-182's rule, applied
+    to this command).
+    """
+    fix = (
+        "quaestor verifier-eval --finqa data/finqa/dev.json --tatqa data/tatqa/"
+        "tatqa_dataset_dev.json --out eval/results/verifier --llm claude-cli"
+    )
+    for label, path in (("--finqa", args.finqa), ("--tatqa", args.tatqa)):
+        if not Path(path).is_file():
+            return _fail(
+                f"there is no dataset file at {path} for {label}",
+                "see data/README.md for where each dataset's dev split is downloaded from",
+            )
+    taxonomy_path = Path(args.taxonomy)
+    try:
+        module = _load_verifier_eval_module(taxonomy_path.parent)
+        provider = _provider(args)
+    except QuaestorError as exc:
+        return _fail(str(exc.message), exc.fix or "quaestor verifier-eval --help")
+    optional: dict[str, Any] = {}
+    if args.n is not None:
+        optional["n"] = args.n
+    if args.seed is not None:
+        optional["seed"] = args.seed
+    if args.model:
+        optional["model"] = args.model
+    try:
+        report = module.run_datasets(
+            provider, args.out, finqa=args.finqa, tatqa=args.tatqa, **optional
+        )
+    except (ValueError, OSError, QuaestorError) as exc:
+        return _fail(str(exc), fix)
+    for line in module.summary_lines(report):
+        print(line)
+    print(f"summary: {Path(args.out) / module.EVAL_FILE}")
+    return EXIT_FAILED_RUN if report.failures else EXIT_OK
 
 
 def _fail(message: str, fix: str, code: int = EXIT_USAGE) -> int:

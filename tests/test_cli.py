@@ -26,6 +26,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import load_module
+from datasetsupport import write_finqa, write_tatqa
 from quaestor import Configuration, cli, load_package
 from quaestor.cli import (
     EXIT_FAILED_RUN,
@@ -48,6 +50,9 @@ CREDIT = REPO_ROOT / "subjects" / "credit_default"
 MSR = REPO_ROOT / "subjects" / "msr_prepayment"
 SMALL = 600
 """Rows for the runs whose subject is beside the point; the two gate runs use the real defaults."""
+
+_verifier_eval = load_module("quaestor_verifier_eval", REPO_ROOT / "eval" / "verifier_eval.py")
+"""`eval/verifier_eval.py`, loaded here only to build the dataset-shaped files its command reads."""
 
 
 def quaestor(*argv: str, timeout: int = 600) -> subprocess.CompletedProcess[str]:
@@ -174,7 +179,7 @@ def test_a_package_with_no_documented_size_refuses_a_bare_synthetic(
         (["tool", "no_such_tool", "--pkg", "P", "--run-dir", "D"], "invalid choice"),
         (["corpus"], "the following arguments are required: ACTION"),
         (["study", "score"], "the following arguments are required"),
-        (["verifier-eval"], "invalid choice"),
+        (["verifier-eval"], "the following arguments are required"),
         (["mcp"], "invalid choice"),
     ],
     ids=[
@@ -186,20 +191,22 @@ def test_a_package_with_no_documented_size_refuses_a_bare_synthetic(
         "tool-with-an-unknown-tool",
         "corpus-without-an-action",
         "study-score-without-the-two-directories-it-reads",
-        "verifier-eval-is-phase-13",
+        "verifier-eval-without-the-datasets-it-refuses-to-run-without",
         "mcp-is-phase-15",
     ],
 )
 def test_a_usage_error_exits_two_and_names_the_command_that_fixes_it(
     argv: Sequence[str], needle: str, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Including the two commands of spec 3.14 that this version deliberately does not have.
+    """Including the one command of spec 3.14 that this version deliberately does not have.
 
-    `verifier-eval` and `mcp` are rejected as unknown commands rather than accepted and apologised
-    for, which is the same argument the Phase 0 design paragraph makes about half-built flag
-    surfaces (D-082). `study score` is no longer one of them: Phase 12 is the phase that scores,
-    so it has a parser, and what it refuses here is a request that names neither of the two
-    directories it reads.
+    `mcp` is rejected as an unknown command rather than accepted and apologised for, which is the
+    same argument the Phase 0 design paragraph makes about half-built flag surfaces (D-082).
+    `study score` and `verifier-eval` are no longer among them: each arrived in the phase that
+    made it work, and what each refuses here is a request that names none of the paths it reads.
+    For `verifier-eval` that refusal is the command's own guard -- it does not run without both
+    dataset paths, because a component eval that sampled nothing would print an accuracy of
+    0.0000 over no items (D-194).
     """
     code, _, err = run(capsys, *argv)
     assert code == EXIT_USAGE
@@ -512,10 +519,11 @@ def _help_of(argv: Sequence[str]) -> str:
     return completed.stdout
 
 
-def test_the_top_level_help_lists_the_four_commands_that_exist() -> None:
+def test_the_top_level_help_lists_the_five_commands_that_exist() -> None:
     text = _help_of(["--help"])
     assert "validate" in text and "tool" in text and "corpus" in text and "study" in text
-    assert "verifier-eval" not in text and " mcp" not in text
+    assert "verifier-eval" in text
+    assert " mcp" not in text
 
 
 def test_study_offers_build_run_and_score() -> None:
@@ -643,3 +651,160 @@ def test_a_validate_whose_subject_would_not_run_still_exits_one(
     assert code == EXIT_FAILED_RUN
     assert printed == ""
     assert "no `code/` directory" in err
+
+
+# --- `quaestor verifier-eval`, the component eval's front door (Phase 13) ------------------------
+
+
+def _dataset_files(root: Path) -> tuple[Path, Path]:
+    """Write a FinQA-shaped and a TAT-QA-shaped file out of the ten committed fixture items.
+
+    No row of either dataset is committed or read here: `CLAUDE.md`'s rule is that the real files
+    are named on the command line by a human and never by a test (D-194).
+    """
+    items = _verifier_eval.load_fixtures(REPO_ROOT / "tests" / "fixtures" / "verifier_eval")
+    return (
+        write_finqa(root / "finqa" / "dev.json", items),
+        write_tatqa(root / "tatqa" / "tatqa_dataset_dev.json", items),
+    )
+
+
+def test_verifier_eval_refuses_a_dataset_path_that_is_not_there(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The guard, in its second form: the flag was given and the file behind it is not there."""
+    finqa, _ = _dataset_files(tmp_path)
+    code, printed, err = run(
+        capsys,
+        "verifier-eval",
+        "--finqa",
+        str(finqa),
+        "--tatqa",
+        str(tmp_path / "missing.json"),
+        "--out",
+        str(tmp_path / "out"),
+        "--llm",
+        "fake",
+    )
+    assert code == EXIT_USAGE
+    assert printed == ""
+    assert "there is no dataset file at" in err and "--tatqa" in err
+    assert "data/README.md" in err
+
+
+def test_verifier_eval_refuses_a_taxonomy_its_module_is_not_beside(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`eval/verifier_eval.py` is loaded from beside the taxonomy, as `study`'s modules are."""
+    finqa, tatqa = _dataset_files(tmp_path)
+    code, _, err = run(
+        capsys,
+        "verifier-eval",
+        "--finqa",
+        str(finqa),
+        "--tatqa",
+        str(tatqa),
+        "--out",
+        str(tmp_path / "out"),
+        "--llm",
+        "fake",
+        "--taxonomy",
+        str(tmp_path / "taxonomy.yaml"),
+    )
+    assert code == EXIT_USAGE
+    assert "verifier_eval.py" in err and "quaestor verifier-eval" in err
+
+
+def test_verifier_eval_runs_offline_and_writes_its_summary(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`--llm fake` is `OfflineLLM`, so the whole command runs with no network and no key.
+
+    `--model` is passed through to the provider as `study run` passes it, because a component eval
+    whose model is not named is not comparable to the study that quotes it.
+    """
+    finqa, tatqa = _dataset_files(tmp_path)
+    out = tmp_path / "out"
+    code, printed, err = run(
+        capsys,
+        "verifier-eval",
+        "--finqa",
+        str(finqa),
+        "--tatqa",
+        str(tatqa),
+        "--out",
+        str(out),
+        "--llm",
+        "fake",
+        "--n",
+        "3",
+        "--seed",
+        "20260901",
+        "--model",
+        "offline",
+    )
+    assert code == EXIT_OK, err
+    assert "status accuracy: verified 1.0000, mismatch 1.0000, unsupported 1.0000" in printed
+    assert "is not counted as an error" in printed
+    assert "n = 3 items per dataset." in printed
+    summary = json.loads((out / "verifier_eval.json").read_text(encoding="utf-8"))
+    assert summary["n_per_dataset"] == {"finqa": 3, "tatqa": 3}
+    assert summary["n_items"] == 6 and summary["failures"] == []
+
+
+def test_verifier_eval_exits_one_when_an_item_could_not_be_evaluated(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A replay with nothing on tape: both documents are written and a person is owed an answer."""
+    finqa, tatqa = _dataset_files(tmp_path)
+    cassettes = tmp_path / "cassettes"
+    cassettes.mkdir()
+    code, printed, _ = run(
+        capsys,
+        "verifier-eval",
+        "--finqa",
+        str(finqa),
+        "--tatqa",
+        str(tatqa),
+        "--out",
+        str(tmp_path / "out"),
+        "--llm",
+        "replay",
+        "--cassettes",
+        str(cassettes),
+        "--n",
+        "1",
+    )
+    assert code == EXIT_FAILED_RUN
+    assert "not evaluated" in printed
+    assert (tmp_path / "out" / "verifier_eval.json").is_file()
+
+
+def test_verifier_eval_refuses_a_file_that_yields_no_item(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Nothing ran, so the code is 2, and the message is about the file and not about the score."""
+    _, tatqa = _dataset_files(tmp_path)
+    empty = tmp_path / "empty.json"
+    empty.write_text(json.dumps([]), encoding="utf-8")
+    code, _, err = run(
+        capsys,
+        "verifier-eval",
+        "--finqa",
+        str(empty),
+        "--tatqa",
+        str(tatqa),
+        "--out",
+        str(tmp_path / "out"),
+        "--llm",
+        "fake",
+    )
+    assert code == EXIT_USAGE
+    assert "no eligible finqa item" in err
+
+
+def test_verifier_eval_help_says_both_dataset_paths_are_required() -> None:
+    """The `--help` a reader consults before downloading anything."""
+    text = _help_of(["verifier-eval", "--help"])
+    assert "--finqa" in text and "--tatqa" in text
+    assert "never committed" in text

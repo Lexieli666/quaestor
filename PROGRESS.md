@@ -140,7 +140,17 @@ are named in brackets.
     1.0 (D-156)
 - [ ] **Phase 12** — The study: build variants, run three configurations live, score, publish
   (`04` §3–5)
-- [ ] **Phase 13** — Verifier component eval on FinQA / TAT-QA (`04` §6)
+- [x] **Phase 13** — Verifier component eval on FinQA / TAT-QA (`04` §6)
+  - the **harness only**: `eval/verifier_eval.py`'s live half and `quaestor verifier-eval` ship
+    here and **no live run was made**, so there is no status accuracy, no false-verified rate, no
+    extraction recall and no re-ask rate to quote yet; `docs/EVALUATION.md` says so in those words
+  - the sample is **50 items per dataset, 100 in total**, not `04` §6's 150 — the operator's cut,
+    decided before the first live call (D-194) — and the note is a field of `verifier_eval.json`
+    and the first line the command prints, so a figure read from a terminal carries it
+  - TAT-QA ships no `span-number`: a `span` answer that is one number is one, `count` is not, and
+    the scale words other than `percent` are the table's unit and not the number's (D-195)
+  - the command **refuses to run without both dataset paths**, and a dataset that yields no
+    eligible item raises rather than reporting an accuracy over an empty sample
 - [ ] **Phase 14** — Human anchor: the manual validation vs the copilot's (`04` §7)
 - [ ] **Phase 15** — MCP server + Claude Desktop demo (spec §3.15)
 - [ ] **Phase 16** — Prior art, docs, README, publish, resume bullets (spec §10, `05`)
@@ -1609,3 +1619,56 @@ One line per phase, appended in the phase's own commit: date, phase, gate result
   validate --synthetic --llm fake` renders both subjects, grounding 1.0000 pre- and post-repair over
   60 and 51 claims; `examples/golden_report/` untouched. **[stranded]** `pytest tests/probatio
   --cassette=replay` not run and not touched, unchanged at **7 failed, 33 passed** (D-188).
+- 2026-09-20 — **Phase 13** — **the component eval's harness, and not its numbers.** `04` §6's live
+  half is built and **no live call was made in this session**: `eval/verifier_eval.py` gains two
+  dataset loaders, an eligibility rule, a seeded sample, the metrics §6 names and `run_datasets`,
+  and `src/quaestor/cli.py` gains `quaestor verifier-eval`, which loads that module from beside its
+  `--taxonomy` exactly as the three `study` actions load theirs (D-127, D-193). **The sample is 50
+  items per dataset, 100 in total, not §6's 150** — the operator's cut to the study's budget,
+  decided before any live call (D-194) — and the deviation is carried as data, not as a footnote:
+  `SAMPLE_NOTE` is written into `verifier_eval.json` as `sample_note` and is the **first line** the
+  command prints, above the accuracy it qualifies; a run with any other `--n` writes its own number
+  instead. `docs/STUDY.md` gains **Amendment 2** saying the same thing where the protocol lives.
+  **The command refuses to run without both dataset paths** — both flags `required`, both files
+  checked before the module is loaded, and a dataset that yields no eligible item raises rather
+  than printing `verified 0.0000` over nothing. Neither dataset is committed and **no test reads
+  either**: the offline tests build files in the *shape* of each dataset out of the ten fixtures
+  Phase 7 wrote (`tests/datasetsupport.py`), and `data/README.md` gains the table of where the two
+  dev splits are downloaded from and under which licence. Three readings were decided and written
+  down: **`span-number`** is a `span` answer that is a single number, because the released TAT-QA
+  file spells only `arithmetic`, `span`, `multi-span` and `count`, and a `count` is the number of
+  spans matched rather than a quantity read out of the table (D-195); **five eligibility rules**,
+  each of which keeps a sentence from being decided for a reason that is not the extractor's doing,
+  of which the load-bearing one is that a percentage of magnitude at most one is dropped, because
+  the matcher normalises a per cent against a unit-interval artifact and `0.2%` stored as `0.2`
+  would make the *correctly cited* sentence a mismatch (D-196); and **a verified perturbed sentence
+  is a tolerance boundary only when it verified against the `answer` artifact** (D-197) — Phase 7
+  counted every verified (b) as a boundary, which made §6's false-verified rate zero by
+  construction, and the rate now measures the one thing that can produce a false `verified` from a
+  deterministic matcher, a citation the extractor moved to a cell that happens to carry the
+  perturbed number. The re-ask rate and the cost are read back from the run's own `trace.jsonl`
+  through `TraceReader`, so they cannot disagree with what a validation counts, and an item whose
+  extraction fails twice is kept as an `ItemFailure` rather than dropped, so one bad answer costs
+  the run one item and not its denominator. **Measured offline on the operator's copy of the two
+  dev splits, on this date, with `--llm fake`** (`OfflineLLM`, no network, no key, nothing
+  committed from it): 835 of FinQA's 883 rows and 999 of TAT-QA's 1,419 arithmetic-and-span
+  questions are eligible, so 50 from each is drawn from candidates to spare; the rehearsal scored
+  100/100 items and 300/300 sentences as §6 expects, and 600/600 at `--n 300`, with 0 tolerance
+  boundaries and 0 false verifications — which measures the construction and the matcher and **not
+  a model**, since `OfflineLLM` reads the numbers back out of the prompt it was given, and is
+  recorded because a construction a perfect extractor cannot score perfectly is measuring itself
+  (D-196). Tests: **29 added**, all offline — 23 in `tests/test_verifier_eval_datasets.py` (the two
+  loaders and what each drops, the label rule, the five eligibility rules, the seeded draw, a run
+  over both shapes, the note, a silent extractor, a provider that cannot answer, the moved citation
+  that is a false verification and the boundary arithmetic that is not) and 6 in
+  `tests/test_cli.py` (the two refusals, the taxonomy guard, an offline run end to end, the exit-1
+  path through a replay with nothing on tape, and `--help`); `tests/test_cli.py`'s two assertions
+  that `verifier-eval` is an argparse "invalid choice" are replaced, since D-082 says a command
+  appears in the phase that makes it work. Gate: offline suite excluding `tests/probatio`
+  **1,780 passed**, 0 failed, 0 skipped, 0 xfailed (1,751 → 1,780); line coverage of `src/quaestor`
+  **99%** (`coverage run -m pytest`, 6,527 statements, 2 missed), `cli.py` at **100%**;
+  `ruff check` and `ruff format --check` clean on `src tests eval subjects`; `mypy --strict
+  src/quaestor` clean over 60 source files; `quaestor validate --synthetic --llm fake` renders both
+  subjects; `examples/golden_report/` untouched. **[stranded]** `pytest tests/probatio
+  --cassette=replay` unchanged at **7 failed, 33 passed** (D-188), neither touched nor fixed here.
+  No push.

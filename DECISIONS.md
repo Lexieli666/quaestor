@@ -7337,3 +7337,116 @@ cannot be reconciled from the ledger even in principle.
   column into `summary.json`**, which changes a schema D-182 fixed and that the free sweep's
   eighteen directories were scored under, to carry a string only a reader of the prose report
   needs.
+
+## D-194. The verifier component eval samples 50 items per dataset, not 150, and says so everywhere a figure is read
+
+- **Date:** 2026-09-20 (Phase 13)
+- **Q:** `04-SEEDED-DEFECT-STUDY.md` §6 fixes the sample at 150 items per dataset — 300 items,
+  900 sentences, about 300 extraction calls. The operator has cut the study's budget and decided
+  the number is **50 per dataset, 100 in total**. §6 also says the protocol is not to be changed
+  after the first live run except by a dated amendment. Where does a deviation decided *before* any
+  live call live, and what stops a figure from this run being read as a figure over 300 items?
+- **A:** **`LIVE_N = 50`, and the deviation is a field of the data rather than a line of prose in
+  a document beside it.**
+
+  `eval/verifier_eval.py` carries `SAMPLE_NOTE`, one sentence naming the protocol's number, this
+  run's number and the reason. It is written into `verifier_eval.json` as `sample_note`, it is the
+  **first line** `quaestor verifier-eval` prints, and `summary_lines` puts it above the accuracy it
+  qualifies. A run with any other `--n` writes `n = N items per dataset.` instead, so the note can
+  never say 50 about a sample that is not 50.
+
+  The rejected alternative was the usual one: record it in `docs/STUDY.md` and quote the numbers
+  plainly. Every figure this command produces is read either from a terminal or from a JSON file,
+  and neither carries a document's footnote with it. The amount of thought a reader has to spend
+  to discover that `n` is a third of the protocol's should be zero, and a field is zero.
+
+  **What this costs.** A per-perturbation-type rate is now over roughly twenty sentences rather
+  than sixty, which is an interval wide enough that a difference between two perturbation types
+  will not be readable. That is the trade the budget bought and it is stated in `docs/EVALUATION.md`
+  when the live run is written up: the headline status accuracies are over 100 items and 300
+  sentences, and the by-type table is indicative only.
+
+## D-195. TAT-QA ships no `span-number`, so a span answer that is one number is one
+
+- **Date:** 2026-09-20 (Phase 13)
+- **Q:** `04` §6 says to keep TAT-QA items whose `answer_type ∈ {arithmetic, span-number}`. The
+  released `tatqa_dataset_dev.json` spells four values and `span-number` is not among them:
+  `arithmetic` (718 questions), `span` (701), `multi-span` (217) and `count` (32). What does the
+  protocol's second class mean against the file that exists?
+- **A:** **A `span` answer that is a single number, and nothing else.**
+
+  The protocol's phrase is the TAT-QA paper's description of what a span answer can be, not a
+  literal field value: a span drawn from the table is either a number or a phrase, and only the
+  number can be cited to an artifact and checked. So `_tatqa_answer` keeps `arithmetic` always and
+  `span` when its single answer parses as a number, and drops `multi-span` (two spans are not one
+  claim) and **`count`** — a count answer is the number of spans the question matched, not a
+  quantity read out of the table, so citing it to a cell would be citing the wrong thing.
+
+  Two smaller readings came with it. **`scale`** is `percent`, `thousand`, `million`, `billion` or
+  empty; only `percent` is a property of the number, and it sets the claim's unit. The magnitude
+  words are the *table's* unit — the dataset writes `-12.6` for minus 12.6 million — and the
+  sentence writes, and the store holds, the number the dataset wrote. Multiplying it out would put
+  a number in the prose that no cell of the table contains. **`derivation`** becomes the item's
+  `arithmetic` field, which is documentation for a human reading the item and is not checked.
+
+## D-196. Five eligibility rules, because an item can be scored for a reason that is not the extractor's doing
+
+- **Date:** 2026-09-20 (Phase 13)
+- **Q:** Which dataset items can carry the three sentences of `04` §6 without confounding what the
+  component eval measures?
+- **A:** **Five rules in `eligible`, each of which exists because breaking it decides a sentence
+  before the model sees it.**
+
+  1. **A table with at least one numeric cell.** Otherwise the store holds only `answer`, and a
+     citation the extractor moves has nowhere to move to.
+  2. **A gold answer that is not zero.** Every relative perturbation of zero is zero, so (b) would
+     be (a) and would verify by construction.
+  3. **A perturbation the prose can write apart from the gold.** `_written` renders four decimals;
+     if the perturbed number rounds to the gold's spelling, the sentence is not perturbed at all.
+  4. **No percentage of magnitude at most one.** The matcher normalises a per cent against a
+     unit-interval artifact (D-014), so `0.2%` stored as `0.2` is compared as `0.002` and the
+     *correctly cited* sentence comes out a mismatch. The fixtures' convention — a per cent is
+     stored as the prose writes it, `20.0` for `20.0%` — is kept, and this rule is what keeps it
+     true; the alternative, storing a per cent sometimes as a rate and sometimes on the 0–100
+     scale depending on its size, is two conventions in one file.
+  5. **A label that writes neither the gold nor the perturbed number.** Within a line, the pre-pass
+     matches tokens to the model's claims by value and in order (D-085); two tokens of the same
+     value on one line make which one carries the citation a coin toss.
+
+  **Measured on the operator's copy of the two dev splits, offline, on 2026-09-20:** 835 of FinQA's
+  883 rows and 999 of TAT-QA's 1,419 arithmetic-and-span questions are eligible, so a sample of 50
+  from each is drawn from candidates to spare and the rules are not quietly selecting a
+  sub-population of easy items. Neither file is in this repository and neither count can be
+  reproduced from it, which is why the numbers are here and not in `docs/`.
+
+  **The same rehearsal, with `--llm fake`**, scored 100/100 items and 300/300 sentences as `04` §6
+  expects, and 600/600 sentences at `--n 300`. That measures the construction and the matcher, not
+  a model: `OfflineLLM` reads the numbers back out of the prompt it was given. It is recorded
+  because a construction that cannot be scored perfectly by a perfect extractor is measuring
+  itself, and this one can be.
+
+## D-197. A perturbed sentence that verifies is a tolerance boundary only when it verified against the answer artifact
+
+- **Date:** 2026-09-20 (Phase 13)
+- **Q:** Phase 7 marked **every** verified (b) sentence a tolerance boundary. The matcher is
+  deterministic, so that is nearly a tautology — a claim that verified was inside its tolerance —
+  and it makes the false-verified rate `04` §6 asks for identically zero by construction. What is
+  a false verification, then, and how is it told apart from the exemption?
+- **A:** **By which artifact it verified against.**
+
+  A perturbed sentence cites the `answer` artifact. If it resolves to that artifact and is inside
+  tolerance, the tolerance did its job: `04` §6 is explicit that a ±5% move inside the grammar's
+  allowance is *supposed* to verify, and scoring it as an error is how a component eval talks its
+  own tolerance down until real reports start failing. It is counted as a **tolerance boundary**,
+  reported with its tolerance, and taken out of the denominator of the rate.
+
+  If it resolves to **any other artifact** — a citation the extractor moved to a table cell that
+  happens to carry the perturbed number, or one it invented that resolves — then the verifier said
+  `verified` about a false number for a reason that has nothing to do with tolerance. That is an
+  extraction failure, it is the only thing on (b) counted as an error, and `false_verified_rate`
+  is that count over the sentences that were catchable at all.
+
+  The consequence is that the rate is a real measurement of the model under test rather than of the
+  grammar, and that a run of a perfect extractor reports `0/24 (0.0000); 0 of 24 inside tolerance`
+  — which says both things a reader needs, that nothing slipped through and that the tolerance was
+  never the reason.

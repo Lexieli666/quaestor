@@ -1844,3 +1844,59 @@ which makes the CLI a string formatter for a second parser and throws away the r
 answer keys a report has to be rendered from. **Putting the "said instead" column into
 `summary.json`**, which changes a schema D-182 fixed, and which the free sweep's eighteen
 directories were scored under, to carry a string only a reader of the prose report needs.
+
+## Phase 13 — The verifier alone, on two public datasets
+
+`04` §6 evaluates the claim verifier by itself because it is the component the product is
+differentiated by, and because a whole-report number cannot say whether it was the extractor or
+the matcher that was right. Phase 7 built the construction — one item is a table, a question and a
+gold answer; three sentences are rendered from it, the answer correctly cited, the answer perturbed
+and cited to the same artifact, and the answer with no citation; the expected statuses are
+`verified`, `mismatch`, `unsupported`. Phase 13 adds the half that needs data: two loaders, an
+eligibility rule, a seeded sample and `quaestor verifier-eval`.
+
+**The command refuses to run without both dataset paths.** FinQA and TAT-QA are read from paths a
+human names; neither is committed and no test opens either. A command that accepted a run with no
+`--finqa` would sample nothing and print `status accuracy: verified 0.0000` — a sentence that reads
+like a measurement of a bad extractor rather than a measurement of nothing. Both flags are
+`required`, the files are checked before the module is loaded, and a dataset that yields no
+eligible item raises rather than returning an empty sample. The rejected alternative was a default
+path under `data/`, which would make the guard depend on what happens to be on the machine.
+
+**Five eligibility rules, each of which keeps a sentence from being decided for a reason that is
+not the extractor's doing** (D-196). A table with no numeric cell leaves nothing in the store but
+the answer, so a moved citation has nowhere to land. A gold answer of zero has no relative
+perturbation. A perturbed answer that the prose *writes* the way it writes the gold one verifies by
+construction. A percentage of at most one — `0.2%` — would be stored as `0.2` and compared as
+`0.002`, because the matcher normalises a per cent against a unit-interval artifact, so the
+correctly cited sentence would come out a mismatch for a reason that is the scale and not the
+model. And a label that itself writes the gold or the perturbed number puts two claims of the same
+value on one line, which makes which of them carries the citation a coin toss. The rejected
+alternative was scoring those items and explaining them afterwards, which spends the sample on the
+construction rather than on the verifier. The rules leave both dev splits with candidates to
+spare — the counts are in `DECISIONS.md` D-196, measured on the operator's own copy of the two
+files, because neither file is in this repository and no number here can be reproduced from it.
+
+**A verified perturbed sentence is a tolerance boundary only if it verified against the answer
+artifact** (D-197). The matcher is deterministic, so a perturbed number that verifies against the
+artifact it cites is inside tolerance by definition, which is `04` §6's exemption: a ±5% move of a
+rate the prose wrote to two decimals is *supposed* to verify, and counting it as an error would
+push the tolerance down until real reports began failing. But a sentence that verifies against
+*another* artifact — a citation the extractor moved to a cell that happens to carry the perturbed
+number — is not the tolerance working; it is the one extraction failure that produces a false
+`verified`, and the report counts it as such, with the boundaries taken out of the denominator and
+named separately. The rejected alternative was the Phase 7 rule, which treated every verified
+perturbation as a boundary and so could never have measured a false verification at all.
+
+**The sample is 50 items per dataset, not 150** (D-194). That is the operator's decision on the
+study's budget, taken before the first live call, and the number travels with the figures rather
+than being recorded once in a protocol document: `SAMPLE_NOTE` is a field of `verifier_eval.json`
+and the first line the command prints. The rejected alternative — a footnote in `STUDY.md` — leaves
+every number that is quoted from a terminal or a JSON file unqualified.
+
+**The re-ask rate is read from the trace, not counted here.** Every extraction is one
+`structured()` call, which writes an `llm_call` event with purpose `extract` and, when its first
+answer did not validate, a second with purpose `reask`. Reading them back through `TraceReader` is
+how a validation's cost line is computed, so the component eval cannot disagree with the study
+about what a re-ask is. And an item whose extraction fails twice is kept as an `ItemFailure`
+instead of being dropped, so that one bad answer costs the run one item and not its denominator.

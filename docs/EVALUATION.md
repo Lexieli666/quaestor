@@ -20,6 +20,11 @@ component eval on FinQA / TAT-QA is Phase 13, and the human anchor is Phase 14. 
 what this file records is the one thing already measured: what happened the first time the
 pipeline met a real model and a real sample.
 
+Phase 13 has shipped the component eval's **harness** — `eval/verifier_eval.py` and
+`quaestor verifier-eval`, over a sample of 50 items per dataset rather than §6's 150 (D-194) — and
+**no live run of it has been made**. There is therefore no status accuracy, no false-verified rate,
+no extraction recall and no re-ask rate to quote here yet, and none is quoted.
+
 Nothing here is a compliance claim. The reports the runs below produce are SR 11-7-*shaped*.
 
 ## 1. Defects found in live runs
